@@ -49,6 +49,8 @@ test("lista: duplicare, arhivare, ștergere cu anulare", async ({ page }) => {
 
   await page.getByRole("button", { name: "Opțiunile listei" }).click();
   await page.getByRole("button", { name: "Arhivează" }).click();
+  // Așteptăm salvarea înainte de navigare, altfel ea se poate pierde pe o mașină lentă.
+  await expect(page.getByText("Lista a fost arhivată.")).toBeVisible();
   await page.goto("/cumparaturi/");
   await page.getByRole("button", { name: /Arată \(1\)/ }).click();
   await expect(page.getByText("Weekend (copie)")).toBeVisible();
