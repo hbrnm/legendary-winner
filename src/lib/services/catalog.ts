@@ -107,7 +107,8 @@ export async function productSearchIndex(ctx: AppCtx, boosts: Map<string, number
   const docs: SearchDoc[] = products.map((p) => ({
     id: p.id,
     name: p.name,
-    terms: [...(byProduct.get(p.id) ?? []), p.subcategory ?? "", p.ean ?? ""],
+    terms: [...(byProduct.get(p.id) ?? []), p.ean ?? ""],
+    weakTerms: [p.subcategory ?? ""],
     boost: boosts.get(p.id) ?? 0,
   }));
   return buildIndex(docs);

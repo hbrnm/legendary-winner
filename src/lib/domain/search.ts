@@ -46,6 +46,8 @@ export interface SearchDoc {
   name: string;
   /** Sinonime, denumiri regionale, comerciale, brand, EAN. */
   terms: string[];
+  /** Termeni slabi (ex. subcategoria „Lapte”): găsesc produsul, dar nu îl urcă în fața potrivirilor directe. */
+  weakTerms?: string[];
   /** Spor de relevanță (ex. produse folosite des de gospodărie). */
   boost?: number;
 }
@@ -54,7 +56,7 @@ interface IndexedTerm {
   norm: string;
   words: string[];
   stems: string[];
-  primary: boolean;
+  weight: number;
 }
 
 interface IndexedDoc {
@@ -66,26 +68,31 @@ export interface SearchIndex {
   docs: IndexedDoc[];
 }
 
-function indexTerm(text: string, primary: boolean): IndexedTerm {
+function indexTerm(text: string, weight: number): IndexedTerm {
   const norm = normalize(text);
   const words = norm.split(" ").filter(Boolean);
-  return { norm, words, stems: words.map(stem), primary };
+  return { norm, words, stems: words.map(stem), weight };
 }
 
 export function buildIndex(docs: SearchDoc[]): SearchIndex {
   return {
     docs: docs.map((doc) => ({
       doc,
-      terms: [indexTerm(doc.name, true), ...doc.terms.filter(Boolean).map((t) => indexTerm(t, false))],
+      terms: [
+        indexTerm(doc.name, 1),
+        ...doc.terms.filter(Boolean).map((t) => indexTerm(t, 0.9)),
+        ...(doc.weakTerms ?? []).filter(Boolean).map((t) => indexTerm(t, 0.5)),
+      ],
     })),
   };
 }
 
 function scoreTerm(term: IndexedTerm, qNorm: string, qWords: string[]): number {
   if (!term.norm) return 0;
-  const weight = term.primary ? 1 : 0.9;
+  const weight = term.weight;
   if (term.norm === qNorm) return 100 * weight;
-  if (term.norm.startsWith(qNorm)) return 80 * weight;
+  // Începe cu textul căutat: denumirile mai scurte (produsul de bază) urcă.
+  if (term.norm.startsWith(qNorm)) return (80 - Math.min(10, (term.words.length - qWords.length) * 2)) * weight;
 
   // Fiecare cuvânt din căutare trebuie să se potrivească cu un cuvânt din termen.
   let total = 0;
@@ -122,6 +129,6 @@ export function search(index: SearchIndex, query: string, limit = 20): SearchHit
     for (const t of entry.terms) best = Math.max(best, scoreTerm(t, qNorm, qWords));
     if (best > 0) hits.push({ doc: entry.doc, score: best + (entry.doc.boost ?? 0) });
   }
-  hits.sort((a, b) => b.score - a.score || a.doc.name.localeCompare(b.doc.name, "ro"));
+  hits.sort((a, b) => b.score - a.score || a.doc.name.length - b.doc.name.length || a.doc.name.localeCompare(b.doc.name, "ro"));
   return hits.slice(0, limit);
 }

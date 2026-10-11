@@ -334,3 +334,58 @@ export async function finalizeShopping(ctx: AppCtx, listId: string, opts: { addT
     added_to_pantry: added,
   };
 }
+
+/** Anulează ștergerea unui produs din listă (butonul „Anulează” de după ștergere). */
+export async function restoreItem(ctx: AppCtx, id: string) {
+  await updateRow(ctx.db, "shopping_list_items", id, { deleted_at: null }, w(ctx));
+}
+
+/**
+ * Completează sau corectează suma plătită pentru un produs dintr-o
+ * cumpărătură finalizată (ex. prețul uitat în magazin). Actualizează și
+ * istoricul de prețuri.
+ */
+export async function setTransactionItemAmount(ctx: AppCtx, id: string, amount: number | null) {
+  if (amount != null) parse(zMoney, amount);
+  const item = await ctx.db.shopping_transaction_items.get(id);
+  if (!item || item.deleted_at) throw new UserError("Produsul nu mai există în istoric.");
+  await updateRow(ctx.db, "shopping_transaction_items", id, { amount }, w(ctx));
+  if (!item.product_id) return;
+  const product = await ctx.db.products.get(item.product_id);
+  const priceId = await stableId("pret", id);
+  if (amount == null) {
+    if (await ctx.db.product_prices.get(priceId)) await softDelete(ctx.db, "product_prices", priceId, w(ctx));
+    return;
+  }
+  await upsertRow(
+    ctx.db,
+    "product_prices",
+    {
+      id: priceId,
+      household_id: ctx.householdId,
+      product_id: item.product_id,
+      retailer_id: item.retailer_id,
+      source: item.source,
+      amount,
+      currency: "RON",
+      quantity: item.quantity ?? 1,
+      unit: item.unit ?? product?.default_unit ?? "buc",
+      price_type: "platit",
+      confidence: item.quantity == null ? "medie" : "ridicata",
+      observed_on: localDateOf(item.purchased_at),
+      transaction_item_id: id,
+    },
+    w(ctx),
+  );
+}
+
+/** Șterge o cumpărătură din istoric (ex. introdusă din greșeală); cheltuiala dispare din buget. */
+export async function deleteTransaction(ctx: AppCtx, id: string) {
+  for (const item of await ctx.db.shopping_transaction_items.where("transaction_id").equals(id).toArray()) {
+    if (item.deleted_at) continue;
+    await softDelete(ctx.db, "shopping_transaction_items", item.id, w(ctx));
+    const priceId = await stableId("pret", item.id);
+    if (await ctx.db.product_prices.get(priceId)) await softDelete(ctx.db, "product_prices", priceId, w(ctx));
+  }
+  await softDelete(ctx.db, "shopping_transactions", id, w(ctx));
+}
