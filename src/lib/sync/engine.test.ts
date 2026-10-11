@@ -186,4 +186,20 @@ describe("sincronizarea între dispozitive", () => {
     await b.syncNow();
     expect(await (b as unknown as { db: CamaraDB }).db.shopping_list_items.count()).toBe(8);
   });
+
+  it("o a doua sincronizare fără schimbări pe server nu mai aduce rânduri", async () => {
+    // Catalogul e scris într-o singură rafală, cu ore aproape identice.
+    for (let i = 0; i < 20; i++) await remote.upsert("products", { id: `p${i}`, household_id: null, name: `Produs ${i}` });
+    remote.advance(60_000);
+    const db = new CamaraDB(`fereastra-${Math.random()}`);
+    const sync = new SyncEngine(db, remote, { pageSize: 8 });
+    await sync.syncNow();
+    expect(await db.products.count()).toBe(20);
+
+    remote.advance(60_000);
+    const pull = vi.spyOn(remote, "pull");
+    await sync.syncNow();
+    const rows = (await Promise.all(pull.mock.results.map((r) => r.value))).flat();
+    expect(rows).toHaveLength(0);
+  });
 });

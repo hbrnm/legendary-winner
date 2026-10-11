@@ -23,6 +23,11 @@ export class FakeRemote implements RemoteStore {
     return new Date(this.tick).toISOString();
   }
 
+  /** Trece timpul pe server fără nicio scriere. */
+  advance(ms: number) {
+    this.tick += ms;
+  }
+
   private check() {
     if (!this.online) throw new RemoteUnavailable("Fără conexiune");
   }
