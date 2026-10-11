@@ -39,7 +39,7 @@ Decizii (11 oct. 2026):
 | 3 | Stocare locală, sincronizare, servicii | gata | 9deeb4f |
 | 4 | Interfața completă + PWA | gata | 28e46ad |
 | 5 | E2E (demo și cloud), Supabase local fără Docker, texte | gata | a7a169c + commit-ul „fix: E2E cloud” |
-| 6 | Documentație, CLAUDE.md, CI, raport final | de făcut | |
+| 6 | Documentație, CLAUDE.md, CI, raport final | în lucru (CI de confirmat pe GitHub) | vezi `git log` |
 
 ## Rezumat pe etape
 ### Etapele 1–4 (11 oct.)
@@ -66,18 +66,20 @@ Fix-ul `currentUser = undefined` era deja în a7a169c. E2E-ul cloud mai pica din
 
 Dovada: `npm run test:e2e:cloud` 1/1, de 6 ori la rând; `npx playwright test` 15/15, de 2 ori; `npm test` 99/99; `npm run test:db` 24/24; `npm run build`, `tsc --noEmit`, `eslint` curate.
 
+### Etapa 6 (11 oct., sesiunea a doua)
+- `CLAUDE.md` la zi: gospodării cu roluri, structura, comenzile de test, conținutul din `src/data` cere aprobare.
+- Documentație: `README.md`, `CHANGELOG.md`, `.env.example`, iar în `docs/`: ARCHITECTURE, DATABASE_SCHEMA, API_DOCUMENTATION, DEPLOYMENT, ENVIRONMENT_VARIABLES, TESTING, ROADMAP, IMPLEMENTATION_STATUS.
+- `IMPLEMENTATION_STATUS.md`: criteriile 1–22 nu sunt în repo (erau doar în conversație) → „DE COMPLETAT”; am listat ce dovedesc testele.
+- CI: `.github/workflows/ci.yml` (lint, typecheck, test, test:db cu serviciu Postgres, build, E2E demonstrativ și cloud). `eslint` ignoră `out-cloud/` și `.local-supabase/`.
+
 ## De făcut (în ordine)
-3. Actualizează `CLAUDE.md`:
-   - gospodării cu roluri în loc de cont comun;
-   - comenzile de test: `test:db`, `test:e2e`, `test:e2e:cloud`;
-   - structura (`src/data`, `src/lib/{domain,db,sync,services}`, `e2e`, `e2e-cloud`);
-   - textele de rețete și catalog sunt scrise de agenți și au nevoie de aprobarea proprietarului.
-4. Documentație: README, ARCHITECTURE, DATABASE_SCHEMA, API_DOCUMENTATION (RPC + tabele), DEPLOYMENT (Supabase + Vercel, `db push`, seed, backup și restaurare, setarea `app_admins`), ENVIRONMENT_VARIABLES, TESTING, CHANGELOG, ROADMAP, IMPLEMENTATION_STATUS (criteriile de acceptanță 1–22, bifate doar cu dovadă), `.env.example`.
-5. CI: `.github/workflows/ci.yml` cu lint, typecheck, test, test:db (serviciu Postgres + `TEST_DATABASE_URL`), build, e2e.
-6. Raportul final către proprietar (cerut în promptul inițial, secțiunea 23), apoi PR, dacă îl cere.
+1. Confirmă că CI-ul trece pe GitHub; repară dacă pică.
+2. Proprietarul trimite criteriile 1–22 → se bifează în `docs/IMPLEMENTATION_STATUS.md`, doar cu dovadă.
+3. Proprietarul aprobă textele din `src/data`.
+4. PR spre `main`, dacă îl cere.
 
 ## Cum verific la final
 `npm test && npm run test:db && npm run build && npx playwright test && npm run test:e2e:cloud` trec, iar IMPLEMENTATION_STATUS.md bifează doar criteriile dovedite de aceste teste.
 
 ## Următorul pas
-Actualizează `CLAUDE.md` (punctul 3 din „De făcut”).
+Verifică rularea CI pe `claude/camara-v1` și cere proprietarului criteriile 1–22.
