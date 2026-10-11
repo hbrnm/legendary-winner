@@ -2,7 +2,7 @@ import type { CamaraDB, TableName } from "@/lib/db/database";
 import { SYNCED_TABLES, getMeta, setMeta } from "@/lib/db/database";
 import { applyRemoteRows, normalizeRemote } from "@/lib/db/write";
 import { nowIso } from "@/lib/clock";
-import { RemoteRejected, RemoteUnavailable, type RemoteStore } from "./remote";
+import { RemoteRejected, RemoteUnavailable, type PullFrom, type RemoteStore } from "./remote";
 
 export type SyncState = "inactiv" | "sincronizare" | "sincronizat" | "offline" | "eroare";
 
@@ -12,6 +12,13 @@ export interface SyncStatus {
   last_synced_at: string | null;
   last_error: string | null;
   rejected: number;
+}
+
+/** Ultimul rând citit dintr-un tabel și ora stabilă de la acea tragere. */
+interface PullCursor {
+  updated_at: string;
+  id: string | null;
+  stable: string | null;
 }
 
 export interface SyncOptions {
@@ -29,8 +36,14 @@ export interface SyncOptions {
  * câmpuri diferite ale aceluiași produs nu își suprascriu munca. Pe același
  * câmp câștigă ultima modificare ajunsă la server.
  *
- * Tragere: pentru fiecare tabel, rândurile cu updated_at mai nou decât
- * cursorul local. Modificările locale netrimise se reaplică peste ele.
+ * Tragere: pentru fiecare tabel, rândurile de după cursorul local, perechea
+ * (updated_at, id) a ultimului rând citit. Modificările locale netrimise se
+ * reaplică peste ele.
+ *
+ * O tranzacție începută mai devreme poate fi confirmată după ce am citit
+ * rânduri mai noi, așa că re-citim rândurile încă „recente”: cele cu
+ * updated_at după ora serverului de la tragerea trecută minus overlapMs.
+ * Rândurile mai vechi erau deja confirmate și nu se mai cer din nou.
  */
 export class SyncEngine {
   private running: Promise<void> | null = null;
@@ -129,24 +142,37 @@ export class SyncEngine {
   }
 
   async pull(): Promise<void> {
+    // Ora serverului înainte de prima pagină: tot ce e mai vechi decât ea
+    // minus fereastra era confirmat când am citit. Fără ea (funcția încă
+    // lipsește de pe server), re-citim fereastra de la cursor, ca înainte.
+    const now = await this.remote.serverNow().catch((e) => {
+      if (e instanceof RemoteRejected && e.code === "PGRST202") return null;
+      throw e;
+    });
+    const stable = now ? new Date(Date.parse(now) - this.overlapMs).toISOString() : null;
     for (const table of SYNCED_TABLES) {
       const cursorKey = `cursor:${table}`;
-      let cursor = (await getMeta<string>(this.db, cursorKey)) ?? null;
-      let since = cursor ? new Date(new Date(cursor).getTime() - this.overlapMs).toISOString() : null;
-      let prevLast: string | null = null;
+      const saved = (await getMeta<PullCursor | string>(this.db, cursorKey)) ?? null;
+      // Cursorul vechi era doar updated_at, fără ora serverului.
+      const cursor: PullCursor | null = typeof saved === "string" ? { updated_at: saved, id: null, stable: null } : saved;
+      let from: PullFrom | null = null;
+      if (cursor?.id != null && cursor.stable && Date.parse(cursor.updated_at) < Date.parse(cursor.stable)) {
+        from = { updated_at: cursor.updated_at, id: cursor.id };
+      } else if (cursor) {
+        const back = cursor.stable ?? new Date(Date.parse(cursor.updated_at) - this.overlapMs).toISOString();
+        from = { updated_at: Date.parse(back) < Date.parse(cursor.updated_at) ? back : cursor.updated_at };
+      }
+      let last = cursor;
       for (;;) {
-        const rows = await this.remote.pull(table, since, this.pageSize);
+        const rows = await this.remote.pull(table, from, this.pageSize);
         if (rows.length === 0) break;
         await applyRemoteRows(this.db, table, rows);
-        const last = rows[rows.length - 1].updated_at;
-        if (!cursor || Date.parse(last) > Date.parse(cursor)) cursor = last;
+        const r = rows[rows.length - 1];
+        last = { updated_at: r.updated_at, id: r.id, stable };
         if (rows.length < this.pageSize) break;
-        // Pagina următoare pornește de la ultimul rând (inclusiv); dacă nu am
-        // avansat deloc, sărim o milisecundă ca să nu rămânem blocați.
-        since = last === prevLast ? new Date(Date.parse(last) + 1).toISOString() : last;
-        prevLast = last;
+        from = { updated_at: r.updated_at, id: r.id };
       }
-      if (cursor) await setMeta(this.db, cursorKey, cursor);
+      if (last) await setMeta(this.db, cursorKey, { ...last, stable });
     }
   }
 

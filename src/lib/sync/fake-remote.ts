@@ -1,5 +1,5 @@
 import type { TableName } from "@/lib/db/database";
-import { RemoteRejected, RemoteUnavailable, type RemoteRow, type RemoteStore } from "./remote";
+import { RemoteRejected, RemoteUnavailable, type PullFrom, type RemoteRow, type RemoteStore } from "./remote";
 
 /**
  * Server în memorie, folosit în teste: imită comportamentul relevant al
@@ -59,12 +59,22 @@ export class FakeRemote implements RemoteStore {
     return this.t(table).get(id) ?? null;
   }
 
-  async pull(table: TableName, since: string | null, limit: number): Promise<RemoteRow[]> {
+  async pull(table: TableName, from: PullFrom | null, limit: number): Promise<RemoteRow[]> {
     this.check();
+    const after = (r: RemoteRow) => {
+      if (!from) return true;
+      if (from.id === undefined) return r.updated_at >= from.updated_at;
+      return r.updated_at > from.updated_at || (r.updated_at === from.updated_at && r.id > from.id);
+    };
     return [...this.t(table).values()]
-      .filter((r) => !since || r.updated_at >= since)
-      .sort((a, b) => a.updated_at.localeCompare(b.updated_at))
+      .filter(after)
+      .sort((a, b) => a.updated_at.localeCompare(b.updated_at) || (a.id < b.id ? -1 : a.id > b.id ? 1 : 0))
       .slice(0, limit);
+  }
+
+  async serverNow(): Promise<string> {
+    this.check();
+    return new Date(this.tick).toISOString();
   }
 
   subscribe(_householdId: string, onChange: () => void): () => void {

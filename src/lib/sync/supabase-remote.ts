@@ -1,6 +1,6 @@
 import type { SupabaseClient, PostgrestError } from "@supabase/supabase-js";
 import type { TableName } from "@/lib/db/database";
-import { RemoteRejected, RemoteUnavailable, type RemoteRow, type RemoteStore } from "./remote";
+import { RemoteRejected, RemoteUnavailable, type PullFrom, type RemoteRow, type RemoteStore } from "./remote";
 
 const REALTIME_TABLES: TableName[] = [
   "shopping_lists",
@@ -54,13 +54,18 @@ export class SupabaseRemote implements RemoteStore {
     return (data as RemoteRow | null) ?? null;
   }
 
-  async pull(table: TableName, since: string | null, limit: number): Promise<RemoteRow[]> {
+  async pull(table: TableName, from: PullFrom | null, limit: number): Promise<RemoteRow[]> {
     const data = await this.run(() => {
       let q = this.client.from(table).select("*").order("updated_at", { ascending: true }).order("id").limit(limit);
-      if (since) q = q.gte("updated_at", since);
+      if (from?.id !== undefined) q = q.or(`updated_at.gt."${from.updated_at}",and(updated_at.eq."${from.updated_at}",id.gt."${from.id}")`);
+      else if (from) q = q.gte("updated_at", from.updated_at);
       return q;
     });
     return (data ?? []) as RemoteRow[];
+  }
+
+  async serverNow(): Promise<string> {
+    return this.run(() => this.client.rpc("server_now")) as Promise<string>;
   }
 
   subscribe(householdId: string, onChange: () => void): () => void {
