@@ -97,6 +97,22 @@ html {
   -webkit-tap-highlight-color: transparent;
 }
 
+/* Pagina nu se derulează stânga-dreapta pe telefon, chiar dacă un conținut
+   iese din ecran (rândurile de butoane derulabile își păstrează derularea). */
+html,
+body {
+  overflow-x: clip;
+}
+
+/* Pe iPhone, un câmp cu litera sub 16 px face ca pagina să se mărească la
+   atingere. În afara straturilor Tailwind, ca să aibă prioritate față de
+   clasele text-sm/text-xs puse pe câmpuri. */
+input,
+select,
+textarea {
+  font-size: max(16px, 1em);
+}
+
 body {
   background: var(--bg);
   color: var(--ink);
