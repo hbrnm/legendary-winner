@@ -1,6 +1,6 @@
 # 001 — Cămara v1 (cumpărături, rețete, plan, buget, cămară)
 
-**Stare:** în așteptare (proprietarul: criteriile 1–22, aprobarea textelor din `src/data`)
+**Stare:** în așteptare (proprietarul: criteriile 1–22)
 **Ramura:** `claude/camara-v1` (pornită din `claude/configurare-camara`, care are `CLAUDE.md` și agenții)
 
 ## Scop
@@ -77,11 +77,11 @@ Dovada: `npm run test:e2e:cloud` 1/1, de 6 ori la rând; `npx playwright test` 1
 
 ## De făcut (în ordine)
 2. Proprietarul trimite criteriile 1–22 → se bifează în `docs/IMPLEMENTATION_STATUS.md`, doar cu dovadă.
-3. Proprietarul aprobă textele din `src/data`, pe pagina de aprobare: https://claude.ai/artifact/733eG5T4GHE5H4Ri8qBo2o (86 de rețete, 20 de categorii; „Aprob” / „De corectat” cu nota lui). Deciziile stau în colecția `decizii` a paginii și se citesc cu `ArtifactData list`. Ce e „De corectat” se repară într-un PR separat.
+3. ~~Proprietarul aprobă textele din `src/data`~~: aprobate toate (86 de rețete, catalogul cu 20 de categorii și 471 de produse, magazinele și locurile din cămară), 11 oct. 2026, „Aprob tot”. Pagina de aprobare (https://claude.ai/artifact/733eG5T4GHE5H4Ri8qBo2o) le arată pe toate aprobate. Textele noi sau schimbate de acum încolo cer din nou aprobare.
 4. ~~PR spre `main`~~: integrat (#1, 11 oct.). Importul copiei de siguranță: PR #2.
 
 ## Cum verific la final
 `npm test && npm run test:db && npm run build && npx playwright test && npm run test:e2e:cloud` trec, iar IMPLEMENTATION_STATUS.md bifează doar criteriile dovedite de aceste teste.
 
 ## Următorul pas
-Proprietarul marchează textele pe pagina de aprobare și trimite criteriile 1–22; apoi se corectează textele și se bifează criteriile doar cu dovadă.
+Proprietarul trimite criteriile 1–22; se bifează în `docs/IMPLEMENTATION_STATUS.md` doar cu dovadă.

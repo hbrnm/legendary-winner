@@ -36,5 +36,4 @@ Vezi [ROADMAP.md](ROADMAP.md): notificări push de pe server, importul copiei de
 
 ## Ce așteaptă proprietarul
 - Lista criteriilor 1–22, ca să fie bifate aici.
-- Aprobarea textelor de rețete și din catalog.
 - Proiectul Supabase și cel Vercel ([DEPLOYMENT.md](DEPLOYMENT.md)).
