@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { groupByCategory, listTotals, planMerge, unrecordedCost } from "./shopping";
+import { groupByCategory, listTotals, planMerge } from "./shopping";
 import { buildPriceIndex } from "./pricing";
 import { category, listItem, price } from "@/test/factories";
 
@@ -71,21 +71,19 @@ describe("adăugarea în listă fără dubluri", () => {
 
 describe("lista în curs și bugetul", () => {
   const items = [
-    listItem({ product_id: "rosii", quantity: 1, unit: "kg", checked: true, actual_price: 15 }), // plătit, neînregistrat încă
+    listItem({ product_id: "rosii", quantity: 1, unit: "kg", checked: true, actual_price: 15 }), // plătit: e deja în buget (spendRecords)
     listItem({ product_id: "rosii", quantity: 1, unit: "kg", checked: true }), // bifat fără sumă, estimat 12
     listItem({ name: "Pâine" }), // nebifat, fără preț
-    listItem({ name: "Lapte", checked: true }), // bifat, fără sumă și fără preț
+    listItem({ name: "Lapte", checked: true }), // bifat fără sumă: în buget apare ca „fără sumă”
     listItem({ product_id: "rosii", quantity: 2, unit: "kg" }), // nebifat, estimat 24
   ];
 
-  it("până la finalizare, bugetul include și ce s-a plătit deja pe listă", () => {
-    const t = listTotals(items, prices);
-    expect(unrecordedCost(t, false)).toBe(15 + 12 + 24);
-    // După finalizare (lista arhivată), cheltuiala e deja în buget: nu se numără de două ori.
-    expect(unrecordedCost(t, true)).toBe(0);
+  it("estimarea rămasă nu include sumele deja plătite (ele sunt deja în buget)", () => {
+    expect(listTotals(items, prices).remaining_estimate).toBe(12 + 24);
   });
 
-  it("numără corect produsele încă fără preț", () => {
-    expect(listTotals(items, prices).remaining_unknown_count).toBe(2);
+  it("numără produsele nebifate încă fără preț", () => {
+    // Formula veche (unknown_price_count - checked_without_price_count) dădea 0.
+    expect(listTotals(items, prices).remaining_unknown_count).toBe(1);
   });
 });

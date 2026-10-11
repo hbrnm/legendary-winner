@@ -33,7 +33,10 @@ export interface ListTotals {
   checked_count: number;
   unknown_price_count: number;
   checked_without_price_count: number;
-  /** Produse care încă nu au nici sumă plătită, nici preț estimat: costul listei e incomplet. */
+  /**
+   * Produse nebifate fără preț estimat: costul de cumpărat e incomplet. Cele
+   * bifate fără sumă apar deja în buget ca „fără sumă” (spendRecords).
+   */
   remaining_unknown_count: number;
 }
 
@@ -49,7 +52,7 @@ export function listTotals(items: ShoppingListItem[], prices: PriceIndex): ListT
     const e = lineEstimate(i, prices);
     if (e.amount == null) unknown++;
     else estimates.push(e.amount);
-    if (e.amount == null && !(i.checked && i.actual_price != null)) remainingUnknown++;
+    if (e.amount == null && !i.checked) remainingUnknown++;
     if (i.checked) {
       if (i.actual_price != null) spent.push(i.actual_price);
       else {
@@ -71,15 +74,6 @@ export function listTotals(items: ShoppingListItem[], prices: PriceIndex): ListT
     checked_without_price_count: checkedNoPrice,
     remaining_unknown_count: remainingUnknown,
   };
-}
-
-/**
- * Cât mai adaugă lista la buget. Cheltuiala intră în buget abia la „Termină
- * cumpărăturile”, așa că până atunci contează și sumele deja plătite pe
- * listă, plus estimarea restului. O listă arhivată e deja în buget.
- */
-export function unrecordedCost(t: ListTotals, archived: boolean): number {
-  return archived ? 0 : t.projected_total;
 }
 
 export interface CategoryGroup {
