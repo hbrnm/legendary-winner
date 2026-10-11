@@ -60,7 +60,7 @@ Dovada, la ultima rulare:
 ### Etapa 5, încheiere (11 oct., sesiunea a doua)
 Fix-ul `currentUser = undefined` era deja în a7a169c. E2E-ul cloud mai pica din alte cauze, reparate:
 - `scripts/local-supabase.mjs`: CORS-ul îl face proxy-ul (GoTrue refuza antetul `apikey` la preflight, iar browserul arăta „Nu ai conexiune la internet”); procesele rămase de la rularea anterioară se opresc la pornire.
-- `src/components/shopping/product-search.tsx`: Enter nu mai face nimic până se încarcă catalogul (înainte adăuga textul ca produs nou, dublură a celui din catalog).
+- `src/components/shopping/product-search.tsx`: Enter apăsat înainte să se încarce catalogul se ține minte și alege produsul după încărcare (înainte adăuga textul ca produs nou, dublură a celui din catalog).
 - `e2e-cloud`: linkul de invitație trece prin butonul „Continuă”; `syncNow` așteaptă o tragere reală de pe server; `quickAdd` așteaptă produsul din catalog.
 - `e2e/scenariu-duminica`: textul corectat („Un produs cumpărat nu are preț”).
 

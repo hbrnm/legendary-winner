@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Plus, Search } from "lucide-react";
 import { useData } from "@/components/app/hooks";
 import { productSearchIndex } from "@/lib/services/catalog";
@@ -25,6 +25,8 @@ export interface PickedProduct {
 export function ProductSearch({ onPick, placeholder = "Adaugă: ex. 2 kg roșii", autoFocus }: { onPick: (p: PickedProduct) => void; placeholder?: string; autoFocus?: boolean }) {
   const [text, setText] = useState("");
   const [active, setActive] = useState(0);
+  // Enter apăsat înainte să se încarce catalogul: alegem după încărcare, ca textul să nu devină o dublură a produsului din catalog.
+  const enterPending = useRef(false);
   const inputRef = useRef<HTMLInputElement>(null);
   const data = useData(async (ctx) => {
     const freq = frequentProducts(await owned(ctx.db, "shopping_transaction_items", ctx.householdId), toISODate(now()), 120, 1);
@@ -47,6 +49,13 @@ export function ProductSearch({ onPick, placeholder = "Adaugă: ex. 2 kg roșii"
 
   const options = [...hits.map((h) => data!.products.get(h.doc.id) ?? null), null];
 
+  useEffect(() => {
+    if (!enterPending.current || !data) return;
+    enterPending.current = false;
+    pick(options[0] ?? null);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- rulează doar când s-a încărcat catalogul
+  }, [data]);
+
   return (
     <div className="relative">
       <div className="flex items-center gap-2 rounded-2xl border border-line bg-surface px-3 shadow-card focus-within:border-brand focus-within:ring-2 focus-within:ring-brand/25">
@@ -58,6 +67,7 @@ export function ProductSearch({ onPick, placeholder = "Adaugă: ex. 2 kg roșii"
           onChange={(e) => {
             setText(e.target.value);
             setActive(0);
+            enterPending.current = false;
           }}
           onKeyDown={(e) => {
             if (e.key === "ArrowDown") {
@@ -68,9 +78,8 @@ export function ProductSearch({ onPick, placeholder = "Adaugă: ex. 2 kg roșii"
               setActive((a) => Math.max(a - 1, 0));
             } else if (e.key === "Enter") {
               e.preventDefault();
-              // Până se încarcă catalogul, Enter ar adăuga textul ca produs nou, dublură a celui din catalog.
-              if (!data) return;
-              pick(options[active] ?? null);
+              if (!data) enterPending.current = true;
+              else pick(options[active] ?? null);
             } else if (e.key === "Escape") setText("");
           }}
           placeholder={placeholder}
