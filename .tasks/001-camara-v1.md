@@ -1,6 +1,6 @@
 # 001 — Cămara v1 (cumpărături, rețete, plan, buget, cămară)
 
-**Stare:** în așteptare (proprietarul: criteriile 1–22)
+**Stare:** gata (criteriile 1–22 bifate cu dovadă, 11 oct. 2026). Rămâne publicarea pe Supabase și Vercel, lucrare separată, cu acordul proprietarului.
 **Ramura:** `claude/camara-v1` (pornită din `claude/configurare-camara`, care are `CLAUDE.md` și agenții)
 
 ## Scop
@@ -76,7 +76,7 @@ Dovada: `npm run test:e2e:cloud` 1/1, de 6 ori la rând; `npx playwright test` 1
 
 
 ## De făcut (în ordine)
-2. Proprietarul trimite criteriile 1–22 → se bifează în `docs/IMPLEMENTATION_STATUS.md`, doar cu dovadă.
+2. ~~Criteriile 1–22~~: găsite în „Master prompt” (secțiunea 20, sesiunea `session_01T2nfud7FZkWJKAnegF4oHy`) și bifate toate în `docs/IMPLEMENTATION_STATUS.md`, fiecare cu testul lui. Rularea: `npm test` 105/105, `npm run test:db` 24/24, `npx playwright test` 16/16, `npm run test:e2e:cloud` 1/1, `npm run build` reușit. Pe producție (1, 3, 20, 21) se reverifică după publicare.
 3. ~~Proprietarul aprobă textele din `src/data`~~: aprobate toate (86 de rețete, catalogul cu 20 de categorii și 471 de produse, magazinele și locurile din cămară), 11 oct. 2026, „Aprob tot”. Pagina de aprobare (https://claude.ai/artifact/733eG5T4GHE5H4Ri8qBo2o) le arată pe toate aprobate. Textele noi sau schimbate de acum încolo cer din nou aprobare.
 4. ~~PR spre `main`~~: integrat (#1, 11 oct.). Importul copiei de siguranță: PR #2.
 
@@ -84,4 +84,4 @@ Dovada: `npm run test:e2e:cloud` 1/1, de 6 ori la rând; `npx playwright test` 1
 `npm test && npm run test:db && npm run build && npx playwright test && npm run test:e2e:cloud` trec, iar IMPLEMENTATION_STATUS.md bifează doar criteriile dovedite de aceste teste.
 
 ## Următorul pas
-Proprietarul trimite criteriile 1–22; se bifează în `docs/IMPLEMENTATION_STATUS.md` doar cu dovadă.
+Publicarea (Supabase + Vercel, `docs/DEPLOYMENT.md`), doar cu acordul explicit al proprietarului; apoi criteriile 1, 3, 20 și 21 se reverifică pe producție.
