@@ -50,7 +50,7 @@ test("de la planul săptămânii la buget", async ({ page }) => {
   // Bugetul reflectă cheltuiala reală, o singură dată.
   await page.goto("/buget/");
   await expect(page.getByText("Mai ai 1.995,50 RON.")).toBeVisible();
-  await expect(page.getByText("1 produse cumpărate nu au preț")).toBeVisible();
+  await expect(page.getByText("Un produs cumpărat nu are preț")).toBeVisible();
 
   // Istoricul păstrează cumpărătura; prețul lipsă se poate completa.
   await page.goto("/cumparaturi/istoric/");

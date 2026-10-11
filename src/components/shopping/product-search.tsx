@@ -68,6 +68,8 @@ export function ProductSearch({ onPick, placeholder = "Adaugă: ex. 2 kg roșii"
               setActive((a) => Math.max(a - 1, 0));
             } else if (e.key === "Enter") {
               e.preventDefault();
+              // Până se încarcă catalogul, Enter ar adăuga textul ca produs nou, dublură a celui din catalog.
+              if (!data) return;
               pick(options[active] ?? null);
             } else if (e.key === "Escape") setText("");
           }}

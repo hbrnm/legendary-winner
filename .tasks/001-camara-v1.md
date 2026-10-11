@@ -1,6 +1,6 @@
 # 001 — Cămara v1 (cumpărături, rețete, plan, buget, cămară)
 
-**Stare:** în lucru (predare către o sesiune nouă, 11 octombrie 2026)
+**Stare:** în lucru (sesiunea a doua, 11 octombrie 2026)
 **Ramura:** `claude/camara-v1` (pornită din `claude/configurare-camara`, care are `CLAUDE.md` și agenții)
 
 ## Scop
@@ -38,7 +38,7 @@ Decizii (11 oct. 2026):
 | 2 | Schema, RLS, catalog, seed | gata | c309d0d |
 | 3 | Stocare locală, sincronizare, servicii | gata | 9deeb4f |
 | 4 | Interfața completă + PWA | gata | 28e46ad |
-| 5 | E2E (demo și cloud), Supabase local fără Docker, texte | în lucru | (commit-ul de predare) |
+| 5 | E2E (demo și cloud), Supabase local fără Docker, texte | gata | a7a169c + commit-ul „fix: E2E cloud” |
 | 6 | Documentație, CLAUDE.md, CI, raport final | de făcut | |
 
 ## Rezumat pe etape
@@ -57,9 +57,16 @@ Dovada, la ultima rulare:
   - aplicația rămâne în „Se încarcă” și nu trimite la `/autentificare/`;
   - fix: `let currentUser: string | null | undefined = undefined;`.
 
+### Etapa 5, încheiere (11 oct., sesiunea a doua)
+Fix-ul `currentUser = undefined` era deja în a7a169c. E2E-ul cloud mai pica din alte cauze, reparate:
+- `scripts/local-supabase.mjs`: CORS-ul îl face proxy-ul (GoTrue refuza antetul `apikey` la preflight, iar browserul arăta „Nu ai conexiune la internet”); procesele rămase de la rularea anterioară se opresc la pornire.
+- `src/components/shopping/product-search.tsx`: Enter nu mai face nimic până se încarcă catalogul (înainte adăuga textul ca produs nou, dublură a celui din catalog).
+- `e2e-cloud`: linkul de invitație trece prin butonul „Continuă”; `syncNow` așteaptă o tragere reală de pe server; `quickAdd` așteaptă produsul din catalog.
+- `e2e/scenariu-duminica`: textul corectat („Un produs cumpărat nu are preț”).
+
+Dovada: `npm run test:e2e:cloud` 1/1, de 6 ori la rând; `npx playwright test` 15/15, de 2 ori; `npm test` 99/99; `npm run test:db` 24/24; `npm run build`, `tsc --noEmit`, `eslint` curate.
+
 ## De făcut (în ordine)
-1. Aplică fix-ul de mai sus, apoi rulează `sh scripts/build-cloud-e2e.sh && npx playwright test -c playwright.cloud.config.ts` și repară până trece.
-2. `npm run build`, apoi `npx playwright test` (toată suita demonstrativă), apoi `npm test` și `npm run test:db`.
 3. Actualizează `CLAUDE.md`:
    - gospodării cu roluri în loc de cont comun;
    - comenzile de test: `test:db`, `test:e2e`, `test:e2e:cloud`;
@@ -73,4 +80,4 @@ Dovada, la ultima rulare:
 `npm test && npm run test:db && npm run build && npx playwright test && npm run test:e2e:cloud` trec, iar IMPLEMENTATION_STATUS.md bifează doar criteriile dovedite de aceste teste.
 
 ## Următorul pas
-Aplică fix-ul `currentUser = undefined` din `app-provider.tsx` și rulează E2E-ul cloud.
+Actualizează `CLAUDE.md` (punctul 3 din „De făcut”).

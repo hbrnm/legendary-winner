@@ -72,6 +72,13 @@ async function waitHttp(url) {
 async function main() {
   ensureBinaries();
   const data = join(DIR, "pgdata");
+  // Procesele rămase de la o rulare oprită brusc (ex. de Playwright) țin porturile ocupate.
+  for (const pattern of [`postgres -D ${data}`, `^${join(BIN, "auth")}`, `^${join(BIN, "postgrest")}`]) {
+    try {
+      execFileSync("pkill", ["-KILL", "-f", pattern], { stdio: "ignore" });
+    } catch {}
+  }
+  await new Promise((r) => setTimeout(r, 500));
   rmSync(data, { recursive: true, force: true });
   mkdirSync(data, { recursive: true });
   if (process.getuid?.() === 0) execFileSync("chown", ["postgres:postgres", data]);
@@ -150,6 +157,19 @@ async function main() {
     ["/rest/v1", REST_PORT],
   ];
   createServer((req, res) => {
+    // CORS-ul îl face proxy-ul, ca Kong în Supabase (GoTrue refuză antetul `apikey`).
+    const cors = {
+      "access-control-allow-origin": req.headers.origin ?? "*",
+      "access-control-allow-credentials": "true",
+      "access-control-allow-methods": "GET,POST,PUT,PATCH,DELETE,OPTIONS",
+      "access-control-allow-headers": req.headers["access-control-request-headers"] ?? "*",
+      "access-control-expose-headers": "Content-Range, X-Total-Count, Link, X-Supabase-Api-Version",
+      vary: "Origin",
+    };
+    if (req.method === "OPTIONS") {
+      res.writeHead(204, cors);
+      return res.end();
+    }
     const route = routes.find(([prefix]) => req.url.startsWith(prefix));
     if (!route) {
       res.statusCode = req.url.startsWith("/realtime") ? 404 : 404;
@@ -159,7 +179,8 @@ async function main() {
     const upstream = request(
       { host: "127.0.0.1", port: route[1], path: req.url.slice(route[0].length) || "/", method: req.method, headers: { ...req.headers, host: `127.0.0.1:${route[1]}` } },
       (up) => {
-        res.writeHead(up.statusCode ?? 502, up.headers);
+        const headers = Object.fromEntries(Object.entries(up.headers).filter(([k]) => !k.startsWith("access-control-") && k !== "vary"));
+        res.writeHead(up.statusCode ?? 502, { ...headers, ...cors });
         up.pipe(res);
       },
     );
