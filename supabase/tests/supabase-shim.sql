@@ -32,3 +32,7 @@ do $$ begin
     create publication supabase_realtime;
   end if;
 end $$;
+
+-- Ca în Supabase: funcțiile noi din public pot fi apelate implicit de anon și
+-- authenticated (prin /rest/v1/rpc/…), nu doar de PUBLIC.
+alter default privileges in schema public grant execute on functions to anon, authenticated, service_role;
