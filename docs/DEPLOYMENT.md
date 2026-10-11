@@ -49,7 +49,7 @@ Fără aceste variabile, build-ul pornește în **mod demonstrativ** (date doar 
   ```
   Restaurare pe un proiect nou: aplică migrațiile (`db push`), apoi `psql "<connection string>" -f backup-date.sql`.
   Datele de autentificare (`auth.users`) nu intră în dump-ul schemei `public`; pentru o copie completă folosește `pg_dump` pe tot proiectul, cu connection string-ul din panou.
-- **Utilizatorul**: din „Gospodărie și setări” poate descărca datele gospodăriei ca fișier JSON (`exportHouseholdData`). Importul acestui fișier în aplicație nu există încă (vezi [ROADMAP.md](ROADMAP.md)).
+- **Utilizatorul**: din „Gospodărie și setări” poate descărca datele gospodăriei ca fișier JSON (`exportHouseholdData`). Fișierul se readuce cu „Încarcă o copie” (`importHouseholdData`): adaugă rândurile lipsă și le actualizează doar pe cele mai vechi decât copia; nu șterge nimic.
 
 ## 5. Ce nu face aplicația (încă)
 Notificări push de pe server (cer chei VAPID), import automat din cataloagele magazinelor. Vezi [ROADMAP.md](ROADMAP.md).
