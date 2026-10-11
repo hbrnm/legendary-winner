@@ -13,7 +13,7 @@ import { BarList, ColumnChart } from "@/components/budget/charts";
 import { listItems, owned, priceIndex, spendRecords, visible } from "@/lib/services/queries";
 import { createBudget, deleteBudget, updateBudget } from "@/lib/services/money";
 import { averageTrip, budgetStatus, byCategory, byRetailer, monthlyTotals, SOURCE_LABELS, spendInPeriod, spendToCsv, sumAmounts, weeklyTotals } from "@/lib/domain/budget";
-import { listTotals } from "@/lib/domain/shopping";
+import { listTotals, unrecordedCost } from "@/lib/domain/shopping";
 import { addDays, formatMonth, formatShortDate, monthPeriod, startOfMonth, toISODate } from "@/lib/domain/dates";
 import { formatRon, parseMoney, sumMoney } from "@/lib/domain/money";
 import { now } from "@/lib/clock";
@@ -69,8 +69,8 @@ function BudgetScreen() {
       budgets: budgets.sort((a, b) => a.created_at.localeCompare(b.created_at)),
       categories: categories.sort((a, b) => a.sort_order - b.sort_order),
       retailers: retailers.sort((a, b) => a.name.localeCompare(b.name, "ro")),
-      openEstimate: sumMoney(open.map((t) => t.remaining_estimate)),
-      openUnknown: open.reduce((n, t) => n + t.unknown_price_count - t.checked_without_price_count, 0),
+      openEstimate: sumMoney(open.map((t) => unrecordedCost(t, false))),
+      openUnknown: open.reduce((n, t) => n + t.remaining_unknown_count, 0),
     };
   });
 

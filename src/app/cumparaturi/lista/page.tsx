@@ -15,7 +15,7 @@ import { LabeledInput, Segmented, Toggle } from "@/components/ui/fields";
 import { useToast } from "@/components/ui/toast";
 import { listItems, owned, priceIndex, spendRecords, visible } from "@/lib/services/queries";
 import * as shop from "@/lib/services/shopping";
-import { groupByCategory, lineEstimate, listTotals } from "@/lib/domain/shopping";
+import { groupByCategory, lineEstimate, listTotals, unrecordedCost } from "@/lib/domain/shopping";
 import { budgetStatus, SOURCE_LABELS } from "@/lib/domain/budget";
 import { formatQuantity } from "@/lib/domain/units";
 import { formatRon } from "@/lib/domain/money";
@@ -109,7 +109,8 @@ function ListScreen() {
     await run((ctx) => shop.setChecked(ctx, item.id, !item.checked));
   }
 
-  const remainingBudget = data.budget ? data.budget.remaining - (totals?.remaining_estimate ?? 0) : null;
+  const listCost = totals && data.list ? unrecordedCost(totals, data.list.archived_at != null) : 0;
+  const remainingBudget = data.budget ? data.budget.remaining - listCost : null;
 
   return (
     <>
@@ -237,7 +238,7 @@ function ListScreen() {
               </div>
               {data.budget && (
                 <div className="mt-1.5">
-                  <BudgetBar pct={((data.budget.spent + totals.remaining_estimate) / data.budget.budget.amount) * 100} label="Bugetul lunii, cu lista inclusă" />
+                  <BudgetBar pct={((data.budget.spent + listCost) / data.budget.budget.amount) * 100} label="Bugetul lunii, cu lista inclusă" />
                 </div>
               )}
             </div>
