@@ -100,4 +100,4 @@ Doar pe producție (Supabase „Camara”), fiecare comandă cu acordul propriet
 - `npm test`, `npm run test:db`, `npm run build` și E2E trec pe `main`.
 
 ## Următorul pas
-Lucrare nouă, cu acordul proprietarului: sincronizarea să nu mai descarce tot catalogul la fiecare rulare (test care reproduce, apoi reparare).
+Lucrarea `.tasks/003-sincronizare-fara-redescarcare.md`, aprobată de proprietar, într-o sesiune nouă.
