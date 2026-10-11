@@ -3,7 +3,7 @@
 Ordinea o decide proprietarul. Lista de mai jos e ce a rămas în afara versiunii 0.1.
 
 ## Înainte de prima publicare
-- Aprobarea textelor de rețete și din catalog (`src/data`), scrise de agenți.
+- ~~Aprobarea textelor de rețete și din catalog (`src/data`)~~: aprobate de proprietar, 11 oct. 2026.
 - Crearea proiectului Supabase și a celui Vercel de către proprietar ([DEPLOYMENT.md](DEPLOYMENT.md)).
 - Verificarea criteriilor de acceptanță în [IMPLEMENTATION_STATUS.md](IMPLEMENTATION_STATUS.md).
 

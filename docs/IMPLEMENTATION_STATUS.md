@@ -1,16 +1,39 @@
 # Starea implementării
 
-Actualizat: 11 octombrie 2026, ramura `claude/camara-v1`.
+Actualizat: 11 octombrie 2026, `main`.
 
 ## Criteriile de acceptanță 1–22
-DE COMPLETAT: lista criteriilor din „Master prompt” (conversația din 11 oct. 2026) nu e în repo. Proprietarul o adaugă aici; fiecare criteriu se bifează doar cu dovada de mai jos (testul care îl acoperă) sau rămâne nebifat.
+Din „Master prompt”, secțiunea 20 (sesiunea din 11 oct. 2026), cuvânt cu cuvânt. Un criteriu e bifat doar cu dovada lui (testul care îl verifică).
 
 | # | Criteriu | Stare | Dovada |
 | --- | --- | --- | --- |
-| 1–22 | DE COMPLETAT | nebifat | |
+| 1 | Utilizatorul poate crea un cont. | bifat | `e2e-cloud/gospodarie.spec.ts` (3 conturi create din aplicație). Supabase local (`npm run test:e2e:cloud`); pe proiectul de producție, după publicare |
+| 2 | Poate crea o gospodărie. | bifat | `e2e-cloud/gospodarie.spec.ts`; `supabase/tests/rls.test.ts` (`create_household`) |
+| 3 | Poate adăuga membri. | bifat | `e2e-cloud/gospodarie.spec.ts` (link de invitație acceptat de al doilea cont); `supabase/tests/rls.test.ts` (roluri, invitații) |
+| 4 | Poate crea și utiliza liste de cumpărături. | bifat | `e2e/cumparaturi.spec.ts` (3 teste) |
+| 5 | Poate găsi produse românești în catalog. | bifat | `src/lib/services/services.test.ts` („găsește produse românești după sinonime…”); `e2e/cumparaturi.spec.ts`; catalog de 471 de produse aprobat pe 11 oct. 2026 |
+| 6 | Poate adăuga produse personalizate. | bifat | `e2e/cumparaturi.spec.ts` („Cozonacul bunicii”); `services.test.ts` („produsele personalizate se adaugă și fără catalog”) |
+| 7 | Poate diferenția produsele de supermarket de cele de piață. | bifat | `e2e/cumparaturi.spec.ts` (sursa „Piață”, gruparea pe magazine); `e2e/retete-camara.spec.ts` („prețuri de la piață și comparație”) |
+| 8 | Poate introduce prețuri reale. | bifat | `e2e/cumparaturi.spec.ts` (prețul plătit); `e2e/scenariu-duminica.spec.ts`; `e2e/retete-camara.spec.ts` |
+| 9 | Poate salva și utiliza rețete. | bifat | `services.test.ts` (`saveRecipe`, favorite, „am gătit”); `e2e/retete-camara.spec.ts` (porții, favorite, ingrediente în listă) |
+| 10 | Poate planifica mesele. | bifat | `e2e/scenariu-duminica.spec.ts`; `services.test.ts` („planifică, generează lista consolidată…”) |
+| 11 | Poate genera liste din rețete. | bifat | `e2e/retete-camara.spec.ts`; `e2e/scenariu-duminica.spec.ts` (lista din plan); `services.test.ts` |
+| 12 | Poate vedea costul estimat al rețetelor. | bifat | `e2e/retete-camara.spec.ts` (cost incomplet arătat ca atare); `services.test.ts` („calculează costul cu prețurile cunoscute”) |
+| 13 | Poate configura bugetul. | bifat | `e2e/scenariu-duminica.spec.ts` („Setează bugetul lunar”); `src/lib/domain/budget.test.ts` |
+| 14 | Poate urmări cheltuielile reale. | bifat | `e2e/scenariu-duminica.spec.ts` (bugetul arată cheltuiala o singură dată); `services.test.ts` (fără dublă numărare) |
+| 15 | Poate administra cămara și frigiderul. | bifat | `e2e/retete-camara.spec.ts` (adăugare, expirare, scădere, „ce pot găti”); `services.test.ts` (gătitul scade din cămară, locul „congelator”). Frigiderul și congelatorul sunt locuri ale cămării |
+| 16 | Poate vedea istoricul cumpărăturilor. | bifat | `e2e/scenariu-duminica.spec.ts` (istoricul păstrează cumpărătura; prețul lipsă se completează) |
+| 17 | Poate utiliza aplicația pe telefon. | bifat | Toată suita `e2e/` rulează pe proiectul „telefon”; `e2e/responsive.spec.ts` (fără derulare orizontală la 360 px) |
+| 18 | Poate instala aplicația ca PWA. | bifat | `e2e/offline-pwa.spec.ts` („manifestul și service worker-ul permit instalarea”) |
+| 19 | Poate folosi lista în condiții de conectivitate slabă. | bifat | `e2e/offline-pwa.spec.ts` (lista fără internet); `e2e-cloud/gospodarie.spec.ts` (modificări fără semnal, păstrate la ambii membri); `src/lib/sync/engine.test.ts` |
+| 20 | Datele gospodăriei sunt protejate. | bifat | `supabase/tests/rls.test.ts` (RLS pe fiecare tabel, roluri, fără ștergere fizică); `e2e-cloud/gospodarie.spec.ts` (contul străin nu vede și nu scrie). Supabase local (`npm run test:e2e:cloud`); pe proiectul de producție, după publicare |
+| 21 | Build-ul de producție funcționează. | bifat | `npm run build` (export static, 18 pagini, `sw.js`) local și în CI. Publicarea pe Vercel încă nu există |
+| 22 | Funcționalitățile principale au teste care trec. | bifat | Rularea din 11 oct. 2026, mai jos; CI verde pe `main` |
+
+Ce nu e încă verificat: criteriile 1, 3 și 20 pe proiectul Supabase de producție, și 21 pe Vercel. Proiectele nu există încă; după publicare se rulează aceleași verificări pe ele ([DEPLOYMENT.md](DEPLOYMENT.md)).
 
 ## Ce e dovedit de teste (rularea din 11 oct. 2026)
-`npm test` 99/99 · `npm run test:db` 24/24 · `npx playwright test` 15/15 · `npm run test:e2e:cloud` 1/1 (de 6 ori la rând) · `npm run build`, `tsc --noEmit`, `eslint` curate.
+`npm test` 105/105 · `npm run test:db` 24/24 · `npx playwright test` 16/16 · `npm run test:e2e:cloud` 1/1 · `npm run build`, `tsc --noEmit`, `eslint` curate.
 
 | Ce | Testul |
 | --- | --- |
@@ -30,11 +53,10 @@ DE COMPLETAT: lista criteriilor din „Master prompt” (conversația din 11 oct
 | Sincronizare: modificări offline, câmpuri diferite fără pierderi, ultima modificare câștigă pe același câmp, ștergeri, refuzurile serverului, paginare | `src/lib/sync/engine.test.ts` |
 | Logica: unități, cantități, căutare, prețuri, rețete, listă, buget, cămară, date, bani, import CSV | `src/lib/domain/*.test.ts` |
 | Catalogul e valid și `seed.sql` e la zi | `src/data/catalog.test.ts` |
+| Copia de siguranță: descărcare și readucere, fără dubluri | `src/lib/services/backup.test.ts`, `e2e/copie-siguranta.spec.ts` |
 
 ## Ce nu e făcut
 Vezi [ROADMAP.md](ROADMAP.md): notificări push de pe server, fotografii, valori nutriționale, prețuri din cataloagele magazinelor.
 
 ## Ce așteaptă proprietarul
-- Lista criteriilor 1–22, ca să fie bifate aici.
-- Aprobarea textelor de rețete și din catalog.
 - Proiectul Supabase și cel Vercel ([DEPLOYMENT.md](DEPLOYMENT.md)).
