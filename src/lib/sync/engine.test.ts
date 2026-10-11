@@ -3,7 +3,7 @@ import { CamaraDB } from "@/lib/db/database";
 import { insertRow, softDelete, updateRow } from "@/lib/db/write";
 import { SyncEngine } from "./engine";
 import { FakeRemote } from "./fake-remote";
-import { RemoteRejected } from "./remote";
+import { RemoteRejected, RemoteUnavailable } from "./remote";
 import { setClock } from "@/lib/clock";
 
 const H = "h1";
@@ -245,6 +245,25 @@ describe("sincronizarea între dispozitive", () => {
     await sync.syncNow();
     expect(put).toHaveBeenCalledTimes(1);
     expect((await db.products.get("p1"))?.name).toBe("Lapte de vacă");
+  });
+
+  it("o tragere întreruptă între pagini se reia fără să piardă rânduri", async () => {
+    for (let i = 0; i < 7; i++) await remote.upsert("products", { id: `p${i}`, household_id: null, name: `P${i}` });
+    remote.advance(60_000);
+    const db = new CamaraDB(`intrerupt-${Math.random()}`);
+    const sync = new SyncEngine(db, remote, { pageSize: 3 });
+    const pull = remote.pull.bind(remote);
+    let calls = 0;
+    vi.spyOn(remote, "pull").mockImplementation(async (table, from, limit) => {
+      if (table === "products" && ++calls === 2) throw new RemoteUnavailable("Fără conexiune");
+      return pull(table, from, limit);
+    });
+    await sync.syncNow();
+    expect(sync.getStatus().state).toBe("offline");
+    expect(await db.products.count()).toBe(3);
+    await sync.syncNow();
+    expect(sync.getStatus().state).toBe("sincronizat");
+    expect(await db.products.count()).toBe(7);
   });
 
   it("fără ora serverului, sincronizarea merge mai departe ca înainte", async () => {
