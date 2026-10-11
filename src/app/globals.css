@@ -1,0 +1,123 @@
+@import "tailwindcss";
+
+/* Tokenii de culoare ai Cămarei. Componentele folosesc DOAR aceste nume
+   (bg-bg, text-ink, bg-brand...), niciodată culori scrise direct. */
+:root {
+  --bg: #f7f5ef;
+  --surface: #ffffff;
+  --surface-2: #f0ede4;
+  --ink: #1e2420;
+  --ink-2: #5b635d;
+  --ink-3: #8a918b;
+  --line: #e3dfd4;
+  --brand: #2f6b47;
+  --brand-strong: #24543a;
+  --brand-ink: #ffffff;
+  --brand-soft: #e3efe6;
+  --accent: #b8452e;
+  --accent-soft: #f7e3dd;
+  --warn: #9a6512;
+  --warn-soft: #f8edd3;
+  --info: #2c5d8a;
+  --info-soft: #e1ebf5;
+  --shadow: 0 1px 2px rgb(30 36 32 / 0.06), 0 2px 8px rgb(30 36 32 / 0.05);
+  color-scheme: light;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="luminos"]) {
+    --bg: #121513;
+    --surface: #1a1e1b;
+    --surface-2: #232824;
+    --ink: #eceeea;
+    --ink-2: #a8b0aa;
+    --ink-3: #7b847d;
+    --line: #2e3430;
+    --brand: #7fc398;
+    --brand-strong: #96d1ab;
+    --brand-ink: #0f1a13;
+    --brand-soft: #1f3327;
+    --accent: #f08a70;
+    --accent-soft: #3a231d;
+    --warn: #e2b15b;
+    --warn-soft: #3a2f1a;
+    --info: #8db8e0;
+    --info-soft: #1c2a38;
+    --shadow: 0 1px 2px rgb(0 0 0 / 0.3);
+    color-scheme: dark;
+  }
+}
+
+:root[data-theme="intunecat"] {
+  --bg: #121513;
+  --surface: #1a1e1b;
+  --surface-2: #232824;
+  --ink: #eceeea;
+  --ink-2: #a8b0aa;
+  --ink-3: #7b847d;
+  --line: #2e3430;
+  --brand: #7fc398;
+  --brand-strong: #96d1ab;
+  --brand-ink: #0f1a13;
+  --brand-soft: #1f3327;
+  --accent: #f08a70;
+  --accent-soft: #3a231d;
+  --warn: #e2b15b;
+  --warn-soft: #3a2f1a;
+  --info: #8db8e0;
+  --info-soft: #1c2a38;
+  --shadow: 0 1px 2px rgb(0 0 0 / 0.3);
+  color-scheme: dark;
+}
+
+@theme inline {
+  --color-bg: var(--bg);
+  --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
+  --color-ink: var(--ink);
+  --color-ink-2: var(--ink-2);
+  --color-ink-3: var(--ink-3);
+  --color-line: var(--line);
+  --color-brand: var(--brand);
+  --color-brand-strong: var(--brand-strong);
+  --color-brand-ink: var(--brand-ink);
+  --color-brand-soft: var(--brand-soft);
+  --color-accent: var(--accent);
+  --color-accent-soft: var(--accent-soft);
+  --color-warn: var(--warn);
+  --color-warn-soft: var(--warn-soft);
+  --color-info: var(--info);
+  --color-info-soft: var(--info-soft);
+  --shadow-card: var(--shadow);
+  --font-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+  -webkit-tap-highlight-color: transparent;
+}
+
+body {
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--font-sans);
+  min-height: 100dvh;
+}
+
+.tabular {
+  font-variant-numeric: tabular-nums;
+}
+
+/* Zona de jos de pe iPhone (bara de navigare). */
+.pb-safe {
+  padding-bottom: max(env(safe-area-inset-bottom), 0px);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
