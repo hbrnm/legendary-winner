@@ -40,6 +40,8 @@ test("cămara: expirare, „ce pot găti”, doar ingredientele lipsă", async (
     await box.press("Enter");
     if (expires) await page.getByLabel("Expiră pe").fill(expires);
     await page.getByRole("button", { name: "Salvează" }).click();
+    // Fișa se închide după salvare; abia apoi căutăm produsul următor.
+    await expect(page.getByRole("button", { name: "Salvează" })).toHaveCount(0);
   }
   await expect(page.getByText("Un produs expiră curând")).toBeVisible();
   await expect(page.getByText("expiră mâine")).toBeVisible();
