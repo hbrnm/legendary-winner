@@ -3,6 +3,7 @@ import { CamaraDB } from "@/lib/db/database";
 import { insertRow, softDelete, updateRow } from "@/lib/db/write";
 import { SyncEngine } from "./engine";
 import { FakeRemote } from "./fake-remote";
+import { RemoteRejected } from "./remote";
 import { setClock } from "@/lib/clock";
 
 const H = "h1";
@@ -52,7 +53,10 @@ beforeEach(() => {
   remote = new FakeRemote();
   setClock("2026-03-10T09:00:00.000Z");
 });
-afterEach(() => setClock(null));
+afterEach(() => {
+  setClock(null);
+  vi.restoreAllMocks();
+});
 
 describe("sincronizarea între dispozitive", () => {
   it("modificările făcute offline ajung la server la revenirea conexiunii și apoi la celălalt membru", async () => {
@@ -185,5 +189,88 @@ describe("sincronizarea între dispozitive", () => {
     await a.sync.syncNow();
     await b.syncNow();
     expect(await (b as unknown as { db: CamaraDB }).db.shopping_list_items.count()).toBe(8);
+  });
+
+  it("o a doua sincronizare fără schimbări pe server nu mai aduce rânduri", async () => {
+    // Catalogul e scris într-o singură rafală, cu ore aproape identice.
+    for (let i = 0; i < 20; i++) await remote.upsert("products", { id: `p${i}`, household_id: null, name: `Produs ${i}` });
+    remote.advance(60_000);
+    const db = new CamaraDB(`fereastra-${Math.random()}`);
+    const sync = new SyncEngine(db, remote, { pageSize: 8 });
+    await sync.syncNow();
+    expect(await db.products.count()).toBe(20);
+
+    remote.advance(60_000);
+    const pull = vi.spyOn(remote, "pull");
+    await sync.syncNow();
+    const rows = (await Promise.all(pull.mock.results.map((r) => r.value))).flat();
+    expect(rows).toHaveLength(0);
+  });
+
+  it("un rând confirmat târziu, cu o oră dinaintea cursorului, tot ajunge la telefon", async () => {
+    const db = new CamaraDB(`tarziu-${Math.random()}`);
+    const sync = new SyncEngine(db, remote);
+    await remote.upsert("products", { id: "p1", household_id: null, name: "Lapte" });
+    const early = remote.tables.get("products")!.get("p1")!.updated_at;
+    await remote.upsert("products", { id: "p2", household_id: null, name: "Pâine" });
+    remote.advance(5_000);
+    await sync.syncNow();
+    // O tranzacție începută înaintea lui p2 se confirmă abia acum.
+    remote.tables.get("products")!.set("p0", { id: "p0", household_id: null, name: "Ouă", updated_at: early });
+    await sync.syncNow();
+    expect((await db.products.get("p0"))?.name).toBe("Ouă");
+  });
+
+  it("paginarea nu pierde și nu repetă rândurile cu aceeași oră", async () => {
+    const t = "2026-03-01T00:00:01.000Z";
+    for (let i = 0; i < 7; i++) remote.tables.set("products", (remote.tables.get("products") ?? new Map()).set(`p${i}`, { id: `p${i}`, household_id: null, name: `P${i}`, updated_at: t }));
+    const db = new CamaraDB(`aceeasi-ora-${Math.random()}`);
+    const pull = vi.spyOn(remote, "pull");
+    await new SyncEngine(db, remote, { pageSize: 3 }).syncNow();
+    expect(await db.products.count()).toBe(7);
+    const rows = (await Promise.all(pull.mock.results.map((r) => r.value))).flat();
+    expect(rows).toHaveLength(7);
+  });
+
+  it("rândurile primite din nou, neschimbate, nu se mai rescriu local", async () => {
+    await remote.upsert("products", { id: "p1", household_id: null, name: "Lapte" });
+    const db = new CamaraDB(`rescriere-${Math.random()}`);
+    const sync = new SyncEngine(db, remote);
+    await sync.syncNow();
+    const put = vi.spyOn(Object.getPrototypeOf(db.products), "bulkPut");
+    // Încă în fereastră: rândul vine din nou de la server.
+    await sync.syncNow();
+    expect(put).not.toHaveBeenCalled();
+    await remote.update("products", "p1", { name: "Lapte de vacă" });
+    await sync.syncNow();
+    expect(put).toHaveBeenCalledTimes(1);
+    expect((await db.products.get("p1"))?.name).toBe("Lapte de vacă");
+  });
+
+  it("fără ora serverului, sincronizarea merge mai departe ca înainte", async () => {
+    vi.spyOn(remote, "serverNow").mockRejectedValue(new RemoteRejected("Funcția nu există", "PGRST202"));
+    await remote.upsert("products", { id: "p1", household_id: null, name: "Lapte" });
+    const db = new CamaraDB(`fara-ora-${Math.random()}`);
+    const sync = new SyncEngine(db, remote);
+    await sync.syncNow();
+    await remote.upsert("products", { id: "p2", household_id: null, name: "Pâine" });
+    await sync.syncNow();
+    expect(sync.getStatus().state).toBe("sincronizat");
+    expect(await db.products.count()).toBe(2);
+  });
+
+  it("cursorul salvat de versiunea veche e folosit, apoi înlocuit", async () => {
+    await remote.upsert("products", { id: "p1", household_id: null, name: "Lapte" });
+    const old = remote.tables.get("products")!.get("p1")!.updated_at;
+    await remote.upsert("products", { id: "p2", household_id: null, name: "Pâine" });
+    remote.advance(60_000);
+    const db = new CamaraDB(`cursor-vechi-${Math.random()}`);
+    await db.meta.put({ key: "cursor:products", value: old });
+    const sync = new SyncEngine(db, remote);
+    await sync.syncNow();
+    expect((await db.products.get("p2"))?.name).toBe("Pâine");
+    const pull = vi.spyOn(remote, "pull");
+    await sync.syncNow();
+    expect((await Promise.all(pull.mock.results.map((r) => r.value))).flat()).toHaveLength(0);
   });
 });

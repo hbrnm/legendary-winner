@@ -1,6 +1,6 @@
 # 003 — Sincronizarea nu mai re-descarcă rânduri neschimbate
 
-**Stare:** de făcut (aprobat de proprietar pe 11 oct. 2026: „Repar acum”)
+**Stare:** etapele 1–3 făcute; etapa 4 după integrare și aplicarea migrației pe producție (aprobat de proprietar pe 11 oct. 2026: „Repar acum”)
 **Ramura:** `claude/sincronizare-cursor` (un PR din `main`)
 
 ## Scop
@@ -18,17 +18,32 @@ Fereastra de 30 de secunde există ca să nu se piardă rândurile confirmate î
 3. **Completare ieftină:** `applyRemoteRows` nu mai scrie rândurile al căror `updated_at` local e egal cu cel venit de la server (fără modificări în outbox). Așa, chiar și rândurile primite de două ori nu mai declanșează rescrieri și re-randări.
 4. **Teste existente:** `engine.test.ts`, inclusiv paginarea, `npm test`, `npm run test:e2e:cloud` (3 utilizatori, offline) și `npm run build`.
 
+## Cauza confirmată
+Triggerul `touch_updated_at` pune `clock_timestamp()` și la seed, deci tot catalogul are `updated_at` în câteva secunde. Cursorul (cel mai nou `updated_at`) rămâne în acel grup, iar fereastra de 30 s îl prinde întreg la fiecare tragere.
+
+## Decizia (proprietarul, 11 oct. 2026, chestionar)
+Ora serverului vine dintr-o funcție nouă, `server_now()` (migrația `20261011000003_server_now.sql`, doar pentru `authenticated`). Variantele respinse: antetul `Date` (CORS neverificabil), ceasul telefonului (poate pierde rânduri).
+
+## Cum funcționează
+- La fiecare tragere: `stable = server_now() - 30 s`, cerut înaintea primei pagini.
+- Cursorul pe tabel (`meta cursor:<tabel>`): `{ updated_at, id, stable }` ale ultimului rând citit. Cursorul vechi (doar text) e citit ca înainte, o singură dată.
+- Dacă `updated_at` al cursorului < `stable` de la tragerea trecută: pornim strict după (`updated_at`, `id`). Altfel re-citim de la `stable` (inclusiv).
+- Paginarea folosește tot perechea (`updated_at`, `id`); dispare saltul de 1 ms, care putea pierde rânduri cu aceeași oră.
+- Ipoteza: între scrierea unui rând (`clock_timestamp()` în trigger) și confirmarea tranzacției trec sub 30 s. Un import mare de catalog într-o singură tranzacție lungă trebuie împărțit.
+- Dacă `server_now()` lipsește (`PGRST202`), tragerea folosește vechea fereastră de 30 s de la cursor: sincronizarea nu se oprește.
+- `applyRemoteRows` nu mai rescrie rândurile cu același `updated_at` și fără modificări în outbox.
+
 ## Etape
 | # | Etapa | Stare | Commit |
 |---|---|---|---|
-| 1 | Testul care reproduce (pică) | de făcut | |
-| 2 | Repararea în `engine.ts` / `write.ts` / `supabase-remote.ts`; testele trec | de făcut | |
-| 3 | `npm test`, `npm run test:e2e:cloud`, `npm run build`; `verificare`; PR | de făcut | |
-| 4 | După integrare: în jurnalele Supabase (edge_logs), o sincronizare fără schimbări nu mai aduce rânduri de catalog | de făcut | |
+| 1 | Testul care reproduce (pică) | făcut | c95909f |
+| 2 | Repararea în `engine.ts` / `write.ts` / `supabase-remote.ts` + migrația `server_now()`; testele trec | făcut | (acest PR) |
+| 3 | `npm test` (111), `npm run test:db` (27), `npm run test:e2e:cloud` (1), `npm run build`; `verificare`; PR | făcut | (acest PR) |
+| 4 | Aplicarea migrației `20261011000003_server_now.sql` pe producție (cere acordul proprietarului), apoi publicarea; după integrare: în jurnalele Supabase (edge_logs), o sincronizare fără schimbări nu mai aduce rânduri de catalog | de făcut | |
 
 ## Cum verific la final
 - Testul nou trece, la fel ca toate testele existente.
 - Pe producție, după publicare, două sincronizări la rând pe același telefon: a doua nu mai primește rânduri de catalog. Verificarea se face cu `query_logs` pe `edge_logs` sau cu dimensiunea răspunsurilor.
 
 ## Următorul pas
-Etapa 1, într-o sesiune nouă: citește `src/lib/sync/engine.ts` și `engine.test.ts`, apoi scrie testul care reproduce.
+Etapa 4: cu acordul proprietarului, migrația pe producție. Până atunci, codul publicat merge ca înainte (re-descarcă fereastra), fără erori. Apoi verificarea în `edge_logs`.

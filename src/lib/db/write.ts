@@ -79,8 +79,12 @@ export async function applyRemoteRows(db: CamaraDB, table: TableName, rows: Reco
     const pending = (await db.outbox.toArray()).filter((e) => e.table === table);
     const byRow = new Map<string, Record<string, unknown>>();
     for (const e of pending) byRow.set(e.row_id, { ...(byRow.get(e.row_id) ?? {}), ...e.payload });
-    const merged = rows.map((r) => normalizeRemote(table, byRow.has(r.id as string) ? { ...r, ...byRow.get(r.id as string) } : r));
-    await db.table(table).bulkPut(merged);
+    // Rândurile pe care le avem deja în aceeași versiune nu se rescriu
+    // (fără re-randări inutile când fereastra de sincronizare le re-citește).
+    const local = await db.table(table).bulkGet(rows.map((r) => r.id as string));
+    const changed = rows.filter((r, i) => byRow.has(r.id as string) || local[i]?.updated_at !== r.updated_at);
+    const merged = changed.map((r) => normalizeRemote(table, byRow.has(r.id as string) ? { ...r, ...byRow.get(r.id as string) } : r));
+    if (merged.length > 0) await db.table(table).bulkPut(merged);
   });
 }
 

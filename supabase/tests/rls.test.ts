@@ -285,7 +285,7 @@ describe("integritatea datelor", () => {
 describe("funcțiile din baza de date", () => {
   // Doar funcțiile noastre, nu și cele ale extensiilor (pgcrypto).
   const OURS = "p.pronamespace = 'public'::regnamespace and not exists (select 1 from pg_depend d where d.objid = p.oid and d.deptype = 'e')";
-  const RPC = ["accept_invitation", "create_household", "household_member_list", "invitation_preview", "transfer_ownership"];
+  const RPC = ["accept_invitation", "create_household", "household_member_list", "invitation_preview", "server_now", "transfer_ownership"];
 
   async function callable(role: string) {
     const r = await db().query(
