@@ -2,8 +2,12 @@
 
 import type { ReactNode } from "react";
 
-export function Card({ children, className = "", as: Tag = "div" }: { children: ReactNode; className?: string; as?: "div" | "section" | "article" | "li" }) {
-  return <Tag className={`rounded-2xl border border-line bg-surface shadow-card ${className}`}>{children}</Tag>;
+export function Card({ children, className = "", as: Tag = "div", ...rest }: { children: ReactNode; className?: string; as?: "div" | "section" | "article" | "li"; "aria-label"?: string }) {
+  return (
+    <Tag className={`rounded-2xl border border-line bg-surface shadow-card ${className}`} {...rest}>
+      {children}
+    </Tag>
+  );
 }
 
 export function SectionTitle({ children, action }: { children: ReactNode; action?: ReactNode }) {

@@ -184,7 +184,7 @@ function PantryScreen() {
       {data.items.length > 0 && (
         <div className="mt-3 flex items-center gap-2 rounded-xl border border-line bg-surface px-3">
           <Search size={16} className="text-ink-3" />
-          <input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Caută în cămară" aria-label="Caută în cămară" className="h-11 flex-1 bg-transparent focus:outline-none" />
+          <input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Caută în cămară" aria-label="Caută în cămară" className="h-11 min-w-0 flex-1 bg-transparent focus:outline-none" />
         </div>
       )}
 
@@ -200,7 +200,7 @@ function PantryScreen() {
             const items = filtered.filter((i) => i.location_id === loc);
             if (items.length === 0) return null;
             return (
-              <section key={loc}>
+              <section key={loc} className="mt-5">
                 <SectionTitle>{locName.get(loc) ?? "Alt loc"}</SectionTitle>
                 <ul className="divide-y divide-line overflow-hidden rounded-2xl border border-line bg-surface">
                   {items.map((i) => (

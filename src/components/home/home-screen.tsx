@@ -17,6 +17,7 @@ import { totalMinutes, whatCanICook } from "@/lib/domain/recipes";
 import { daysBetween, formatLongDate, localDateOf, toISODate } from "@/lib/domain/dates";
 import { formatRon, sumMoney } from "@/lib/domain/money";
 import { now } from "@/lib/clock";
+import { capitalizeFirst, count } from "@/lib/domain/text";
 import type { MealSlot } from "@/lib/domain/types";
 
 const SLOT_ORDER: MealSlot[] = ["mic_dejun", "pranz", "cina", "gustare"];
@@ -99,7 +100,7 @@ export function HomeScreen() {
   return (
     <>
       <header className="mb-5">
-        <p className="text-sm capitalize text-ink-2">{formatLongDate(today)}</p>
+        <p className="text-sm text-ink-2">{capitalizeFirst(formatLongDate(today))}</p>
         <h1 className="text-2xl font-semibold tracking-tight">
           {greeting()}
           {displayName ? `, ${displayName}` : ""}!
@@ -139,7 +140,7 @@ export function HomeScreen() {
               <>
                 <p className="mt-1 truncate text-lg font-semibold">{data.next.list.name}</p>
                 <p className="text-sm text-ink-2 tabular">
-                  {data.next.totals.item_count - data.next.totals.checked_count} produse de luat
+                  {count(data.next.totals.item_count - data.next.totals.checked_count, "produs", "produse")} de luat
                   {data.next.totals.remaining_estimate > 0 && ` · ~${formatRon(data.next.totals.remaining_estimate)}`}
                   {data.next.totals.unknown_price_count > 0 && ` · ${data.next.totals.unknown_price_count} fără preț`}
                 </p>
@@ -224,7 +225,7 @@ export function HomeScreen() {
                 <span className="min-w-0 flex-1">
                   <span className="block truncate text-[15px]">{t.name}</span>
                   <span className="text-xs text-ink-2">
-                    {formatLongDate(t.date)} · {t.count} produse
+                    {capitalizeFirst(formatLongDate(t.date))} · {count(t.count, "produs", "produse")}
                   </span>
                 </span>
                 <span className="font-medium tabular">{formatRon(t.total)}</span>

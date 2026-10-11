@@ -161,9 +161,9 @@ function AdminScreen() {
       {tab === "produse" && (
         <div className="mt-4">
           <div className="flex gap-2">
-            <div className="flex flex-1 items-center gap-2 rounded-xl border border-line bg-surface px-3">
-              <Search size={16} className="text-ink-3" />
-              <input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Caută după nume sau sinonim" aria-label="Caută produse" className="h-11 flex-1 bg-transparent focus:outline-none" />
+            <div className="flex min-w-0 flex-1 items-center gap-2 rounded-xl border border-line bg-surface px-3">
+              <Search size={16} className="shrink-0 text-ink-3" />
+              <input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Caută după nume sau sinonim" aria-label="Caută produse" className="h-11 min-w-0 flex-1 bg-transparent focus:outline-none" />
             </div>
             <Button icon={<Plus size={18} />} onClick={() => editProduct(null)}>
               Produs

@@ -17,6 +17,7 @@ import { listTotals } from "@/lib/domain/shopping";
 import { addDays, formatMonth, formatShortDate, monthPeriod, startOfMonth, toISODate } from "@/lib/domain/dates";
 import { formatRon, parseMoney, sumMoney } from "@/lib/domain/money";
 import { now } from "@/lib/clock";
+import { capitalizeFirst, count } from "@/lib/domain/text";
 import type { Budget, BudgetPeriod, BudgetScope, PurchaseSource } from "@/lib/domain/types";
 
 const MONTHS_SHORT = ["ian", "feb", "mar", "apr", "mai", "iun", "iul", "aug", "sep", "oct", "nov", "dec"];
@@ -203,7 +204,7 @@ function BudgetScreen() {
                 {s.over ? `Ai depășit bugetul cu ${formatRon(-s.remaining)}.` : `Mai ai ${formatRon(s.remaining)}.`}
                 {s.projected != null && ` La ritmul actual ajungi la ${formatRon(s.projected)} la final de lună.`}
               </p>
-              {s.items_without_amount > 0 && <p className="mt-1 text-xs text-warn">{s.items_without_amount} produse cumpărate nu au preț: cheltuiala reală e mai mare.</p>}
+              {s.items_without_amount > 0 && <p className="mt-1 text-xs text-warn">{s.items_without_amount === 1 ? "Un produs cumpărat nu are preț" : `${count(s.items_without_amount, "produs", "produse")} cumpărate nu au preț`}: cheltuiala reală e mai mare.</p>}
             </Card>
           ))}
         </div>
@@ -213,9 +214,15 @@ function BudgetScreen() {
         <Card className="mt-3 p-4">
           <p className="text-sm text-ink-2">Înainte de cumpărături</p>
           <p className="mt-1 text-[15px]">
-            Listele deschise mai au de cumpărat produse de aproximativ <strong className="tabular">{formatRon(data.openEstimate)}</strong>
-            {data.openUnknown > 0 && <> și {data.openUnknown} produse cu preț necunoscut</>}.
-            {mainStatus && (
+            {data.openEstimate > 0 ? (
+              <>
+                Listele deschise mai au de cumpărat produse de aproximativ <strong className="tabular">{formatRon(data.openEstimate)}</strong>
+                {data.openUnknown > 0 && <> și {count(data.openUnknown, "produs", "produse")} cu preț necunoscut</>}.
+              </>
+            ) : (
+              <>Listele deschise au {count(data.openUnknown, "produs", "produse")} fără preț cunoscut, deci nu pot estima cât vor costa. Prețurile apar după primele cumpărături.</>
+            )}
+            {mainStatus && data.openEstimate > 0 && (
               <>
                 {" "}
                 {mainStatus.remaining - data.openEstimate >= 0 ? (
@@ -233,7 +240,7 @@ function BudgetScreen() {
         <IconButton label="Luna anterioară" onClick={() => setMonth(startOfMonth(addDays(month, -1)))} className="border border-line bg-surface">
           <ChevronLeft size={20} />
         </IconButton>
-        <h2 className="text-lg font-semibold capitalize">{formatMonth(month)}</h2>
+        <h2 className="text-lg font-semibold">{capitalizeFirst(formatMonth(month))}</h2>
         <IconButton label="Luna următoare" disabled={isCurrentMonth} onClick={() => setMonth(startOfMonth(addDays(month, 32)))} className="border border-line bg-surface">
           <ChevronRight size={20} />
         </IconButton>

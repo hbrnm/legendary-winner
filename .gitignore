@@ -44,3 +44,7 @@ next-env.d.ts
 # playwright
 /test-results/
 /playwright-report/
+
+# Supabase local (binare descărcate)
+/.local-supabase/
+/out-cloud/

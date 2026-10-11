@@ -72,7 +72,9 @@ export function budgetStatus(
   const remaining = roundMoney(budget.amount - spent);
   const daysTotal = dayCount(period);
   const daysElapsed = dayCount({ from: period.from, to: today });
-  const projected = budget.period === "lunar" && daysElapsed >= 5 && daysElapsed < daysTotal ? roundMoney((spent / daysElapsed) * daysTotal) : null;
+  // Proiecția are sens doar după câteva zile și cumpărături în zile diferite.
+  const spendDays = new Set(scoped.map((i) => localDateOf(i.purchased_at))).size;
+  const projected = budget.period === "lunar" && daysElapsed >= 7 && spendDays >= 3 && daysElapsed < daysTotal ? roundMoney((spent / daysElapsed) * daysTotal) : null;
   return {
     budget,
     period,

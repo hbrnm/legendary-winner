@@ -15,7 +15,7 @@ import { RecipeVisual, SLOT_LABELS } from "@/components/recipes/recipe-visual";
 import { owned, priceIndex, visible } from "@/lib/services/queries";
 import { addMeal, copyWeek, duplicateMeal, generateListFromPlan, moveMeal, removeMeal, updateMealServings } from "@/lib/services/kitchen";
 import { createList } from "@/lib/services/shopping";
-import { addDays, formatShortDate, formatWeekdayShort, startOfWeek, toISODate } from "@/lib/domain/dates";
+import { addDays, formatLongDate, formatShortDate, formatWeekdayShort, startOfWeek, toISODate } from "@/lib/domain/dates";
 import { recipeCost } from "@/lib/domain/recipes";
 import { normalize } from "@/lib/domain/search";
 import { formatRon, sumMoney } from "@/lib/domain/money";
@@ -138,40 +138,48 @@ function PlanScreen() {
 
       <div className="mt-5 flex flex-col gap-3">
         {days.map((d) => (
-          <Card key={d} as="section" className={`p-3 ${d === today ? "ring-2 ring-brand/40" : ""}`}>
+          <Card key={d} as="section" aria-label={formatLongDate(d)} className={`p-3 ${d === today ? "ring-2 ring-brand/40" : ""}`}>
             <h2 className="mb-2 flex items-baseline gap-2 px-1">
               <span className="font-semibold capitalize">{formatWeekdayShort(d)}</span>
               <span className="text-sm text-ink-2">{formatShortDate(d)}</span>
               {d === today && <span className="text-xs font-medium text-brand">azi</span>}
             </h2>
-            <div className="grid grid-cols-1 gap-1.5 sm:grid-cols-2">
+            <div className="grid grid-cols-2 gap-1.5">
               {SLOTS.map((slot) => {
                 const meals = data.meals.filter((m) => m.date === d && m.slot === slot);
                 return (
-                  <div key={slot} className="flex min-h-12 items-center gap-2 rounded-xl bg-surface-2/60 px-2 py-1.5">
-                    <span className="w-16 shrink-0 text-xs text-ink-2">{SLOT_LABELS[slot]}</span>
-                    <div className="flex min-w-0 flex-1 flex-col gap-1">
-                      {meals.map((m) => {
-                        const r = data.recipeMap.get(m.recipe_id);
-                        return (
-                          <button key={m.id} type="button" onClick={() => {
+                  <div key={slot} className="flex min-h-16 flex-col gap-1 rounded-xl bg-surface-2/60 p-1.5">
+                    <div className="flex items-center justify-between pl-1.5">
+                      <span className="text-xs text-ink-2">{SLOT_LABELS[slot]}</span>
+                      <IconButton
+                        label={`Adaugă la ${SLOT_LABELS[slot]}, ${formatShortDate(d)}`}
+                        onClick={() => {
+                          setPicker({ date: d, slot });
+                          setPickQuery("");
+                        }}
+                        className="h-8 w-8"
+                      >
+                        <Plus size={16} />
+                      </IconButton>
+                    </div>
+                    {meals.map((m) => {
+                      const r = data.recipeMap.get(m.recipe_id);
+                      return (
+                        <button
+                          key={m.id}
+                          type="button"
+                          onClick={() => {
                             setEditing(m);
                             setMoveDate(m.date);
                             setMoveSlot(m.slot);
-                          }} className="flex min-h-9 items-center gap-2 rounded-lg bg-surface px-2 text-left text-sm shadow-card">
-                            {r && <RecipeVisual recipe={r} size="sm" />}
-                            <span className="min-w-0 flex-1 truncate">{r?.name ?? "Rețetă ștearsă"}</span>
-                            <span className="text-xs text-ink-2 tabular">{m.servings} p.</span>
-                          </button>
-                        );
-                      })}
-                    </div>
-                    <IconButton label={`Adaugă la ${SLOT_LABELS[slot]}, ${formatShortDate(d)}`} onClick={() => {
-                      setPicker({ date: d, slot });
-                      setPickQuery("");
-                    }} className="h-9 w-9">
-                      <Plus size={18} />
-                    </IconButton>
+                          }}
+                          className="flex min-h-10 items-center gap-1.5 rounded-lg bg-surface px-2 py-1 text-left text-[13px] leading-tight shadow-card"
+                        >
+                          <span className="min-w-0 flex-1">{r?.name ?? "Rețetă ștearsă"}</span>
+                          <span className="shrink-0 text-[11px] text-ink-2 tabular">{m.servings} p.</span>
+                        </button>
+                      );
+                    })}
                   </div>
                 );
               })}
@@ -183,7 +191,7 @@ function PlanScreen() {
       <Sheet open={Boolean(picker)} onClose={() => setPicker(null)} title={picker ? `${SLOT_LABELS[picker.slot]}, ${formatShortDate(picker.date)}` : ""}>
         <div className="mb-3 flex items-center gap-2 rounded-xl border border-line px-3">
           <Search size={16} className="text-ink-3" />
-          <input value={pickQuery} onChange={(e) => setPickQuery(e.target.value)} placeholder="Caută rețeta" aria-label="Caută rețeta" className="h-11 flex-1 bg-transparent focus:outline-none" autoFocus />
+          <input value={pickQuery} onChange={(e) => setPickQuery(e.target.value)} placeholder="Caută rețeta" aria-label="Caută rețeta" className="h-11 min-w-0 flex-1 bg-transparent focus:outline-none" autoFocus />
         </div>
         <ul className="flex flex-col">
           {pickResults.map((r) => (

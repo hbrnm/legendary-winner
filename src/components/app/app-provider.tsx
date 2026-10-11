@@ -92,7 +92,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       await ensureDemoHousehold(d);
       if (cancelled) return;
       setDb(d);
-      setUser({ id: DEMO_USER_ID, email: null, name: "Tu" });
+      setUser({ id: DEMO_USER_ID, email: null, name: null });
       setHouseholds([{ id: DEMO_HOUSEHOLD_ID, name: "Gospodăria mea", role: "owner" }]);
       setActiveId(DEMO_HOUSEHOLD_ID);
       setIsAppAdmin(true);
@@ -137,7 +137,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
     }
 
     const client = supabase();
-    let currentUser: string | null = null;
+    // undefined = încă nu știm; null = nimeni autentificat.
+    let currentUser: string | null | undefined = undefined;
     const handle = (session: { user: { id: string; email?: string | null } } | null) => {
       const uid = session?.user.id ?? null;
       if (uid === currentUser) return;
