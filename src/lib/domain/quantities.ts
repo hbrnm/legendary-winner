@@ -1,5 +1,5 @@
 import type { UnitCode } from "./types";
-import { canConvert, canonicalUnit, convert, humanize } from "./units";
+import { canConvert, canonicalUnit, convert, formatQuantity, humanize } from "./units";
 
 /** O cantitate necesară dintr-un produs (din rețete, plan sau listă). */
 export interface Need {
@@ -117,4 +117,23 @@ const WHOLE_UNITS = new Set<UnitCode>(["buc", "legatura", "caserola", "borcan", 
 export function roundForShopping(quantity: number, unit: UnitCode): number {
   if (WHOLE_UNITS.has(unit)) return Math.ceil(quantity - 1e-9);
   return quantity;
+}
+
+export interface ShoppingNeed extends Need {
+  /** Explicație pentru cumpărător, ex. „pentru rețete: 300 g”. */
+  note: string | null;
+}
+
+/**
+ * Transformă o nevoie din rețetă în ce pui pe lista de cumpărături, în
+ * unitatea în care se vinde produsul: 600 g cartofi → 0,6 kg; 3 linguri de
+ * smântână (vândută la bucată) → 1 buc, cu nota „pentru rețete: 3 linguri”.
+ */
+export function toShoppingNeed(need: Need, defaultUnit: UnitCode): ShoppingNeed {
+  if (need.quantity == null || !need.unit) return { product_id: need.product_id, quantity: null, unit: null, note: null };
+  if (canConvert(need.unit, defaultUnit)) {
+    const h = humanize(convert(need.quantity, need.unit, defaultUnit)!, defaultUnit);
+    return { product_id: need.product_id, quantity: roundForShopping(h.quantity, h.unit), unit: h.unit, note: null };
+  }
+  return { product_id: need.product_id, quantity: 1, unit: defaultUnit, note: `pentru rețete: ${formatQuantity(need.quantity, need.unit)}` };
 }

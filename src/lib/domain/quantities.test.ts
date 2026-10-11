@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { aggregateNeeds, roundForShopping, scaleQuantity, subtractStock } from "./quantities";
+import { aggregateNeeds, roundForShopping, scaleQuantity, subtractStock, toShoppingNeed } from "./quantities";
 
 describe("agregarea nevoilor", () => {
   it("adună același produs din două rețete: 500 g + 300 g = 800 g", () => {
@@ -83,5 +83,26 @@ describe("porții și rotunjiri", () => {
     expect(roundForShopping(1.5, "buc")).toBe(2);
     expect(roundForShopping(2, "buc")).toBe(2);
     expect(roundForShopping(0.75, "kg")).toBe(0.75);
+  });
+});
+
+describe("din rețetă pe lista de cumpărături", () => {
+  it("convertește în unitatea de vânzare", () => {
+    expect(toShoppingNeed({ product_id: "cartofi", quantity: 600, unit: "g" }, "kg")).toEqual({ product_id: "cartofi", quantity: 600, unit: "g", note: null });
+    expect(toShoppingNeed({ product_id: "cartofi", quantity: 1500, unit: "g" }, "kg")).toEqual({ product_id: "cartofi", quantity: 1.5, unit: "kg", note: null });
+    expect(toShoppingNeed({ product_id: "oua", quantity: 1.5, unit: "buc" }, "buc")).toEqual({ product_id: "oua", quantity: 2, unit: "buc", note: null });
+  });
+
+  it("pune o unitate întreagă și o notă când unitățile nu se pot converti", () => {
+    expect(toShoppingNeed({ product_id: "smantana", quantity: 3, unit: "lingura" }, "buc")).toEqual({
+      product_id: "smantana",
+      quantity: 1,
+      unit: "buc",
+      note: "pentru rețete: 3 linguri",
+    });
+  });
+
+  it("păstrează „după gust” fără cantitate", () => {
+    expect(toShoppingNeed({ product_id: "sare", quantity: null, unit: null }, "kg")).toEqual({ product_id: "sare", quantity: null, unit: null, note: null });
   });
 });

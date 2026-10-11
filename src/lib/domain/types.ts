@@ -133,6 +133,8 @@ export type Priority = "normala" | "ridicata";
 export interface ShoppingList extends SyncedRow {
   name: string;
   is_recurring: boolean;
+  /** Numărul turei de cumpărături; crește la fiecare finalizare. */
+  cycle: number;
   archived_at: ISODateTime | null;
   default_retailer_id: string | null;
   sort_order: number;
@@ -164,6 +166,7 @@ export interface ShoppingListItem extends SyncedRow {
 
 export interface ShoppingTransaction extends SyncedRow {
   list_id: string | null;
+  list_cycle: number | null;
   started_at: ISODateTime;
   /** null = cumpărături în desfășurare. */
   completed_at: ISODateTime | null;
