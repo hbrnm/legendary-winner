@@ -1,11 +1,10 @@
 # Istoricul versiunilor
 
-## Nepublicat
-### Adăugat
-- Importul copiei de siguranță: în „Gospodărie și setări”, butonul „Încarcă o copie” readuce datele din fișierul JSON descărcat. Nu șterge nimic: adaugă ce lipsește și păstrează modificările mai noi de pe dispozitiv. O copie din altă gospodărie primește id-uri noi; același fișier importat de două ori nu face dubluri.
+## 0.1.0 — 11 oct. 2026
+Prima versiune completă, publicată la https://appcamara.vercel.app (Vercel, cu proiectul Supabase „Camara”).
 
-## 0.1.0 — nepublicată (ramura `claude/camara-v1`)
-Prima versiune completă.
+### Securitate
+- Funcțiile din baza de date nu mai pot fi chemate fără cont. Funcțiile de trigger nu mai pot fi chemate direct de nimeni. Toate funcțiile au `search_path` fix (migrația `20261011000002_harden_functions`).
 
 ### Adăugat
 - Liste de cumpărături comune: adăugare rapidă cu cantitate, grupare pe raioane și magazine, bifare, prețul plătit, finalizarea turei, istoric, liste recurente, duplicare, arhivare, ștergere cu anulare.
@@ -17,7 +16,7 @@ Prima versiune completă.
 - Gospodării cu membri și roluri, invitații prin link, transferul proprietății.
 - Catalog: 471 de produse, 20 de categorii, 13 magazine; administrare și import CSV pentru administratorii aplicației.
 - Local-first (IndexedDB) cu sincronizare Supabase; PWA instalabilă, funcționează fără internet; mod demonstrativ fără Supabase.
-- Copie de siguranță a datelor gospodăriei (fișier JSON).
+- Copie de siguranță a datelor gospodăriei (fișier JSON) și importul ei („Încarcă o copie”). Importul nu șterge nimic: adaugă ce lipsește și păstrează modificările mai noi de pe dispozitiv.
 - Teste: unitare și de servicii, RLS pe Postgres real, E2E demonstrativ și E2E cu Supabase local.
 
 ### Reparat (înainte de prima publicare)
