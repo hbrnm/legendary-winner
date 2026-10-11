@@ -12,6 +12,9 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // Build-ul pentru E2E cloud și binarele Supabase local.
+    "out-cloud/**",
+    ".local-supabase/**",
   ]),
 ]);
 
