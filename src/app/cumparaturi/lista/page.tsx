@@ -15,7 +15,7 @@ import { LabeledInput, Segmented, Toggle } from "@/components/ui/fields";
 import { useToast } from "@/components/ui/toast";
 import { listItems, owned, priceIndex, spendRecords, visible } from "@/lib/services/queries";
 import * as shop from "@/lib/services/shopping";
-import { groupByCategory, lineEstimate, listTotals } from "@/lib/domain/shopping";
+import { estimateFlag, groupByCategory, lineEstimate, listTotals } from "@/lib/domain/shopping";
 import { budgetStatus, SOURCE_LABELS } from "@/lib/domain/budget";
 import { formatQuantity } from "@/lib/domain/units";
 import { formatRon } from "@/lib/domain/money";
@@ -69,7 +69,8 @@ function ListScreen() {
     [id],
   );
 
-  const totals = useMemo(() => (data?.list ? listTotals(data.items, data.prices) : null), [data]);
+  const today = toISODate(now());
+  const totals = useMemo(() => (data?.list ? listTotals(data.items, data.prices, today) : null), [data, today]);
 
   const groups = useMemo(() => {
     if (!data?.list) return [];
@@ -164,7 +165,8 @@ function ListScreen() {
               <h2 className="mb-1.5 px-1 text-[13px] font-semibold uppercase tracking-wide text-ink-2">{g.title}</h2>
               <ul className="overflow-hidden rounded-2xl border border-line bg-surface">
                 {g.items.map((item) => {
-                  const est = lineEstimate(item, data.prices);
+                  const est = lineEstimate(item, data.prices, today);
+                  const flag = estimateFlag(est);
                   return (
                     <li key={item.id} className="flex items-stretch border-b border-line last:border-b-0">
                       <button
@@ -201,7 +203,10 @@ function ListScreen() {
                         {item.actual_price != null ? (
                           <span className="text-[15px] font-medium text-ink">{formatRon(item.actual_price)}</span>
                         ) : est.amount != null ? (
-                          <span className="text-sm text-ink-2">~{formatRon(est.amount)}</span>
+                          <>
+                            <span className="text-sm text-ink-2">~{formatRon(est.amount)}</span>
+                            {flag && <span className="text-[11px] leading-tight text-ink-3">{flag}</span>}
+                          </>
                         ) : (
                           <span className="text-xs text-ink-3">{item.checked ? "+ preț" : "fără preț"}</span>
                         )}
@@ -252,7 +257,7 @@ function ListScreen() {
 
       <ItemSheet
         item={editingItem}
-        estimate={editingItem ? lineEstimate(editingItem, data.prices) : null}
+        estimate={editingItem ? lineEstimate(editingItem, data.prices, today) : null}
         categories={data.categories}
         retailers={data.retailers}
         lists={data.otherLists}

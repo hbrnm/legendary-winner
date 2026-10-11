@@ -10,6 +10,7 @@ import { SHOPPING_UNITS, unitLabel } from "@/lib/domain/units";
 import { formatRon, parseMoney } from "@/lib/domain/money";
 import { SOURCE_LABELS } from "@/lib/domain/budget";
 import type { LineEstimate } from "@/lib/domain/shopping";
+import { formatShortDate } from "@/lib/domain/dates";
 
 export interface ItemSheetProps {
   item: ShoppingListItem | null;
@@ -22,6 +23,15 @@ export interface ItemSheetProps {
   onSave: (patch: Partial<ShoppingListItem>) => void;
   onMove: (listId: string) => void;
   onDelete: () => void;
+}
+
+/** „Din prețuri: 12,50 lei · Lidl, 3 oct. · din alt magazin”: de unde vine estimarea. */
+function estimateHint(e: LineEstimate, retailers: Retailer[]): string {
+  const p = e.price;
+  if (!p) return `Din prețuri: ${formatRon(e.amount)}`;
+  const where = retailers.find((r) => r.id === p.retailer_id)?.name ?? SOURCE_LABELS[p.source];
+  const flags = [p.match === "alt_magazin" && "din alt magazin", p.promo && "preț de promoție", p.stale && "preț vechi"].filter(Boolean);
+  return [`Din prețuri: ${formatRon(e.amount)}`, `${where}, ${formatShortDate(p.observed_on)}`, ...flags].join(" · ");
 }
 
 const STEP: Partial<Record<UnitCode, number>> = { kg: 0.5, g: 100, l: 0.5, ml: 250 };
@@ -128,7 +138,7 @@ function ItemSheetForm({ item, estimate, categories, retailers, lists, focusPric
           <Field label="Preț plătit (lei)" hint="Pentru toată cantitatea">
             <Input inputMode="decimal" value={price} onChange={(e) => setPrice(e.target.value)} placeholder="0,00" autoFocus={focusPrice} className="tabular" aria-label="Preț plătit" />
           </Field>
-          <Field label="Preț estimat (lei)" hint={estimate?.kind === "calculat" ? `Din prețuri: ${formatRon(estimate.amount)}` : "Opțional"}>
+          <Field label="Preț estimat (lei)" hint={estimate?.kind === "calculat" ? estimateHint(estimate, retailers) : "Opțional"}>
             <Input inputMode="decimal" value={estimated} onChange={(e) => setEstimated(e.target.value)} placeholder="—" className="tabular" aria-label="Preț estimat" />
           </Field>
         </div>
