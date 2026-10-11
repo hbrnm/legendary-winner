@@ -23,7 +23,8 @@
 1. Orice scriere trece prin `src/lib/db/write.ts`: modifică rândul local și adaugă o intrare în `outbox`, în aceeași tranzacție.
 2. `SyncEngine.syncNow()` (`src/lib/sync/engine.ts`):
    - **push** în ordinea din `outbox`: `insert` = upsert, `update` = doar câmpurile schimbate;
-   - **pull** pe fiecare tabel după `updated_at` (setat de server), cu o mică suprapunere ca să nu se piardă rânduri cu aceeași oră;
+   - **pull** pe fiecare tabel, după cursorul compus (`updated_at`, `id`) al ultimului rând citit, salvat în `meta` (`cursor:<tabel>`). Înaintea primei pagini se cere ora serverului (`server_now()`, migrația `20261011000003`). Rândurile mai vechi decât această oră minus 30 s erau deja confirmate și nu se mai cer. Rândurile încă „recente” (cursorul după ora stabilă de la tragerea trecută) se citesc din nou, pentru tranzacțiile confirmate în altă ordine. Paginile (500 de rânduri) continuă strict după perechea (`updated_at`, `id`), deci rândurile cu aceeași oră nu se pierd și nu se repetă. Cursorul se salvează la sfârșitul tabelului: o tragere întreruptă se reia de la cursorul vechi. Fără `server_now()` (`PGRST202`), se re-citesc 30 s înapoi de la cursor;
+   - `applyRemoteRows` nu rescrie rândurile cu același `updated_at` și fără modificări în outbox;
    - modificările locale încă netrimise se reaplică peste ce vine de la server;
    - ce refuză serverul (RLS, constrângeri) se notează în `sync_errors`, iar rândul revine la versiunea serverului.
 3. Sincronizarea pornește: la deschidere, la fiecare scriere locală (după 400 ms), la revenirea internetului, la revenirea în aplicație, la fiecare minut și la notificările Realtime.
@@ -32,7 +33,7 @@
 ## Reguli de date
 - **Ștergeri logice** (`deleted_at`): ștergerea ajunge la toate dispozitivele.
 - **Fără dublă numărare**: tura de cumpărături are un id determinist (`stableId(listă, tură)`), deci două telefoane care finalizează aceeași tură scriu același rând. Cheltuiala reală = tranzacțiile finalizate + produsele bifate din listele încă deschise (`spendRecords`).
-- **Prețuri**: doar de la gospodărie; un produs fără preț e numărat separat („fără preț”), nu estimat.
+- **Prețuri**: doar de la gospodărie; un produs fără preț e numărat separat („fără preț”), nu estimat. Estimarea unei linii de listă (`latestUnitPrice`, `src/lib/domain/pricing.ts`, după PR #13) ia întâi prețul obișnuit din magazinul liniei, apoi din aceeași sursă (marcat „alt magazin”), apoi promoțiile (marcate); alte surse nu se folosesc. Rețetele folosesc cel mai recent preț din orice sursă (estimare generală). Un preț mai vechi de 90 de zile e marcat „preț vechi”.
 - **Catalog global** (`household_id NULL`): îl scriu doar administratorii aplicației (`app_admins`); gospodăriile își pot adăuga produse și rețete proprii.
 
 ## Moduri

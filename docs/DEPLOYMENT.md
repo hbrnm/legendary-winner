@@ -4,12 +4,14 @@ Aplicația e statică (`out/`), deci are nevoie doar de un proiect Supabase și 
 
 ## Producția de acum (11 oct. 2026)
 - Adresa: https://appcamara.vercel.app (proiectul Vercel `appcamara`, echipa „hbrnm's projects”). Fiecare push pe `main` se publică automat.
-- Supabase: proiectul „Camara” (`wvgmwpvivospyetpznzv`, `eu-central-1`). Istoricul migrațiilor are `20261011000001 schema` și `20261011000002 harden_functions`, la fel ca `supabase/migrations/`.
+- Supabase: proiectul „Camara” (`wvgmwpvivospyetpznzv`, `eu-central-1`). Istoricul migrațiilor are `20261011000001 schema`, `20261011000002 harden_functions` și `20261011000003 server_now`, la fel ca `supabase/migrations/` (verificat cu `list_migrations`, 11 oct. 2026, seara).
 - Catalogul e identic cu `supabase/seed.sql` (aceleași rânduri și sume de control).
 - Administratorul aplicației: contul proprietarului.
 - Detaliile publicării: `.tasks/002-publicare.md`.
 
 ## 1. Proiectul Supabase
+Pașii 1–3 de mai jos descriu un proiect nou (de exemplu, o restaurare). Proiectul de producție e deja creat; pe el se aplică doar migrațiile noi, cu acordul proprietarului (vezi 3).
+
 1. Creează un proiect în [Supabase](https://supabase.com/dashboard), regiunea cea mai apropiată (ex. Frankfurt, `eu-central-1`).
 2. Leagă repo-ul și aplică migrația:
    ```sh
@@ -23,7 +25,7 @@ Aplicația e statică (`out/`), deci are nevoie doar de un proiect Supabase și 
    ```
    Fără `psql`, merge și din **SQL Editor**: lipești conținutul lui `seed.sql` și apeși **Run**. Dacă fișierul e prea mare pentru editor, rulează pe rând câte o instrucțiune `insert … on conflict`, una pentru fiecare tabel.
 4. **Authentication → URL Configuration**:
-   - Site URL: adresa publică (ex. `https://camara.vercel.app`);
+   - Site URL: adresa publică (pe producție, `https://appcamara.vercel.app`);
    - Redirect URLs: `https://<domeniu>/autentificare/**` și `https://<domeniu>/invitatie/**`.
 5. **Authentication → Providers → Email**: activ. Confirmarea emailului poate rămâne pornită; aplicația spune utilizatorului să deschidă linkul primit. Pentru volume reale, configurează un SMTP propriu (cel implicit are limite mici).
 6. **Database → Replication**: publicația `supabase_realtime` e setată de migrație; verifică doar că Realtime e activ pe proiect.
@@ -46,7 +48,7 @@ Fără aceste variabile, build-ul pornește în **mod demonstrativ** (date doar 
 
 ## 3. Schimbări de schemă
 - Doar prin migrații noi în `supabase/migrations/` (nu se modifică migrațiile deja aplicate).
-- Înainte: `npm run test:db`. Apoi `npx supabase db push`.
+- Înainte: `npm run test:db`. Pe producție, migrația se aplică doar cu acordul proprietarului; apoi istoricul (`list_migrations`) trebuie să aibă aceeași versiune ca fișierul din repo.
 - Dacă se schimbă `src/data`: `npm run seed:sql`, commit, apoi rulează din nou `supabase/seed.sql` pe proiect.
 
 ## 4. Copii de siguranță și restaurare
