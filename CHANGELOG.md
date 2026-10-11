@@ -1,5 +1,9 @@
 # Istoricul versiunilor
 
+## Nepublicat
+### Adăugat
+- Importul copiei de siguranță: în „Gospodărie și setări”, butonul „Încarcă o copie” readuce datele din fișierul JSON descărcat. Nu șterge nimic: adaugă ce lipsește și păstrează modificările mai noi de pe dispozitiv. O copie din altă gospodărie primește id-uri noi; același fișier importat de două ori nu face dubluri.
+
 ## 0.1.0 — nepublicată (ramura `claude/camara-v1`)
 Prima versiune completă.
 
