@@ -1,6 +1,6 @@
 # 002 — Publicarea (Supabase + Vercel)
 
-**Stare:** în lucru (etapa 1 gata, în PR)
+**Stare:** în lucru (etapele 1 și 2 gata)
 **Ramura:** `claude/publicare` (câte un PR pe etapă, din `main`)
 
 ## Scop
@@ -30,8 +30,8 @@ Decizii (11 oct. 2026):
 ## Etape
 | # | Etapa | Unde | Stare | Commit / PR |
 |---|---|---|---|---|
-| 1 | Migrație nouă de întărire: `search_path` fix pe cele 2 funcții; `revoke execute` de la `anon` pe tot ce nu e chemat fără cont și de la `authenticated` pe funcțiile de trigger. Test în `supabase/tests` că `anon` nu le poate chema, iar aplicația încă merge (`npm run test:db`, `npm run test:e2e:cloud`). | repo | gata | PR claude/publicare-intarire |
-| 2 | Producția Supabase: compar schema de pe producție cu migrația din repo. Dacă sunt identice, aliniez istoricul (`20261011000001` marcată ca aplicată, cea veche scoasă din istoric), fără să modific tabelele. Apoi aplic migrația din etapa 1, reîncarc `supabase/seed.sql` complet (sigur la rulări repetate) și verific numărul de rânduri și avertismentele. Fiecare comandă cu acord. | producție | de făcut | |
+| 1 | Migrație nouă de întărire: `search_path` fix pe cele 2 funcții; `revoke execute` de la `anon` pe tot ce nu e chemat fără cont și de la `authenticated` pe funcțiile de trigger. Test în `supabase/tests` că `anon` nu le poate chema, iar aplicația încă merge (`npm run test:db`, `npm run test:e2e:cloud`). | repo | gata | #4 |
+| 2 | Producția Supabase: compar schema de pe producție cu migrația din repo. Dacă sunt identice, aliniez istoricul (`20261011000001` marcată ca aplicată, cea veche scoasă din istoric), fără să modific tabelele. Apoi aplic migrația din etapa 1, reîncarc `supabase/seed.sql` complet (sigur la rulări repetate) și verific numărul de rânduri și avertismentele. Fiecare comandă cu acord. | producție | gata | (doar pe producție) |
 | 3 | Proiectul Vercel: creat din `hbrnm/legendary-winner`, build `npm run build`, ieșirea `out`, variabilele `NEXT_PUBLIC_SUPABASE_URL` și `NEXT_PUBLIC_SUPABASE_ANON_KEY` (publice; nimic secret). Prima publicare. Cu acord. | producție | de făcut | |
 | 4 | Autentificarea Supabase: Site URL = adresa Vercel; Redirect URLs `…/autentificare/**` și `…/invitatie/**`. Dacă conectorul nu le poate seta, proprietarul le pune din panou, după pașii scriși. | producție | de făcut | |
 | 5 | Verificarea pe producție: proprietarul își face cont, apoi gospodăria, trimite o invitație unui al doilea cont și deschide o listă comună pe două telefoane. Apoi îl adaug în `app_admins` (cu acord). Bifez criteriile 1, 3, 20, 21 pe producție, cu dovada. | producție | de făcut | |
@@ -49,6 +49,24 @@ Decizii (11 oct. 2026):
 - Verificarea: `npm test` 105/105, `npm run test:db` 27/27, `npm run test:e2e:cloud` 1/1 (înregistrarea prin GoTrue declanșează `handle_new_user` fără `EXECUTE`), `npm run build`, `tsc --noEmit` și `eslint` curate.
 - Rămâne pe producție (etapa 2): 6 funcții de ajutor și 5 RPC-uri apar în continuare în `get_advisors` ca apelabile de `authenticated`. E intenționat, iar funcțiile de ajutor răspund doar despre contul care le cheamă.
 
+### Etapa 2 (11 oct.)
+Doar pe producție (Supabase „Camara”), fiecare comandă cu acordul proprietarului.
+- Comparația (doar citire):
+  - textul migrației din istoric e identic, octet cu octet, cu `20261011000001_schema.sql` (md5 `3fd0fdcc…`);
+  - amprenta schemei vii e identică cu cea dintr-un Postgres local cu aceeași migrație: coloane, constrângeri, indexuri, politici, funcții, triggere, drepturi pe funcții, Realtime;
+  - singura diferență sunt drepturile implicite ale Supabase pe tabele (`anon` și `authenticated` au toate drepturile). Sunt acoperite de RLS: toate cele 27 de tabele au politici doar `to authenticated`, iar `TRUNCATE` nu se poate chema prin API.
+- Istoricul: `20261011135035` redenumită în `20261011000001` (acord).
+- Migrația `20261011000002_harden_functions` aplicată într-o tranzacție și înregistrată în istoric (acord). După aplicare:
+  - nicio funcție de-a noastră nu mai poate fi chemată de `anon`;
+  - funcțiile de trigger nu mai pot fi chemate de `authenticated`;
+  - toate funcțiile au `search_path` fix;
+  - `get_advisors` arată doar cele 11 funcții lăsate intenționat la `authenticated` (5 RPC-uri și 6 funcții de ajutor pentru RLS).
+- Catalogul (acord): lipseau doar ingrediente (233 din 885) și toți pașii (0 din 498). Celelalte tabele aveau deja aceleași sume de control ca seed-ul.
+  - Ingredientele le-am încărcat cu upsert prin conector, în 5 bucăți. Am verificat local, înainte, că bucățile dau exact același conținut ca `seed.sql`.
+  - Pașii i-a încărcat proprietarul din SQL Editor, cu instrucțiunea din `seed.sql`, pentru că prin conector mergea prea încet.
+  - Rezultat: toate cele 8 tabele ale catalogului au aceleași numere de rânduri și sume de control (fără `created_at` și `updated_at`) ca `seed.sql` aplicat local. Rânduri: 20 de categorii, 471 de produse, 1127 de sinonime, 13 magazine, 5 locuri, 86 de rețete, 885 de ingrediente, 498 de pași.
+- De reținut: `seed.sql` întreg (474 KB) e prea mare pentru o singură cerere prin conector. La reîncărcări viitoare se folosește SQL Editor sau bucăți de cel mult 16 KB.
+
 ## Cum verific la final
 - Adresa Vercel deschide aplicația fără „Mod demonstrativ”.
 - Un cont nou primește emailul de confirmare.
@@ -57,4 +75,4 @@ Decizii (11 oct. 2026):
 - `npm test`, `npm run test:db`, `npm run build` și E2E trec pe `main`.
 
 ## Următorul pas
-Etapa 2: compar schema de pe producție cu `20261011000001_schema.sql` (doar citire), apoi cer acordul pentru alinierea istoricului.
+Etapa 3: proiectul Vercel (citesc întâi echipa și proiectele, apoi cer acordul pentru creare).
