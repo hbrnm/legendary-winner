@@ -1,6 +1,6 @@
 # 001 — Cămara v1 (cumpărături, rețete, plan, buget, cămară)
 
-**Stare:** în lucru (sesiunea a doua, 11 octombrie 2026)
+**Stare:** în așteptare (proprietarul: criteriile 1–22, aprobarea textelor din `src/data`, decizia de PR)
 **Ramura:** `claude/camara-v1` (pornită din `claude/configurare-camara`, care are `CLAUDE.md` și agenții)
 
 ## Scop
@@ -39,7 +39,7 @@ Decizii (11 oct. 2026):
 | 3 | Stocare locală, sincronizare, servicii | gata | 9deeb4f |
 | 4 | Interfața completă + PWA | gata | 28e46ad |
 | 5 | E2E (demo și cloud), Supabase local fără Docker, texte | gata | a7a169c + commit-ul „fix: E2E cloud” |
-| 6 | Documentație, CLAUDE.md, CI, raport final | în lucru (CI de confirmat pe GitHub) | vezi `git log` |
+| 6 | Documentație, CLAUDE.md, CI, raport final | gata, în afară de criteriile 1–22 (așteaptă proprietarul) | vezi `git log` |
 
 ## Rezumat pe etape
 ### Etapele 1–4 (11 oct.)
@@ -72,8 +72,10 @@ Dovada: `npm run test:e2e:cloud` 1/1, de 6 ori la rând; `npx playwright test` 1
 - `IMPLEMENTATION_STATUS.md`: criteriile 1–22 nu sunt în repo (erau doar în conversație) → „DE COMPLETAT”; am listat ce dovedesc testele.
 - CI: `.github/workflows/ci.yml` (lint, typecheck, test, test:db cu serviciu Postgres, build, E2E demonstrativ și cloud). `eslint` ignoră `out-cloud/` și `.local-supabase/`.
 
+- CI verde pe GitHub (rularea 38142113179): toți pașii, inclusiv E2E cloud. Prima rulare a picat la 3 teste E2E: pe mașina mai lentă, Enter apăsat înainte de încărcarea catalogului era ignorat. Acum e ținut minte și aplicat după încărcare; local, 90/90 sub încărcare (8 workeri, fiecare test de 3 ori).
+
+
 ## De făcut (în ordine)
-1. Confirmă că CI-ul trece pe GitHub; repară dacă pică.
 2. Proprietarul trimite criteriile 1–22 → se bifează în `docs/IMPLEMENTATION_STATUS.md`, doar cu dovadă.
 3. Proprietarul aprobă textele din `src/data`.
 4. PR spre `main`, dacă îl cere.
@@ -82,4 +84,4 @@ Dovada: `npm run test:e2e:cloud` 1/1, de 6 ori la rând; `npx playwright test` 1
 `npm test && npm run test:db && npm run build && npx playwright test && npm run test:e2e:cloud` trec, iar IMPLEMENTATION_STATUS.md bifează doar criteriile dovedite de aceste teste.
 
 ## Următorul pas
-Verifică rularea CI pe `claude/camara-v1` și cere proprietarului criteriile 1–22.
+Proprietarul trimite criteriile 1–22; se bifează în `docs/IMPLEMENTATION_STATUS.md` doar cu dovadă.
