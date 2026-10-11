@@ -1,6 +1,6 @@
 # 003 — Sincronizarea nu mai re-descarcă rânduri neschimbate
 
-**Stare:** etapele 1–3 făcute; etapa 4 după integrare și aplicarea migrației pe producție (aprobat de proprietar pe 11 oct. 2026: „Repar acum”)
+**Stare:** încheiat (11 oct. 2026). Aprobat de proprietar: „Repar acum”; migrația pe producție și integrarea PR #9 aprobate în chestionar.
 **Ramura:** `claude/sincronizare-cursor` (un PR din `main`)
 
 ## Scop
@@ -37,13 +37,18 @@ Ora serverului vine dintr-o funcție nouă, `server_now()` (migrația `202610110
 | # | Etapa | Stare | Commit |
 |---|---|---|---|
 | 1 | Testul care reproduce (pică) | făcut | c95909f |
-| 2 | Repararea în `engine.ts` / `write.ts` / `supabase-remote.ts` + migrația `server_now()`; testele trec | făcut | (acest PR) |
-| 3 | `npm test` (111), `npm run test:db` (27), `npm run test:e2e:cloud` (1), `npm run build`; `verificare`; PR | făcut | (acest PR) |
-| 4 | Aplicarea migrației `20261011000003_server_now.sql` pe producție (cere acordul proprietarului), apoi publicarea; după integrare: în jurnalele Supabase (edge_logs), o sincronizare fără schimbări nu mai aduce rânduri de catalog | de făcut | |
+| 2 | Repararea în `engine.ts` / `write.ts` / `supabase-remote.ts` + migrația `server_now()`; testele trec | făcut | #9 |
+| 3 | `npm test` (111), `npm run test:db` (27), `npm run test:e2e:cloud` (1), `npm run build`; `verificare`; PR | făcut | #9 |
+| 4 | Aplicarea migrației `20261011000003_server_now.sql` pe producție (cere acordul proprietarului), apoi publicarea; după integrare: în jurnalele Supabase (edge_logs), o sincronizare fără schimbări nu mai aduce rânduri de catalog | făcut | vezi „Rezultat pe producție” |
 
 ## Cum verific la final
 - Testul nou trece, la fel ca toate testele existente.
 - Pe producție, după publicare, două sincronizări la rând pe același telefon: a doua nu mai primește rânduri de catalog. Verificarea se face cu `query_logs` pe `edge_logs` sau cu dimensiunea răspunsurilor.
 
+## Rezultat pe producție (edge_logs, 11 oct. 2026)
+- Migrația aplicată la 18:02 (versiunea `20261011180250` în `supabase_migrations`; în repo fișierul e `20261011000003`, cu același conținut). `anon` nu are drept pe `server_now()`, `authenticated` are.
+- **Înainte** (iPhone, 17:49–18:05, versiunea veche): la fiecare sincronizare, `product_categories` 20 + `retailers` 1 + `products` 101 + `product_aliases` 295 = **417 rânduri de catalog**, de fiecare dată aceleași.
+- **După** (18:06–18:09, 6 sincronizări cu versiunea nouă): fiecare începe cu `rpc/server_now` (200), apoi catalogul se cere „strict după cursor” (`or=(updated_at.gt…,and(updated_at.eq…,id.gt…))`) și răspunsul are `content_range */*`, adică **0 rânduri**. La fel toate celelalte tabele, în afară de un rând nou din `shopping_list_items`.
+
 ## Următorul pas
-Etapa 4: cu acordul proprietarului, migrația pe producție. Până atunci, codul publicat merge ca înainte (re-descarcă fereastra), fără erori. Apoi verificarea în `edge_logs`.
+Nimic pentru această sarcină.
