@@ -14,6 +14,8 @@ Fluxul: **plan → rețete → listă → cumpărături reale → buget → anal
 - **Gospodării cu membri și roluri** (proprietar, administrator, membru), invitații prin link, sincronizare între telefoane.
 - **Mod demonstrativ**: fără Supabase configurat, aplicația merge complet local, pe un singur dispozitiv.
 
+Aplicația publicată: https://appcamara.vercel.app
+
 ## Pornire rapidă
 ```sh
 npm ci

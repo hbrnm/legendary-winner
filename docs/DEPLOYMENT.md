@@ -2,6 +2,13 @@
 
 Aplicația e statică (`out/`), deci are nevoie doar de un proiect Supabase și de o găzduire statică (Vercel). Pașii de mai jos îi face proprietarul, în conturile lui; în repo nu intră nicio cheie secretă.
 
+## Producția de acum (11 oct. 2026)
+- Adresa: https://appcamara.vercel.app (proiectul Vercel `appcamara`, echipa „hbrnm's projects”). Fiecare push pe `main` se publică automat.
+- Supabase: proiectul „Camara” (`wvgmwpvivospyetpznzv`, `eu-central-1`). Istoricul migrațiilor are `20261011000001 schema` și `20261011000002 harden_functions`, la fel ca `supabase/migrations/`.
+- Catalogul e identic cu `supabase/seed.sql` (aceleași rânduri și sume de control).
+- Administratorul aplicației: contul proprietarului.
+- Detaliile publicării: `.tasks/002-publicare.md`.
+
 ## 1. Proiectul Supabase
 1. Creează un proiect în [Supabase](https://supabase.com/dashboard), regiunea cea mai apropiată (ex. Frankfurt, `eu-central-1`).
 2. Leagă repo-ul și aplică migrația:
@@ -14,6 +21,7 @@ Aplicația e statică (`out/`), deci are nevoie doar de un proiect Supabase și 
    ```sh
    psql "<connection string din Project Settings → Database>" -f supabase/seed.sql
    ```
+   Fără `psql`, merge și din **SQL Editor**: lipești conținutul lui `seed.sql` și apeși **Run**. Dacă fișierul e prea mare pentru editor, rulează pe rând câte o instrucțiune `insert … on conflict`, una pentru fiecare tabel.
 4. **Authentication → URL Configuration**:
    - Site URL: adresa publică (ex. `https://camara.vercel.app`);
    - Redirect URLs: `https://<domeniu>/autentificare/**` și `https://<domeniu>/invitatie/**`.
@@ -28,8 +36,8 @@ select id from auth.users where email = '<email>';
 ```
 
 ## 2. Vercel
-1. Importă repo-ul în Vercel. Framework: Next.js; comanda de build: `npm run build`; dosarul de ieșire: `out`.
-2. Variabilele de mediu (Production și Preview), vezi [ENVIRONMENT_VARIABLES.md](ENVIRONMENT_VARIABLES.md):
+1. Importă repo-ul în Vercel (https://vercel.com/new). Framework: Next.js. Lasă implicite **Build and Output Settings**: Vercel recunoaște exportul static (`output: "export"`) și rulează `npm run build`. Nu schimba Output Directory în `out` cu preset-ul Next.js.
+2. Variabilele de mediu (Production și Preview), simple, nu „Sensitive”: amândouă sunt publice și ajung oricum în browser. Vezi [ENVIRONMENT_VARIABLES.md](ENVIRONMENT_VARIABLES.md):
    - `NEXT_PUBLIC_SUPABASE_URL`
    - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
 3. Publică. Verifică: crearea unui cont, a unei gospodării, o invitație deschisă de pe alt telefon, o listă care apare pe amândouă.

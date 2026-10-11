@@ -7,9 +7,9 @@ Din „Master prompt”, secțiunea 20 (sesiunea din 11 oct. 2026), cuvânt cu c
 
 | # | Criteriu | Stare | Dovada |
 | --- | --- | --- | --- |
-| 1 | Utilizatorul poate crea un cont. | bifat | `e2e-cloud/gospodarie.spec.ts` (3 conturi create din aplicație). Supabase local (`npm run test:e2e:cloud`); pe proiectul de producție, după publicare |
+| 1 | Utilizatorul poate crea un cont. | bifat | `e2e-cloud/gospodarie.spec.ts` (3 conturi create din aplicație). Supabase local (`npm run test:e2e:cloud`). Producție (11 oct.): două conturi create din https://appcamara.vercel.app, cu emailul confirmat |
 | 2 | Poate crea o gospodărie. | bifat | `e2e-cloud/gospodarie.spec.ts`; `supabase/tests/rls.test.ts` (`create_household`) |
-| 3 | Poate adăuga membri. | bifat | `e2e-cloud/gospodarie.spec.ts` (link de invitație acceptat de al doilea cont); `supabase/tests/rls.test.ts` (roluri, invitații) |
+| 3 | Poate adăuga membri. | bifat | `e2e-cloud/gospodarie.spec.ts` (link de invitație acceptat de al doilea cont); `supabase/tests/rls.test.ts` (roluri, invitații). Producție (11 oct.): invitație acceptată de al doilea cont, pe alt telefon; lista creată pe iPhone apare pe Android |
 | 4 | Poate crea și utiliza liste de cumpărături. | bifat | `e2e/cumparaturi.spec.ts` (3 teste) |
 | 5 | Poate găsi produse românești în catalog. | bifat | `src/lib/services/services.test.ts` („găsește produse românești după sinonime…”); `e2e/cumparaturi.spec.ts`; catalog de 471 de produse aprobat pe 11 oct. 2026 |
 | 6 | Poate adăuga produse personalizate. | bifat | `e2e/cumparaturi.spec.ts` („Cozonacul bunicii”); `services.test.ts` („produsele personalizate se adaugă și fără catalog”) |
@@ -26,11 +26,11 @@ Din „Master prompt”, secțiunea 20 (sesiunea din 11 oct. 2026), cuvânt cu c
 | 17 | Poate utiliza aplicația pe telefon. | bifat | Toată suita `e2e/` rulează pe proiectul „telefon”; `e2e/responsive.spec.ts` (fără derulare orizontală la 360 px) |
 | 18 | Poate instala aplicația ca PWA. | bifat | `e2e/offline-pwa.spec.ts` („manifestul și service worker-ul permit instalarea”) |
 | 19 | Poate folosi lista în condiții de conectivitate slabă. | bifat | `e2e/offline-pwa.spec.ts` (lista fără internet); `e2e-cloud/gospodarie.spec.ts` (modificări fără semnal, păstrate la ambii membri); `src/lib/sync/engine.test.ts` |
-| 20 | Datele gospodăriei sunt protejate. | bifat | `supabase/tests/rls.test.ts` (RLS pe fiecare tabel, roluri, fără ștergere fizică); `e2e-cloud/gospodarie.spec.ts` (contul străin nu vede și nu scrie). Supabase local (`npm run test:e2e:cloud`); pe proiectul de producție, după publicare |
-| 21 | Build-ul de producție funcționează. | bifat | `npm run build` (export static, 18 pagini, `sw.js`) local și în CI. Publicarea pe Vercel încă nu există |
+| 20 | Datele gospodăriei sunt protejate. | bifat | `supabase/tests/rls.test.ts` (RLS pe fiecare tabel, roluri, fără ștergere fizică); `e2e-cloud/gospodarie.spec.ts` (contul străin nu vede și nu scrie). Producție (11 oct.): fără cont se văd 0 rânduri; un cont străin vede 0 gospodării și 0 liste, dar catalogul comun; `get_advisors` nu mai arată funcții apelabile fără cont |
+| 21 | Build-ul de producție funcționează. | bifat | `npm run build` (export static, 18 pagini, `sw.js`) local și în CI. Producție (11 oct.): publicat pe Vercel, https://appcamara.vercel.app, fără „Mod demonstrativ” |
 | 22 | Funcționalitățile principale au teste care trec. | bifat | Rularea din 11 oct. 2026, mai jos; CI verde pe `main` |
 
-Ce nu e încă verificat: criteriile 1, 3 și 20 pe proiectul Supabase de producție, și 21 pe Vercel. Proiectele nu există încă; după publicare se rulează aceleași verificări pe ele ([DEPLOYMENT.md](DEPLOYMENT.md)).
+Criteriile 1, 3, 20 și 21 au fost reverificate pe producție pe 11 oct. 2026 (`.tasks/002-publicare.md`, etapa 5).
 
 ## Ce e dovedit de teste (rularea din 11 oct. 2026)
 `npm test` 105/105 · `npm run test:db` 24/24 · `npx playwright test` 16/16 · `npm run test:e2e:cloud` 1/1 · `npm run build`, `tsc --noEmit`, `eslint` curate.

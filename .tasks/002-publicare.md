@@ -1,6 +1,6 @@
 # 002 — Publicarea (Supabase + Vercel)
 
-**Stare:** în lucru (etapele 1 și 2 gata)
+**Stare:** gata (11 oct. 2026). O problemă de performanță rămasă deschisă, mai jos.
 **Ramura:** `claude/publicare` (câte un PR pe etapă, din `main`)
 
 ## Scop
@@ -32,10 +32,10 @@ Decizii (11 oct. 2026):
 |---|---|---|---|---|
 | 1 | Migrație nouă de întărire: `search_path` fix pe cele 2 funcții; `revoke execute` de la `anon` pe tot ce nu e chemat fără cont și de la `authenticated` pe funcțiile de trigger. Test în `supabase/tests` că `anon` nu le poate chema, iar aplicația încă merge (`npm run test:db`, `npm run test:e2e:cloud`). | repo | gata | #4 |
 | 2 | Producția Supabase: compar schema de pe producție cu migrația din repo. Dacă sunt identice, aliniez istoricul (`20261011000001` marcată ca aplicată, cea veche scoasă din istoric), fără să modific tabelele. Apoi aplic migrația din etapa 1, reîncarc `supabase/seed.sql` complet (sigur la rulări repetate) și verific numărul de rânduri și avertismentele. Fiecare comandă cu acord. | producție | gata | (doar pe producție) |
-| 3 | Proiectul Vercel: creat din `hbrnm/legendary-winner`, build `npm run build`, ieșirea `out`, variabilele `NEXT_PUBLIC_SUPABASE_URL` și `NEXT_PUBLIC_SUPABASE_ANON_KEY` (publice; nimic secret). Prima publicare. Cu acord. | producție | de făcut | |
-| 4 | Autentificarea Supabase: Site URL = adresa Vercel; Redirect URLs `…/autentificare/**` și `…/invitatie/**`. Dacă conectorul nu le poate seta, proprietarul le pune din panou, după pașii scriși. | producție | de făcut | |
-| 5 | Verificarea pe producție: proprietarul își face cont, apoi gospodăria, trimite o invitație unui al doilea cont și deschide o listă comună pe două telefoane. Apoi îl adaug în `app_admins` (cu acord). Bifez criteriile 1, 3, 20, 21 pe producție, cu dovada. | producție | de făcut | |
-| 6 | Documentație la zi: `DEPLOYMENT.md` (istoricul migrațiilor, pașii reali), `IMPLEMENTATION_STATUS.md`, `CHANGELOG.md` (0.1.0 publicată), `README.md` (adresa). | repo | de făcut | |
+| 3 | Proiectul Vercel: creat din `hbrnm/legendary-winner`, build `npm run build`, ieșirea `out`, variabilele `NEXT_PUBLIC_SUPABASE_URL` și `NEXT_PUBLIC_SUPABASE_ANON_KEY` (publice; nimic secret). Prima publicare. Cu acord. | producție | gata | (din panou) |
+| 4 | Autentificarea Supabase: Site URL = adresa Vercel; Redirect URLs `…/autentificare/**` și `…/invitatie/**`. Dacă conectorul nu le poate seta, proprietarul le pune din panou, după pașii scriși. | producție | gata | (din panou) |
+| 5 | Verificarea pe producție: proprietarul își face cont, apoi gospodăria, trimite o invitație unui al doilea cont și deschide o listă comună pe două telefoane. Apoi îl adaug în `app_admins` (cu acord). Bifez criteriile 1, 3, 20, 21 pe producție, cu dovada. | producție | gata | (doar pe producție) |
+| 6 | Documentație la zi: `DEPLOYMENT.md` (istoricul migrațiilor, pașii reali), `IMPLEMENTATION_STATUS.md`, `CHANGELOG.md` (0.1.0 publicată), `README.md` (adresa). | repo | gata | PR-ul acestei etape |
 
 ## Rezumat pe etape
 ### Etapa 1 (11 oct.)
@@ -67,6 +67,31 @@ Doar pe producție (Supabase „Camara”), fiecare comandă cu acordul propriet
   - Rezultat: toate cele 8 tabele ale catalogului au aceleași numere de rânduri și sume de control (fără `created_at` și `updated_at`) ca `seed.sql` aplicat local. Rânduri: 20 de categorii, 471 de produse, 1127 de sinonime, 13 magazine, 5 locuri, 86 de rețete, 885 de ingrediente, 498 de pași.
 - De reținut: `seed.sql` întreg (474 KB) e prea mare pentru o singură cerere prin conector. La reîncărcări viitoare se folosește SQL Editor sau bucăți de cel mult 16 KB.
 
+### Etapa 3 (11 oct.)
+- Conectorul Vercel a fost refuzat la creare (403, pe ambele căi): poate citi doar proiectele `workflow-dosare` și `mentor-sec`. Proiectul l-a creat proprietarul din panou.
+  - Numele proiectului: `appcamara`; adresa: https://appcamara.vercel.app.
+  - Preset Next.js, cu setările de build implicite. Am renunțat la `out` ca Output Directory: cu preset-ul Next.js poate strica build-ul, iar Vercel recunoaște singur exportul static.
+  - Variabilele `NEXT_PUBLIC_SUPABASE_URL` și `NEXT_PUBLIC_SUPABASE_ANON_KEY` (cheia anon legacy), simple, nu „Sensitive”.
+- Rețeaua mediului cloud nu poate deschide `*.vercel.app`. Verificarea a făcut-o proprietarul: aplicația se deschide fără „Mod demonstrativ”.
+
+### Etapa 4 (11 oct.)
+- Proprietarul a setat din panou Site URL `https://appcamara.vercel.app` și Redirect URLs `…/autentificare/**` și `…/invitatie/**`. Conectorul Supabase nu are o funcție pentru setările de autentificare.
+- Linkul de confirmare din email duce înapoi în aplicație.
+
+### Etapa 5 (11 oct.)
+- Criteriul 1: două conturi create din aplicație, ambele confirmate.
+- Criteriul 3: invitație creată de proprietar și acceptată de al doilea cont, pe Android; rolurile sunt owner și member. Pe server: lista creată pe iPhone (3 produse, bifate) și o a doua listă („Lidl”). Proprietarul confirmă că le vede pe Android.
+- Criteriul 20, citire în tranzacții anulate:
+  - `anon` vede 0 gospodării, 0 membri și 0 produse;
+  - un cont străin (id inventat) vede 0 gospodării, 0 membri și 0 liste, dar catalogul comun (471);
+  - proprietarul își vede gospodăria.
+- Criteriul 21: publicat pe Vercel, fără „Mod demonstrativ”.
+- Proprietarul a fost adăugat în `app_admins` (acord, după id).
+- **Deschis:** la 17:21, la revenirea în aplicație, sincronizarea de pe Android s-a oprit după tragerea tabelului `products`, iar aplicația „nu se mai încărca”. Serverul nu a primit nicio eroare. La 17:24 a pornit din nou și a sincronizat complet. Cauza nu e confirmată. Am găsit însă o problemă care o poate agrava: la fiecare sincronizare (o dată pe minut și la fiecare revenire în aplicație), telefonul descarcă din nou 1067 din cele 3105 rânduri ale catalogului. `pull` cere `updated_at >= cursor - 30 s`, iar catalogul a fost încărcat în câteva secunde, deci rândurile din ultimele 30 de secunde ale fiecărui tabel revin mereu. Pe producție sunt: toți cei 498 de pași, 295 de sinonime, 134 de ingrediente, 101 produse, 20 de categorii, 13 magazine, 5 locuri și o rețetă. Pe un telefon mai lent, fiecare sincronizare le rescrie în IndexedDB.
+
+### Etapa 6 (11 oct.)
+`DEPLOYMENT.md` (producția de acum, catalogul din SQL Editor, setările Vercel reale), `IMPLEMENTATION_STATUS.md` (criteriile 1, 3, 20, 21 pe producție), `CHANGELOG.md` (0.1.0 publicată) și `README.md` (adresa).
+
 ## Cum verific la final
 - Adresa Vercel deschide aplicația fără „Mod demonstrativ”.
 - Un cont nou primește emailul de confirmare.
@@ -75,4 +100,4 @@ Doar pe producție (Supabase „Camara”), fiecare comandă cu acordul propriet
 - `npm test`, `npm run test:db`, `npm run build` și E2E trec pe `main`.
 
 ## Următorul pas
-Etapa 3: proiectul Vercel (citesc întâi echipa și proiectele, apoi cer acordul pentru creare).
+Lucrare nouă, cu acordul proprietarului: sincronizarea să nu mai descarce tot catalogul la fiecare rulare (test care reproduce, apoi reparare).
