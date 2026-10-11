@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Bell, Check, Copy, Crown, Download, LogOut, MapPin, Plus, Share2, Shield, Trash2, UserMinus, Users } from "lucide-react";
+import { Bell, Check, Copy, Crown, Download, LogOut, MapPin, Plus, Share2, Shield, Trash2, Upload, UserMinus, Users } from "lucide-react";
 import { AppShell } from "@/components/app/shell";
 import { useApp } from "@/components/app/app-provider";
 import { useAction, useData } from "@/components/app/hooks";
@@ -16,7 +16,7 @@ import * as hh from "@/lib/services/household";
 import { UserError } from "@/lib/services/context";
 import { createRetailer, deleteRetailer, updateRetailer } from "@/lib/services/catalog";
 import { setPantryOnPurchase } from "@/lib/services/kitchen";
-import { exportHouseholdData } from "@/lib/services/backup";
+import { exportHouseholdData, importHouseholdData } from "@/lib/services/backup";
 import { owned } from "@/lib/services/queries";
 import { getTheme, setTheme, type Theme } from "@/lib/theme";
 import { disableExpiryNotifications, enableExpiryNotifications, expiryNotificationsEnabled } from "@/lib/notifications";
@@ -491,6 +491,16 @@ function HouseholdScreen() {
     setTimeout(() => URL.revokeObjectURL(a.href), 1000);
   }
 
+  async function restore(file: File | undefined) {
+    if (!app.ctx || !file) return;
+    try {
+      const r = await importHouseholdData(app.ctx, await file.text());
+      toast(r.added + r.updated === 0 ? "Copia nu are nimic nou. Datele tale erau deja la zi." : `Gata. Am adăugat ${r.added} și am actualizat ${r.updated} înregistrări din copie.`);
+    } catch (e) {
+      toast(e instanceof UserError ? e.message : "Nu am putut citi copia. Încearcă din nou.", { tone: "error" });
+    }
+  }
+
   return (
     <>
       <PageHeader title="Gospodărie și setări" subtitle={app.email ?? undefined} />
@@ -557,6 +567,19 @@ function HouseholdScreen() {
         <Button variant="secondary" icon={<Download size={18} />} onClick={download}>
           Descarcă datele
         </Button>
+        <label className="inline-flex h-11 cursor-pointer items-center justify-center gap-2 rounded-xl border border-line font-medium hover:bg-surface-2 has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-brand">
+          <Upload size={18} /> Încarcă o copie
+          <input
+            type="file"
+            accept="application/json,.json"
+            className="sr-only"
+            onChange={(e) => {
+              void restore(e.target.files?.[0]);
+              e.target.value = "";
+            }}
+          />
+        </label>
+        <p className="text-xs text-ink-2">Încărcarea nu șterge nimic: adaugă ce lipsește și păstrează modificările tale mai noi.</p>
         {app.isAppAdmin && (
           <Link href="/admin/" className="inline-flex h-11 items-center justify-center gap-2 rounded-xl border border-line font-medium hover:bg-surface-2">
             <Shield size={18} /> Administrarea catalogului

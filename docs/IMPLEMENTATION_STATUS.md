@@ -32,7 +32,7 @@ DE COMPLETAT: lista criteriilor din „Master prompt” (conversația din 11 oct
 | Catalogul e valid și `seed.sql` e la zi | `src/data/catalog.test.ts` |
 
 ## Ce nu e făcut
-Vezi [ROADMAP.md](ROADMAP.md): notificări push de pe server, importul copiei de siguranță, fotografii, valori nutriționale, prețuri din cataloagele magazinelor.
+Vezi [ROADMAP.md](ROADMAP.md): notificări push de pe server, fotografii, valori nutriționale, prețuri din cataloagele magazinelor.
 
 ## Ce așteaptă proprietarul
 - Lista criteriilor 1–22, ca să fie bifate aici.
