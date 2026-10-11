@@ -46,7 +46,7 @@ Ora serverului vine dintr-o funcție nouă, `server_now()` (migrația `202610110
 - Pe producție, după publicare, două sincronizări la rând pe același telefon: a doua nu mai primește rânduri de catalog. Verificarea se face cu `query_logs` pe `edge_logs` sau cu dimensiunea răspunsurilor.
 
 ## Rezultat pe producție (edge_logs, 11 oct. 2026)
-- Migrația aplicată la 18:02 (versiunea `20261011180250` în `supabase_migrations`; în repo fișierul e `20261011000003`, cu același conținut). `anon` nu are drept pe `server_now()`, `authenticated` are.
+- Migrația aplicată la 18:02. Versiunea din `supabase_migrations.schema_migrations` a fost aliniată apoi cu fișierul din repo: `20261011000003` (înainte `20261011180250`, cu aprobarea proprietarului). `anon` nu are drept pe `server_now()`, `authenticated` are.
 - **Înainte** (iPhone, 17:49–18:05, versiunea veche): la fiecare sincronizare, `product_categories` 20 + `retailers` 1 + `products` 101 + `product_aliases` 295 = **417 rânduri de catalog**, de fiecare dată aceleași.
 - **După** (18:06–18:09, 6 sincronizări cu versiunea nouă): fiecare începe cu `rpc/server_now` (200), apoi catalogul se cere „strict după cursor” (`or=(updated_at.gt…,and(updated_at.eq…,id.gt…))`) și răspunsul are `content_range */*`, adică **0 rânduri**. La fel toate celelalte tabele, în afară de un rând nou din `shopping_list_items`.
 
