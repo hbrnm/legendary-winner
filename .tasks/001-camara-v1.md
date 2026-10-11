@@ -78,7 +78,7 @@ Dovada: `npm run test:e2e:cloud` 1/1, de 6 ori la rând; `npx playwright test` 1
 ## De făcut (în ordine)
 2. Proprietarul trimite criteriile 1–22 → se bifează în `docs/IMPLEMENTATION_STATUS.md`, doar cu dovadă.
 3. Proprietarul aprobă textele din `src/data`.
-4. PR spre `main`, dacă îl cere.
+4. PR spre `main`: deschis, https://github.com/hbrnm/legendary-winner/pull/1 (11 oct.).
 
 ## Cum verific la final
 `npm test && npm run test:db && npm run build && npx playwright test && npm run test:e2e:cloud` trec, iar IMPLEMENTATION_STATUS.md bifează doar criteriile dovedite de aceste teste.
