@@ -281,3 +281,37 @@ describe("integritatea datelor", () => {
     await expect(asUser(carmen, (q) => q("update user_preferences set active_household_id = $1", [hA]))).rejects.toThrow(/row-level security/);
   });
 });
+
+describe("funcțiile din baza de date", () => {
+  // Doar funcțiile noastre, nu și cele ale extensiilor (pgcrypto).
+  const OURS = "p.pronamespace = 'public'::regnamespace and not exists (select 1 from pg_depend d where d.objid = p.oid and d.deptype = 'e')";
+  const RPC = ["accept_invitation", "create_household", "household_member_list", "invitation_preview", "transfer_ownership"];
+
+  async function callable(role: string) {
+    const r = await db().query(
+      `select p.proname, p.prorettype = 'trigger'::regtype as is_trigger
+       from pg_proc p where ${OURS} and has_function_privilege($1, p.oid, 'execute')
+       order by 1`,
+      [role],
+    );
+    return r.rows as { proname: string; is_trigger: boolean }[];
+  }
+
+  it("un vizitator neautentificat nu poate chema nicio funcție", async () => {
+    expect(await callable("anon")).toEqual([]);
+  });
+
+  it("utilizatorul autentificat cheamă funcțiile aplicației, dar nu și pe cele de trigger", async () => {
+    const fns = await callable("authenticated");
+    expect(fns.filter((f) => f.is_trigger)).toEqual([]);
+    expect(fns.map((f) => f.proname)).toEqual(expect.arrayContaining(RPC));
+  });
+
+  it("toate funcțiile au search_path fix", async () => {
+    const r = await db().query(
+      `select p.proname from pg_proc p where ${OURS}
+       and not exists (select 1 from unnest(coalesce(p.proconfig, '{}')) c where c like 'search_path=%')`,
+    );
+    expect(r.rows).toEqual([]);
+  });
+});
