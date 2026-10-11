@@ -32,22 +32,27 @@ export interface RecipeCost {
   /** Cel mai vechi preț folosit: costul e la zi cel mult de la această dată. */
   oldest_price_on: ISODate | null;
   newest_price_on: ISODate | null;
+  /** Cel puțin un preț folosit e mai vechi de STALE_AFTER_DAYS. */
+  has_stale_price: boolean;
   missing_product_ids: string[];
 }
 
-export function recipeCost(recipe: Recipe, ingredients: RecipeIngredient[], servings: number, prices: PriceIndex): RecipeCost {
+/** Costul unei rețete: estimare generală, din cel mai recent preț obișnuit al oricărei surse. */
+export function recipeCost(recipe: Recipe, ingredients: RecipeIngredient[], servings: number, prices: PriceIndex, today: ISODate | null = null): RecipeCost {
   const scaled = scaleIngredients(ingredients, recipe.servings, servings).filter((i) => !i.optional && i.quantity != null && i.unit);
   const costs: number[] = [];
   const missing: string[] = [];
   let oldest: ISODate | null = null;
   let newest: ISODate | null = null;
+  let stale = false;
   for (const i of scaled) {
-    const c = estimateCost(prices, i.product_id, i.quantity, i.unit);
+    const c = estimateCost(prices, i.product_id, i.quantity, i.unit, { today });
     if (!c) {
       missing.push(i.product_id);
       continue;
     }
     costs.push(c.cost);
+    if (c.price.stale) stale = true;
     if (!oldest || c.observed_on < oldest) oldest = c.observed_on;
     if (!newest || c.observed_on > newest) newest = c.observed_on;
   }
@@ -62,6 +67,7 @@ export function recipeCost(recipe: Recipe, ingredients: RecipeIngredient[], serv
     complete: missing.length === 0,
     oldest_price_on: oldest,
     newest_price_on: newest,
+    has_stale_price: stale,
     missing_product_ids: missing,
   };
 }

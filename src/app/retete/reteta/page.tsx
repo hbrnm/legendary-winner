@@ -83,7 +83,7 @@ function RecipeScreen() {
     return {
       scaled,
       available,
-      cost: recipeCost(data.recipe, data.ingredients, servings, data.prices),
+      cost: recipeCost(data.recipe, data.ingredients, servings, data.prices, toISODate(now())),
       allergens: recipeAllergens(data.ingredients, data.products),
     };
   }, [data, servings]);
@@ -199,6 +199,8 @@ function RecipeScreen() {
             : view.cost.priced_count === 0
               ? "Costul apare după ce introduci prețuri: la cumpărături sau în Buget → Prețuri."
               : `Cost incomplet: ${view.cost.coverage_pct}% din ingrediente au preț. Lipsesc: ${missingNames.slice(0, 4).join(", ")}${missingNames.length > 4 ? "…" : ""}.`}
+          {view.cost.priced_count > 0 && " Estimare generală, din prețurile tuturor surselor."}
+          {view.cost.has_stale_price && " Unele prețuri sunt mai vechi de 3 luni."}
         </p>
       </Card>
 

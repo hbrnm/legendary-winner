@@ -1,5 +1,6 @@
 import type { ShoppingListItem, ProductCategory, UnitCode } from "./types";
-import { estimateCost, type PriceIndex } from "./pricing";
+import { estimateCost, type PriceIndex, type UnitPrice } from "./pricing";
+import type { ISODate } from "./types";
 import { sumMoney } from "./money";
 import { canConvert, convert, humanize } from "./units";
 import type { Need } from "./quantities";
@@ -9,15 +10,27 @@ export interface LineEstimate {
   /** Suma estimată pentru linie, sau null dacă nu se cunoaște. */
   amount: number | null;
   kind: "manual" | "calculat" | "necunoscut";
+  /** Prețul din care s-a calculat (doar pentru „calculat”), ca estimarea să poată fi explicată. */
+  price?: UnitPrice;
 }
 
-export function lineEstimate(item: ShoppingListItem, prices: PriceIndex): LineEstimate {
+/** Estimarea unei linii, din prețurile magazinului și ale sursei ei (vezi latestUnitPrice). */
+export function lineEstimate(item: ShoppingListItem, prices: PriceIndex, today: ISODate | null = null): LineEstimate {
   if (item.estimated_price != null) return { amount: item.estimated_price, kind: "manual" };
   if (item.product_id) {
-    const c = estimateCost(prices, item.product_id, item.quantity ?? 1, item.unit);
-    if (c) return { amount: c.cost, kind: "calculat" };
+    const c = estimateCost(prices, item.product_id, item.quantity ?? 1, item.unit, { context: { retailer_id: item.retailer_id, source: item.source }, today });
+    if (c) return { amount: c.cost, kind: "calculat", price: c.price };
   }
   return { amount: null, kind: "necunoscut" };
+}
+
+/** Eticheta scurtă a unei estimări calculate, când prețul nu e chiar pentru această cumpărătură. */
+export function estimateFlag(e: LineEstimate): "alt magazin" | "promoție" | "preț vechi" | null {
+  if (e.kind !== "calculat" || !e.price) return null;
+  if (e.price.match === "alt_magazin") return "alt magazin";
+  if (e.price.promo) return "promoție";
+  if (e.price.stale) return "preț vechi";
+  return null;
 }
 
 export interface ListTotals {
@@ -35,7 +48,7 @@ export interface ListTotals {
   checked_without_price_count: number;
 }
 
-export function listTotals(items: ShoppingListItem[], prices: PriceIndex): ListTotals {
+export function listTotals(items: ShoppingListItem[], prices: PriceIndex, today: ISODate | null = null): ListTotals {
   const live = items.filter((i) => !i.deleted_at);
   const estimates: number[] = [];
   const spent: number[] = [];
@@ -43,7 +56,7 @@ export function listTotals(items: ShoppingListItem[], prices: PriceIndex): ListT
   let unknown = 0;
   let checkedNoPrice = 0;
   for (const i of live) {
-    const e = lineEstimate(i, prices);
+    const e = lineEstimate(i, prices, today);
     if (e.amount == null) unknown++;
     else estimates.push(e.amount);
     if (i.checked) {
