@@ -1,7 +1,8 @@
 # CLAUDE.md
 
-Reguli de lucru pentru Cămara (listă de cumpărături comună pentru doi
-soți, folosită de pe telefon; Next.js, TypeScript, Supabase, Vercel).
+Reguli de lucru pentru Cămara (cumpărături, rețete, plan de mese, buget
+și cămară pentru gospodăriile din România, folosită de pe telefon, PWA
+offline; Next.js, TypeScript, Dexie, Supabase, Vercel).
 
 ## 1. Principii
 1. Gândește înainte de cod: spune presupunerile; dacă e neclar, întreabă.
@@ -14,27 +15,44 @@ orice schimbare pe producție) se prezintă ca chestionar cu variante,
 cea recomandată prima, marcată „(Recomandat)”.
 
 ## 2. Proiect
-- Structură: `src/app/` paginile (App Router); `src/components/`
-  componentele; `src/lib/` logica și clientul Supabase;
-  `supabase/migrations/` schimbările de bază de date; testele stau
-  lângă cod (`*.test.ts(x)`); `.tasks/` lucrările mari; `docs/` planuri.
+- Structură: `src/app/` paginile (App Router, export static);
+  `src/components/` componentele (`app/` are `AppProvider`);
+  `src/data/` catalogul (produse, rețete, categorii, magazine);
+  `src/lib/domain` logica pură; `src/lib/db` baza locală (Dexie) și
+  scrierile cu `outbox`; `src/lib/sync` sincronizarea cu Supabase;
+  `src/lib/services` serviciile aplicației; `supabase/migrations/`
+  schimbările de bază de date, `supabase/seed.sql` (generat cu
+  `npm run seed:sql`), `supabase/tests/` testele RLS; `e2e/` testele
+  end-to-end în mod demonstrativ; `e2e-cloud/` cele cu Supabase local
+  (`scripts/local-supabase.mjs`); testele unitare stau lângă cod
+  (`*.test.ts(x)`); `.tasks/` lucrările mari; `docs/` planuri.
 - Teste: `npm test` (Vitest); un fișier: `npx vitest run <cale>`.
+  `npm run test:db` (RLS și funcții, pe Postgres local sau
+  `TEST_DATABASE_URL`); `npm run test:e2e` (Playwright, pe `out/`,
+  după `npm run build`); `npm run test:e2e:cloud` (Supabase local).
   Orice comportament nou vine cu test.
   Testele nu depind de data de azi, de rețea sau de ordinea
-  rulării; data se fixează în test, Supabase se simulează.
-  Înainte de push: `npm test` și `npm run build`.
+  rulării; data se fixează în test; în `npm test` Supabase se simulează.
+  Înainte de push: `npm test` și `npm run build`; la schimbări de
+  schemă și `npm run test:db`; la schimbări de ecran și `npm run test:e2e`.
 - Convenții: ramuri `claude/nume-scurt`; commit-uri cu prefix
   (`feat:`, `fix:`, `test:`, `docs:`); PR-ul spune ce s-a schimbat
   și dovada verificării (comanda și rezultatul).
-- Date și securitate: un singur cont comun, folosit de amândoi.
-  Listele se citesc și se scriu doar de utilizatorul autentificat
-  (RLS pe fiecare tabel). Parola și emailul contului nu ajung în cod,
+- Date și securitate: fiecare om are contul lui; datele sunt ale
+  gospodăriei, cu membri și roluri (owner/admin/member; decizia
+  proprietarului, 11 oct. 2026). Un membru citește și scrie doar datele
+  gospodăriilor lui (RLS pe `household_id`, pe fiecare tabel). Catalogul
+  global (`household_id NULL`) îl scriu doar `app_admins`. Ștergerile sunt
+  logice (`deleted_at`). Parolele și emailurile nu ajung în cod,
   loguri sau URL-uri. În cod intră doar URL-ul Supabase și anon key;
   `service_role` și orice cheie secretă stau doar în setările Vercel /
   Supabase, niciodată în repo sau în variabilele mediului cloud.
   Schimbările de bază de date doar prin migrații noi în repo.
-- Conținut de specialitate: nu există. Prețuri, magazine sau produse
-  „de exemplu” nu se inventează în aplicație; scrie „DE COMPLETAT: …”.
+- Conținut de specialitate: prețurile vin doar de la gospodărie
+  (plătite, văzute, promoții); nu se inventează prețuri, promoții sau
+  valori nutriționale (rămân `null`); scrie „DE COMPLETAT: …”. Textele
+  rețetelor și ale catalogului din `src/data` sunt scrise de agenți și
+  au nevoie de aprobarea proprietarului înainte de producție.
 - UI: mobil întâi, de la 360 px lățime, o coloană, zone de atins de
   minimum 44 px. Culorile doar din tokenii CSS din
   `src/app/globals.css` (fără culori scrise direct în componente);
