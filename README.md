@@ -1,17 +1,45 @@
-# claude-starter
+# Cămara
 
-Șablon de pornire pentru proiecte noi lucrate cu Claude Code, după metoda din OncoSentinel. Ghidul complet: [`docs/playbook-claude-code.md`](docs/playbook-claude-code.md).
+Cumpărături, rețete, plan de mese, buget și cămară pentru gospodăriile din România. Mobil întâi, instalabilă ca aplicație (PWA) și folosibilă fără internet.
 
-## Ce conține
-| Fișier | La ce folosește |
+Fluxul: **plan → rețete → listă → cumpărături reale → buget → analiză**.
+
+## Ce face
+- **Liste de cumpărături** comune gospodăriei: adăugare rapidă („2 kg cartofi”), grupare pe raioane sau magazine, bifare în magazin, prețul plătit, finalizarea turei și istoricul.
+- **Rețete** (86 în catalog și rețetele gospodăriei): porții, ingrediente trimise în listă, „am gătit” scade din cămară.
+- **Planul săptămânii**: mese pe zile, copiere de săptămână, lista generată din plan (scade ce e deja în cămară).
+- **Buget**: bugete pe lună, sursă, categorie sau magazin; cheltuiala reală vine doar din cumpărături, fără dublă numărare.
+- **Prețuri**: doar cele introduse de gospodărie (plătite, văzute, promoții). Aplicația nu inventează prețuri.
+- **Cămara**: ce ai acasă, unde stă, când expiră.
+- **Gospodării cu membri și roluri** (proprietar, administrator, membru), invitații prin link, sincronizare între telefoane.
+- **Mod demonstrativ**: fără Supabase configurat, aplicația merge complet local, pe un singur dispozitiv.
+
+## Pornire rapidă
+```sh
+npm ci
+npm run dev            # http://localhost:3000, mod demonstrativ
+```
+Cu Supabase: vezi [`docs/ENVIRONMENT_VARIABLES.md`](docs/ENVIRONMENT_VARIABLES.md) și [`docs/DEPLOYMENT.md`](docs/DEPLOYMENT.md).
+
+## Comenzi
+| Comandă | Ce face |
 | --- | --- |
-| `CLAUDE.md` | Regulile proiectului; se completează ce e între `<…>` |
-| `.claude/agents/` | Cei patru agenți: `explorare`, `testare`, `executie`, `verificare` |
-| `.claude/settings.json` | Claude nu poate citi `.env` (permisiuni impuse) |
-| `.tasks/README.md` | Șablonul pentru lucrările mari, pe etape |
-| `docs/playbook-claude-code.md` | Cum se lucrează: ciclul unei etape, siguranță, economie |
+| `npm test` | testele unitare și de servicii (Vitest) |
+| `npm run test:db` | migrația, RLS și funcțiile, pe Postgres real |
+| `npm run build` | export static în `out/` + service worker |
+| `npm run test:e2e` | Playwright pe `out/`, mod demonstrativ |
+| `npm run test:e2e:cloud` | Playwright cu Supabase local (fără Docker) |
+| `npm run seed:sql` | regenerează `supabase/seed.sql` din `src/data` |
+| `npm run lint`, `npm run typecheck` | ESLint, TypeScript |
 
-## Cum pornești un proiect nou
-1. Pe GitHub, în acest repo: **Use this template → Create a new repository**.
-2. Pornește o sesiune Claude Code pe repo-ul nou și scrie: „Completează `CLAUDE.md` și agenții pentru acest proiect, după `docs/playbook-claude-code.md`, cu întrebările ca chestionar.”
-3. Verifică mediul cloud: setup script (ex. `npm ci`) și nicio cheie secretă în variabile (playbook, secțiunile 2 și 5).
+## Documentație
+- [Arhitectura](docs/ARCHITECTURE.md)
+- [Schema bazei de date](docs/DATABASE_SCHEMA.md)
+- [API (RPC și tabele)](docs/API_DOCUMENTATION.md)
+- [Publicare (Supabase + Vercel)](docs/DEPLOYMENT.md)
+- [Variabile de mediu](docs/ENVIRONMENT_VARIABLES.md)
+- [Testare](docs/TESTING.md)
+- [Starea implementării](docs/IMPLEMENTATION_STATUS.md)
+- [Ce urmează](docs/ROADMAP.md)
+- [Istoricul versiunilor](CHANGELOG.md)
+- [Cum lucrăm cu Claude Code](docs/playbook-claude-code.md) și regulile din [`CLAUDE.md`](CLAUDE.md)
