@@ -1,5 +1,5 @@
 import type { UnitCode } from "./types";
-import { canConvert, canonicalUnit, convert, formatQuantity, humanize } from "./units";
+import { canonicalUnit, convert, convertWithPiece, formatQuantity, humanize } from "./units";
 
 /** O cantitate necesară dintr-un produs (din rețete, plan sau listă). */
 export interface Need {
@@ -64,6 +64,15 @@ export function aggregateNeeds(needs: Need[]): Need[] {
   return out;
 }
 
+/** Greutatea aproximativă pe bucată (g), pe produs; doar produsele care o au. */
+export type PieceGrams = ReadonlyMap<string, number>;
+
+export function pieceGramsOf(products: Iterable<{ id: string; piece_grams?: number | null }>): PieceGrams {
+  const m = new Map<string, number>();
+  for (const p of products) if (p.piece_grams) m.set(p.id, p.piece_grams);
+  return m;
+}
+
 export interface SubtractResult {
   /** Ce mai trebuie cumpărat. */
   remaining: Need[];
@@ -73,9 +82,10 @@ export interface SubtractResult {
 
 /**
  * Scade stocul din nevoi. Un produs fără cantitate („după gust”) se consideră
- * acoperit dacă există în cămară. Unitățile incompatibile nu se scad.
+ * acoperit dacă există în cămară. Unitățile incompatibile nu se scad; bucata și
+ * masa se scad una din alta doar cu greutatea pe bucată a produsului.
  */
-export function subtractStock(needs: Need[], stock: Stock[]): SubtractResult {
+export function subtractStock(needs: Need[], stock: Stock[], pieces?: PieceGrams): SubtractResult {
   const available = stock.map((s) => ({ ...s }));
   const remaining: Need[] = [];
   const covered: Need[] = [];
@@ -87,12 +97,13 @@ export function subtractStock(needs: Need[], stock: Stock[]): SubtractResult {
       continue;
     }
     let left = n.quantity;
+    const pg = pieces?.get(n.product_id);
     for (const s of matches) {
-      if (!canConvert(s.unit, n.unit) || left <= 0) continue;
-      const inNeedUnit = convert(s.quantity, s.unit, n.unit)!;
+      const inNeedUnit = convertWithPiece(s.quantity, s.unit, n.unit, pg);
+      if (inNeedUnit == null || left <= 0) continue;
       const used = Math.min(inNeedUnit, left);
       left -= used;
-      s.quantity -= convert(used, n.unit, s.unit)!;
+      s.quantity -= convertWithPiece(used, n.unit, s.unit, pg)!;
     }
     const usedTotal = n.quantity - left;
     if (usedTotal > 1e-9) covered.push({ ...n, quantity: roundTiny(usedTotal) });
@@ -128,12 +139,20 @@ export interface ShoppingNeed extends Need {
  * Transformă o nevoie din rețetă în ce pui pe lista de cumpărături, în
  * unitatea în care se vinde produsul: 600 g cartofi → 0,6 kg; 3 linguri de
  * smântână (vândută la bucată) → 1 buc, cu nota „pentru rețete: 3 linguri”.
+ * Cu greutatea pe bucată, 10 cepe → 1,5 kg, cu nota „pentru rețete: 10 buc”
+ * (greutatea e aproximativă, deci bucățile rămân scrise).
  */
-export function toShoppingNeed(need: Need, defaultUnit: UnitCode): ShoppingNeed {
+export function toShoppingNeed(need: Need, defaultUnit: UnitCode, pieceGrams?: number | null): ShoppingNeed {
   if (need.quantity == null || !need.unit) return { product_id: need.product_id, quantity: null, unit: null, note: null };
-  if (canConvert(need.unit, defaultUnit)) {
-    const h = humanize(convert(need.quantity, need.unit, defaultUnit)!, defaultUnit);
+  const direct = convert(need.quantity, need.unit, defaultUnit);
+  if (direct != null) {
+    const h = humanize(direct, defaultUnit);
     return { product_id: need.product_id, quantity: roundForShopping(h.quantity, h.unit), unit: h.unit, note: null };
+  }
+  const viaPiece = convertWithPiece(need.quantity, need.unit, defaultUnit, pieceGrams);
+  if (viaPiece != null) {
+    const h = humanize(viaPiece, defaultUnit);
+    return { product_id: need.product_id, quantity: roundForShopping(h.quantity, h.unit), unit: h.unit, note: `pentru rețete: ${formatQuantity(need.quantity, need.unit)}` };
   }
   return { product_id: need.product_id, quantity: 1, unit: defaultUnit, note: `pentru rețete: ${formatQuantity(need.quantity, need.unit)}` };
 }

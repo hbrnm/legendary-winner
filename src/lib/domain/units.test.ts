@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { canConvert, convert, formatQuantity, humanize } from "./units";
+import { canConvert, convert, convertWithPiece, formatQuantity, humanize } from "./units";
 
 describe("unități", () => {
   it("convertește în aceeași dimensiune", () => {
@@ -25,5 +25,15 @@ describe("unități", () => {
     expect(formatQuantity(2, "legatura")).toBe("2 legături");
     expect(formatQuantity(1, "borcan")).toBe("1 borcan");
     expect(formatQuantity(null, null)).toBe("");
+  });
+});
+
+describe("bucată ↔ masă cu greutatea pe bucată", () => {
+  it("convertește doar când produsul are greutatea", () => {
+    expect(convertWithPiece(10, "buc", "kg", 150)).toBe(1.5);
+    expect(convertWithPiece(300, "g", "buc", 150)).toBe(2);
+    expect(convertWithPiece(10, "buc", "kg", null)).toBeNull();
+    expect(convertWithPiece(1, "buc", "l", 150)).toBeNull();
+    expect(convertWithPiece(500, "g", "kg", null)).toBe(0.5);
   });
 });

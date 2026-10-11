@@ -128,6 +128,12 @@ describe("catalogul global", () => {
     await asUser(carmen, (q) => q("insert into products (id, name, category_id, default_unit) values ('produs-global-nou', 'Nou', 'diverse', 'buc')"));
     await db().query("delete from app_admins where user_id = $1", [carmen.id]);
   });
+
+  it("greutatea pe bucată vine din seed și acceptă doar valori pozitive", async () => {
+    const r = await asUser(carmen, async (q) => (await q("select piece_grams from products where id = 'ceapa-galbena'")).rows[0]);
+    expect(Number(r.piece_grams)).toBe(150);
+    await expect(db().query("update products set piece_grams = 0 where id = 'rosii'")).rejects.toThrow(/check constraint/);
+  });
 });
 
 describe("invitații și roluri", () => {

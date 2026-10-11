@@ -1,7 +1,7 @@
 import type { ISODate, PantryItem, ShoppingTransactionItem } from "./types";
 import { daysBetween, localDateOf, addDays } from "./dates";
-import { canConvert, convert } from "./units";
-import type { Need, Stock } from "./quantities";
+import { convertWithPiece } from "./units";
+import type { Need, PieceGrams, Stock } from "./quantities";
 
 export type ExpiryState = "expirat" | "expira_curand" | "ok" | "fara_data";
 
@@ -43,7 +43,7 @@ export interface ConsumeOp {
  * primul (FEFO). Nu se scade niciodată sub zero; ce nu se poate acoperi
  * (unitate incompatibilă, cantitate insuficientă) se întoarce în `shortfall`.
  */
-export function planConsumption(items: PantryItem[], needs: Need[]): { ops: ConsumeOp[]; shortfall: Need[] } {
+export function planConsumption(items: PantryItem[], needs: Need[], pieces?: PieceGrams): { ops: ConsumeOp[]; shortfall: Need[] } {
   const working = livePantry(items)
     .map((i) => ({ ...i }))
     .sort((a, b) => (a.expires_on ?? "9999").localeCompare(b.expires_on ?? "9999"));
@@ -52,12 +52,14 @@ export function planConsumption(items: PantryItem[], needs: Need[]): { ops: Cons
   for (const n of needs) {
     if (n.quantity == null || !n.unit) continue;
     let left = n.quantity;
+    const pg = pieces?.get(n.product_id);
     for (const i of working) {
       if (left <= 1e-9) break;
-      if (i.product_id !== n.product_id || i.quantity <= 0 || !canConvert(i.unit, n.unit)) continue;
-      const availableInNeed = convert(i.quantity, i.unit, n.unit)!;
+      if (i.product_id !== n.product_id || i.quantity <= 0) continue;
+      const availableInNeed = convertWithPiece(i.quantity, i.unit, n.unit, pg);
+      if (availableInNeed == null) continue;
       const used = Math.min(availableInNeed, left);
-      i.quantity = Math.max(0, round3(i.quantity - convert(used, n.unit, i.unit)!));
+      i.quantity = Math.max(0, round3(i.quantity - convertWithPiece(used, n.unit, i.unit, pg)!));
       left -= used;
       touched.set(i.id, i.quantity);
     }

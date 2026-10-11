@@ -53,6 +53,8 @@ export interface ProductSeed {
   /** Se cumpără des la piață sau de la producători. */
   market?: boolean;
   allergens?: Allergen[];
+  /** Greutatea aproximativă a unei bucăți (g), aprobată de proprietar (.tasks/004). Doar pentru produsele vândute la kg. */
+  piece_g?: number;
 }
 
 export interface RecipeIngredientSeed {

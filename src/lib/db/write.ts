@@ -90,7 +90,7 @@ export async function applyRemoteRows(db: CamaraDB, table: TableName, rows: Reco
 
 // Postgres întoarce numeric ca string și date ca „2026-10-11”; aducem
 // valorile la tipurile folosite în aplicație.
-const NUMERIC_FIELDS = new Set(["quantity", "estimated_price", "actual_price", "amount", "sort_order", "servings", "prep_minutes", "cook_minutes", "position", "cycle", "list_cycle"]);
+const NUMERIC_FIELDS = new Set(["quantity", "estimated_price", "actual_price", "amount", "sort_order", "servings", "prep_minutes", "cook_minutes", "position", "cycle", "list_cycle", "piece_grams"]);
 
 export function normalizeRemote(_table: TableName, row: Record<string, unknown>): Record<string, unknown> {
   const out: Record<string, unknown> = { ...row };

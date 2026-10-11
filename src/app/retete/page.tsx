@@ -12,6 +12,7 @@ import { RECIPE_CATEGORY_LABELS, RecipeVisual } from "@/components/recipes/recip
 import { owned, priceIndex, visible } from "@/lib/services/queries";
 import { normalize } from "@/lib/domain/search";
 import { recipeCost, totalMinutes, whatCanICook } from "@/lib/domain/recipes";
+import { pieceGramsOf } from "@/lib/domain/quantities";
 import { pantryStock } from "@/lib/domain/pantry";
 import { formatRon } from "@/lib/domain/money";
 import type { Recipe, RecipeCategoryId } from "@/lib/domain/types";
@@ -49,7 +50,7 @@ function RecipesScreen() {
       searchText,
       favorites: new Set(favorites.map((f) => f.recipe_id)),
       costs,
-      cook: whatCanICook(recipes, ingredients, pantryStock(pantry), 0.5),
+      cook: whatCanICook(recipes, ingredients, pantryStock(pantry), 0.5, pieceGramsOf(products)),
       pantryCount: pantry.filter((p) => p.quantity > 0).length,
     };
   });

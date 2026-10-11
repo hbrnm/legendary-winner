@@ -81,6 +81,8 @@ export interface Product extends SyncedRow {
   /** Se cumpără de obicei la piață sau de la producător. */
   is_market_typical: boolean;
   allergens: Allergen[];
+  /** Greutatea aproximativă a unei bucăți (g), pentru conversia buc ↔ kg; null = nu se convertește. */
+  piece_grams: number | null;
 }
 
 export interface ProductAlias extends SyncedRow {

@@ -67,6 +67,18 @@ export function convert(quantity: number, from: UnitCode, to: UnitCode): number 
   return (quantity * a.factor) / b.factor;
 }
 
+/**
+ * Ca `convert`, plus bucată ↔ masă pentru un produs cu greutate aproximativă
+ * pe bucată (ex. ceapă ≈ 150 g): 10 buc → 1,5 kg; 2 kg → 13,33 buc.
+ */
+export function convertWithPiece(quantity: number, from: UnitCode, to: UnitCode, pieceGrams?: number | null): number | null {
+  const direct = convert(quantity, from, to);
+  if (direct != null || !pieceGrams || pieceGrams <= 0) return direct;
+  if (from === "buc" && def(to).dimension === "masa") return convert(quantity * pieceGrams, "g", to);
+  if (to === "buc" && def(from).dimension === "masa") return convert(quantity, from, "g")! / pieceGrams;
+  return null;
+}
+
 /** Unitatea în care se adună cantitățile unei dimensiuni (kg/l pentru masă și volum). */
 export function canonicalUnit(unit: UnitCode): UnitCode {
   const d = def(unit).dimension;

@@ -181,6 +181,31 @@ describe("liste", () => {
 });
 
 describe("rețete și cămară", () => {
+  it("ceapa la bucată se convertește în kg cu greutatea aprobată: lista, cămara, costul, „am gătit”", async () => {
+    const { a } = await twoRecipes(); // 1 ceapă la 4 porții
+    const empty = await createList(ctx, { name: "Fără cămară" });
+    await addRecipeToList(ctx, { recipeId: a, servings: 40, listId: empty, onlyMissing: false });
+    const onion = (await listItemsForTest(ctx, empty)).find((i) => i.product_id === "ceapa-galbena")!;
+    // 10 cepe × 150 g = 1,5 kg (înainte: „1 kg” oricât ar fi cerut rețetele).
+    expect(onion).toMatchObject({ quantity: 1.5, unit: "kg", note: "pentru rețete: 10 buc" });
+
+    await addPantryItem(ctx, { product_id: "ceapa-galbena", name: "Ceapă", quantity: 2, unit: "kg", location_id: "camara" });
+    const listId = await createList(ctx, { name: "Cu cămară" });
+    const r = await addRecipeToList(ctx, { recipeId: a, servings: 40, listId, onlyMissing: true });
+    expect(r.covered).toBe(1);
+    expect((await listItemsForTest(ctx, listId)).some((i) => i.product_id === "ceapa-galbena")).toBe(false);
+
+    await recordPrice(ctx, { product_id: "ceapa-galbena", amount: 5, quantity: 1, unit: "kg", source: "piata", observed_on: "2026-03-01" });
+    const recipe = (await ctx.db.recipes.get(a))!;
+    const ings = (await ctx.db.recipe_ingredients.where("recipe_id").equals(a).toArray()).filter((i) => !i.deleted_at);
+    const cost = recipeCost(recipe, ings, 8, await priceIndex(ctx.db, ctx.householdId));
+    expect(cost.missing_product_ids).not.toContain("ceapa-galbena"); // 2 cepe = 300 g = 1,50 lei
+
+    await cookRecipe(ctx, a, 8);
+    const pantry = (await owned(ctx.db, "pantry_items", ctx.householdId)).find((i) => i.product_id === "ceapa-galbena")!;
+    expect(pantry).toMatchObject({ quantity: 1.7, unit: "kg" });
+  });
+
   it("adaugă doar ingredientele lipsă și calculează costul cu prețurile cunoscute", async () => {
     const { a } = await twoRecipes();
     await addPantryItem(ctx, { product_id: "ceapa-galbena", name: "Ceapă", quantity: 5, unit: "buc", location_id: "camara" });
