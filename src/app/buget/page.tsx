@@ -70,7 +70,7 @@ function BudgetScreen() {
       categories: categories.sort((a, b) => a.sort_order - b.sort_order),
       retailers: retailers.sort((a, b) => a.name.localeCompare(b.name, "ro")),
       openEstimate: sumMoney(open.map((t) => t.remaining_estimate)),
-      openUnknown: open.reduce((n, t) => n + t.unknown_price_count - t.checked_without_price_count, 0),
+      openUnknown: open.reduce((n, t) => n + t.remaining_unknown_count, 0),
     };
   });
 

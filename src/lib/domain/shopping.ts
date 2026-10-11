@@ -46,6 +46,11 @@ export interface ListTotals {
   checked_count: number;
   unknown_price_count: number;
   checked_without_price_count: number;
+  /**
+   * Produse nebifate fără preț estimat: costul de cumpărat e incomplet. Cele
+   * bifate fără sumă apar deja în buget ca „fără sumă” (spendRecords).
+   */
+  remaining_unknown_count: number;
 }
 
 export function listTotals(items: ShoppingListItem[], prices: PriceIndex, today: ISODate | null = null): ListTotals {
@@ -55,10 +60,12 @@ export function listTotals(items: ShoppingListItem[], prices: PriceIndex, today:
   const remaining: number[] = [];
   let unknown = 0;
   let checkedNoPrice = 0;
+  let remainingUnknown = 0;
   for (const i of live) {
     const e = lineEstimate(i, prices, today);
     if (e.amount == null) unknown++;
     else estimates.push(e.amount);
+    if (e.amount == null && !i.checked) remainingUnknown++;
     if (i.checked) {
       if (i.actual_price != null) spent.push(i.actual_price);
       else {
@@ -78,6 +85,7 @@ export function listTotals(items: ShoppingListItem[], prices: PriceIndex, today:
     checked_count: live.filter((i) => i.checked).length,
     unknown_price_count: unknown,
     checked_without_price_count: checkedNoPrice,
+    remaining_unknown_count: remainingUnknown,
   };
 }
 

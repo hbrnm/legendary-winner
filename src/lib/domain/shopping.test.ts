@@ -68,3 +68,22 @@ describe("adăugarea în listă fără dubluri", () => {
     expect(planMerge(existing, [{ product_id: "sare", quantity: null, unit: null }])).toEqual([]);
   });
 });
+
+describe("lista în curs și bugetul", () => {
+  const items = [
+    listItem({ product_id: "rosii", quantity: 1, unit: "kg", checked: true, actual_price: 15 }), // plătit: e deja în buget (spendRecords)
+    listItem({ product_id: "rosii", quantity: 1, unit: "kg", checked: true }), // bifat fără sumă, estimat 12
+    listItem({ name: "Pâine" }), // nebifat, fără preț
+    listItem({ name: "Lapte", checked: true }), // bifat fără sumă: în buget apare ca „fără sumă”
+    listItem({ product_id: "rosii", quantity: 2, unit: "kg" }), // nebifat, estimat 24
+  ];
+
+  it("estimarea rămasă nu include sumele deja plătite (ele sunt deja în buget)", () => {
+    expect(listTotals(items, prices).remaining_estimate).toBe(12 + 24);
+  });
+
+  it("numără produsele nebifate încă fără preț", () => {
+    // Formula veche (unknown_price_count - checked_without_price_count) dădea 0.
+    expect(listTotals(items, prices).remaining_unknown_count).toBe(1);
+  });
+});
