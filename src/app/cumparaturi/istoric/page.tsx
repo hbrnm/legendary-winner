@@ -129,20 +129,23 @@ function HistoryScreen() {
                     <p className="text-[15px]">{i.name}</p>
                     <p className="text-xs text-ink-2">{formatQuantity(i.quantity, i.unit)}</p>
                   </div>
-                  <Input
-                    inputMode="decimal"
-                    aria-label={`Suma pentru ${i.name}`}
-                    className="w-28 text-right tabular"
-                    placeholder="lei"
-                    value={drafts[i.id] ?? (i.amount == null ? "" : i.amount.toFixed(2).replace(".", ","))}
-                    onChange={(e) => setDrafts((d) => ({ ...d, [i.id]: e.target.value }))}
-                    onBlur={async (e) => {
-                      const raw = e.target.value.trim();
-                      const amount = raw ? parseMoney(raw) : null;
-                      if (raw && amount == null) return;
-                      if (amount !== i.amount) await run((ctx) => setTransactionItemAmount(ctx, i.id, amount));
-                    }}
-                  />
+                  {/* Input are w-full: lățimea fixă stă pe container, ca numele să aibă loc. */}
+                  <div className="w-28 shrink-0">
+                    <Input
+                      inputMode="decimal"
+                      aria-label={`Suma pentru ${i.name}`}
+                      className="text-right tabular"
+                      placeholder="lei"
+                      value={drafts[i.id] ?? (i.amount == null ? "" : i.amount.toFixed(2).replace(".", ","))}
+                      onChange={(e) => setDrafts((d) => ({ ...d, [i.id]: e.target.value }))}
+                      onBlur={async (e) => {
+                        const raw = e.target.value.trim();
+                        const amount = raw ? parseMoney(raw) : null;
+                        if (raw && amount == null) return;
+                        if (amount !== i.amount) await run((ctx) => setTransactionItemAmount(ctx, i.id, amount));
+                      }}
+                    />
+                  </div>
                 </li>
               ))}
             </ul>
