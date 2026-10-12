@@ -1,5 +1,5 @@
 import type { ISODate, ProductPrice, PurchaseSource, UnitCode } from "./types";
-import { canConvert, convert } from "./units";
+import { convertWithPiece } from "./units";
 import { roundMoney } from "./money";
 import { daysBetween } from "./dates";
 
@@ -47,15 +47,17 @@ export interface PriceOptions {
   today?: ISODate | null;
 }
 
-export type PriceIndex = Map<string, ProductPrice[]>;
+/** Prețurile pe produs; opțional, greutatea pe bucată, ca prețul pe kg să acopere și bucățile. */
+export type PriceIndex = Map<string, ProductPrice[]> & { piece_grams?: ReadonlyMap<string, number> };
 
 /**
  * Grupează prețurile pe produs, cele mai noi primele. Prețurile șterse și
  * cele cu cantitate zero se ignoră. Nu există prețuri implicite: un produs
  * fără preț introdus de gospodărie rămâne fără preț.
  */
-export function buildPriceIndex(prices: ProductPrice[]): PriceIndex {
+export function buildPriceIndex(prices: ProductPrice[], pieceGrams?: ReadonlyMap<string, number>): PriceIndex {
   const index: PriceIndex = new Map();
+  if (pieceGrams) index.piece_grams = pieceGrams;
   for (const p of prices) {
     if (p.deleted_at || p.quantity <= 0 || p.amount < 0) continue;
     const list = index.get(p.product_id) ?? [];
@@ -88,13 +90,13 @@ export function latestUnitPrice(index: PriceIndex, productId: string, unit?: Uni
   if (!list) return null;
   const rank = (m: PriceMatch, promo: boolean) => (promo ? 2 : 0) + (m === "alt_magazin" ? 1 : 0);
   let best: { p: ProductPrice; match: PriceMatch; qty: number; target: UnitCode; rank: number } | null = null;
+  const pg = index.piece_grams?.get(productId);
   for (const p of list) {
-    if (unit && !canConvert(p.unit, unit)) continue;
+    const target = unit ?? p.unit;
+    const qty = convertWithPiece(p.quantity, p.unit, target, pg);
+    if (qty == null || qty <= 0) continue;
     const match = matchOf(p, opts.context);
     if (!match) continue;
-    const target = unit ?? p.unit;
-    const qty = convert(p.quantity, p.unit, target)!;
-    if (qty <= 0) continue;
     const r = rank(match, p.price_type === "promotie");
     // Lista e deja sortată de la cel mai nou, deci la rang egal îl păstrăm pe primul.
     if (!best || r < best.rank) best = { p, match, qty, target, rank: r };

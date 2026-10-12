@@ -1,5 +1,17 @@
 # Istoricul versiunilor
 
+## 0.1.1 — 12 oct. 2026
+Stabilizare: corectitudinea estimărilor și a datelor ([docs/AUDIT_0.1.1.md](docs/AUDIT_0.1.1.md)).
+
+### Reparat
+- Estimarea unei linii din listă folosește prețul din magazinul ei, apoi din aceeași sursă („alt magazin”). Prețurile de la piață nu mai estimează un coș de supermarket. Promoțiile intră doar dacă nu există alt preț și sunt marcate. Prețurile mai vechi de 90 de zile sunt marcate „preț vechi”. Fișa produsului spune de unde vine estimarea (#13).
+- Pe Buget, numărul produselor fără preț din listele deschise nu mai poate fi greșit sau negativ (#14).
+- Rețetele cer legume la bucată, iar produsele se vând la kg. Acum lista pune cantitatea corectă (10 cepe → 1,5 kg, nu 1 kg), cămara le scade, iar costul le include. Greutățile aproximative pe bucată sunt aprobate de proprietar; migrația `20261012000001_piece_grams` (#16).
+
+### Teste și documentație
+- Sincronizarea întreruptă între pagini se reia fără pierderi (#12).
+- Auditul 0.1.1, starea reală a criteriilor, migrațiile din producție, roadmap-ul 0.2.0 (#15).
+
 ## 0.1.0 — 11 oct. 2026
 Prima versiune completă, publicată la https://appcamara.vercel.app (Vercel, cu proiectul Supabase „Camara”).
 

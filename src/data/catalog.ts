@@ -19,7 +19,7 @@ import { PANTRY_LOCATION_SEEDS } from "./pantry-locations";
  * sincronizare, clientul cere de la server doar ce e mai nou de atât.
  * Se schimbă când se modifică datele din src/data.
  */
-export const CATALOG_VERSION = "2026-10-11T00:00:00.000Z";
+export const CATALOG_VERSION = "2026-10-11T19:00:00.000Z";
 
 const meta = { household_id: null, created_at: CATALOG_VERSION, updated_at: CATALOG_VERSION, deleted_at: null };
 
@@ -50,6 +50,7 @@ export function buildCatalog(): Catalog {
       is_traditional: p.traditional ?? false,
       is_market_typical: p.market ?? false,
       allergens: p.allergens ?? [],
+      piece_grams: p.piece_g ?? null,
     })),
     product_aliases: PRODUCT_SEEDS.flatMap((p) =>
       (p.aliases ?? []).map((alias, i) => ({ ...meta, id: `${p.id}:a${i + 1}`, product_id: p.id, alias })),

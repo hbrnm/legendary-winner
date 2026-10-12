@@ -2,7 +2,7 @@ import { z } from "zod";
 import type { MealSlot, PantryItem, Recipe, UnitCode } from "@/lib/domain/types";
 import { insertRow, softDelete, updateRow, upsertRow } from "@/lib/db/write";
 import { newId, stableId } from "@/lib/db/ids";
-import { aggregateNeeds, subtractStock, toShoppingNeed, type Need } from "@/lib/domain/quantities";
+import { aggregateNeeds, pieceGramsOf, subtractStock, toShoppingNeed, type Need } from "@/lib/domain/quantities";
 import { activeIngredients, recipeNeeds } from "@/lib/domain/recipes";
 import { pantryStock, planConsumption } from "@/lib/domain/pantry";
 import { addDays } from "@/lib/domain/dates";
@@ -34,18 +34,19 @@ async function recipeWithIngredients(ctx: AppCtx, recipeId: string) {
 /** Transformă nevoile (în unități de bucătărie) în linii de cumpărături, scăzând opțional ce e în cămară. */
 async function needsToShopping(ctx: AppCtx, needs: Need[], subtractPantry: boolean) {
   const aggregated = aggregateNeeds(needs);
+  const products = await productMap(ctx.db, ctx.householdId);
+  const pieces = pieceGramsOf(products.values());
   let remaining = aggregated;
   let covered: Need[] = [];
   if (subtractPantry) {
-    const r = subtractStock(aggregated, pantryStock(await owned(ctx.db, "pantry_items", ctx.householdId)));
+    const r = subtractStock(aggregated, pantryStock(await owned(ctx.db, "pantry_items", ctx.householdId)), pieces);
     remaining = r.remaining;
     covered = r.covered;
   }
-  const products = await productMap(ctx.db, ctx.householdId);
   // Din nou pe produs: după conversie, două linii (ex. 300 g și 1 lingură) pot ajunge în aceeași unitate.
   const shopping = remaining
     .filter((n) => products.has(n.product_id))
-    .map((n) => toShoppingNeed(n, products.get(n.product_id)!.default_unit));
+    .map((n) => toShoppingNeed(n, products.get(n.product_id)!.default_unit, pieces.get(n.product_id)));
   return { shopping, covered };
 }
 
@@ -69,7 +70,8 @@ export async function addRecipeToList(ctx: AppCtx, input: { recipeId: string; se
 export async function cookRecipe(ctx: AppCtx, recipeId: string, servings: number): Promise<{ updated: number; shortfall: Need[] }> {
   const { recipe, ingredients } = await recipeWithIngredients(ctx, recipeId);
   const pantry = await owned(ctx.db, "pantry_items", ctx.householdId);
-  const { ops, shortfall } = planConsumption(pantry, aggregateNeeds(recipeNeeds(recipe, ingredients, servings)));
+  const pieces = pieceGramsOf((await productMap(ctx.db, ctx.householdId)).values());
+  const { ops, shortfall } = planConsumption(pantry, aggregateNeeds(recipeNeeds(recipe, ingredients, servings)), pieces);
   for (const op of ops) await updateRow(ctx.db, "pantry_items", op.item_id, { quantity: op.new_quantity }, w(ctx));
   return { updated: ops.length, shortfall };
 }

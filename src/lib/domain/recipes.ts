@@ -1,5 +1,5 @@
 import type { Allergen, ISODate, Product, Recipe, RecipeIngredient } from "./types";
-import { aggregateNeeds, scaleQuantity, subtractStock, type Need, type Stock } from "./quantities";
+import { aggregateNeeds, scaleQuantity, subtractStock, type Need, type PieceGrams, type Stock } from "./quantities";
 import { estimateCost, type PriceIndex } from "./pricing";
 import { roundMoney, sumMoney } from "./money";
 
@@ -96,7 +96,7 @@ export const STAPLE_PRODUCT_IDS = new Set(["sare", "piper-negru-macinat", "apa"]
  * obligatorii acoperă cămara. Se ordonează după proporția acoperită, apoi
  * după numărul de ingrediente lipsă.
  */
-export function whatCanICook(recipes: Recipe[], allIngredients: RecipeIngredient[], stock: Stock[], minRatio = 0.5): PantryMatch[] {
+export function whatCanICook(recipes: Recipe[], allIngredients: RecipeIngredient[], stock: Stock[], minRatio = 0.5, pieces?: PieceGrams): PantryMatch[] {
   const byRecipe = new Map<string, RecipeIngredient[]>();
   for (const i of allIngredients) {
     if (i.deleted_at) continue;
@@ -111,7 +111,7 @@ export function whatCanICook(recipes: Recipe[], allIngredients: RecipeIngredient
       (n) => !STAPLE_PRODUCT_IDS.has(n.product_id),
     );
     if (needs.length === 0) continue;
-    const { remaining } = subtractStock(needs, stock);
+    const { remaining } = subtractStock(needs, stock, pieces);
     const missingIds = new Set(remaining.map((r) => r.product_id));
     const have = needs.filter((n) => !missingIds.has(n.product_id)).map((n) => n.product_id);
     const ratio = have.length / needs.length;
