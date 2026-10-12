@@ -21,7 +21,7 @@ const precache = files
   .sort();
 
 const hash = createHash("sha1");
-for (const f of files.filter((x) => x.startsWith("/_next/static/") || x.endsWith(".html")).sort()) hash.update(f).update(readFileSync(join(OUT, f)));
+for (const f of files.filter((x) => x.startsWith("/_next/static/") || x.endsWith(".html") || /^\/retete\/[a-z0-9-]+\.webp$/.test(x)).sort()) hash.update(f).update(readFileSync(join(OUT, f)));
 const version = hash.digest("hex").slice(0, 12);
 
 const template = readFileSync(new URL("../src/sw/sw.template.js", import.meta.url), "utf8");

@@ -5,7 +5,11 @@ import { RecipePhotoCredit, RecipeVisual } from "./recipe-visual";
 
 vi.mock("@/data/recipe-photos", async (load) => {
   const real = await load<typeof import("@/data/recipe-photos")>();
-  const photos = [{ recipe_id: "sarmale", file: "sarmale.webp", author: "Ana Pop", source_url: "https://unsplash.com/photos/sarmale-abc", license: "unsplash" as const }];
+  const photos = [
+    { recipe_id: "sarmale", file: "sarmale.webp", author: "Ana Pop", source_url: "https://unsplash.com/photos/sarmale-abc", source: "unsplash" as const, license: "Unsplash License", license_url: null },
+    { recipe_id: "bulz", file: "bulz.webp", author: "Ion Pop", source_url: "https://commons.wikimedia.org/wiki/File:Bulz.jpg", source: "wikimedia" as const, license: "CC BY-SA 3.0", license_url: "https://creativecommons.org/licenses/by-sa/3.0" },
+    { recipe_id: "gris-cu-lapte", file: "gris-cu-lapte.webp", author: "autor necunoscut", source_url: "https://commons.wikimedia.org/wiki/File:Gris.jpg", source: "wikimedia" as const, license: "Public domain", license_url: null },
+  ];
   return { ...real, catalogPhotoByUrl: (url: string | null) => photos.find((p) => `/retete/${p.file}` === url) ?? null };
 });
 
@@ -29,6 +33,19 @@ describe("RecipePhotoCredit", () => {
     expect(link.getAttribute("href")).toBe("https://unsplash.com/photos/sarmale-abc");
     expect(link.getAttribute("target")).toBe("_blank");
     expect(link.getAttribute("rel")).toContain("noopener");
+  });
+
+  it("la Wikimedia arată și licența, cu legătură către textul ei", () => {
+    const { container, getByRole } = render(<RecipePhotoCredit recipe={{ image_url: "/retete/bulz.webp" }} />);
+    expect(container.textContent).toBe("Foto: Ion Pop / Wikimedia Commons · CC BY-SA 3.0");
+    expect(getByRole("link", { name: "Wikimedia Commons" }).getAttribute("href")).toBe("https://commons.wikimedia.org/wiki/File:Bulz.jpg");
+    expect(getByRole("link", { name: "CC BY-SA 3.0" }).getAttribute("href")).toBe("https://creativecommons.org/licenses/by-sa/3.0");
+  });
+
+  it("domeniul public apare fără legătură", () => {
+    const { container } = render(<RecipePhotoCredit recipe={{ image_url: "/retete/gris-cu-lapte.webp" }} />);
+    expect(container.textContent).toBe("Foto: autor necunoscut / Wikimedia Commons · domeniu public");
+    expect(container.querySelectorAll("a")).toHaveLength(1);
   });
 
   it("fără fotografie din catalog nu arată nimic", () => {
