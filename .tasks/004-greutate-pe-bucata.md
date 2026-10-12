@@ -1,6 +1,6 @@
 # 004 — Greutatea aproximativă pe bucată
 
-**Stare:** în lucru: codul e gata (PR), migrația și seed-ul pe producție așteaptă acordul proprietarului. Decizia „Greutăți chiar acum” (în 0.1.1) și valorile de mai jos aprobate de proprietar, 11 oct. 2026, chestionar („Aprob, continuă acum”).
+**Stare:** încheiat după integrarea PR #16 (12 oct. 2026). Producția: migrația și cele 16 valori aplicate cu acordul proprietarului („Aplică și integrează”). Decizia „Greutăți chiar acum” (în 0.1.1) și valorile de mai jos aprobate de proprietar, 11 oct. 2026, chestionar („Aprob, continuă acum”).
 **Ramura:** `claude/greutate-pe-bucata` (un PR din `main`, într-o sesiune nouă)
 
 ## Scop
@@ -51,10 +51,10 @@ Sunt valori aproximative, de bucătărie. Nu provin dintr-o sursă oficială și
 | 2 | Teste: `services.test.ts` (listă, cămară, cost, „am gătit”), `units.test.ts`, `rls.test.ts`; testul de servicii pică fără greutăți (verificat) | făcut | |
 | 3 | Migrația, catalogul (`CATALOG_VERSION` 2026-10-11T19:00Z), conversiile (`convertWithPiece` în listă, cămară, prețuri, „ce pot găti”), `normalizeRemote` | făcut | |
 | 4 | `npm test` 126, `npm run test:db` 28, `npm run test:e2e` 20, `npm run build`; `verificare`; PR | făcut | |
-| 5 | Producția: migrația, apoi `seed.sql`, **înainte** de integrarea PR-ului (codul nou scrie `piece_grams`) | de făcut (acordul proprietarului) | |
+| 5 | Producția: migrația (`apply_migration`, versiunea aliniată la `20261012000001`), apoi `update` pe cele 16 produse globale (aceleași valori ca `seed.sql`; restul catalogului neatins). Verificat: `list_migrations`, 16 din 471 de produse globale cu `piece_grams` | făcut | 12 oct. |
 
 ## Cum verific la final
 Planul unei săptămâni cu 10 cepe în rețete pune pe listă 1,5 kg. Cu 2 kg de ceapă în cămară, ceapa nu mai apare pe listă.
 
 ## Următorul pas
-Acordul proprietarului pentru etapa 5; apoi integrarea PR-ului.
+Nimic pentru această sarcină.
