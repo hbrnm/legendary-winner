@@ -55,6 +55,9 @@ test("de la planul săptămânii la buget", async ({ page }) => {
   // Istoricul păstrează cumpărătura; prețul lipsă se poate completa.
   await page.goto("/cumparaturi/istoric/");
   await page.getByRole("button", { name: /Săptămâna/ }).click();
+  // Câmpul sumei are lățime fixă, ca numele produsului să încapă pe rând alături (pe telefon, la 412 px).
+  const box = await page.getByLabel("Suma pentru Morcovi").boundingBox();
+  expect(box!.width).toBeLessThan(150);
   await page.getByLabel("Suma pentru Morcovi").fill("3");
   await page.getByLabel("Suma pentru Morcovi").blur();
   await expect(page.getByText("7,50 RON").last()).toBeVisible();

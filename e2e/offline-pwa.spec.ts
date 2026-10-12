@@ -24,6 +24,9 @@ test("lista funcționează fără internet, iar modificările rămân", async ({
   await expect(page.getByText("Lapte integral")).toBeVisible();
   await quickAdd(page, "2 kg cartofi");
   await page.getByRole("checkbox", { name: /Bifează Lapte integral/ }).click();
+  // Reîncarcă abia după ce lista arată schimbările, adică după ce au ajuns în baza locală.
+  await expect(page.getByText("Cartofi albi")).toBeVisible();
+  await expect(page.getByRole("checkbox", { name: /Debifează Lapte integral/ })).toBeVisible();
   await page.reload();
   await expect(page.getByText("Cartofi albi")).toBeVisible();
   await expect(page.getByRole("checkbox", { name: /Debifează Lapte integral/ })).toBeVisible();

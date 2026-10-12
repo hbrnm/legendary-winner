@@ -18,11 +18,11 @@ Ordinea o decide proprietarul. Stările: **implementat** (în `main`), **verific
 | Observațiile editoriale din rețete | blocat: aprobarea proprietarului |
 
 ## 0.2.0 — propuneri, după valoarea pentru utilizator și complexitate
-Stare (12 oct. 2026): comparația pe magazine e implementată (PR #17). În lucru: prețurile din bonurile fiscale, cu OCR pe telefon ([.tasks/005](../.tasks/005-bonuri-fiscale.md)). Monitorul Prețurilor: acordul Consiliului Concurenței obținut (12 oct. 2026), planul în [.tasks/006](../.tasks/006-monitorul-preturilor.md). Urmează: Open Prices.
+Stare (12 oct. 2026): comparația pe magazine e implementată (PR #17). În lucru: prețurile din bonurile fiscale, cu OCR pe telefon ([.tasks/005](../.tasks/005-bonuri-fiscale.md)). Monitorul Prețurilor: oprit de proprietar (12 oct. 2026), după proba din [.tasks/006](../.tasks/006-monitorul-preturilor.md). Urmează: Open Prices.
 
 1. **Variante comerciale** (ambalaj, brand, EAN), apoi prețul pe kg din ambalaj ([AUDIT_0.1.1.md](AUDIT_0.1.1.md), secțiunea 4). Valoare mare, complexitate medie.
 2. ~~**Comparația pe magazine a unei liste întregi**~~: implementată (PR #17).
-3. **Densități pentru lingurile de zahăr și făină**, cu valori aprobate. Valoare medie, complexitate mică.
+3. ~~**Densități pentru lingurile de zahăr și făină**~~: implementate (PR #19).
 4. **Realtime în E2E-ul local**: testul cloud acoperă acum sincronizarea la cerere, nu notificările Realtime. Valoare medie (încredere), complexitate medie.
 5. **Notificări push de pe server** (alimente care expiră, cu aplicația închisă). Cer chei VAPID și o funcție pe server. Acum există doar notificări locale. Valoare medie, complexitate mare.
 6. **Prețuri din cataloagele magazinelor**, doar din surse permise (parteneriate, fișiere publice, Open Food Facts pentru produse, nu pentru prețuri). Fără scraping. Valoare mare, complexitate mare și dependentă de parteneri.

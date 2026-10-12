@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { buildPriceIndex, estimateCost, latestUnitPrice, type PriceContext } from "./pricing";
+import { buildPriceIndex, defaultShelfBasis, estimateCost, latestUnitPrice, totalFromShelfPrice, type PriceContext } from "./pricing";
 import { listTotals, lineEstimate } from "./shopping";
 import { recipeCost } from "./recipes";
 import { ingredient, listItem, price, recipe } from "@/test/factories";
@@ -113,5 +113,29 @@ describe("estimări explicabile", () => {
     expect(c.complete).toBe(true);
     expect(c.has_stale_price).toBe(true);
     expect(c.oldest_price_on).toBe("2026-06-01");
+  });
+});
+
+describe("prețul de la raft", () => {
+  it("calculează totalul din prețul pe 100 g, pe kg sau pe bucată", () => {
+    expect(totalFromShelfPrice(7.99, "100g", 300, "g")).toBe(23.97);
+    expect(totalFromShelfPrice(7.99, "100g", 0.312, "kg")).toBe(24.93);
+    expect(totalFromShelfPrice(42.5, "kg", 250, "g")).toBe(10.63);
+    expect(totalFromShelfPrice(3.2, "buc", 4, "buc")).toBe(12.8);
+    expect(totalFromShelfPrice(1.5, "100ml", 0.5, "l")).toBe(7.5);
+  });
+
+  it("nu calculează când cantitatea nu se potrivește cu baza", () => {
+    expect(totalFromShelfPrice(7.99, "kg", 2, "buc")).toBeNull();
+    expect(totalFromShelfPrice(3.2, "buc", 300, "g")).toBeNull();
+  });
+
+  it("propune baza după unitatea liniei", () => {
+    expect(defaultShelfBasis("g")).toBe("100g");
+    expect(defaultShelfBasis("kg")).toBe("kg");
+    expect(defaultShelfBasis("l")).toBe("l");
+    expect(defaultShelfBasis("ml")).toBe("100ml");
+    expect(defaultShelfBasis("pachet")).toBe("buc");
+    expect(defaultShelfBasis(null)).toBe("buc");
   });
 });

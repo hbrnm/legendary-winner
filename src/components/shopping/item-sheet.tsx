@@ -11,6 +11,7 @@ import { formatRon, parseMoney } from "@/lib/domain/money";
 import { SOURCE_LABELS } from "@/lib/domain/budget";
 import type { LineEstimate } from "@/lib/domain/shopping";
 import { formatShortDate } from "@/lib/domain/dates";
+import { defaultShelfBasis, SHELF_BASES, totalFromShelfPrice, type ShelfBasis } from "@/lib/domain/pricing";
 
 export interface ItemSheetProps {
   item: ShoppingListItem | null;
@@ -36,6 +37,27 @@ function estimateHint(e: LineEstimate, retailers: Retailer[]): string {
 
 const STEP: Partial<Record<UnitCode, number>> = { kg: 0.5, g: 100, l: 0.5, ml: 250 };
 
+const decimal = (n: number) => String(n).replace(".", ",");
+
+type Shelf = { price: string; basis: ShelfBasis; quantity: string; unit: UnitCode | "" };
+
+/** Totalul din prețul de la raft, sau ce lipsește ca să-l calculăm. */
+function shelfTotal(s: Shelf): { total: number; hint: string } | { error: string } | null {
+  if (!s.price.trim()) return null;
+  const shelf = parseMoney(s.price);
+  if (shelf == null) return { error: "Prețul la raft nu e valid. Scrie de exemplu 7,99." };
+  const q = s.quantity ? Number(s.quantity.replace(",", ".")) : null;
+  if (q == null || !(q > 0)) return { error: "Scrie cantitatea ca să calculăm totalul." };
+  const unit = (s.unit || "buc") as UnitCode;
+  const b = SHELF_BASES.find((x) => x.basis === s.basis)!;
+  const total = totalFromShelfPrice(shelf, s.basis, q, unit);
+  if (total == null) {
+    const what = unit === "buc" ? "bucățile" : `cantitatea în ${unitLabel(unit, 2)}`;
+    return { error: `Prețul ${b.label} nu se potrivește cu ${what}. Alege altă bază sau scrie totalul.` };
+  }
+  return { total, hint: `Calculat: ${decimal(q)} ${unitLabel(unit, q)} × ${shelf.toFixed(2).replace(".", ",")} lei/${b.short}. Îl poți corecta.` };
+}
+
 /** Editarea unui produs din listă: cantitate, preț real, magazin, sursă, observații. */
 export function ItemSheet(props: ItemSheetProps) {
   if (!props.item) return null;
@@ -54,14 +76,31 @@ function ItemSheetForm({ item, estimate, categories, retailers, lists, focusPric
   const [note, setNote] = useState(item.note ?? "");
   const [name, setName] = useState(item.name);
   const [error, setError] = useState<string | null>(null);
+  const [atShelf, setAtShelf] = useState(false);
+  const [shelf, setShelf] = useState<Pick<Shelf, "price" | "basis">>({ price: "", basis: defaultShelfBasis(item.unit) });
+  const computed = atShelf ? shelfTotal({ ...shelf, quantity, unit }) : null;
+
+  /** La raft, orice schimbare a prețului, a bazei sau a cantității recalculează totalul (decizia proprietarului, 12 oct. 2026). */
+  function change(next: Partial<Shelf>) {
+    if (next.quantity !== undefined) setQuantity(next.quantity);
+    if (next.unit !== undefined) setUnit(next.unit);
+    const nextShelf = { price: next.price ?? shelf.price, basis: next.basis ?? shelf.basis };
+    if (next.price !== undefined || next.basis !== undefined) setShelf(nextShelf);
+    if (!atShelf && next.price === undefined && next.basis === undefined) return;
+    applyShelf(shelfTotal({ ...nextShelf, quantity: next.quantity ?? quantity, unit: next.unit ?? unit }));
+  }
+
+  /** Un total care nu se mai poate calcula se golește, ca să nu rămână unul vechi. */
+  function applyShelf(r: ReturnType<typeof shelfTotal>) {
+    if (r) setPrice("total" in r ? r.total.toFixed(2).replace(".", ",") : "");
+  }
 
   const step = STEP[(unit || "buc") as UnitCode] ?? 1;
   const q = quantity ? Number(quantity.replace(",", ".")) : null;
 
   function bump(delta: number) {
     const next = Math.max(step, Math.round(((q ?? 0) + delta) * 1000) / 1000);
-    setQuantity(String(next).replace(".", ","));
-    if (!unit) setUnit("buc");
+    change({ quantity: decimal(next), unit: unit || "buc" });
   }
 
   function save() {
@@ -114,14 +153,14 @@ function ItemSheetForm({ item, estimate, categories, retailers, lists, focusPric
             <button type="button" aria-label="Mai puțin" onClick={() => bump(-step)} className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-line bg-surface">
               <Minus size={18} />
             </button>
-            <Input inputMode="decimal" value={quantity} onChange={(e) => setQuantity(e.target.value)} placeholder="—" className="min-w-0 flex-1 text-center tabular" aria-label="Cantitate" />
+            <Input inputMode="decimal" value={quantity} onChange={(e) => change({ quantity: e.target.value })} placeholder="—" className="min-w-0 flex-1 text-center tabular" aria-label="Cantitate" />
             <button type="button" aria-label="Mai mult" onClick={() => bump(step)} className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-line bg-surface">
               <Plus size={18} />
             </button>
             <select
               aria-label="Unitate"
               value={unit}
-              onChange={(e) => setUnit(e.target.value as UnitCode)}
+              onChange={(e) => change({ unit: e.target.value as UnitCode })}
               className="h-11 w-28 shrink-0 rounded-xl border border-line bg-surface px-3 text-[15px]"
             >
               <option value="">fără unitate</option>
@@ -134,8 +173,45 @@ function ItemSheetForm({ item, estimate, categories, retailers, lists, focusPric
           </div>
         </Field>
 
+        <Segmented<"total" | "raft">
+          label="Felul prețului"
+          value={atShelf ? "raft" : "total"}
+          onChange={(v) => {
+            setAtShelf(v === "raft");
+            if (v === "raft") applyShelf(shelfTotal({ ...shelf, quantity, unit }));
+          }}
+          options={[
+            { value: "total", label: "Total plătit" },
+            { value: "raft", label: "Preț la raft" },
+          ]}
+        />
+
+        {atShelf && (
+          <Field label="Preț la raft (lei)">
+            <div className="flex items-center gap-2">
+              <Input inputMode="decimal" value={shelf.price} onChange={(e) => change({ price: e.target.value })} placeholder="7,99" autoFocus className="min-w-0 flex-1 tabular" aria-label="Preț la raft" />
+              <select
+                aria-label="Baza prețului la raft"
+                value={shelf.basis}
+                onChange={(e) => change({ basis: e.target.value as ShelfBasis })}
+                className="h-11 w-32 shrink-0 rounded-xl border border-line bg-surface px-3 text-[15px]"
+              >
+                {SHELF_BASES.map((b) => (
+                  <option key={b.basis} value={b.basis}>
+                    {b.label}
+                  </option>
+                ))}
+              </select>
+            </div>
+          </Field>
+        )}
+
         <div className="grid grid-cols-2 gap-3">
-          <Field label="Preț plătit (lei)" hint="Pentru toată cantitatea">
+          <Field
+            label="Preț plătit (lei)"
+            hint={computed && "hint" in computed ? computed.hint : "Pentru toată cantitatea"}
+            error={computed && "error" in computed ? computed.error : null}
+          >
             <Input inputMode="decimal" value={price} onChange={(e) => setPrice(e.target.value)} placeholder="0,00" autoFocus={focusPrice} className="tabular" aria-label="Preț plătit" />
           </Field>
           <Field label="Preț estimat (lei)" hint={estimate?.kind === "calculat" ? estimateHint(estimate, retailers) : "Opțional"}>

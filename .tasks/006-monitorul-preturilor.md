@@ -1,6 +1,6 @@
 # 006 — Prețuri văzute din Monitorul Prețurilor
 
-**Stare:** etapa 1 făcută pe o copie indirectă a datelor (raportul de mai jos); verificarea directă pe site așteaptă domeniul permis în rețeaua mediului (încă 403 pe 12 oct. 2026) și răspunsurile proprietarului la chestionarul din raport.
+**Stare:** oprit (decizia proprietarului, 12 oct. 2026: „Momentan renunțăm la monitorul prețurilor”). Etapa 1 e făcută pe o copie indirectă a datelor (raportul de mai jos); etapele 2–6 nu se fac până nu decide altfel proprietarul.
 **Ramura:** câte una pe etapă, `claude/monitor-<etapa>`, fiecare cu PR-ul ei din `main`.
 
 ## Scop
@@ -94,4 +94,4 @@ Verificate de mână, din cele 124 cu un singur candidat **doar 46 sunt corecte 
 5. **Lanțuri noi (Supeco, Cora):** (a) le adăugăm în `retailers` **(Recomandat)**; (b) le ignorăm.
 
 ## Următorul pas
-Proprietarul: permite `monitorulpreturilor.info` în rețeaua mediului, trimite condițiile acordului și răspunde la chestionarul de mai sus. Apoi, într-o sesiune nouă: verificarea directă (lista de mai sus, ~1 oră) și etapa 2.
+Nimic, cât timp lucrarea e oprită. La reluare: domeniul permis în rețeaua mediului, condițiile acordului și chestionarul din raport.
