@@ -45,8 +45,10 @@ self.addEventListener("fetch", (event) => {
   // Doar resursele aplicației; cererile către Supabase merg direct la rețea.
   if (url.origin !== self.location.origin) return;
 
-  // Fișierele cu hash din nume nu se schimbă: din cache, apoi rețea.
-  if (url.pathname.startsWith("/_next/static/") || url.pathname.startsWith("/icons/")) {
+  // Fișierele cu hash din nume nu se schimbă: din cache, apoi rețea. Fotografiile
+  // catalogului (/retete/*.webp; /retete/ e și pagina rețetelor, deci după extensie)
+  // intră în cache la prima deschidere și se reîmprospătează la fiecare versiune nouă.
+  if (url.pathname.startsWith("/_next/static/") || url.pathname.startsWith("/icons/") || /^\/retete\/[a-z0-9-]+\.webp$/.test(url.pathname)) {
     event.respondWith(
       caches.match(req).then(
         (hit) =>

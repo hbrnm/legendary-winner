@@ -1,8 +1,12 @@
 // Fotografiile rețetelor din catalog: bănci de imagini cu licență liberă,
 // aprobate de proprietar poză cu poză (.tasks/008, etapa 2). Fișierele stau
 // în public/retete/{file}; pozele arată un fel asemănător, nu exact rețeta.
+// Wikimedia Commons: doar CC0, domeniu public, CC BY și CC BY-SA (decizia
+// proprietarului, 12 oct. 2026); fișierele micșorate păstrează licența originalului.
 
-export type RecipePhotoLicense = "unsplash" | "pexels";
+import { RECIPE_PHOTO_LIST } from "./recipe-photos-list";
+
+export type RecipePhotoSource = "unsplash" | "pexels" | "wikimedia";
 
 export interface RecipePhotoSeed {
   recipe_id: string;
@@ -11,13 +15,22 @@ export interface RecipePhotoSeed {
   author: string;
   /** Pagina fotografiei pe bancă (nu adresa imaginii). */
   source_url: string;
-  license: RecipePhotoLicense;
+  source: RecipePhotoSource;
+  /** Licența, cum o scrie banca: „CC BY-SA 4.0”, „CC0”, „Public domain”; la Unsplash și Pexels, licența lor. */
+  license: string;
+  /** Textul licenței; obligatoriu la CC BY și CC BY-SA. */
+  license_url: string | null;
 }
 
-export const RECIPE_PHOTO_LICENSE_LABELS: Record<RecipePhotoLicense, string> = { unsplash: "Unsplash", pexels: "Pexels" };
+export const RECIPE_PHOTO_SOURCE_LABELS: Record<RecipePhotoSource, string> = { unsplash: "Unsplash", pexels: "Pexels", wikimedia: "Wikimedia Commons" };
 
-/** Fotografiile se mențin cu `npm run seed:sql` după fiecare schimbare. */
-export const RECIPE_PHOTOS: RecipePhotoSeed[] = [];
+/** Fotografiile aprobate (în `recipe-photos-list.ts`); după fiecare schimbare, `npm run seed:sql`. */
+export const RECIPE_PHOTOS: readonly RecipePhotoSeed[] = RECIPE_PHOTO_LIST;
+
+/** Numele licenței, cum apare sub fotografie. */
+export function recipePhotoLicenseLabel(license: string): string {
+  return license === "Public domain" ? "domeniu public" : license;
+}
 
 /** Calea din aplicație a fotografiei, folosită ca `image_url`. */
 export function recipePhotoUrl(seed: Pick<RecipePhotoSeed, "file">): string {
@@ -30,10 +43,14 @@ export function catalogPhotoByUrl(imageUrl: string | null): RecipePhotoSeed | nu
   return RECIPE_PHOTOS.find((p) => recipePhotoUrl(p) === imageUrl) ?? null;
 }
 
-const SOURCE: Record<RecipePhotoLicense, RegExp> = {
+const SOURCE: Record<RecipePhotoSource, RegExp> = {
   unsplash: /^https:\/\/unsplash\.com\/photos\/[A-Za-z0-9_-]+$/,
   pexels: /^https:\/\/www\.pexels\.com\/photo\/[a-z0-9-]+\/?$/,
+  wikimedia: /^https:\/\/commons\.wikimedia\.org\/wiki\/File:\S+$/,
 };
+
+/** Licențele acceptate de pe Wikimedia Commons; cele CC BY cer autorul și legătura către licență. */
+const WIKIMEDIA_LICENSE = /^(CC0|Public domain|CC BY(-SA)? \d\.\d)$/;
 
 /** Ce lipsește sau e greșit la fotografiile din listă; listă goală dacă totul e în regulă. */
 export function recipePhotoProblems(photos: readonly RecipePhotoSeed[], recipeIds: ReadonlySet<string>, fileBytes: (file: string) => number | null, maxBytes = 250_000): string[] {
@@ -49,8 +66,10 @@ export function recipePhotoProblems(photos: readonly RecipePhotoSeed[], recipeId
     if (bytes === null) problems.push(`${at}: lipsește public/retete/${p.file}`);
     else if (bytes > maxBytes) problems.push(`${at}: fișierul are ${bytes} octeți (max. ${maxBytes})`);
     if (!p.author.trim()) problems.push(`${at}: lipsește autorul`);
-    if (!(p.license in SOURCE)) problems.push(`${at}: licență necunoscută`);
-    else if (!SOURCE[p.license].test(p.source_url)) problems.push(`${at}: sursa nu e o pagină ${RECIPE_PHOTO_LICENSE_LABELS[p.license]}`);
+    if (!(p.source in SOURCE)) problems.push(`${at}: sursă necunoscută`);
+    else if (!SOURCE[p.source].test(p.source_url)) problems.push(`${at}: sursa nu e o pagină ${RECIPE_PHOTO_SOURCE_LABELS[p.source]}`);
+    if (p.source === "wikimedia" && !WIKIMEDIA_LICENSE.test(p.license)) problems.push(`${at}: licența „${p.license}” nu e acceptată`);
+    if (p.license.startsWith("CC BY") && !p.license_url?.startsWith("https://creativecommons.org/")) problems.push(`${at}: lipsește legătura către licență`);
   }
   return problems;
 }

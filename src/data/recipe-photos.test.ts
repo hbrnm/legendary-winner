@@ -32,13 +32,18 @@ describe("verificarea listei de fotografii", () => {
     file: "sarmale.webp",
     author: "Ana Pop",
     source_url: "https://unsplash.com/photos/a-plate-of-food-abc_123",
-    license: "unsplash",
+    source: "unsplash",
+    license: "Unsplash License",
+    license_url: null,
   };
   const files = (sizes: Record<string, number>) => (file: string) => sizes[file] ?? null;
 
-  it("acceptă o fotografie completă, de pe Unsplash sau Pexels", () => {
-    const pexels = { ...ok, recipe_id: "ardei-umpluti", file: "ardei-umpluti.webp", source_url: "https://www.pexels.com/photo/stuffed-peppers-1234567/", license: "pexels" as const };
-    expect(recipePhotoProblems([ok, pexels], recipeIds, files({ "sarmale.webp": 150_000, "ardei-umpluti.webp": 90_000 }))).toEqual([]);
+  it("acceptă o fotografie completă, de pe Unsplash, Pexels sau Wikimedia Commons", () => {
+    const pexels = { ...ok, recipe_id: "ardei-umpluti", file: "ardei-umpluti.webp", source_url: "https://www.pexels.com/photo/stuffed-peppers-1234567/", source: "pexels" as const, license: "Pexels License" };
+    const commons = { ...ok, recipe_id: "bulz", file: "bulz.webp", source_url: "https://commons.wikimedia.org/wiki/File:Bulz_ciob%C4%83nesc.jpg", source: "wikimedia" as const, license: "CC BY-SA 3.0", license_url: "https://creativecommons.org/licenses/by-sa/3.0" };
+    const pd = { ...commons, recipe_id: "clatite", file: "clatite.webp", license: "Public domain", license_url: null };
+    const sizes = { "sarmale.webp": 150_000, "ardei-umpluti.webp": 90_000, "bulz.webp": 1, "clatite.webp": 1 };
+    expect(recipePhotoProblems([ok, pexels, commons, pd], recipeIds, files(sizes))).toEqual([]);
   });
 
   it("semnalează rețeta, fișierul, autorul, sursa și dublurile", () => {
@@ -61,6 +66,19 @@ describe("verificarea listei de fotografii", () => {
       "sarmale: fișierul trebuie să fie sarmale.webp",
       "ardei-umpluti: sursa nu e o pagină Unsplash",
     ]);
+  });
+
+  it("pe Wikimedia acceptă doar CC0, domeniu public, CC BY și CC BY-SA, cu legătura către licență", () => {
+    const commons = { ...ok, source_url: "https://commons.wikimedia.org/wiki/File:Sarmale.jpg", source: "wikimedia" as const };
+    const problems = recipePhotoProblems(
+      [
+        { ...commons, license: "GFDL", license_url: null },
+        { ...commons, recipe_id: "bulz", file: "bulz.webp", license: "CC BY 2.0", license_url: null },
+      ],
+      recipeIds,
+      files({ "sarmale.webp": 1, "bulz.webp": 1 }),
+    );
+    expect(problems).toEqual(["sarmale: licența „GFDL” nu e acceptată", "bulz: lipsește legătura către licență"]);
   });
 
   it("găsește autorul după adresa fotografiei, și la copiile rețetelor", () => {
