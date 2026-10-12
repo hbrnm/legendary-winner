@@ -1,7 +1,13 @@
 // @vitest-environment jsdom
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { render } from "@testing-library/react";
-import { RecipeVisual } from "./recipe-visual";
+import { RecipePhotoCredit, RecipeVisual } from "./recipe-visual";
+
+vi.mock("@/data/recipe-photos", async (load) => {
+  const real = await load<typeof import("@/data/recipe-photos")>();
+  const photos = [{ recipe_id: "sarmale", file: "sarmale.webp", author: "Ana Pop", source_url: "https://unsplash.com/photos/sarmale-abc", license: "unsplash" as const }];
+  return { ...real, catalogPhotoByUrl: (url: string | null) => photos.find((p) => `/retete/${p.file}` === url) ?? null };
+});
 
 describe("RecipeVisual", () => {
   it("fără fotografie nu afișează nimic (fără pătrățele cu pictograme)", () => {
@@ -12,5 +18,21 @@ describe("RecipeVisual", () => {
   it("cu fotografie, afișează fotografia", () => {
     const { container } = render(<RecipeVisual recipe={{ image_url: "https://exemplu.ro/ciorba.jpg" }} size="lg" />);
     expect(container.querySelector("img")?.getAttribute("src")).toBe("https://exemplu.ro/ciorba.jpg");
+  });
+});
+
+describe("RecipePhotoCredit", () => {
+  it("sub o fotografie din catalog arată autorul și leagă banca de pagina fotografiei", () => {
+    const { container, getByRole } = render(<RecipePhotoCredit recipe={{ image_url: "/retete/sarmale.webp" }} />);
+    expect(container.textContent).toBe("Foto: Ana Pop / Unsplash");
+    const link = getByRole("link", { name: "Unsplash" });
+    expect(link.getAttribute("href")).toBe("https://unsplash.com/photos/sarmale-abc");
+    expect(link.getAttribute("target")).toBe("_blank");
+    expect(link.getAttribute("rel")).toContain("noopener");
+  });
+
+  it("fără fotografie din catalog nu arată nimic", () => {
+    expect(render(<RecipePhotoCredit recipe={{ image_url: null }} />).container.innerHTML).toBe("");
+    expect(render(<RecipePhotoCredit recipe={{ image_url: "https://exemplu.ro/ciorba.jpg" }} />).container.innerHTML).toBe("");
   });
 });
