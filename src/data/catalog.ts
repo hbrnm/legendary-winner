@@ -1,3 +1,4 @@
+import { recipeImageUrl } from "./recipe-photos";
 import type {
   PantryLocation,
   Product,
@@ -69,7 +70,7 @@ export function buildCatalog(): Catalog {
       prep_minutes: r.prep,
       cook_minutes: r.cook,
       difficulty: r.difficulty,
-      image_url: null,
+      image_url: recipeImageUrl(r.id),
       nutrition: null,
     })),
     recipe_ingredients: RECIPE_SEEDS.flatMap((r) =>

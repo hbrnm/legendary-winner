@@ -23,7 +23,7 @@ const COLUMNS: { [K in keyof Catalog]: string[] } = {
   product_aliases: ["id", "product_id", "alias"],
   retailers: ["id", "name", "kind"],
   pantry_locations: ["id", "name", "sort_order"],
-  recipes: ["id", "name", "description", "categories", "cuisine", "servings", "prep_minutes", "cook_minutes", "difficulty"],
+  recipes: ["id", "name", "description", "categories", "cuisine", "servings", "prep_minutes", "cook_minutes", "difficulty", "image_url"],
   recipe_ingredients: ["id", "recipe_id", "product_id", "quantity", "unit", "note", "optional", "sort_order"],
   recipe_steps: ["id", "recipe_id", "position", "text"],
 };
