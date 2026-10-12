@@ -37,7 +37,7 @@ export async function createProduct(ctx: AppCtx, input: ProductInput, opts: { gl
   const household_id = opts.global ? null : ctx.householdId;
   const id = opts.id ?? newId();
   const { aliases, ...fields } = v;
-  await insertRow(ctx.db, "products", { id, household_id, brand_id: null, piece_grams: null, ...fields }, w(ctx));
+  await insertRow(ctx.db, "products", { id, household_id, brand_id: null, piece_grams: null, grams_per_ml: null, ...fields }, w(ctx));
   for (const alias of aliases) await insertRow(ctx.db, "product_aliases", { id: newId(), household_id, product_id: id, alias }, w(ctx));
   return id;
 }

@@ -31,7 +31,7 @@ Verificare automată (unități, cantitate pe porție, dubluri, timpi, porții, 
 | linguriță/lingură → plic, borcan, sticlă, conservă, pachet, buc (condimente, ulei, pastă de tomate, muștar, smântână) | 106 |
 | g/ml → buc, pachet, caserolă, conservă, borcan, pungă, sticlă (unt, smântână, paste, ciuperci, roșii în conservă, bulion, vin) | 74 |
 | cățel → buc (usturoi) | 42 |
-| lingură/linguriță → kg (zahăr, făină, griș) | 10 |
+| lingură/linguriță → kg (zahăr, făină, griș) | 10 — rezolvat după 0.1.1 cu densitățile aprobate (`grams_per_ml`) |
 | felie → buc (pâine) | 7 |
 | buc → legătură / plic / pachet / borcan (ceapă verde, dafin, cub de supă) | 18 |
 

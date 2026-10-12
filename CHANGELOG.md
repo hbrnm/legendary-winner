@@ -1,5 +1,10 @@
 # Istoricul versiunilor
 
+## Nepublicat
+### Adăugat
+- „Compară magazinele”: cât ar costa produsele nebifate din listă la fiecare magazin, doar cu prețurile de acolo (#17).
+- Densități aprobate pentru zahăr, făină și griș: lingurile din rețete devin grame pe listă, în cămară și în cost; migrația `20261012000002_grams_per_ml`.
+
 ## 0.1.1 — 12 oct. 2026
 Stabilizare: corectitudinea estimărilor și a datelor ([docs/AUDIT_0.1.1.md](docs/AUDIT_0.1.1.md)).
 

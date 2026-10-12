@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { canConvert, convert, convertWithPiece, formatQuantity, humanize } from "./units";
+import { canConvert, convert, convertForProduct, formatQuantity, humanize } from "./units";
 
 describe("unități", () => {
   it("convertește în aceeași dimensiune", () => {
@@ -30,10 +30,20 @@ describe("unități", () => {
 
 describe("bucată ↔ masă cu greutatea pe bucată", () => {
   it("convertește doar când produsul are greutatea", () => {
-    expect(convertWithPiece(10, "buc", "kg", 150)).toBe(1.5);
-    expect(convertWithPiece(300, "g", "buc", 150)).toBe(2);
-    expect(convertWithPiece(10, "buc", "kg", null)).toBeNull();
-    expect(convertWithPiece(1, "buc", "l", 150)).toBeNull();
-    expect(convertWithPiece(500, "g", "kg", null)).toBe(0.5);
+    expect(convertForProduct(10, "buc", "kg", 150)).toBe(1.5);
+    expect(convertForProduct(300, "g", "buc", 150)).toBe(2);
+    expect(convertForProduct(10, "buc", "kg", null)).toBeNull();
+    expect(convertForProduct(1, "buc", "l", 150)).toBeNull();
+    expect(convertForProduct(500, "g", "kg", null)).toBe(0.5);
+  });
+});
+
+describe("volum ↔ masă cu densitatea produsului", () => {
+  it("convertește lingurile doar când produsul are densitatea", () => {
+    expect(convertForProduct(2, "lingura", "g", { grams_per_ml: 0.85 })).toBeCloseTo(25.5);
+    expect(convertForProduct(100, "g", "lingurita", { grams_per_ml: 0.5 })).toBeCloseTo(40);
+    expect(convertForProduct(2, "lingura", "kg", { piece_grams: 150 })).toBeNull();
+    expect(convertForProduct(2, "lingura", "kg", null)).toBeNull();
+    expect(convertForProduct(2, "lingura", "ml", { grams_per_ml: 0.85 })).toBe(30);
   });
 });

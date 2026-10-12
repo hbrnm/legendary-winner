@@ -1,7 +1,7 @@
 import type { CamaraDB, SyncedTables, TableName } from "@/lib/db/database";
 import type { Product, ShoppingListItem, ShoppingTransactionItem } from "@/lib/domain/types";
 import { buildPriceIndex, type PriceIndex } from "@/lib/domain/pricing";
-import { pieceGramsOf } from "@/lib/domain/quantities";
+import { productUnitsOf } from "@/lib/domain/quantities";
 
 /** Rândurile vizibile gospodăriei: cele globale și ale ei, fără cele șterse. */
 export async function visible<T extends TableName>(db: CamaraDB, table: T, householdId: string): Promise<SyncedTables[T][]> {
@@ -22,7 +22,7 @@ export async function productMap(db: CamaraDB, householdId: string): Promise<Map
 
 export async function priceIndex(db: CamaraDB, householdId: string): Promise<PriceIndex> {
   const [prices, products] = await Promise.all([owned(db, "product_prices", householdId), visible(db, "products", householdId)]);
-  return buildPriceIndex(prices, pieceGramsOf(products));
+  return buildPriceIndex(prices, productUnitsOf(products));
 }
 
 export async function listItems(db: CamaraDB, listId: string): Promise<ShoppingListItem[]> {

@@ -17,7 +17,7 @@ import { owned, priceIndex, productMap } from "@/lib/services/queries";
 import { addMeal, addRecipeToList, cookRecipe, deleteRecipe, toggleFavorite } from "@/lib/services/kitchen";
 import { createList } from "@/lib/services/shopping";
 import { activeIngredients, recipeAllergens, recipeCost, scaleIngredients, totalMinutes } from "@/lib/domain/recipes";
-import { pieceGramsOf, subtractStock } from "@/lib/domain/quantities";
+import { productUnitsOf, subtractStock } from "@/lib/domain/quantities";
 import { pantryStock } from "@/lib/domain/pantry";
 import { formatQuantity } from "@/lib/domain/units";
 import { formatRon } from "@/lib/domain/money";
@@ -77,7 +77,7 @@ function RecipeScreen() {
       subtractStock(
         scaled.filter((i) => i.quantity != null).map((i) => ({ product_id: i.product_id, quantity: i.quantity, unit: i.unit })),
         data.stock,
-        pieceGramsOf(data.products.values()),
+        productUnitsOf(data.products.values()),
       ).covered.map((c) => c.product_id),
     );
     for (const i of scaled) if (i.quantity == null && data.stock.some((s) => s.product_id === i.product_id && s.quantity > 0)) available.add(i.product_id);

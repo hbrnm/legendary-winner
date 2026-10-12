@@ -55,6 +55,8 @@ export interface ProductSeed {
   allergens?: Allergen[];
   /** Greutatea aproximativă a unei bucăți (g), aprobată de proprietar (.tasks/004). Doar pentru produsele vândute la kg. */
   piece_g?: number;
+  /** Densitatea aproximativă (g/ml, linguri rase), aprobată de proprietar (12 oct. 2026). */
+  g_per_ml?: number;
 }
 
 export interface RecipeIngredientSeed {

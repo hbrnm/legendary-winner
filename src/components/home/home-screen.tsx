@@ -60,7 +60,7 @@ export function HomeScreen() {
       .filter((m) => m.date === today)
       .sort((a, b) => SLOT_ORDER.indexOf(a.slot) - SLOT_ORDER.indexOf(b.slot))
       .map((m) => ({ meal: m, recipe: recipeMap.get(m.recipe_id) }));
-    const cook = whatCanICook(recipes, ingredients, pantryStock(pantry), 0.6, prices.piece_grams).slice(0, 3);
+    const cook = whatCanICook(recipes, ingredients, pantryStock(pantry), 0.6, prices.product_units).slice(0, 3);
     // Fără cămară completată: trei rețete rapide, altele în fiecare zi.
     const quick = recipes.filter((r) => totalMinutes(r) <= 30).sort((a, b) => a.id.localeCompare(b.id));
     const start = quick.length ? Number(today.replace(/-/g, "")) % quick.length : 0;

@@ -67,15 +67,32 @@ export function convert(quantity: number, from: UnitCode, to: UnitCode): number 
   return (quantity * a.factor) / b.factor;
 }
 
+/** Factorii de conversie ai unui produs, aprobați de proprietar: greutatea unei bucăți și densitatea. */
+export interface ProductUnits {
+  piece_grams?: number | null;
+  /** Grame la 1 ml, pentru lingura și lingurița de zahăr, făină etc. */
+  grams_per_ml?: number | null;
+}
+
 /**
- * Ca `convert`, plus bucată ↔ masă pentru un produs cu greutate aproximativă
- * pe bucată (ex. ceapă ≈ 150 g): 10 buc → 1,5 kg; 2 kg → 13,33 buc.
+ * Ca `convert`, plus conversiile care țin de produs, prin grame: bucată ↔
+ * masă cu greutatea pe bucată (10 cepe → 1,5 kg) și volum ↔ masă cu
+ * densitatea (2 linguri de zahăr → 25,5 g). Fără factorul potrivit: null.
  */
-export function convertWithPiece(quantity: number, from: UnitCode, to: UnitCode, pieceGrams?: number | null): number | null {
+export function convertForProduct(quantity: number, from: UnitCode, to: UnitCode, factors?: number | ProductUnits | null): number | null {
   const direct = convert(quantity, from, to);
-  if (direct != null || !pieceGrams || pieceGrams <= 0) return direct;
-  if (from === "buc" && def(to).dimension === "masa") return convert(quantity * pieceGrams, "g", to);
-  if (to === "buc" && def(from).dimension === "masa") return convert(quantity, from, "g")! / pieceGrams;
+  if (direct != null || !factors) return direct;
+  const { piece_grams: pg, grams_per_ml: gml } = typeof factors === "number" ? { piece_grams: factors, grams_per_ml: null } : factors;
+  const dimFrom = def(from).dimension;
+  const dimTo = def(to).dimension;
+  let grams: number | null = null;
+  if (dimFrom === "masa") grams = convert(quantity, from, "g");
+  else if (from === "buc" && pg && pg > 0) grams = quantity * pg;
+  else if (dimFrom === "volum" && gml && gml > 0) grams = convert(quantity, from, "ml")! * gml;
+  if (grams == null) return null;
+  if (dimTo === "masa") return convert(grams, "g", to);
+  if (to === "buc" && pg && pg > 0) return grams / pg;
+  if (dimTo === "volum" && gml && gml > 0) return convert(grams / gml, "ml", to);
   return null;
 }
 

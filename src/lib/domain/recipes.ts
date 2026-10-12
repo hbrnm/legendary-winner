@@ -1,5 +1,5 @@
 import type { Allergen, ISODate, Product, Recipe, RecipeIngredient } from "./types";
-import { aggregateNeeds, scaleQuantity, subtractStock, type Need, type PieceGrams, type Stock } from "./quantities";
+import { aggregateNeeds, scaleQuantity, subtractStock, type Need, type ProductUnitsMap, type Stock } from "./quantities";
 import { estimateCost, type PriceIndex } from "./pricing";
 import { roundMoney, sumMoney } from "./money";
 
@@ -96,7 +96,7 @@ export const STAPLE_PRODUCT_IDS = new Set(["sare", "piper-negru-macinat", "apa"]
  * obligatorii acoperă cămara. Se ordonează după proporția acoperită, apoi
  * după numărul de ingrediente lipsă.
  */
-export function whatCanICook(recipes: Recipe[], allIngredients: RecipeIngredient[], stock: Stock[], minRatio = 0.5, pieces?: PieceGrams): PantryMatch[] {
+export function whatCanICook(recipes: Recipe[], allIngredients: RecipeIngredient[], stock: Stock[], minRatio = 0.5, pieces?: ProductUnitsMap): PantryMatch[] {
   const byRecipe = new Map<string, RecipeIngredient[]>();
   for (const i of allIngredients) {
     if (i.deleted_at) continue;

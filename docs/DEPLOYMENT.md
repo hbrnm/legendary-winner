@@ -4,7 +4,7 @@ Aplicația e statică (`out/`), deci are nevoie doar de un proiect Supabase și 
 
 ## Producția de acum (11 oct. 2026)
 - Adresa: https://appcamara.vercel.app (proiectul Vercel `appcamara`, echipa „hbrnm's projects”). Fiecare push pe `main` se publică automat.
-- Supabase: proiectul „Camara” (`wvgmwpvivospyetpznzv`, `eu-central-1`). Istoricul migrațiilor are `20261011000001 schema`, `20261011000002 harden_functions`, `20261011000003 server_now` și `20261012000001 piece_grams`, la fel ca `supabase/migrations/` (verificat cu `list_migrations`, 12 oct. 2026). Greutățile pe bucată au fost scrise doar pe cele 16 produse (un `update` cu aceleași valori ca `seed.sql`), ca telefoanele să nu redescarce tot catalogul.
+- Supabase: proiectul „Camara” (`wvgmwpvivospyetpznzv`, `eu-central-1`). Istoricul migrațiilor are `20261011000001 schema`, `20261011000002 harden_functions`, `20261011000003 server_now`, `20261012000001 piece_grams` și `20261012000002 grams_per_ml`, la fel ca `supabase/migrations/` (verificat cu `list_migrations`, 12 oct. 2026). Greutățile pe bucată (16 produse) și densitățile (3 produse) au fost scrise doar pe produsele lor, cu un `update` cu aceleași valori ca `seed.sql`, ca telefoanele să nu redescarce tot catalogul.
 - Catalogul e identic cu `supabase/seed.sql` (aceleași rânduri și sume de control).
 - Administratorul aplicației: contul proprietarului.
 - Detaliile publicării: `.tasks/002-publicare.md`.
