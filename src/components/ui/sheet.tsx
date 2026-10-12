@@ -1,7 +1,34 @@
 "use client";
 
-import { useEffect, useRef, type ReactNode } from "react";
+import { useEffect, useRef, useState, type CSSProperties, type ReactNode } from "react";
 import { X } from "lucide-react";
+
+/** Cât din partea de jos a ecranului acoperă tastatura (pe iPhone pagina nu se micșorează când apare tastatura). */
+export function keyboardInset(innerHeight: number, viewport: { height: number; offsetTop: number }): number {
+  return Math.max(0, Math.round(innerHeight - viewport.height - viewport.offsetTop));
+}
+
+/** Ridică fereastra deasupra tastaturii și o încape în spațiul rămas vizibil. */
+function useKeyboardStyle(active: boolean): CSSProperties | undefined {
+  const [style, setStyle] = useState<CSSProperties>();
+  useEffect(() => {
+    const vv = typeof window === "undefined" ? undefined : window.visualViewport;
+    if (!active || !vv) return;
+    const update = () => {
+      const inset = keyboardInset(window.innerHeight, vv);
+      setStyle(inset > 0 ? { marginBottom: inset, maxHeight: Math.round(vv.height * 0.92) } : undefined);
+    };
+    update();
+    vv.addEventListener("resize", update);
+    vv.addEventListener("scroll", update);
+    return () => {
+      vv.removeEventListener("resize", update);
+      vv.removeEventListener("scroll", update);
+      setStyle(undefined);
+    };
+  }, [active]);
+  return style;
+}
 
 /**
  * Fereastră care urcă de jos pe telefon (centrată pe ecrane mari). Folosește
@@ -9,6 +36,7 @@ import { X } from "lucide-react";
  */
 export function Sheet({ open, onClose, title, children, footer }: { open: boolean; onClose: () => void; title: string; children: ReactNode; footer?: ReactNode }) {
   const ref = useRef<HTMLDialogElement>(null);
+  const keyboardStyle = useKeyboardStyle(open);
   useEffect(() => {
     const d = ref.current;
     if (!d) return;
@@ -24,10 +52,11 @@ export function Sheet({ open, onClose, title, children, footer }: { open: boolea
         if (e.target === ref.current) onClose();
       }}
       aria-label={title}
+      style={keyboardStyle}
       className="m-0 mt-auto max-h-[92dvh] w-full max-w-none rounded-t-3xl border border-line bg-surface p-0 text-ink shadow-xl backdrop:bg-black/40 sm:m-auto sm:max-w-lg sm:rounded-3xl"
     >
       {open && (
-        <div className="flex max-h-[92dvh] flex-col">
+        <div className="flex max-h-[inherit] flex-col">
           <div className="flex items-center justify-between gap-2 border-b border-line px-4 py-3">
             <h2 className="text-lg font-semibold">{title}</h2>
             <button type="button" onClick={onClose} aria-label="Închide" className="inline-flex h-10 w-10 items-center justify-center rounded-xl text-ink-2 hover:bg-surface-2">
