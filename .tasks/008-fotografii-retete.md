@@ -1,6 +1,6 @@
 # 008 — Fotografii pentru rețete
 
-**Stare:** în lucru; etapa 1 gata, etapa 2 pe jumătate (codul gata, pozele așteaptă acces la Unsplash/Pexels).
+**Stare:** în lucru; etapele 1 și 2 gata, urmează etapa 3.
 **Ramura:** câte una pe etapă, fiecare cu PR-ul ei din `main`.
 
 ## Scop
@@ -38,7 +38,7 @@ Deciziile proprietarului (12 oct. 2026, chestionar):
 | # | Etapa | Stare | Commit |
 |---|---|---|---|
 | 1 | **Logica** (`src/lib/domain/recipe-photos.ts`, pură): tipul `RecipePhoto`; alegerea fotografiei afișate (gospodărie → catalog → nimic); dimensiunile la micșorare (max. 1280 px, fără mărire); calea în Storage (segmente verificate); `image_url` acceptă https sau `/retete/….webp`. Legarea în `RecipeVisual` se face la etapa 5, când există pozele gospodăriei. | gata | (vezi PR) |
-| 2 | **Fotografiile catalogului:** agentul caută pe Unsplash/Pexels 2–3 variante pe rețetă și le pune într-o pagină de aprobare (cu autor, sursă, licență); proprietarul alege. Cele aprobate se optimizează în `public/retete/`, se notează în `src/data/recipe-photos.ts`, `image_url` în catalog și în `seed.sql` (`npm run seed:sql`). Mențiunea autorului pe pagina rețetei. Test: fiecare poză din listă are fișier, autor, sursă și licență. Poate merge în paralel cu etapele 3–4. | 2a gata (codul); 2b de făcut (pozele) | (vezi PR) |
+| 2 | **Fotografiile catalogului:** agentul caută pe Unsplash/Pexels 2–3 variante pe rețetă și le pune într-o pagină de aprobare (cu autor, sursă, licență); proprietarul alege. Cele aprobate se optimizează în `public/retete/`, se notează în `src/data/recipe-photos.ts`, `image_url` în catalog și în `seed.sql` (`npm run seed:sql`). Mențiunea autorului pe pagina rețetei. Test: fiecare poză din listă are fișier, autor, sursă și licență. Poate merge în paralel cu etapele 3–4. | gata (2a codul, 2b pozele) | (vezi PR-urile) |
 | 3 | **Baza de date:** migrația `recipe_photos` (RLS, `check_household_refs`, `touch_updated_at`, `keep_household_id`, index unic parțial) + bucket privat `recipe-photos` (limită de mărime și tipuri `image/webp`, `image/jpeg`) + politici pe `storage.objects`. Teste în `supabase/tests/` (membru, alt membru, membru din altă gospodărie, rețeta altei gospodării). `npm run test:db`. Documentația schemei. | de făcut | |
 | 4 | **Local și sincronizare:** versiune nouă Dexie, `recipe_photos` în `SYNCED_TABLES`, coada de încărcare (offline → încarcă la revenirea internetului, reîncearcă la eroare), descărcarea cu cache, ștergerea fișierului după ștergerea logică, copia de siguranță. Teste unitare (Storage simulat) și `e2e-cloud`. | de făcut | |
 | 5 | **Ecranele:** pe pagina rețetei, „Adaugă fotografie” (cameră sau galerie), „Schimbă” și „Șterge”; starea „se încarcă” / „se va încărca când ai internet”; fotografia în listele de rețete, plan și acasă. Textele: un chestionar. E2E (mod demonstrativ, fără Storage), capturi doar pentru ecranele noi. | de făcut | |
@@ -53,14 +53,20 @@ Codul pentru fotografiile catalogului, fără poze încă. `src/data/recipe-phot
 
 Blocaj: rețeaua mediului cloud refuză `unsplash.com`, `images.unsplash.com`, `www.pexels.com`, `images.pexels.com` (și din terminal, și din WebFetch), deci propunerile de poze nu se pot căuta și descărca.
 
-### Ce rămâne pentru etapa 2b
-1. Proprietarul adaugă domeniile de mai sus la „Allowed domains” în setările mediului cloud.
-2. Agentul caută 2–3 variante pe rețetă (Unsplash `napi/search/photos`, Pexels) și publică pagina de aprobare (artifact cu alegerea salvată, citită apoi de agent).
-3. Pozele alese: script de optimizare cu `sharp` (latura mare 1280 px, WebP, ~150 KB; `sharp` vine deja cu Next, se adaugă ca devDependency), fișierele în `public/retete/`, intrările în `RECIPE_PHOTOS`, `CATALOG_VERSION` nou, `npm run seed:sql`.
-4. Offline: în `src/sw/sw.template.js`, `/retete/*.webp` din cache, apoi rețea (ca `/icons/`), nu în precache (~85 × 150 KB); atenție, `/retete/` e și ruta paginii de rețete, deci regula se leagă de extensie. Test e2e offline cu o poză din catalog.
+### Etapa 2b (12 oct. 2026)
+Sursa s-a schimbat, cu acordul proprietarului (chestionar, 12 oct. 2026): **Wikimedia Commons** în loc de Unsplash/Pexels (Unsplash cere cheie API, Pexels rămâne blocat în rețea; Commons are fotografii cu feluri românești). Licențe acceptate: CC0, domeniu public, CC BY, CC BY-SA. Mențiunea: „Foto: Ana Pop / Wikimedia Commons · CC BY-SA 4.0”, cu legături către pagina pozei și către licență; la domeniul public, „domeniu public”, fără legătură.
+
+- Căutare pe Commons (API, 2–3 termeni pe rețetă), max. 5 variante pe rețetă, pe o pagină de aprobare (artifact privat, alegerile salvate în baza lui). Proprietarul a ales 82 de poze; „Mâncare de mazăre cu pui” = „Niciuna”; fără propuneri: „Pilaf de pui”, „Tocană de cartofi”; nealeasă: „Paste cu ton și roșii”.
+- Pozele: latura mare max. 1280 px, WebP, ~50–160 KB, în `public/retete/{recipe_id}.webp`; metadatele (EXIF) nu se păstrează. Lista în `src/data/recipe-photos-list.ts` (autor, pagina pozei, licența, legătura licenței).
+- Modelul: `source` (`unsplash` / `pexels` / `wikimedia`), `license` (textul băncii), `license_url` (obligatoriu la CC BY / CC BY-SA). Testul refuză alte licențe de pe Commons.
+- Offline: service worker-ul pune `/retete/*.webp` în cache la prima deschidere (nu în precache: ~9 MB); test e2e cu „Sarmale” fără internet.
+- `CATALOG_VERSION` = 2026-10-12T09:00, `seed.sql` regenerat (coloana `image_url`).
+- De știut: Wikimedia limitează descărcările; merge doar cu un User-Agent cu adresă (`CamaraApp/0.1 (https://github.com/hbrnm/legendary-winner)`) și o cerere la câteva secunde.
+
+### Rămas din etapa 2 (pentru o sesiune viitoare, opțional)
+Poze pentru „Pilaf de pui”, „Tocană de cartofi”, „Paste cu ton și roșii”, „Mâncare de mazăre cu pui” (căutare nouă, aceeași pagină de aprobare).
 
 ## De ce are nevoie de la proprietar
-- **Etapa 2b:** accesul la Unsplash/Pexels în rețeaua mediului cloud; aprobarea fiecărei fotografii din catalog (pagina de aprobare).
 - **Etapa 5:** aprobarea textelor noi.
 - **Etapa 6:** acordul pentru migrație și bucket pe producție.
 
@@ -68,4 +74,4 @@ Blocaj: rețeaua mediului cloud refuză `unsplash.com`, `images.unsplash.com`, `
 Pe telefon: „Ciorbă de perișoare” are fotografia din catalog, cu autorul menționat. Fac o poză ciorbei mele, offline; după ce revine internetul, poza apare și pe telefonul altui membru al gospodăriei, dar nu și la o altă gospodărie. Pornesc avionul: ambele poze se văd în continuare. Șterg poza mea: revine cea din catalog.
 
 ## Următorul pas
-Etapa 2b (după ce rețeaua permite Unsplash/Pexels) sau etapa 3 (baza de date), într-o sesiune nouă.
+Etapa 3 (baza de date), într-o sesiune nouă.
