@@ -1,6 +1,6 @@
 # 008 — Fotografii pentru rețete
 
-**Stare:** planul e gata; urmează etapa 1, într-o sesiune nouă.
+**Stare:** în lucru; etapa 1 gata, urmează etapa 2 (sau 3).
 **Ramura:** câte una pe etapă, fiecare cu PR-ul ei din `main`.
 
 ## Scop
@@ -37,12 +37,16 @@ Deciziile proprietarului (12 oct. 2026, chestionar):
 ## Etape
 | # | Etapa | Stare | Commit |
 |---|---|---|---|
-| 1 | **Logica** (`src/lib/domain/recipe-photos.ts`, pură): alegerea fotografiei afișate (gospodărie → catalog → nimic); calculul dimensiunilor la micșorare; calea în Storage; validarea căii relative în `image_url`. `RecipeVisual` primește fotografia aleasă. Teste cu date fixe. | de făcut | |
+| 1 | **Logica** (`src/lib/domain/recipe-photos.ts`, pură): tipul `RecipePhoto`; alegerea fotografiei afișate (gospodărie → catalog → nimic); dimensiunile la micșorare (max. 1280 px, fără mărire); calea în Storage (segmente verificate); `image_url` acceptă https sau `/retete/….webp`. Legarea în `RecipeVisual` se face la etapa 5, când există pozele gospodăriei. | gata | (vezi PR) |
 | 2 | **Fotografiile catalogului:** agentul caută pe Unsplash/Pexels 2–3 variante pe rețetă și le pune într-o pagină de aprobare (cu autor, sursă, licență); proprietarul alege. Cele aprobate se optimizează în `public/retete/`, se notează în `src/data/recipe-photos.ts`, `image_url` în catalog și în `seed.sql` (`npm run seed:sql`). Mențiunea autorului pe pagina rețetei. Test: fiecare poză din listă are fișier, autor, sursă și licență. Poate merge în paralel cu etapele 3–4. | de făcut | |
 | 3 | **Baza de date:** migrația `recipe_photos` (RLS, `check_household_refs`, `touch_updated_at`, `keep_household_id`, index unic parțial) + bucket privat `recipe-photos` (limită de mărime și tipuri `image/webp`, `image/jpeg`) + politici pe `storage.objects`. Teste în `supabase/tests/` (membru, alt membru, membru din altă gospodărie, rețeta altei gospodării). `npm run test:db`. Documentația schemei. | de făcut | |
 | 4 | **Local și sincronizare:** versiune nouă Dexie, `recipe_photos` în `SYNCED_TABLES`, coada de încărcare (offline → încarcă la revenirea internetului, reîncearcă la eroare), descărcarea cu cache, ștergerea fișierului după ștergerea logică, copia de siguranță. Teste unitare (Storage simulat) și `e2e-cloud`. | de făcut | |
 | 5 | **Ecranele:** pe pagina rețetei, „Adaugă fotografie” (cameră sau galerie), „Schimbă” și „Șterge”; starea „se încarcă” / „se va încărca când ai internet”; fotografia în listele de rețete, plan și acasă. Textele: un chestionar. E2E (mod demonstrativ, fără Storage), capturi doar pentru ecranele noi. | de făcut | |
 | 6 | **Producția:** migrația și bucketul cu acordul proprietarului, apoi integrarea; verificare pe Android și iPhone reale. | de făcut | |
+
+## Rezumat pe etape
+### Etapa 1 (12 oct. 2026)
+Logica pură și tipul `RecipePhoto`, 11 teste noi în `recipe-photos.test.ts` și unul în `services.test.ts` (rețeta păstrează calea relativă, refuză `javascript:`). Validarea `image_url` din `saveRecipe` acceptă acum doar https sau o fotografie din catalog (înainte, orice URL, inclusiv http). `npm test`: 19 fișiere, 148 de teste; `npm run build` reușit. Deschis: mesajul de validare „Adresa fotografiei nu e validă.” (nu apare în ecrane azi) intră în chestionarul de texte de la etapa 5.
 
 ## De ce are nevoie de la proprietar
 - **Etapa 2:** aprobarea fiecărei fotografii din catalog (pagina de aprobare) și a textului pentru mențiunea autorului.
@@ -53,4 +57,4 @@ Deciziile proprietarului (12 oct. 2026, chestionar):
 Pe telefon: „Ciorbă de perișoare” are fotografia din catalog, cu autorul menționat. Fac o poză ciorbei mele, offline; după ce revine internetul, poza apare și pe telefonul altui membru al gospodăriei, dar nu și la o altă gospodărie. Pornesc avionul: ambele poze se văd în continuare. Șterg poza mea: revine cea din catalog.
 
 ## Următorul pas
-Etapa 1, într-o sesiune nouă.
+Etapa 2 (propunerile de fotografii pentru catalog) sau etapa 3 (baza de date), într-o sesiune nouă.

@@ -222,6 +222,20 @@ export interface Recipe extends SyncedRow {
   nutrition: { kcal: number; protein_g: number; carbs_g: number; fat_g: number } | null;
 }
 
+/**
+ * Fotografia pusă de o gospodărie la o rețetă (a ei sau din catalog).
+ * Fișierul stă în Supabase Storage, în bucketul privat `recipe-photos`.
+ */
+export interface RecipePhoto extends SyncedRow {
+  household_id: string;
+  recipe_id: string;
+  /** `{household_id}/{recipe_id}/{id}.webp` (sau `.jpg`). */
+  storage_path: string;
+  width: number;
+  height: number;
+  created_by: string | null;
+}
+
 export interface RecipeIngredient extends SyncedRow {
   recipe_id: string;
   product_id: string;

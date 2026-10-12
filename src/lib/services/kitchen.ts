@@ -4,6 +4,7 @@ import { insertRow, softDelete, updateRow, upsertRow } from "@/lib/db/write";
 import { newId, stableId } from "@/lib/db/ids";
 import { aggregateNeeds, productUnitsOf, subtractStock, toShoppingNeed, type Need } from "@/lib/domain/quantities";
 import { activeIngredients, recipeNeeds } from "@/lib/domain/recipes";
+import { isRecipeImageUrl } from "@/lib/domain/recipe-photos";
 import { pantryStock, planConsumption } from "@/lib/domain/pantry";
 import { addDays } from "@/lib/domain/dates";
 import { type AppCtx, UserError, w } from "./context";
@@ -87,7 +88,7 @@ const recipeInput = z.object({
   prep_minutes: z.number().int().min(0).max(2880),
   cook_minutes: z.number().int().min(0).max(2880),
   difficulty: z.enum(["usor", "mediu", "dificil"]),
-  image_url: z.string().url().nullable().default(null),
+  image_url: z.string().refine(isRecipeImageUrl, "Adresa fotografiei nu e validă.").nullable().default(null),
   ingredients: z
     .array(z.object({ product_id: z.string().min(1), quantity: zQuantity.nullable(), unit: zUnit.nullable(), note: z.string().trim().max(120).nullable().default(null), optional: z.boolean().default(false) }))
     .min(1, "Adaugă cel puțin un ingredient."),
