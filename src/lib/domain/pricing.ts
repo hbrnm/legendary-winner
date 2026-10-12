@@ -45,6 +45,8 @@ export interface PriceOptions {
   context?: PriceContext | null;
   /** Ziua de azi, pentru marcarea prețurilor vechi. Lipsă = nu se marchează. */
   today?: ISODate | null;
+  /** Doar prețurile din magazinul contextului, oricare le-ar fi sursa (comparația pe magazine). */
+  retailer_only?: boolean;
 }
 
 /** Prețurile pe produs; opțional, greutatea pe bucată, ca prețul pe kg să acopere și bucățile. */
@@ -70,8 +72,9 @@ export function buildPriceIndex(prices: ProductPrice[], pieceGrams?: ReadonlyMap
   return index;
 }
 
-function matchOf(p: ProductPrice, ctx: PriceContext | null | undefined): PriceMatch | null {
+function matchOf(p: ProductPrice, ctx: PriceContext | null | undefined, retailerOnly = false): PriceMatch | null {
   if (!ctx) return "general";
+  if (retailerOnly) return ctx.retailer_id && p.retailer_id === ctx.retailer_id ? "magazin" : null;
   if (p.source !== ctx.source) return null;
   if (!ctx.retailer_id) return "sursa";
   return p.retailer_id === ctx.retailer_id ? "magazin" : "alt_magazin";
@@ -95,7 +98,7 @@ export function latestUnitPrice(index: PriceIndex, productId: string, unit?: Uni
     const target = unit ?? p.unit;
     const qty = convertWithPiece(p.quantity, p.unit, target, pg);
     if (qty == null || qty <= 0) continue;
-    const match = matchOf(p, opts.context);
+    const match = matchOf(p, opts.context, opts.retailer_only);
     if (!match) continue;
     const r = rank(match, p.price_type === "promotie");
     // Lista e deja sortată de la cel mai nou, deci la rang egal îl păstrăm pe primul.

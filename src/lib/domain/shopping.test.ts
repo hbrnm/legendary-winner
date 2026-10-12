@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { groupByCategory, listTotals, planMerge } from "./shopping";
+import { compareRetailers, groupByCategory, listTotals, planMerge } from "./shopping";
 import { buildPriceIndex } from "./pricing";
 import { category, listItem, price } from "@/test/factories";
 
@@ -85,5 +85,44 @@ describe("lista în curs și bugetul", () => {
   it("numără produsele nebifate încă fără preț", () => {
     // Formula veche (unknown_price_count - checked_without_price_count) dădea 0.
     expect(listTotals(items, prices).remaining_unknown_count).toBe(1);
+  });
+});
+
+describe("comparația pe magazine", () => {
+  const idx = buildPriceIndex([
+    price({ product_id: "rosii", amount: 14, quantity: 1, unit: "kg", retailer_id: "lidl" }),
+    price({ product_id: "rosii", amount: 12, quantity: 1, unit: "kg", retailer_id: "kaufland" }),
+    price({ product_id: "lapte", amount: 7, quantity: 1, unit: "l", retailer_id: "lidl" }),
+    price({ product_id: "lapte", amount: 5, quantity: 1, unit: "l", retailer_id: "lidl", price_type: "promotie", observed_on: "2026-03-05" }),
+    price({ product_id: "oua", amount: 1, quantity: 1, unit: "buc", retailer_id: "piata-obor", source: "piata", observed_on: "2026-01-01" }),
+    price({ product_id: "paine", amount: 6, quantity: 1, unit: "buc", retailer_id: null }),
+  ]);
+  const items = [
+    listItem({ product_id: "rosii", quantity: 2, unit: "kg" }),
+    listItem({ product_id: "lapte", quantity: 2, unit: "l" }),
+    listItem({ product_id: "oua", quantity: 10, unit: "buc" }),
+    listItem({ product_id: "paine", quantity: 1, unit: "buc" }),
+    listItem({ product_id: "rosii", quantity: 5, unit: "kg", checked: true }), // bifat: nu se compară
+  ];
+
+  it("folosește doar prețurile fiecărui magazin și numără ce lipsește", () => {
+    const r = compareRetailers(items, idx, "2026-06-01");
+    expect(r.map((x) => [x.retailer_id, x.total, x.priced_count, x.item_count])).toEqual([
+      ["lidl", 42, 2, 4], // 2 × 14 + 2 × 7 (prețul obișnuit, nu promoția)
+      ["piata-obor", 10, 1, 4], // la același număr de produse cu preț, cel mai ieftin primul
+      ["kaufland", 24, 1, 4],
+    ]);
+    expect(r[1].stale_count).toBe(1);
+  });
+
+  it("promoția intră doar dacă e singurul preț al magazinului și e numărată", () => {
+    const doarPromo = buildPriceIndex([price({ product_id: "lapte", amount: 5, quantity: 1, unit: "l", retailer_id: "lidl", price_type: "promotie" })]);
+    expect(compareRetailers([listItem({ product_id: "lapte", quantity: 1, unit: "l" })], doarPromo)).toEqual([
+      { retailer_id: "lidl", total: 5, priced_count: 1, item_count: 1, promo_count: 1, stale_count: 0 },
+    ]);
+  });
+
+  it("fără prețuri pe magazine nu întoarce nimic", () => {
+    expect(compareRetailers(items.slice(3, 4), idx)).toEqual([]);
   });
 });
