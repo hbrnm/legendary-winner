@@ -18,7 +18,7 @@ Ordinea o decide proprietarul. Stările: **implementat** (în `main`), **verific
 | Observațiile editoriale din rețete | blocat: aprobarea proprietarului |
 
 ## 0.2.0 — propuneri, după valoarea pentru utilizator și complexitate
-Stare (12 oct. 2026): comparația pe magazine e implementată (PR #17). În lucru: prețurile din bonurile fiscale, cu OCR pe telefon ([.tasks/005](../.tasks/005-bonuri-fiscale.md)). Urmează, după bonuri: sursele suplimentare (Monitorul Prețurilor, cu acordul Consiliului Concurenței; Open Prices).
+Stare (12 oct. 2026): comparația pe magazine e implementată (PR #17). În lucru: prețurile din bonurile fiscale, cu OCR pe telefon ([.tasks/005](../.tasks/005-bonuri-fiscale.md)). Monitorul Prețurilor: acordul Consiliului Concurenței pentru uz personal (12 oct. 2026), deci doar pentru gospodăria proprietarului, planul în [.tasks/006](../.tasks/006-monitorul-preturilor.md). De verificat: Open Prices.
 
 1. **Variante comerciale** (ambalaj, brand, EAN), apoi prețul pe kg din ambalaj ([AUDIT_0.1.1.md](AUDIT_0.1.1.md), secțiunea 4). Valoare mare, complexitate medie.
 2. ~~**Comparația pe magazine a unei liste întregi**~~: implementată (PR #17).
