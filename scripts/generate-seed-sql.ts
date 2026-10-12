@@ -19,7 +19,7 @@ function literal(v: unknown): string {
 
 const COLUMNS: { [K in keyof Catalog]: string[] } = {
   product_categories: ["id", "name", "icon", "sort_order", "is_food"],
-  products: ["id", "name", "category_id", "subcategory", "default_unit", "season_months", "is_traditional", "is_market_typical", "allergens", "piece_grams"],
+  products: ["id", "name", "category_id", "subcategory", "default_unit", "season_months", "is_traditional", "is_market_typical", "allergens", "piece_grams", "grams_per_ml"],
   product_aliases: ["id", "product_id", "alias"],
   retailers: ["id", "name", "kind"],
   pantry_locations: ["id", "name", "sort_order"],

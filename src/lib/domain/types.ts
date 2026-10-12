@@ -83,6 +83,8 @@ export interface Product extends SyncedRow {
   allergens: Allergen[];
   /** Greutatea aproximativă a unei bucăți (g), pentru conversia buc ↔ kg; null = nu se convertește. */
   piece_grams: number | null;
+  /** Densitatea aproximativă (g/ml), pentru conversia lingură ↔ g; null = nu se convertește. */
+  grams_per_ml: number | null;
 }
 
 export interface ProductAlias extends SyncedRow {

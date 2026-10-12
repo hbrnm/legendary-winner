@@ -1,5 +1,5 @@
 import type { ISODate, ProductPrice, PurchaseSource, UnitCode } from "./types";
-import { convertWithPiece } from "./units";
+import { convertForProduct, type ProductUnits } from "./units";
 import { roundMoney } from "./money";
 import { daysBetween } from "./dates";
 
@@ -49,17 +49,17 @@ export interface PriceOptions {
   retailer_only?: boolean;
 }
 
-/** Prețurile pe produs; opțional, greutatea pe bucată, ca prețul pe kg să acopere și bucățile. */
-export type PriceIndex = Map<string, ProductPrice[]> & { piece_grams?: ReadonlyMap<string, number> };
+/** Prețurile pe produs; opțional, factorii de conversie, ca prețul pe kg să acopere și bucățile sau lingurile. */
+export type PriceIndex = Map<string, ProductPrice[]> & { product_units?: ReadonlyMap<string, ProductUnits> };
 
 /**
  * Grupează prețurile pe produs, cele mai noi primele. Prețurile șterse și
  * cele cu cantitate zero se ignoră. Nu există prețuri implicite: un produs
  * fără preț introdus de gospodărie rămâne fără preț.
  */
-export function buildPriceIndex(prices: ProductPrice[], pieceGrams?: ReadonlyMap<string, number>): PriceIndex {
+export function buildPriceIndex(prices: ProductPrice[], productUnits?: ReadonlyMap<string, ProductUnits>): PriceIndex {
   const index: PriceIndex = new Map();
-  if (pieceGrams) index.piece_grams = pieceGrams;
+  if (productUnits) index.product_units = productUnits;
   for (const p of prices) {
     if (p.deleted_at || p.quantity <= 0 || p.amount < 0) continue;
     const list = index.get(p.product_id) ?? [];
@@ -93,10 +93,10 @@ export function latestUnitPrice(index: PriceIndex, productId: string, unit?: Uni
   if (!list) return null;
   const rank = (m: PriceMatch, promo: boolean) => (promo ? 2 : 0) + (m === "alt_magazin" ? 1 : 0);
   let best: { p: ProductPrice; match: PriceMatch; qty: number; target: UnitCode; rank: number } | null = null;
-  const pg = index.piece_grams?.get(productId);
+  const pg = index.product_units?.get(productId);
   for (const p of list) {
     const target = unit ?? p.unit;
-    const qty = convertWithPiece(p.quantity, p.unit, target, pg);
+    const qty = convertForProduct(p.quantity, p.unit, target, pg);
     if (qty == null || qty <= 0) continue;
     const match = matchOf(p, opts.context, opts.retailer_only);
     if (!match) continue;

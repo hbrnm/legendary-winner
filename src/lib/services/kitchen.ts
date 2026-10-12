@@ -2,7 +2,7 @@ import { z } from "zod";
 import type { MealSlot, PantryItem, Recipe, UnitCode } from "@/lib/domain/types";
 import { insertRow, softDelete, updateRow, upsertRow } from "@/lib/db/write";
 import { newId, stableId } from "@/lib/db/ids";
-import { aggregateNeeds, pieceGramsOf, subtractStock, toShoppingNeed, type Need } from "@/lib/domain/quantities";
+import { aggregateNeeds, productUnitsOf, subtractStock, toShoppingNeed, type Need } from "@/lib/domain/quantities";
 import { activeIngredients, recipeNeeds } from "@/lib/domain/recipes";
 import { pantryStock, planConsumption } from "@/lib/domain/pantry";
 import { addDays } from "@/lib/domain/dates";
@@ -35,7 +35,7 @@ async function recipeWithIngredients(ctx: AppCtx, recipeId: string) {
 async function needsToShopping(ctx: AppCtx, needs: Need[], subtractPantry: boolean) {
   const aggregated = aggregateNeeds(needs);
   const products = await productMap(ctx.db, ctx.householdId);
-  const pieces = pieceGramsOf(products.values());
+  const pieces = productUnitsOf(products.values());
   let remaining = aggregated;
   let covered: Need[] = [];
   if (subtractPantry) {
@@ -70,7 +70,7 @@ export async function addRecipeToList(ctx: AppCtx, input: { recipeId: string; se
 export async function cookRecipe(ctx: AppCtx, recipeId: string, servings: number): Promise<{ updated: number; shortfall: Need[] }> {
   const { recipe, ingredients } = await recipeWithIngredients(ctx, recipeId);
   const pantry = await owned(ctx.db, "pantry_items", ctx.householdId);
-  const pieces = pieceGramsOf((await productMap(ctx.db, ctx.householdId)).values());
+  const pieces = productUnitsOf((await productMap(ctx.db, ctx.householdId)).values());
   const { ops, shortfall } = planConsumption(pantry, aggregateNeeds(recipeNeeds(recipe, ingredients, servings)), pieces);
   for (const op of ops) await updateRow(ctx.db, "pantry_items", op.item_id, { quantity: op.new_quantity }, w(ctx));
   return { updated: ops.length, shortfall };

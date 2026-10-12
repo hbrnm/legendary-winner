@@ -27,7 +27,7 @@ Citire: rândurile globale + ale gospodăriilor proprii. Scriere: globale doar `
 | `units` | `code`, `singular`, `plural`, `dimension`, `factor` (doar citire) |
 | `product_categories` | `name`, `icon`, `sort_order`, `is_food` |
 | `brands` | `name` |
-| `products` | `name`, `category_id`, `subcategory`, `default_unit`, `brand_id`, `ean`, `season_months`, `is_traditional`, `is_market_typical`, `allergens`, `piece_grams` (g pe bucată, aproximativ, pentru buc ↔ kg; migrația `20261012000001`) |
+| `products` | `name`, `category_id`, `subcategory`, `default_unit`, `brand_id`, `ean`, `season_months`, `is_traditional`, `is_market_typical`, `allergens`, `piece_grams` (g pe bucată, aproximativ, pentru buc ↔ kg; migrația `20261012000001`), `grams_per_ml` (densitate aproximativă, g/ml, pentru lingură ↔ g; migrația `20261012000002`) |
 | `product_aliases` | `product_id`, `alias` |
 | `retailers` | `name`, `kind`, `details` |
 | `product_retailer_mappings` | `product_id`, `retailer_id`, `retailer_product_name`, `ean` |

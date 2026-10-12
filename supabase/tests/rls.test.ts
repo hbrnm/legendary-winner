@@ -134,6 +134,12 @@ describe("catalogul global", () => {
     expect(Number(r.piece_grams)).toBe(150);
     await expect(db().query("update products set piece_grams = 0 where id = 'rosii'")).rejects.toThrow(/check constraint/);
   });
+
+  it("densitatea vine din seed și acceptă doar valori pozitive", async () => {
+    const r = await asUser(carmen, async (q) => (await q("select grams_per_ml from products where id = 'zahar'")).rows[0]);
+    expect(Number(r.grams_per_ml)).toBe(0.85);
+    await expect(db().query("update products set grams_per_ml = 0 where id = 'zahar'")).rejects.toThrow(/check constraint/);
+  });
 });
 
 describe("invitații și roluri", () => {

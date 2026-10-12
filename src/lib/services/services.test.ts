@@ -181,6 +181,32 @@ describe("liste", () => {
 });
 
 describe("rețete și cămară", () => {
+  it("zahărul cu lingura se convertește în grame cu densitatea aprobată: lista, cămara, costul", async () => {
+    const r = await saveRecipe(ctx, {
+      name: "Clătite dulci",
+      categories: ["deserturi"],
+      servings: 4,
+      prep_minutes: 10,
+      cook_minutes: 20,
+      difficulty: "usor",
+      ingredients: [{ product_id: "zahar", quantity: 2, unit: "lingura" }],
+      steps: ["Amestecă."],
+    });
+    const empty = await createList(ctx, { name: "Fără cămară" });
+    await addRecipeToList(ctx, { recipeId: r, servings: 4, listId: empty, onlyMissing: false });
+    // 2 linguri × 15 ml × 0,85 g/ml = 25,5 g (înainte: „1 kg”).
+    expect((await listItemsForTest(ctx, empty))[0]).toMatchObject({ product_id: "zahar", quantity: 25.5, unit: "g", note: "pentru rețete: 30 ml" }); // nevoile se adună în ml
+
+    await addPantryItem(ctx, { product_id: "zahar", name: "Zahăr", quantity: 1, unit: "kg", location_id: "camara" });
+    const listId = await createList(ctx, { name: "Cu cămară" });
+    expect((await addRecipeToList(ctx, { recipeId: r, servings: 4, listId, onlyMissing: true })).covered).toBe(1);
+
+    await recordPrice(ctx, { product_id: "zahar", amount: 6, quantity: 1, unit: "kg", source: "supermarket", observed_on: "2026-03-01" });
+    const recipe = (await ctx.db.recipes.get(r))!;
+    const ings = (await ctx.db.recipe_ingredients.where("recipe_id").equals(r).toArray()).filter((i) => !i.deleted_at);
+    expect(recipeCost(recipe, ings, 4, await priceIndex(ctx.db, ctx.householdId))).toMatchObject({ total: 0.15, complete: true });
+  });
+
   it("ceapa la bucată se convertește în kg cu greutatea aprobată: lista, cămara, costul, „am gătit”", async () => {
     const { a } = await twoRecipes(); // 1 ceapă la 4 porții
     const empty = await createList(ctx, { name: "Fără cămară" });

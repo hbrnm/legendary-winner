@@ -20,7 +20,7 @@ export const BACANIE: ProductSeed[] = [
   { id: "orez", name: "Orez", category: "cereale-paste", unit: "kg", aliases: ["orez alb", "orez lung", "orez bob lung"] },
   { id: "orez-bob-rotund", name: "Orez cu bob rotund", category: "cereale-paste", unit: "kg", aliases: ["orez rotund", "orez pentru sarmale", "orez pentru risotto"] },
   { id: "malai", name: "Mălai", category: "cereale-paste", unit: "kg", aliases: ["făină de porumb", "mălai pentru mămăligă", "mămăligă"], traditional: true },
-  { id: "gris", name: "Griș", category: "cereale-paste", unit: "kg", aliases: ["griș de grâu", "griș pentru găluște"], allergens: ["gluten"] },
+  { id: "gris", name: "Griș", category: "cereale-paste", unit: "kg", g_per_ml: 0.67, aliases: ["griș de grâu", "griș pentru găluște"], allergens: ["gluten"] },
   { id: "fulgi-ovaz", name: "Fulgi de ovăz", category: "cereale-paste", unit: "pachet", aliases: ["ovăz", "fulgi de ovaz", "terci de ovăz"], allergens: ["gluten"] },
   { id: "musli", name: "Musli", category: "cereale-paste", unit: "pachet", aliases: ["müsli", "granola"], allergens: ["gluten"] },
   { id: "cereale-mic-dejun", name: "Cereale pentru mic dejun", category: "cereale-paste", unit: "pachet", aliases: ["cereale", "fulgi de porumb", "corn flakes"], allergens: ["gluten"] },
@@ -40,9 +40,9 @@ export const BACANIE: ProductSeed[] = [
   { id: "arpacas", name: "Arpacaș", category: "cereale-paste", unit: "kg", aliases: ["orz perlat", "arpacaș de orz", "orz"], allergens: ["gluten"] },
 
   // Copt
-  { id: "faina-alba", name: "Făină albă 000", category: "copt", unit: "kg", aliases: ["făină", "făină de grâu", "făină 000"], allergens: ["gluten"] },
+  { id: "faina-alba", name: "Făină albă 000", category: "copt", unit: "kg", g_per_ml: 0.53, aliases: ["făină", "făină de grâu", "făină 000"], allergens: ["gluten"] },
   { id: "faina-integrala", name: "Făină integrală", category: "copt", unit: "kg", aliases: ["făină neagră", "făină graham", "făină de grâu integrală"], allergens: ["gluten"] },
-  { id: "zahar", name: "Zahăr", category: "copt", unit: "kg", aliases: ["zahăr cristal", "zahăr alb"] },
+  { id: "zahar", name: "Zahăr", category: "copt", unit: "kg", g_per_ml: 0.85, aliases: ["zahăr cristal", "zahăr alb"] },
   { id: "zahar-pudra", name: "Zahăr pudră", category: "copt", unit: "pachet", aliases: ["zahăr tos", "zahăr pudra"] },
   { id: "zahar-vanilat", name: "Zahăr vanilat", category: "copt", unit: "plic", aliases: ["vanilat", "zahăr cu vanilie"] },
   { id: "drojdie-proaspata", name: "Drojdie proaspătă", category: "copt", unit: "pachet", aliases: ["drojdie", "drojdie de bere", "drojdie la cub"] },
