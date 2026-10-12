@@ -13,6 +13,7 @@ import { PRODUCT_SEEDS } from "./products";
 import { RECIPE_SEEDS } from "./recipes";
 import { RETAILER_SEEDS } from "./retailers";
 import { PANTRY_LOCATION_SEEDS } from "./pantry-locations";
+import { RECIPE_PHOTOS, recipePhotoUrl } from "./recipe-photos";
 
 /**
  * Versiunea catalogului inițial. Rândurile seed au acest updated_at; la
@@ -35,6 +36,7 @@ export interface Catalog {
 }
 
 export function buildCatalog(): Catalog {
+  const photos = new Map(RECIPE_PHOTOS.map((p) => [p.recipe_id, recipePhotoUrl(p)]));
   return {
     product_categories: CATEGORY_SEEDS.map((c, i) => ({ ...meta, id: c.id, name: c.name, icon: c.icon, sort_order: (i + 1) * 10, is_food: c.is_food })),
     products: PRODUCT_SEEDS.map((p) => ({
@@ -69,7 +71,7 @@ export function buildCatalog(): Catalog {
       prep_minutes: r.prep,
       cook_minutes: r.cook,
       difficulty: r.difficulty,
-      image_url: null,
+      image_url: photos.get(r.id) ?? null,
       nutrition: null,
     })),
     recipe_ingredients: RECIPE_SEEDS.flatMap((r) =>
