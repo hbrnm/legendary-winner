@@ -18,8 +18,10 @@ Ordinea o decide proprietarul. Stările: **implementat** (în `main`), **verific
 | Observațiile editoriale din rețete | blocat: aprobarea proprietarului |
 
 ## 0.2.0 — propuneri, după valoarea pentru utilizator și complexitate
+Stare (12 oct. 2026): comparația pe magazine e implementată (PR #17). În lucru: prețurile din bonurile fiscale, cu OCR pe telefon ([.tasks/005](../.tasks/005-bonuri-fiscale.md)). Urmează, după bonuri: sursele suplimentare (Monitorul Prețurilor, cu acordul Consiliului Concurenței; Open Prices).
+
 1. **Variante comerciale** (ambalaj, brand, EAN), apoi prețul pe kg din ambalaj ([AUDIT_0.1.1.md](AUDIT_0.1.1.md), secțiunea 4). Valoare mare, complexitate medie.
-2. **Comparația pe magazine a unei liste întregi** („cât ar costa la Lidl vs. Kaufland”), cu prețurile pe magazin din 0.1.1. Valoare mare, complexitate mică.
+2. ~~**Comparația pe magazine a unei liste întregi**~~: implementată (PR #17).
 3. **Densități pentru lingurile de zahăr și făină**, cu valori aprobate. Valoare medie, complexitate mică.
 4. **Realtime în E2E-ul local**: testul cloud acoperă acum sincronizarea la cerere, nu notificările Realtime. Valoare medie (încredere), complexitate medie.
 5. **Notificări push de pe server** (alimente care expiră, cu aplicația închisă). Cer chei VAPID și o funcție pe server. Acum există doar notificări locale. Valoare medie, complexitate mare.
