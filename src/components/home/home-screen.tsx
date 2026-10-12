@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { AlertTriangle, CalendarDays, ChevronRight, ShoppingBasket, Sparkles, Wallet } from "lucide-react";
+import { AlertTriangle, CalendarDays, ChevronRight, ShoppingBasket, Wallet } from "lucide-react";
 import { useApp } from "@/components/app/app-provider";
 import { useAction, useData } from "@/components/app/hooks";
 import { ProductSearch } from "@/components/shopping/product-search";
@@ -195,11 +195,7 @@ export function HomeScreen() {
 
       {data.suggestions.length > 0 && (
         <>
-          <SectionTitle action={<Link href="/retete/" className="text-sm font-medium text-brand">Toate rețetele</Link>}>
-            <span className="inline-flex items-center gap-1.5">
-              <Sparkles size={14} /> Rețete sugerate
-            </span>
-          </SectionTitle>
+          <SectionTitle action={<Link href="/retete/" className="text-sm font-medium text-brand">Toate rețetele</Link>}>Rețete sugerate</SectionTitle>
           <ul className="grid gap-2 sm:grid-cols-3">
             {data.suggestions.map(({ recipe, why }) => (
               <li key={recipe.id}>
