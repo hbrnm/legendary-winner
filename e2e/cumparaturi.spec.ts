@@ -65,3 +65,37 @@ test("lista recurentă rămâne pentru data viitoare", async ({ page }) => {
   await page.getByRole("button", { name: "Finalizează" }).click();
   await expect(page.getByRole("checkbox", { name: /Bifează Detergent de vase/ })).toBeVisible();
 });
+
+test("prețul de la raft: 300 g la 7,99 lei/100 g, apoi 312 g la cântar", async ({ page }) => {
+  await start(page);
+  await createList(page, "Galantar");
+  await quickAdd(page, "300 g șuncă");
+  await page.getByRole("button", { name: /^Șuncă/ }).click();
+  await page.getByRole("radio", { name: "Preț la raft" }).click();
+  await expect(page.getByLabel("Baza prețului la raft")).toHaveValue("100g");
+  await page.getByLabel("Preț la raft").fill("7,99");
+  await expect(page.getByLabel("Preț plătit")).toHaveValue("23,97");
+  await expect(page.getByText("Calculat: 300 g × 7,99 lei/100 g. Îl poți corecta.")).toBeVisible();
+
+  // La cântar iese altă cantitate: totalul se recalculează.
+  await page.getByLabel("Cantitate").fill("312");
+  await expect(page.getByLabel("Preț plătit")).toHaveValue("24,93");
+
+  // O bază care nu se potrivește cu cantitatea.
+  await page.getByLabel("Unitate").selectOption("buc");
+  await page.getByLabel("Baza prețului la raft").selectOption("kg");
+  await expect(page.getByText("Prețul pe kg nu se potrivește cu bucățile. Alege altă bază sau scrie totalul.")).toBeVisible();
+  await expect(page.getByLabel("Preț plătit")).toHaveValue("");
+  await page.getByLabel("Unitate").selectOption("g");
+  await page.getByLabel("Baza prețului la raft").selectOption("100g");
+  await expect(page.getByLabel("Preț plătit")).toHaveValue("24,93");
+
+  // Înapoi la total și iar la raft: totalul se calculează din nou.
+  await page.getByRole("radio", { name: "Total plătit" }).click();
+  await page.getByLabel("Preț plătit").fill("30");
+  await page.getByRole("radio", { name: "Preț la raft" }).click();
+  await expect(page.getByLabel("Preț plătit")).toHaveValue("24,93");
+
+  await page.getByRole("button", { name: "Salvează" }).click();
+  await expect(page.getByText("24,93 RON").first()).toBeVisible();
+});

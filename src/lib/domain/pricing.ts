@@ -1,5 +1,5 @@
 import type { ISODate, ProductPrice, PurchaseSource, UnitCode } from "./types";
-import { convertForProduct, type ProductUnits } from "./units";
+import { convert, convertForProduct, type ProductUnits } from "./units";
 import { roundMoney } from "./money";
 import { daysBetween } from "./dates";
 
@@ -132,4 +132,36 @@ export function estimateCost(index: PriceIndex, productId: string, quantity: num
   const up = latestUnitPrice(index, productId, unit, opts);
   if (!up) return null;
   return { cost: roundMoney(up.per_unit * quantity), observed_on: up.observed_on, price: up };
+}
+
+/** Baza prețului de pe eticheta de la raft (decizia proprietarului, 12 oct. 2026). */
+export type ShelfBasis = "buc" | "kg" | "100g" | "l" | "100ml";
+
+export const SHELF_BASES: { basis: ShelfBasis; quantity: number; unit: UnitCode; label: string; short: string }[] = [
+  { basis: "buc", quantity: 1, unit: "buc", label: "pe bucată", short: "buc" },
+  { basis: "kg", quantity: 1, unit: "kg", label: "pe kg", short: "kg" },
+  { basis: "100g", quantity: 100, unit: "g", label: "pe 100 g", short: "100 g" },
+  { basis: "l", quantity: 1, unit: "l", label: "pe litru", short: "l" },
+  { basis: "100ml", quantity: 100, unit: "ml", label: "pe 100 ml", short: "100 ml" },
+];
+
+/** Baza propusă după unitatea liniei: grame → 100 g, kg → kg, ml → 100 ml, litri → litru, altfel bucata. */
+export function defaultShelfBasis(unit: UnitCode | null): ShelfBasis {
+  if (unit === "g") return "100g";
+  if (unit === "kg") return "kg";
+  if (unit === "ml") return "100ml";
+  if (unit === "l") return "l";
+  return "buc";
+}
+
+/**
+ * Totalul pentru cantitatea cumpărată, din prețul de la raft:
+ * 300 g × 7,99 lei/100 g = 23,97 lei. Null dacă unitatea cantității nu se
+ * potrivește cu baza (ex. bucăți la un preț pe kg).
+ */
+export function totalFromShelfPrice(shelfPrice: number, basis: ShelfBasis, quantity: number, unit: UnitCode): number | null {
+  const b = SHELF_BASES.find((s) => s.basis === basis)!;
+  const q = convert(quantity, unit, b.unit);
+  if (q == null) return null;
+  return roundMoney((shelfPrice * q) / b.quantity);
 }
