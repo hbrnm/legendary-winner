@@ -181,6 +181,13 @@ describe("liste", () => {
 });
 
 describe("rețete și cămară", () => {
+  it("rețeta păstrează fotografia din catalog (cale relativă) și refuză adresele nesigure", async () => {
+    const base = { name: "Ciorbă", categories: ["supe_ciorbe" as const], servings: 4, prep_minutes: 10, cook_minutes: 30, difficulty: "usor" as const, ingredients: [{ product_id: "zahar", quantity: null, unit: null }], steps: ["Fierbe."] };
+    const r = await saveRecipe(ctx, { ...base, image_url: "/retete/ciorba-perisoare.webp" });
+    expect((await ctx.db.recipes.get(r))?.image_url).toBe("/retete/ciorba-perisoare.webp");
+    await expect(saveRecipe(ctx, { ...base, image_url: "javascript:alert(1)" })).rejects.toThrow();
+  });
+
   it("zahărul cu lingura se convertește în grame cu densitatea aprobată: lista, cămara, costul", async () => {
     const r = await saveRecipe(ctx, {
       name: "Clătite dulci",
