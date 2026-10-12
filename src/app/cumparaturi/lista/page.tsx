@@ -3,7 +3,7 @@
 import { Suspense, useMemo, useState } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { Archive, ArrowLeft, Check, Copy, MoreHorizontal, Pencil, Repeat, Store, Trash2, LayoutList } from "lucide-react";
+import { Archive, ArrowLeft, Check, Copy, MoreHorizontal, Pencil, Repeat, Scale, Store, Trash2, LayoutList } from "lucide-react";
 import { AppShell } from "@/components/app/shell";
 import { useAction, useData } from "@/components/app/hooks";
 import { ProductSearch, type PickedProduct } from "@/components/shopping/product-search";
@@ -15,13 +15,14 @@ import { LabeledInput, Segmented, Toggle } from "@/components/ui/fields";
 import { useToast } from "@/components/ui/toast";
 import { listItems, owned, priceIndex, spendRecords, visible } from "@/lib/services/queries";
 import * as shop from "@/lib/services/shopping";
-import { estimateFlag, groupByCategory, lineEstimate, listTotals } from "@/lib/domain/shopping";
+import { compareRetailers, estimateFlag, groupByCategory, lineEstimate, listTotals } from "@/lib/domain/shopping";
 import { budgetStatus, SOURCE_LABELS } from "@/lib/domain/budget";
 import { formatQuantity } from "@/lib/domain/units";
 import { formatRon } from "@/lib/domain/money";
 import { toISODate } from "@/lib/domain/dates";
 import { now } from "@/lib/clock";
-import type { ShoppingListItem } from "@/lib/domain/types";
+import type { Retailer, ShoppingListItem } from "@/lib/domain/types";
+import type { PriceIndex } from "@/lib/domain/pricing";
 
 function ListScreen() {
   const id = useSearchParams().get("id") ?? "";
@@ -31,6 +32,7 @@ function ListScreen() {
   const [groupBy, setGroupBy] = useState<"raioane" | "magazine">("raioane");
   const [editing, setEditing] = useState<{ id: string; focusPrice: boolean } | null>(null);
   const [menu, setMenu] = useState(false);
+  const [comparing, setComparing] = useState(false);
   const [renaming, setRenaming] = useState(false);
   const [newName, setNewName] = useState("");
   const [confirmDelete, setConfirmDelete] = useState(false);
@@ -300,6 +302,7 @@ function ListScreen() {
                 setRenaming(true);
               },
             },
+            { icon: Scale, label: "Compară magazinele", run: () => setComparing(true) },
             { icon: Repeat, label: list.is_recurring ? "Nu mai e recurentă" : "Fă-o recurentă (se refolosește săptămânal)", run: () => run((ctx) => shop.updateList(ctx, id, { is_recurring: !list.is_recurring })) },
             {
               icon: Copy,
@@ -331,6 +334,10 @@ function ListScreen() {
             <Store size={16} /> Poți alege magazinul fiecărui produs din fereastra lui; apoi grupează „Pe magazine”.
           </div>
         </div>
+      </Sheet>
+
+      <Sheet open={comparing} onClose={() => setComparing(false)} title="Cât ar costa lista">
+        <CompareStores items={data.items} prices={data.prices} retailers={data.retailers} today={today} />
       </Sheet>
 
       <Sheet
@@ -424,5 +431,37 @@ export default function Page() {
         <ListScreen />
       </Suspense>
     </AppShell>
+  );
+}
+
+function CompareStores({ items, prices, retailers, today }: { items: ShoppingListItem[]; prices: PriceIndex; retailers: Retailer[]; today: string }) {
+  const rows = compareRetailers(items, prices, today);
+  if (rows.length === 0) {
+    return <p className="text-[15px] text-ink-2">Nu ai încă prețuri pe magazine pentru produsele din listă. Ele apar după cumpărături sau din Buget → Prețuri.</p>;
+  }
+  const names = new Map(retailers.map((r) => [r.id, r.name]));
+  return (
+    <div className="flex flex-col gap-3">
+      <p className="text-sm text-ink-2">Doar prețurile văzute sau plătite la fiecare magazin. Produsele fără preț acolo nu intră în total.</p>
+      <ul className="overflow-hidden rounded-2xl border border-line bg-surface">
+        {rows.map((r) => (
+          <li key={r.retailer_id} className="flex min-h-14 flex-col justify-center border-b border-line px-4 py-2 last:border-b-0">
+            <div className="flex items-baseline justify-between gap-3">
+              <span className="text-[15px] text-ink">{names.get(r.retailer_id) ?? r.retailer_id}</span>
+              <span className="text-[15px] font-medium tabular text-ink">~{formatRon(r.total)}</span>
+            </div>
+            <span className="text-xs text-ink-2">
+              {[
+                `${r.priced_count} din ${r.item_count} produse ${r.priced_count === 1 ? "are" : "au"} preț aici`,
+                r.promo_count > 0 && `${r.promo_count} la promoție`,
+                r.stale_count > 0 && `${r.stale_count} ${r.stale_count === 1 ? "preț vechi" : "prețuri vechi"}`,
+              ]
+                .filter(Boolean)
+                .join(" · ")}
+            </span>
+          </li>
+        ))}
+      </ul>
+    </div>
   );
 }

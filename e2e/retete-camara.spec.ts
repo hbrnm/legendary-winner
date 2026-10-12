@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test";
-import { start } from "./helpers";
+import { createList, quickAdd, start } from "./helpers";
 
 test("rețetă: porții, cost incomplet, alergeni, favorite, ingrediente în listă", async ({ page }) => {
   await start(page, "/retete/");
@@ -86,4 +86,17 @@ test("prețuri de la piață și comparație", async ({ page }) => {
   await expect(page.getByText("8,00 RON/kg")).toBeVisible();
   await expect(page.getByText("12,00 RON/kg")).toBeVisible();
   await expect(page.locator("li").filter({ hasText: "Piața Obor" }).getByText("cel mai bun")).toBeVisible();
+
+  // Lista comparată pe magazine, doar cu prețurile fiecăruia.
+  await createList(page, "Comparație");
+  await quickAdd(page, "2 kg roșii");
+  await page.getByRole("button", { name: "Opțiunile listei" }).click();
+  await page.getByRole("button", { name: "Compară magazinele" }).click();
+  await expect(page.getByRole("heading", { name: "Cât ar costa lista" })).toBeVisible();
+  const rows = page.locator("li").filter({ hasText: "preț aici" });
+  await expect(rows).toHaveCount(2);
+  await expect(rows.nth(0)).toContainText("Piața Obor");
+  await expect(rows.nth(0)).toContainText("~16,00 RON");
+  await expect(rows.nth(1)).toContainText("Lidl");
+  await expect(rows.nth(1)).toContainText("~24,00 RON");
 });

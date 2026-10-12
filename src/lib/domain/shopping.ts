@@ -33,6 +33,46 @@ export function estimateFlag(e: LineEstimate): "alt magazin" | "promoție" | "pr
   return null;
 }
 
+export interface RetailerComparison {
+  retailer_id: string;
+  /** Suma produselor cu preț la acest magazin. */
+  total: number;
+  priced_count: number;
+  /** Produsele nebifate comparate (cu sau fără preț aici). */
+  item_count: number;
+  promo_count: number;
+  stale_count: number;
+}
+
+/**
+ * Cât ar costa produsele nebifate la fiecare magazin, doar cu prețurile
+ * văzute sau plătite chiar acolo (decizia proprietarului, 12 oct. 2026).
+ * Produsele fără preț la un magazin nu intră în totalul lui. Primele sunt
+ * magazinele cu mai multe produse cu preț, apoi cele mai ieftine.
+ */
+export function compareRetailers(items: ShoppingListItem[], prices: PriceIndex, today: ISODate | null = null): RetailerComparison[] {
+  const todo = items.filter((i) => !i.deleted_at && !i.checked);
+  const retailers = new Set<string>();
+  for (const i of todo) for (const p of (i.product_id && prices.get(i.product_id)) || []) if (p.retailer_id) retailers.add(p.retailer_id);
+  const out: RetailerComparison[] = [];
+  for (const retailer_id of retailers) {
+    const costs: number[] = [];
+    let promo = 0;
+    let stale = 0;
+    for (const i of todo) {
+      if (!i.product_id) continue;
+      const c = estimateCost(prices, i.product_id, i.quantity ?? 1, i.unit, { context: { retailer_id, source: i.source }, retailer_only: true, today });
+      if (!c) continue;
+      costs.push(c.cost);
+      if (c.price.promo) promo++;
+      if (c.price.stale) stale++;
+    }
+    if (costs.length === 0) continue;
+    out.push({ retailer_id, total: sumMoney(costs), priced_count: costs.length, item_count: todo.length, promo_count: promo, stale_count: stale });
+  }
+  return out.sort((a, b) => b.priced_count - a.priced_count || a.total - b.total);
+}
+
 export interface ListTotals {
   /** Valoarea estimată a întregii liste (bifate + nebifate), cu prețurile cunoscute. */
   estimated_total: number;
