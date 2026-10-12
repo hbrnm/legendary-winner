@@ -20,7 +20,7 @@ Ordinea o decide proprietarul. Stările: **implementat** (în `main`), **verific
 ## 0.2.0 — propuneri, după valoarea pentru utilizator și complexitate
 Stare (12 oct. 2026): comparația pe magazine e implementată (PR #17). În lucru: prețurile din bonurile fiscale, cu OCR pe telefon ([.tasks/005](../.tasks/005-bonuri-fiscale.md)). Monitorul Prețurilor: oprit de proprietar (12 oct. 2026), după proba din [.tasks/006](../.tasks/006-monitorul-preturilor.md). Urmează: Open Prices.
 
-1. **Variante comerciale** (ambalaj, brand, EAN), apoi prețul pe kg din ambalaj ([AUDIT_0.1.1.md](AUDIT_0.1.1.md), secțiunea 4). Valoare mare, complexitate medie.
+1. **Variante comerciale** (ambalaj, brand, EAN), apoi prețul pe kg din ambalaj ([AUDIT_0.1.1.md](AUDIT_0.1.1.md), secțiunea 4). Valoare mare, complexitate medie. Planificat (decizii 12 oct. 2026): [.tasks/007](../.tasks/007-variante-comerciale.md).
 2. ~~**Comparația pe magazine a unei liste întregi**~~: implementată (PR #17).
 3. ~~**Densități pentru lingurile de zahăr și făină**~~: implementate (PR #19).
 4. **Realtime în E2E-ul local**: testul cloud acoperă acum sincronizarea la cerere, nu notificările Realtime. Valoare medie (încredere), complexitate medie.
