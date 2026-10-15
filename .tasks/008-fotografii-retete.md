@@ -1,6 +1,6 @@
 # 008 — Fotografii pentru rețete
 
-**Stare:** în lucru; etapele 1–5 gata, urmează etapa 6 (producția, cu acordul proprietarului); etapa 2c așteaptă creditele Canva.
+**Stare:** în lucru; etapele 1–6 gata pe server, rămâne verificarea pe telefoane reale (proprietarul); etapa 2c așteaptă creditele Canva.
 **Ramura:** câte una pe etapă, fiecare cu PR-ul ei din `main`.
 
 ## Scop
@@ -42,7 +42,7 @@ Deciziile proprietarului (12 oct. 2026, chestionar):
 | 3 | **Baza de date:** migrația `recipe_photos` (RLS, `check_household_refs`, `touch_updated_at`, `keep_household_id`, index unic parțial) + bucket privat `recipe-photos` (limită de mărime și tipuri `image/webp`, `image/jpeg`) + politici pe `storage.objects`. Teste în `supabase/tests/` (membru, alt membru, membru din altă gospodărie, rețeta altei gospodării). `npm run test:db`. Documentația schemei. | gata | (vezi PR) |
 | 4 | **Local și sincronizare:** versiune nouă Dexie, `recipe_photos` în `SYNCED_TABLES`, coada de încărcare (offline → încarcă la revenirea internetului, reîncearcă la eroare), descărcarea cu cache, ștergerea fișierului după ștergerea logică, copia de siguranță. Teste unitare (Storage simulat); `e2e-cloud` mutat la etapa 5. | gata | (vezi PR) |
 | 5 | **Ecranele:** pe pagina rețetei, „Adaugă fotografie” (cameră sau galerie), „Schimbă” și „Șterge”; starea „se încarcă” / „se va încărca când ai internet”; fotografia în listele de rețete, plan și acasă. Textele: un chestionar. E2E (mod demonstrativ, fără Storage), capturi doar pentru ecranele noi. | gata | (vezi PR) |
-| 6 | **Producția:** migrația și bucketul cu acordul proprietarului, apoi integrarea; verificare pe Android și iPhone reale. | de făcut | |
+| 6 | **Producția:** migrația și bucketul cu acordul proprietarului, apoi integrarea; verificare pe Android și iPhone reale. | gata pe server; telefoanele: de verificat | (vezi PR) |
 
 ## Rezumat pe etape
 ### Etapa 1 (12 oct. 2026)
@@ -94,6 +94,9 @@ Ecranele, cu textele aprobate în chestionar (15 oct. 2026): butoanele „Adaug�
 - `scripts/local-storage.mjs`: Storage minimal în Supabase-ul local (încărcare, descărcare, ștergere), cu RLS-ul din `storage.objects` aplicat ca utilizatorul din JWT. `e2e-cloud`: Ana pune poza, ajunge în Storage, Bogdan o descarcă, Carmen (altă gospodărie) vede poza din catalog.
 - Teste: `e2e/fotografii.spec.ts` (adăugare, micșorare la 1280×960, listă, reîncărcare, ștergere, poză care nu se poate citi), `photo-resize.test.ts` (2), `photos.test.ts` (+). `npm test`: 179; `npm run test:e2e`: 23; `npm run test:e2e:cloud`: 1; build reușit.
 
+### Etapa 6 (15 oct. 2026)
+Acordul proprietarului (chestionar, 15 oct. 2026): „Aplică și integrează”. Migrația `20261015000001 recipe_photos` aplicată pe Supabase „Camara” (versiunea din istoric aliniată la repo). Verificat: bucketul privat (1 MB, WebP/JPEG), RLS activ, 4 politici pe `storage.objects` și 3 pe tabel, `anon` fără drepturi pe tabel și pe `photo_household`, tabelul în Realtime. Avertismentele de securitate Supabase: doar cele vechi (funcțiile RLS/RPC `security definer`, protecția parolelor compromise), niciunul nou. Rămâne: verificarea pe Android și iPhone (pașii din „Cum verific la final”).
+
 ### Etapa 2c — imagini AI pentru catalog (15 oct. 2026, în așteptare: creditele Canva)
 Proprietarul a găsit pozele Wikimedia inegale. Proba: imagini AI (Canva) pentru sarmale, ciorbă de perișoare, mici și papanași, comparate cu cele actuale. Deciziile (chestionar, 15 oct. 2026):
 - **Amestec:** rămân pozele Wikimedia bune; cele greșite sau slabe se înlocuiesc cu imagini AI, aprobate poză cu poză.
@@ -115,4 +118,4 @@ Poze pentru „Pilaf de pui”, „Tocană de cartofi”, „Paste cu ton și ro
 Pe telefon: „Ciorbă de perișoare” are fotografia din catalog, cu autorul menționat. Fac o poză ciorbei mele, offline; după ce revine internetul, poza apare și pe telefonul altui membru al gospodăriei, dar nu și la o altă gospodărie. Pornesc avionul: ambele poze se văd în continuare. Șterg poza mea: revine cea din catalog.
 
 ## Următorul pas
-Etapa 6 (migrația și bucketul pe producție, cu acordul proprietarului); etapa 2c când revin creditele Canva.
+Proprietarul verifică pe Android și iPhone; etapa 2c când revin creditele Canva.
