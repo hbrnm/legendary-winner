@@ -1,13 +1,13 @@
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import Dexie from "dexie";
-import { CamaraDB } from "@/lib/db/database";
+import { CamaraDB, getMeta } from "@/lib/db/database";
 import { insertRow } from "@/lib/db/write";
 import { setClock } from "@/lib/clock";
 import type { Recipe } from "@/lib/domain/types";
 import type { AppCtx } from "@/lib/services/context";
 import { addRecipePhoto, recipePhotoBlob, removeRecipePhoto } from "@/lib/services/recipe-photos";
 import { exportHouseholdData, importHouseholdData } from "@/lib/services/backup";
-import { SyncEngine } from "./engine";
+import { SyncEngine, serverMissingKey } from "./engine";
 import { FakeFiles, FakeRemote } from "./fake-remote";
 import { MemoryPhotoCache } from "./files";
 import { classifyStorage } from "./supabase-remote";
@@ -116,7 +116,7 @@ describe("încărcarea fotografiilor", () => {
     files.rejectIf = () => "new row violates row-level security policy";
     const id = await addRecipePhoto(ana.ctx, photo());
     await ana.engine.syncNow();
-    expect(ana.engine.getStatus()).toMatchObject({ state: "sincronizat", pending: 0, rejected: 1 });
+    expect(ana.engine.getStatus()).toMatchObject({ state: "sincronizat", pending: 0, rejected: 1, rejected_photos: 1 });
     expect(serverPhotos()).toEqual([]);
     expect(await ana.db.recipe_photos.get(id)).toBeUndefined();
     expect(await ana.db.photo_uploads.count()).toBe(0);
@@ -213,8 +213,8 @@ describe("ștergerea și înlocuirea", () => {
     await addRecipe(ana.db, "a-altora", "h2");
     await expect(addRecipePhoto(ana.ctx, photo(bytes(1), "a-altora"))).rejects.toThrow("Rețeta nu mai există.");
     await addRecipe(ana.db);
-    await expect(addRecipePhoto(ana.ctx, { ...photo(), width: 4000 })).rejects.toThrow();
-    await expect(addRecipePhoto(ana.ctx, photo(new ArrayBuffer(1024 * 1024 + 1)))).rejects.toThrow();
+    await expect(addRecipePhoto(ana.ctx, { ...photo(), width: 4000 })).rejects.toThrow("Nu am putut folosi această fotografie. Încearcă alta.");
+    await expect(addRecipePhoto(ana.ctx, photo(new ArrayBuffer(1024 * 1024 + 1)))).rejects.toThrow("Nu am putut folosi această fotografie. Încearcă alta.");
   });
 });
 
@@ -226,6 +226,11 @@ describe("compatibilitatea", () => {
     await ana.engine.syncNow();
     expect(ana.engine.getStatus()).toMatchObject({ state: "sincronizat", last_error: null });
     expect(remote.tables.get("shopping_lists")?.has("lista")).toBe(true);
+    // Ecranele ascund fotografiile până când serverul are tabelul.
+    expect(await getMeta(ana.db, serverMissingKey("recipe_photos"))).toBe(true);
+    remote.missingTables.clear();
+    await ana.engine.syncNow();
+    expect(await getMeta(ana.db, serverMissingKey("recipe_photos"))).toBe(false);
   });
 
   it("o poză pusă cât timp serverul nu are tabelul așteaptă, nu se pierde", async () => {

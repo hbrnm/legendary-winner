@@ -34,10 +34,8 @@ export async function activeRecipePhoto(ctx: AppCtx, recipeId: string): Promise<
 export async function addRecipePhoto(ctx: AppCtx, input: NewRecipePhoto): Promise<string> {
   const recipe = await ctx.db.recipes.get(input.recipeId);
   if (!recipe || recipe.deleted_at || (recipe.household_id !== null && recipe.household_id !== ctx.householdId)) throw new UserError("Rețeta nu mai există.");
-  for (const side of [input.width, input.height]) {
-    if (!Number.isInteger(side) || side < 1 || side > RECIPE_PHOTO_MAX_SIDE) throw new Error("Fotografia nu e micșorată.");
-  }
-  if (input.data.byteLength === 0 || input.data.byteLength > RECIPE_PHOTO_MAX_BYTES) throw new Error("Fotografia e prea mare.");
+  const sizeOk = [input.width, input.height].every((side) => Number.isInteger(side) && side >= 1 && side <= RECIPE_PHOTO_MAX_SIDE);
+  if (!sizeOk || input.data.byteLength === 0 || input.data.byteLength > RECIPE_PHOTO_MAX_BYTES) throw new UserError("Nu am putut folosi această fotografie. Încearcă alta.");
 
   const id = newId();
   const storage_path = recipePhotoPath(ctx.householdId, input.recipeId, id, input.contentType === "image/webp" ? "webp" : "jpg");

@@ -13,6 +13,8 @@ export interface SyncStatus {
   last_synced_at: string | null;
   last_error: string | null;
   rejected: number;
+  /** Câte dintre cele refuzate sunt fotografii (au un mesaj al lor). */
+  rejected_photos: number;
 }
 
 /** Ultimul rând citit dintr-un tabel și ora stabilă de la acea tragere. */
@@ -30,6 +32,9 @@ export interface SyncOptions {
   files?: RemoteFiles;
   cache?: PhotoCache | null;
 }
+
+/** În `meta`: true dacă serverul nu are (încă) tabelul opțional, false după ce l-a confirmat. */
+export const serverMissingKey = (table: TableName) => `server_missing:${table}`;
 
 /** PostgREST: tabelul nu există (încă) pe server. */
 const MISSING_TABLE = new Set(["PGRST205", "42P01"]);
@@ -63,7 +68,7 @@ export class SyncEngine {
   private running: Promise<void> | null = null;
   private rerun = false;
   private listeners = new Set<(s: SyncStatus) => void>();
-  private status: SyncStatus = { state: "inactiv", pending: 0, last_synced_at: null, last_error: null, rejected: 0 };
+  private status: SyncStatus = { state: "inactiv", pending: 0, last_synced_at: null, last_error: null, rejected: 0, rejected_photos: 0 };
   private overlapMs: number;
   private pageSize: number;
   private files: RemoteFiles | null;
@@ -93,7 +98,8 @@ export class SyncEngine {
   private async setStatus(patch: Partial<SyncStatus>) {
     const pending = await this.db.outbox.count();
     const rejected = await this.db.sync_errors.count();
-    this.status = { ...this.status, ...patch, pending, rejected };
+    const rejected_photos = await this.db.sync_errors.filter((e) => e.table === "recipe_photos").count();
+    this.status = { ...this.status, ...patch, pending, rejected, rejected_photos };
     for (const l of this.listeners) l(this.status);
   }
 
@@ -267,13 +273,17 @@ export class SyncEngine {
         from = { updated_at: Date.parse(back) < Date.parse(cursor.updated_at) ? back : cursor.updated_at };
       }
       let last = cursor;
+      let missing = false;
       for (;;) {
         let rows;
         try {
           rows = await this.remote.pull(table, from, this.pageSize);
         } catch (e) {
           // Migrația tabelului încă nu e pe server: îl tragem de la început când apare.
-          if (OPTIONAL_TABLES.has(table) && e instanceof RemoteRejected && MISSING_TABLE.has(e.code ?? "")) break;
+          if (OPTIONAL_TABLES.has(table) && e instanceof RemoteRejected && MISSING_TABLE.has(e.code ?? "")) {
+            missing = true;
+            break;
+          }
           throw e;
         }
         if (rows.length === 0) break;
@@ -284,6 +294,8 @@ export class SyncEngine {
         from = { updated_at: r.updated_at, id: r.id };
       }
       if (last) await setMeta(this.db, cursorKey, { ...last, stable });
+      // Ecranele arată funcțiile tabelului doar după ce serverul l-a confirmat.
+      if (OPTIONAL_TABLES.has(table) && (await getMeta<boolean>(this.db, serverMissingKey(table))) !== missing) await setMeta(this.db, serverMissingKey(table), missing);
     }
   }
 

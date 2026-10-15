@@ -1,6 +1,6 @@
 // Supabase minimal, local, fără Docker: Postgres + Supabase Auth (GoTrue) +
-// PostgREST + un proxy pe portul 54321 cu aceleași căi ca Supabase
-// (/auth/v1, /rest/v1). Folosit de testele E2E pentru modul cloud
+// PostgREST + un Storage minimal (scripts/local-storage.mjs) + un proxy pe
+// portul 54321 cu aceleași căi ca Supabase (/auth/v1, /rest/v1, /storage/v1). Folosit de testele E2E pentru modul cloud
 // (conturi, gospodării, invitații, RLS prin API, sincronizare).
 // Realtime nu e inclus: aplicația sincronizează și periodic/la revenire.
 //
@@ -11,6 +11,7 @@ import { createServer, request } from "node:http";
 import { join } from "node:path";
 import pg from "pg";
 import { ANON_KEY, JWT_SECRET } from "./local-supabase-keys.mjs";
+import { handleStorage } from "./local-storage.mjs";
 
 const ROOT = new URL("..", import.meta.url).pathname;
 const DIR = join(ROOT, ".local-supabase");
@@ -151,6 +152,9 @@ async function main() {
   await waitHttp(`http://127.0.0.1:${AUTH_PORT}/health`);
   await waitHttp(`http://127.0.0.1:${REST_PORT}/`);
 
+  // Storage: rândurile din storage.objects se scriu ca utilizatorul, cu RLS.
+  const storagePool = new pg.Pool({ connectionString: admin, max: 4 });
+
   // Proxy cu căile Supabase.
   const routes = [
     ["/auth/v1", AUTH_PORT],
@@ -169,6 +173,10 @@ async function main() {
     if (req.method === "OPTIONS") {
       res.writeHead(204, cors);
       return res.end();
+    }
+    if (req.url.startsWith("/storage/v1/")) {
+      void handleStorage(req, res, cors, { pool: storagePool, secret: JWT_SECRET });
+      return;
     }
     const route = routes.find(([prefix]) => req.url.startsWith(prefix));
     if (!route) {

@@ -8,7 +8,8 @@ import { useData } from "@/components/app/hooks";
 import { Button } from "@/components/ui/button";
 import { Badge, Card, Chip, EmptyState, PageHeader, Spinner } from "@/components/ui/misc";
 import { Segmented } from "@/components/ui/fields";
-import { RECIPE_CATEGORY_LABELS, RecipeVisual } from "@/components/recipes/recipe-visual";
+import { RECIPE_CATEGORY_LABELS } from "@/components/recipes/recipe-visual";
+import { RecipeImage } from "@/components/recipes/recipe-photo";
 import { owned, priceIndex, visible } from "@/lib/services/queries";
 import { normalize } from "@/lib/domain/search";
 import { recipeCost, totalMinutes, whatCanICook } from "@/lib/domain/recipes";
@@ -75,7 +76,7 @@ function RecipesScreen() {
       <li>
         <Link href={`/retete/reteta/?id=${r.id}`} className="block">
           <Card className="flex items-center gap-3 p-3 hover:bg-surface-2">
-            <RecipeVisual recipe={r} />
+            <RecipeImage recipe={r} />
             <div className="min-w-0 flex-1">
               <p className="truncate text-[16px] font-medium">
                 {r.name}

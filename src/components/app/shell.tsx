@@ -66,10 +66,16 @@ function SyncIndicator() {
 function RejectedNotice() {
   const { sync } = useApp();
   if (!sync?.rejected) return null;
+  const others = sync.rejected - sync.rejected_photos;
   return (
-    <div className="mb-4 rounded-2xl bg-accent-soft px-4 py-3 text-sm text-accent" role="alert">
-      {sync.rejected === 1 ? "O modificare nu a putut fi salvată" : `${sync.rejected} modificări nu au putut fi salvate`} pe server și au fost anulate pe acest telefon. Verifică
-      datele și refă modificarea, dacă e nevoie.
+    <div className="mb-4 space-y-1 rounded-2xl bg-accent-soft px-4 py-3 text-sm text-accent" role="alert">
+      {sync.rejected_photos > 0 && <p>Fotografia nu a putut fi salvată. Pune-o din nou.</p>}
+      {others > 0 && (
+        <p>
+          {others === 1 ? "O modificare nu a putut fi salvată" : `${others} modificări nu au putut fi salvate`} pe server și au fost anulate pe acest telefon. Verifică datele și
+          refă modificarea, dacă e nevoie.
+        </p>
+      )}
     </div>
   );
 }

@@ -12,7 +12,8 @@ import { Badge, Card, EmptyState, SectionTitle, Spinner } from "@/components/ui/
 import { ConfirmSheet, Sheet } from "@/components/ui/sheet";
 import { LabeledInput, LabeledSelect, Toggle } from "@/components/ui/fields";
 import { useToast } from "@/components/ui/toast";
-import { ALLERGEN_LABELS, DIFFICULTY_LABELS, RECIPE_CATEGORY_LABELS, RecipePhotoCredit, RecipeVisual, SLOT_LABELS } from "@/components/recipes/recipe-visual";
+import { ALLERGEN_LABELS, DIFFICULTY_LABELS, RECIPE_CATEGORY_LABELS, SLOT_LABELS } from "@/components/recipes/recipe-visual";
+import { RecipePhotoPanel } from "@/components/recipes/recipe-photo";
 import { owned, priceIndex, productMap } from "@/lib/services/queries";
 import { addMeal, addRecipeToList, cookRecipe, deleteRecipe, toggleFavorite } from "@/lib/services/kitchen";
 import { createList } from "@/lib/services/shopping";
@@ -143,8 +144,7 @@ function RecipeScreen() {
         </div>
       </div>
 
-      <RecipeVisual recipe={r} size="lg" />
-      <RecipePhotoCredit recipe={r} />
+      <RecipePhotoPanel recipe={r} />
       <h1 className="mt-4 text-2xl font-semibold tracking-tight">{r.name}</h1>
       <p className="mt-1 text-[15px] text-ink-2">{r.description}</p>
       <div className="mt-3 flex flex-wrap gap-1.5">

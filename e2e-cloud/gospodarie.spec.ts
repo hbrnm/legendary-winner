@@ -1,3 +1,4 @@
+import { readFileSync } from "node:fs";
 import { expect, test, type Browser, type Page } from "@playwright/test";
 
 const run = Math.random().toString(36).slice(2, 8);
@@ -95,6 +96,24 @@ test("cont, gospodărie, invitație, listă comună sincronizată, gospodării i
   await expect(ana.getByRole("checkbox", { name: /Debifează Lapte integral/ })).toBeVisible();
   await expect(ana.getByText("8,90 RON").first()).toBeVisible();
 
+  // Ana pune fotografia ei la o rețetă din catalog; ajunge în Storage, iar Bogdan o vede.
+  const recipe = "/retete/reteta/?id=ciorba-de-perisoare";
+  await ana.goto(recipe);
+  await syncNow(ana);
+  await ana.getByTestId("fotografie-fisier").setInputFiles({ name: "ciorba.jpg", mimeType: "image/jpeg", buffer: readFileSync("e2e/fixtures/ciorba-1600x1200.jpg") });
+  await expect(ana.getByText("Am pus fotografia.")).toBeVisible();
+  const uploaded = ana.waitForResponse((r) => r.url().includes("/storage/v1/object/recipe-photos/") && r.request().method() === "POST" && r.ok());
+  await syncNow(ana);
+  await uploaded;
+  await expect(ana.getByText(/Se încarcă/)).toHaveCount(0);
+
+  await bogdan.goto(recipe);
+  const downloaded = bogdan.waitForResponse((r) => r.url().includes("/storage/v1/object/recipe-photos/") && r.request().method() === "GET" && r.ok());
+  await syncNow(bogdan);
+  await downloaded;
+  await expect(bogdan.locator("main img").first()).toHaveAttribute("src", /^blob:/);
+  await expect(bogdan.getByRole("button", { name: "Schimbă fotografia" })).toBeVisible();
+
   // Carmen, din altă gospodărie, nu vede nimic din ale lor.
   const carmen = await signUp(browser, "Carmen");
   await carmen.waitForURL(/gospodarie/);
@@ -104,6 +123,11 @@ test("cont, gospodărie, invitație, listă comună sincronizată, gospodării i
   await syncNow(carmen);
   await expect(carmen.getByText("Săptămâna asta")).toHaveCount(0);
   await expect(carmen.getByText("Nicio listă activă")).toBeVisible();
+  // Și vede la rețetă fotografia din catalog, nu pe cea a Anei.
+  await carmen.goto(recipe);
+  await syncNow(carmen);
+  await expect(carmen.locator("main img").first()).toHaveAttribute("src", "/retete/ciorba-de-perisoare.webp");
+  await expect(carmen.getByRole("button", { name: "Adaugă fotografia ta" })).toBeVisible();
 
   // Deconectarea șterge datele gospodăriei de pe dispozitiv.
   await bogdan.goto("/gospodarie/");

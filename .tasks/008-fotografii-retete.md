@@ -1,6 +1,6 @@
 # 008 — Fotografii pentru rețete
 
-**Stare:** în lucru; etapele 1–4 gata, urmează etapa 5.
+**Stare:** în lucru; etapele 1–5 gata, urmează etapa 6 (producția, cu acordul proprietarului); etapa 2c așteaptă creditele Canva.
 **Ramura:** câte una pe etapă, fiecare cu PR-ul ei din `main`.
 
 ## Scop
@@ -41,7 +41,7 @@ Deciziile proprietarului (12 oct. 2026, chestionar):
 | 2 | **Fotografiile catalogului:** agentul caută pe Unsplash/Pexels 2–3 variante pe rețetă și le pune într-o pagină de aprobare (cu autor, sursă, licență); proprietarul alege. Cele aprobate se optimizează în `public/retete/`, se notează în `src/data/recipe-photos.ts`, `image_url` în catalog și în `seed.sql` (`npm run seed:sql`). Mențiunea autorului pe pagina rețetei. Test: fiecare poză din listă are fișier, autor, sursă și licență. Poate merge în paralel cu etapele 3–4. | gata (2a codul, 2b pozele) | (vezi PR-urile) |
 | 3 | **Baza de date:** migrația `recipe_photos` (RLS, `check_household_refs`, `touch_updated_at`, `keep_household_id`, index unic parțial) + bucket privat `recipe-photos` (limită de mărime și tipuri `image/webp`, `image/jpeg`) + politici pe `storage.objects`. Teste în `supabase/tests/` (membru, alt membru, membru din altă gospodărie, rețeta altei gospodării). `npm run test:db`. Documentația schemei. | gata | (vezi PR) |
 | 4 | **Local și sincronizare:** versiune nouă Dexie, `recipe_photos` în `SYNCED_TABLES`, coada de încărcare (offline → încarcă la revenirea internetului, reîncearcă la eroare), descărcarea cu cache, ștergerea fișierului după ștergerea logică, copia de siguranță. Teste unitare (Storage simulat); `e2e-cloud` mutat la etapa 5. | gata | (vezi PR) |
-| 5 | **Ecranele:** pe pagina rețetei, „Adaugă fotografie” (cameră sau galerie), „Schimbă” și „Șterge”; starea „se încarcă” / „se va încărca când ai internet”; fotografia în listele de rețete, plan și acasă. Textele: un chestionar. E2E (mod demonstrativ, fără Storage), capturi doar pentru ecranele noi. | de făcut | |
+| 5 | **Ecranele:** pe pagina rețetei, „Adaugă fotografie” (cameră sau galerie), „Schimbă” și „Șterge”; starea „se încarcă” / „se va încărca când ai internet”; fotografia în listele de rețete, plan și acasă. Textele: un chestionar. E2E (mod demonstrativ, fără Storage), capturi doar pentru ecranele noi. | gata | (vezi PR) |
 | 6 | **Producția:** migrația și bucketul cu acordul proprietarului, apoi integrarea; verificare pe Android și iPhone reale. | de făcut | |
 
 ## Rezumat pe etape
@@ -85,6 +85,15 @@ Local și sincronizare, fără ecrane.
 - Abatere: `e2e-cloud` se mută la etapa 5 (nu există încă ecrane, iar Supabase-ul local din `scripts/local-supabase.mjs` nu are Storage; trebuie adăugat atunci un Storage minimal în proxy). Rămâne deschis (b) din etapa 3: fișierele orfane din Storage.
 - Teste: `src/lib/sync/photos.test.ts` (16). `npm test`: 22 de fișiere, 176 de teste; `npm run build` reușit.
 
+### Etapa 5 (15 oct. 2026)
+Ecranele, cu textele aprobate în chestionar (15 oct. 2026): butoanele „Adaugă fotografia ta” / „Schimbă fotografia” / „Șterge fotografia”, toast „Am pus fotografia.”; confirmarea „Ștergi fotografia?” — „Fotografia dispare de pe telefoanele tuturor membrilor.” — „Șterge”, fără toast; starea „Se încarcă…” / „Se încarcă când ai internet. Membrii gospodăriei o vor vedea atunci.”; erorile „Nu am putut folosi această fotografie. Încearcă alta.” și (la cele refuzate) „Fotografia nu a putut fi salvată. Pune-o din nou.”; „Adresa fotografiei nu e validă.” aprobat.
+- `src/components/recipes/recipe-photo.tsx`: `RecipePhotoPanel` (pagina rețetei: un singur `<input type="file" accept="image/*">`, fără `capture`, deci telefonul oferă singur camera sau galeria), `RecipeImage` (listele de rețete, planul, ecranul de start), `useHouseholdPhoto`. Fotografia gospodăriei are întâietate; mențiunea autorului apare doar la cea din catalog.
+- `src/lib/photo-resize.ts`: latura mare max. 1280 px (orientarea din EXIF aplicată), WebP sau JPEG, calitatea coborâtă până la ~220 KB; recodarea scoate metadatele.
+- **Producția fără migrație:** în modul cu cont, butoanele apar doar după ce serverul a confirmat tabelul `recipe_photos` (`meta server_missing:recipe_photos` = false, scris de motor la tragere). Până la etapa 6 nimeni nu poate pune fotografii pe producție.
+- `RejectedNotice`: mesaj separat pentru fotografiile refuzate (`SyncStatus.rejected_photos`).
+- `scripts/local-storage.mjs`: Storage minimal în Supabase-ul local (încărcare, descărcare, ștergere), cu RLS-ul din `storage.objects` aplicat ca utilizatorul din JWT. `e2e-cloud`: Ana pune poza, ajunge în Storage, Bogdan o descarcă, Carmen (altă gospodărie) vede poza din catalog.
+- Teste: `e2e/fotografii.spec.ts` (adăugare, micșorare la 1280×960, listă, reîncărcare, ștergere, poză care nu se poate citi), `photo-resize.test.ts` (2), `photos.test.ts` (+). `npm test`: 179; `npm run test:e2e`: 23; `npm run test:e2e:cloud`: 1; build reușit.
+
 ### Etapa 2c — imagini AI pentru catalog (15 oct. 2026, în așteptare: creditele Canva)
 Proprietarul a găsit pozele Wikimedia inegale. Proba: imagini AI (Canva) pentru sarmale, ciorbă de perișoare, mici și papanași, comparate cu cele actuale. Deciziile (chestionar, 15 oct. 2026):
 - **Amestec:** rămân pozele Wikimedia bune; cele greșite sau slabe se înlocuiesc cu imagini AI, aprobate poză cu poză.
@@ -106,4 +115,4 @@ Poze pentru „Pilaf de pui”, „Tocană de cartofi”, „Paste cu ton și ro
 Pe telefon: „Ciorbă de perișoare” are fotografia din catalog, cu autorul menționat. Fac o poză ciorbei mele, offline; după ce revine internetul, poza apare și pe telefonul altui membru al gospodăriei, dar nu și la o altă gospodărie. Pornesc avionul: ambele poze se văd în continuare. Șterg poza mea: revine cea din catalog.
 
 ## Următorul pas
-Etapa 2c când revin creditele Canva; altfel etapa 5 (ecranele, textele într-un chestionar, `e2e-cloud` cu Storage local), într-o sesiune nouă.
+Etapa 6 (migrația și bucketul pe producție, cu acordul proprietarului); etapa 2c când revin creditele Canva.
