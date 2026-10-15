@@ -29,6 +29,8 @@ export const DIFFICULTY_LABELS = { usor: "Ușor", mediu: "Mediu", dificil: "Difi
  */
 export function RecipeVisual({ recipe, size = "md" }: { recipe: Pick<Recipe, "image_url">; size?: "sm" | "md" | "lg" }) {
   if (!recipe.image_url) return null;
+  // O poză din catalog scoasă din listă nu se mai arată, chiar dacă baza de pe server o mai are (15 oct. 2026).
+  if (recipe.image_url.startsWith("/retete/") && !catalogPhotoByUrl(recipe.image_url)) return null;
   const dims = size === "lg" ? "h-44 w-full rounded-3xl" : size === "sm" ? "h-12 w-12 rounded-xl" : "h-16 w-16 rounded-2xl";
   // eslint-disable-next-line @next/next/no-img-element
   return <img src={recipe.image_url} alt="" className={`${dims} shrink-0 object-cover`} loading="lazy" />;
