@@ -19,6 +19,12 @@ describe("RecipeVisual", () => {
     expect(container.innerHTML).toBe("");
   });
 
+  it("o poză din catalog scoasă din listă nu se mai afișează", () => {
+    const { container } = render(<RecipeVisual recipe={{ image_url: "/retete/retrasa.webp" }} />);
+    expect(container.innerHTML).toBe("");
+    expect(render(<RecipeVisual recipe={{ image_url: "/retete/bulz.webp" }} />).container.querySelector("img")).not.toBeNull();
+  });
+
   it("cu fotografie, afișează fotografia", () => {
     const { container } = render(<RecipeVisual recipe={{ image_url: "https://exemplu.ro/ciorba.jpg" }} size="lg" />);
     expect(container.querySelector("img")?.getAttribute("src")).toBe("https://exemplu.ro/ciorba.jpg");

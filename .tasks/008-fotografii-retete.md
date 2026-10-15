@@ -13,7 +13,7 @@ Deciziile proprietarului (12 oct. 2026, chestionar):
 - **Fără internet:** pozele deschise o dată rămân în cache și apar și offline; o poză făcută offline se încarcă automat când revine internetul.
 
 ## În afara scopului
-- Imagini generate cu AI.
+- ~~Imagini generate cu AI.~~ Intră pentru catalog (decizia proprietarului, 15 oct. 2026, vezi „Etapa 2c”).
 - Mai multe fotografii pe rețetă (galerie) sau fotografii la pași.
 - Fotografii la produse, la cămară sau la liste.
 - Valorile nutriționale (cealaltă jumătate a punctului 7 din ROADMAP).
@@ -85,6 +85,16 @@ Local și sincronizare, fără ecrane.
 - Abatere: `e2e-cloud` se mută la etapa 5 (nu există încă ecrane, iar Supabase-ul local din `scripts/local-supabase.mjs` nu are Storage; trebuie adăugat atunci un Storage minimal în proxy). Rămâne deschis (b) din etapa 3: fișierele orfane din Storage.
 - Teste: `src/lib/sync/photos.test.ts` (16). `npm test`: 22 de fișiere, 176 de teste; `npm run build` reușit.
 
+### Etapa 2c — imagini AI pentru catalog (15 oct. 2026, în așteptare: creditele Canva)
+Proprietarul a găsit pozele Wikimedia inegale. Proba: imagini AI (Canva) pentru sarmale, ciorbă de perișoare, mici și papanași, comparate cu cele actuale. Deciziile (chestionar, 15 oct. 2026):
+- **Amestec:** rămân pozele Wikimedia bune; cele greșite sau slabe se înlocuiesc cu imagini AI, aprobate poză cu poză.
+- **Fără mențiune** sub imaginile AI.
+- **Pozele greșite s-au scos imediat** (11): Borș de pește (dansatori pe scenă), Ciorbă țărănească de porc (supă thailandeză cu bere), Sarmale (în foi de viță cu vișine), Varză călită cu carne (orez cu carne), Păstrăv la grătar (grătar fără pește), Macrou la cuptor (platou japonez), Salată grecească (hot dog), Cartofi țărănești (hering), Fasole bătută, Ciuperci cu smântână (cartof copt), Curry de pui (șnițel). `RecipeVisual` nu mai arată o poză `/retete/…` care nu e în listă, deci merge și dacă baza de pe server mai are `image_url` (fără comenzi pe producție). `CATALOG_VERSION` neschimbat, ca telefoanele să nu redescarce catalogul.
+- **De generat cu AI (~30):** cele 11 de mai sus; cele slabe: Ciorbă de pui a la grec, Ciorbă de fasole cu afumătură, Omletă cu legume, Salată de ouă, Tocăniță de porc, Chiftele de porc și vită, Pui la cuptor cu cartofi, Iahnie de fasole, Salată de vinete, Salată orientală, Dovlecei pane, Mâncare de spanac, Linte cu legume, Salată de fructe, Plăcintă cu brânză; fără poză: Pilaf de pui, Tocană de cartofi, Paste cu ton și roșii, Mâncare de mazăre cu pui.
+- **Stilul (din probă):** fotografie realistă, unghi de 45°, lumină naturală de la fereastră, masă de lemn deschis la culoare, farfurie simplă de ceramică, fără text, fără oameni sau mâini; în descriere, ingredientele care fac felul recognoscibil (ex. sarmale în foi de varză, cu afumătură, smântână și mămăligă). Proba (media Canva): sarmale `MAHYC-RwEEg` (rulourile arată a clătite, de refăcut), ciorbă de perișoare `MAHYC1HUJOE` (bună), mici `MAHYCzBGHZ8` (seamănă cu cârnații), papanași `MAHYC7LXIWA` (un singur papanaș).
+- **Blocaj:** creditele Canva s-au terminat după 4 imagini; proprietarul le reîncarcă sau așteaptă resetarea și anunță.
+- **De făcut în cod la generare:** sursa `ai` în `RecipePhotoSource` (fără autor sau licență afișate), testul din `recipe-photos.test.ts` adaptat, `npm run seed:sql`.
+
 ### Rămas din etapa 2 (pentru o sesiune viitoare, opțional)
 Poze pentru „Pilaf de pui”, „Tocană de cartofi”, „Paste cu ton și roșii”, „Mâncare de mazăre cu pui” (căutare nouă, aceeași pagină de aprobare).
 
@@ -96,4 +106,4 @@ Poze pentru „Pilaf de pui”, „Tocană de cartofi”, „Paste cu ton și ro
 Pe telefon: „Ciorbă de perișoare” are fotografia din catalog, cu autorul menționat. Fac o poză ciorbei mele, offline; după ce revine internetul, poza apare și pe telefonul altui membru al gospodăriei, dar nu și la o altă gospodărie. Pornesc avionul: ambele poze se văd în continuare. Șterg poza mea: revine cea din catalog.
 
 ## Următorul pas
-Etapa 5 (ecranele, textele într-un chestionar, `e2e-cloud` cu Storage local), într-o sesiune nouă.
+Etapa 2c când revin creditele Canva; altfel etapa 5 (ecranele, textele într-un chestionar, `e2e-cloud` cu Storage local), într-o sesiune nouă.

@@ -36,8 +36,8 @@ test("lista funcționează fără internet, iar modificările rămân", async ({
 test("fotografia din catalog are autorul și rămâne vizibilă fără internet", async ({ page, context }) => {
   await start(page);
   await expect.poll(() => page.evaluate(async () => Boolean((await navigator.serviceWorker.ready).active))).toBe(true);
-  await page.goto("/retete/reteta/?id=sarmale");
-  const photo = page.locator('img[src="/retete/sarmale.webp"]');
+  await page.goto("/retete/reteta/?id=ciorba-de-perisoare");
+  const photo = page.locator('img[src="/retete/ciorba-de-perisoare.webp"]');
   await expect(photo).toBeVisible();
   await expect.poll(() => photo.evaluate((img: HTMLImageElement) => img.naturalWidth)).toBeGreaterThan(0);
   await expect(page.getByText(/^Foto: .+ \/ Wikimedia Commons · CC BY-SA 4\.0$/)).toBeVisible();
