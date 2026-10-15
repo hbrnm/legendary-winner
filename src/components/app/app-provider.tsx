@@ -7,7 +7,8 @@ import type { AppCtx } from "@/lib/services/context";
 import { DEMO_HOUSEHOLD_ID, DEMO_USER_ID, ensureDemoHousehold, openDatabase, seedCatalog } from "@/lib/services/bootstrap";
 import { isCloudConfigured, supabase } from "@/lib/supabase/client";
 import { SyncEngine, type SyncStatus } from "@/lib/sync/engine";
-import { SupabaseRemote } from "@/lib/sync/supabase-remote";
+import { SupabaseFiles, SupabaseRemote } from "@/lib/sync/supabase-remote";
+import { browserPhotoCache } from "@/lib/sync/files";
 import type { Role } from "@/lib/domain/types";
 
 export interface HouseholdInfo {
@@ -166,7 +167,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   // Sincronizarea: la pornire, la revenirea conexiunii, la revenirea în aplicație, periodic și la notificări în timp real.
   useEffect(() => {
     if (mode !== "cloud" || !db || !activeId) return;
-    const engine = new SyncEngine(db, new SupabaseRemote(supabase()));
+    const engine = new SyncEngine(db, new SupabaseRemote(supabase()), { files: new SupabaseFiles(supabase()), cache: browserPhotoCache() });
     engineRef.current = engine;
     const off = engine.onStatus(setSync);
     let timer: ReturnType<typeof setTimeout> | null = null;
