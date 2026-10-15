@@ -64,7 +64,7 @@ export async function setup(project: TestProject) {
   const client = new pg.Client({ connectionString: url });
   await client.connect();
   try {
-  await client.query("drop schema if exists public cascade; create schema public; grant all on schema public to public;");
+  await client.query("drop schema if exists public cascade; drop schema if exists storage cascade; create schema public; grant all on schema public to public;");
   await client.query(readFileSync(join(ROOT, "supabase/tests/supabase-shim.sql"), "utf8"));
   for (const f of readdirSync(join(ROOT, "supabase/migrations")).sort()) {
     await client.query(readFileSync(join(ROOT, "supabase/migrations", f), "utf8"));

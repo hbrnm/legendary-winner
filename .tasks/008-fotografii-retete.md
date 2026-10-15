@@ -1,6 +1,6 @@
 # 008 — Fotografii pentru rețete
 
-**Stare:** în lucru; etapele 1 și 2 gata, urmează etapa 3.
+**Stare:** în lucru; etapele 1–3 gata, urmează etapa 4.
 **Ramura:** câte una pe etapă, fiecare cu PR-ul ei din `main`.
 
 ## Scop
@@ -39,7 +39,7 @@ Deciziile proprietarului (12 oct. 2026, chestionar):
 |---|---|---|---|
 | 1 | **Logica** (`src/lib/domain/recipe-photos.ts`, pură): tipul `RecipePhoto`; alegerea fotografiei afișate (gospodărie → catalog → nimic); dimensiunile la micșorare (max. 1280 px, fără mărire); calea în Storage (segmente verificate); `image_url` acceptă https sau `/retete/….webp`. Legarea în `RecipeVisual` se face la etapa 5, când există pozele gospodăriei. | gata | (vezi PR) |
 | 2 | **Fotografiile catalogului:** agentul caută pe Unsplash/Pexels 2–3 variante pe rețetă și le pune într-o pagină de aprobare (cu autor, sursă, licență); proprietarul alege. Cele aprobate se optimizează în `public/retete/`, se notează în `src/data/recipe-photos.ts`, `image_url` în catalog și în `seed.sql` (`npm run seed:sql`). Mențiunea autorului pe pagina rețetei. Test: fiecare poză din listă are fișier, autor, sursă și licență. Poate merge în paralel cu etapele 3–4. | gata (2a codul, 2b pozele) | (vezi PR-urile) |
-| 3 | **Baza de date:** migrația `recipe_photos` (RLS, `check_household_refs`, `touch_updated_at`, `keep_household_id`, index unic parțial) + bucket privat `recipe-photos` (limită de mărime și tipuri `image/webp`, `image/jpeg`) + politici pe `storage.objects`. Teste în `supabase/tests/` (membru, alt membru, membru din altă gospodărie, rețeta altei gospodării). `npm run test:db`. Documentația schemei. | de făcut | |
+| 3 | **Baza de date:** migrația `recipe_photos` (RLS, `check_household_refs`, `touch_updated_at`, `keep_household_id`, index unic parțial) + bucket privat `recipe-photos` (limită de mărime și tipuri `image/webp`, `image/jpeg`) + politici pe `storage.objects`. Teste în `supabase/tests/` (membru, alt membru, membru din altă gospodărie, rețeta altei gospodării). `npm run test:db`. Documentația schemei. | gata | (vezi PR) |
 | 4 | **Local și sincronizare:** versiune nouă Dexie, `recipe_photos` în `SYNCED_TABLES`, coada de încărcare (offline → încarcă la revenirea internetului, reîncearcă la eroare), descărcarea cu cache, ștergerea fișierului după ștergerea logică, copia de siguranță. Teste unitare (Storage simulat) și `e2e-cloud`. | de făcut | |
 | 5 | **Ecranele:** pe pagina rețetei, „Adaugă fotografie” (cameră sau galerie), „Schimbă” și „Șterge”; starea „se încarcă” / „se va încărca când ai internet”; fotografia în listele de rețete, plan și acasă. Textele: un chestionar. E2E (mod demonstrativ, fără Storage), capturi doar pentru ecranele noi. | de făcut | |
 | 6 | **Producția:** migrația și bucketul cu acordul proprietarului, apoi integrarea; verificare pe Android și iPhone reale. | de făcut | |
@@ -63,6 +63,15 @@ Sursa s-a schimbat, cu acordul proprietarului (chestionar, 12 oct. 2026): **Wiki
 - `CATALOG_VERSION` = 2026-10-12T09:00, `seed.sql` regenerat (coloana `image_url`).
 - De știut: Wikimedia limitează descărcările; merge doar cu un User-Agent cu adresă (`CamaraApp/0.1 (https://github.com/hbrnm/legendary-winner)`) și o cerere la câteva secunde.
 
+### Etapa 3 (15 oct. 2026)
+Migrația `20261015000001_recipe_photos.sql`: tabelul `recipe_photos` (triggerele `touch_updated_at`, `keep_household_id`, `check_household_refs` pe `recipe_id`; index unic parțial pe gospodărie + rețetă; în Realtime), bucketul privat `recipe-photos` (1 MB, WebP/JPEG) și patru politici pe `storage.objects`.
+- Abatere de la plan: politicile folosesc `is_member`, nu `can_read`/`can_write`, pe gospodăria din cale (`photo_household(name)`): pentru o cale greșită aceasta e `NULL`, iar `can_read(NULL)` ar însemna „catalog global”, deci vizibil tuturor.
+- `storage_path` e verificat să fie exact `{household_id}/{recipe_id}/{id}.webp|jpg` al rândului: un rând nu poate arăta spre fișierul altei gospodării.
+- Drepturi: `anon` nimic, `authenticated` fără `DELETE` (ștergere logică); fișierele se pot șterge din Storage (după sincronizarea ștergerii, etapa 4).
+- Shim-ul de test imită `storage.buckets` / `storage.objects` cu RLS.
+- De rezolvat la etapa 4: (a) doi membri care pun offline o fotografie la aceeași rețetă → al doilea rând e respins de indexul unic (23505); sincronizarea trebuie să-l șteargă logic pe cel pierdut și să-i șteargă fișierul, ca să nu blocheze coada; (b) Storage acceptă fișiere fără rând în `recipe_photos` (doar în dosarul gospodăriei) → curățarea fișierelor orfane; (c) limita de 1 MB și tipurile le aplică serviciul Storage, deci se verifică în `e2e-cloud`.
+- Teste: `supabase/tests/recipe-photos.test.ts` (11). `npm run test:db`: 40 de teste; `npm test`: 160; `npm run build` reușit.
+
 ### Rămas din etapa 2 (pentru o sesiune viitoare, opțional)
 Poze pentru „Pilaf de pui”, „Tocană de cartofi”, „Paste cu ton și roșii”, „Mâncare de mazăre cu pui” (căutare nouă, aceeași pagină de aprobare).
 
@@ -74,4 +83,4 @@ Poze pentru „Pilaf de pui”, „Tocană de cartofi”, „Paste cu ton și ro
 Pe telefon: „Ciorbă de perișoare” are fotografia din catalog, cu autorul menționat. Fac o poză ciorbei mele, offline; după ce revine internetul, poza apare și pe telefonul altui membru al gospodăriei, dar nu și la o altă gospodărie. Pornesc avionul: ambele poze se văd în continuare. Șterg poza mea: revine cea din catalog.
 
 ## Următorul pas
-Etapa 3 (baza de date), într-o sesiune nouă.
+Etapa 4 (local și sincronizare), într-o sesiune nouă.
