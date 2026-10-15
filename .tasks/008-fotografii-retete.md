@@ -1,6 +1,6 @@
 # 008 — Fotografii pentru rețete
 
-**Stare:** în lucru; etapele 1–3 gata, urmează etapa 4.
+**Stare:** în lucru; etapele 1–4 gata, urmează etapa 5.
 **Ramura:** câte una pe etapă, fiecare cu PR-ul ei din `main`.
 
 ## Scop
@@ -40,7 +40,7 @@ Deciziile proprietarului (12 oct. 2026, chestionar):
 | 1 | **Logica** (`src/lib/domain/recipe-photos.ts`, pură): tipul `RecipePhoto`; alegerea fotografiei afișate (gospodărie → catalog → nimic); dimensiunile la micșorare (max. 1280 px, fără mărire); calea în Storage (segmente verificate); `image_url` acceptă https sau `/retete/….webp`. Legarea în `RecipeVisual` se face la etapa 5, când există pozele gospodăriei. | gata | (vezi PR) |
 | 2 | **Fotografiile catalogului:** agentul caută pe Unsplash/Pexels 2–3 variante pe rețetă și le pune într-o pagină de aprobare (cu autor, sursă, licență); proprietarul alege. Cele aprobate se optimizează în `public/retete/`, se notează în `src/data/recipe-photos.ts`, `image_url` în catalog și în `seed.sql` (`npm run seed:sql`). Mențiunea autorului pe pagina rețetei. Test: fiecare poză din listă are fișier, autor, sursă și licență. Poate merge în paralel cu etapele 3–4. | gata (2a codul, 2b pozele) | (vezi PR-urile) |
 | 3 | **Baza de date:** migrația `recipe_photos` (RLS, `check_household_refs`, `touch_updated_at`, `keep_household_id`, index unic parțial) + bucket privat `recipe-photos` (limită de mărime și tipuri `image/webp`, `image/jpeg`) + politici pe `storage.objects`. Teste în `supabase/tests/` (membru, alt membru, membru din altă gospodărie, rețeta altei gospodării). `npm run test:db`. Documentația schemei. | gata | (vezi PR) |
-| 4 | **Local și sincronizare:** versiune nouă Dexie, `recipe_photos` în `SYNCED_TABLES`, coada de încărcare (offline → încarcă la revenirea internetului, reîncearcă la eroare), descărcarea cu cache, ștergerea fișierului după ștergerea logică, copia de siguranță. Teste unitare (Storage simulat) și `e2e-cloud`. | de făcut | |
+| 4 | **Local și sincronizare:** versiune nouă Dexie, `recipe_photos` în `SYNCED_TABLES`, coada de încărcare (offline → încarcă la revenirea internetului, reîncearcă la eroare), descărcarea cu cache, ștergerea fișierului după ștergerea logică, copia de siguranță. Teste unitare (Storage simulat); `e2e-cloud` mutat la etapa 5. | gata | (vezi PR) |
 | 5 | **Ecranele:** pe pagina rețetei, „Adaugă fotografie” (cameră sau galerie), „Schimbă” și „Șterge”; starea „se încarcă” / „se va încărca când ai internet”; fotografia în listele de rețete, plan și acasă. Textele: un chestionar. E2E (mod demonstrativ, fără Storage), capturi doar pentru ecranele noi. | de făcut | |
 | 6 | **Producția:** migrația și bucketul cu acordul proprietarului, apoi integrarea; verificare pe Android și iPhone reale. | de făcut | |
 
@@ -72,6 +72,19 @@ Migrația `20261015000001_recipe_photos.sql`: tabelul `recipe_photos` (triggerel
 - De rezolvat la etapa 4: (a) doi membri care pun offline o fotografie la aceeași rețetă → al doilea rând e respins de indexul unic (23505); sincronizarea trebuie să-l șteargă logic pe cel pierdut și să-i șteargă fișierul, ca să nu blocheze coada; (b) Storage acceptă fișiere fără rând în `recipe_photos` (doar în dosarul gospodăriei) → curățarea fișierelor orfane; (c) limita de 1 MB și tipurile le aplică serviciul Storage, deci se verifică în `e2e-cloud`.
 - Teste: `supabase/tests/recipe-photos.test.ts` (11). `npm run test:db`: 40 de teste; `npm test`: 160; `npm run build` reușit.
 
+### Etapa 4 (15 oct. 2026)
+Local și sincronizare, fără ecrane.
+- Dexie versiunea 2: `recipe_photos` (sincronizat, după `recipe_steps` în `SYNCED_TABLES`), `photo_uploads` (coada fișierelor, `ArrayBuffer` pentru Safari) și `photo_removals` (fișierele de șters din Storage).
+- `SyncEngine` primește `files` (`SupabaseFiles`, bucketul `recipe-photos`) și `cache` (Cache Storage `fotografii-retete`, numele nu începe cu „camara-”, ca service worker-ul să nu-l golească). Ordinea unei sincronizări: urcă fișierele → trimite outbox-ul (rândul fotografiei abia după fișier) → trage → șterge fișierele confirmate → curăță cache-ul.
+- Rezolvat din etapa 3: (a) conflictul dintre doi membri: rândul refuzat dispare local, iar fișierul lui se șterge din Storage, deci coada nu se blochează; Storage care nu răspunde nu oprește restul datelor.
+- Erorile Storage: refuz definitiv doar pentru 400/403/413/415/422; bucket lipsă (404) sau sesiune expirată se reîncearcă, ca să nu se piardă poza.
+- **Siguranța pe producție până la etapa 6:** `recipe_photos` e în `OPTIONAL_TABLES`: tragerea îl sare cât timp migrația nu e aplicată, iar rândurile lui așteaptă în outbox (nu se pierd); abonamentul Realtime pentru fotografii e pe un canal separat (pe producție dă eroare în consolă până la migrație, fără efect asupra celorlalte).
+- Un fișier cu eroare temporară nu oprește coada; o ștergere refuzată de server păstrează fișierul.
+- Serviciul `src/lib/services/recipe-photos.ts`: `addRecipePhoto` (înlocuiește poza veche), `removeRecipePhoto`, `recipePhotoBlob` (coadă → cache → descărcare), `activeRecipePhoto`. Ecranele le folosesc la etapa 5.
+- Copia de siguranță: rândurile fotografiilor intră, dar nu se readuc la import (fișierul nu e în copie și poate lipsi din Storage; în altă gospodărie calea nu mai e valabilă).
+- Abatere: `e2e-cloud` se mută la etapa 5 (nu există încă ecrane, iar Supabase-ul local din `scripts/local-supabase.mjs` nu are Storage; trebuie adăugat atunci un Storage minimal în proxy). Rămâne deschis (b) din etapa 3: fișierele orfane din Storage.
+- Teste: `src/lib/sync/photos.test.ts` (16). `npm test`: 22 de fișiere, 176 de teste; `npm run build` reușit.
+
 ### Rămas din etapa 2 (pentru o sesiune viitoare, opțional)
 Poze pentru „Pilaf de pui”, „Tocană de cartofi”, „Paste cu ton și roșii”, „Mâncare de mazăre cu pui” (căutare nouă, aceeași pagină de aprobare).
 
@@ -83,4 +96,4 @@ Poze pentru „Pilaf de pui”, „Tocană de cartofi”, „Paste cu ton și ro
 Pe telefon: „Ciorbă de perișoare” are fotografia din catalog, cu autorul menționat. Fac o poză ciorbei mele, offline; după ce revine internetul, poza apare și pe telefonul altui membru al gospodăriei, dar nu și la o altă gospodărie. Pornesc avionul: ambele poze se văd în continuare. Șterg poza mea: revine cea din catalog.
 
 ## Următorul pas
-Etapa 4 (local și sincronizare), într-o sesiune nouă.
+Etapa 5 (ecranele, textele într-un chestionar, `e2e-cloud` cu Storage local), într-o sesiune nouă.

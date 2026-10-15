@@ -14,6 +14,7 @@ import type {
   ProductRetailerMapping,
   Recipe,
   RecipeIngredient,
+  RecipePhoto,
   RecipeStep,
   Retailer,
   ShoppingList,
@@ -35,6 +36,7 @@ export interface SyncedTables {
   recipes: Recipe;
   recipe_ingredients: RecipeIngredient;
   recipe_steps: RecipeStep;
+  recipe_photos: RecipePhoto;
   household_settings: HouseholdSettings;
   shopping_lists: ShoppingList;
   shopping_list_items: ShoppingListItem;
@@ -64,6 +66,7 @@ export const SYNCED_TABLES: TableName[] = [
   "recipes",
   "recipe_ingredients",
   "recipe_steps",
+  "recipe_photos",
   "household_settings",
   "shopping_lists",
   "shopping_list_items",
@@ -110,6 +113,34 @@ export interface SyncError {
   at: string;
 }
 
+/**
+ * Tabele adăugate după prima publicare: pot lipsi pe server până se aplică
+ * migrația lor pe producție. Tragerea le sare atunci, fără eroare.
+ */
+export const OPTIONAL_TABLES = new Set<TableName>(["recipe_photos"]);
+
+/**
+ * Fișierul unei fotografii a gospodăriei, ținut local până ajunge în
+ * Storage (apoi trece în cache); în modul demonstrativ rămâne aici.
+ * Rândul `recipe_photos` nu pleacă spre server înaintea fișierului.
+ */
+export interface PhotoFile {
+  photo_id: string;
+  storage_path: string;
+  content_type: "image/webp" | "image/jpeg";
+  /** ArrayBuffer, nu Blob: Safari pe iPhone a avut probleme cu Blob în IndexedDB. */
+  data: ArrayBuffer;
+  created_at: string;
+  attempts: number;
+}
+
+/** Un fișier de șters din Storage după ce ștergerea logică a rândului a ajuns pe server. */
+export interface PhotoRemoval {
+  storage_path: string;
+  photo_id: string;
+  created_at: string;
+}
+
 export interface MetaEntry {
   key: string;
   value: unknown;
@@ -126,6 +157,7 @@ export class CamaraDB extends Dexie {
   recipes!: Table<Recipe, string>;
   recipe_ingredients!: Table<RecipeIngredient, string>;
   recipe_steps!: Table<RecipeStep, string>;
+  recipe_photos!: Table<RecipePhoto, string>;
   household_settings!: Table<HouseholdSettings, string>;
   shopping_lists!: Table<ShoppingList, string>;
   shopping_list_items!: Table<ShoppingListItem, string>;
@@ -139,6 +171,8 @@ export class CamaraDB extends Dexie {
   outbox!: Table<OutboxEntry, number>;
   sync_errors!: Table<SyncError, number>;
   meta!: Table<MetaEntry, string>;
+  photo_uploads!: Table<PhotoFile, string>;
+  photo_removals!: Table<PhotoRemoval, string>;
 
   constructor(name: string) {
     super(name);
@@ -166,6 +200,12 @@ export class CamaraDB extends Dexie {
       outbox: "++seq, [table+row_id]",
       sync_errors: "++id",
       meta: "&key",
+    });
+    // Fotografiile gospodăriei (.tasks/008, etapa 4); tabelele vechi rămân neschimbate.
+    this.version(2).stores({
+      recipe_photos: "&id, household_id, recipe_id",
+      photo_uploads: "&photo_id",
+      photo_removals: "&storage_path",
     });
   }
 

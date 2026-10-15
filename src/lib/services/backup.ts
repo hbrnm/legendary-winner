@@ -7,7 +7,8 @@ import { nowIso } from "@/lib/clock";
 /**
  * Copie de siguranță a datelor gospodăriei (fără catalogul comun), ca fișier
  * JSON pe care utilizatorul îl păstrează. Include și rândurile șterse logic,
- * ca istoricul să fie complet.
+ * ca istoricul să fie complet. Fotografiile gospodăriei intră doar ca rânduri
+ * (calea din Storage), fără fișiere, și nu se readuc la import.
  */
 export async function exportHouseholdData(ctx: AppCtx): Promise<string> {
   const tables: Record<string, unknown[]> = {};
@@ -66,6 +67,9 @@ export async function importHouseholdData(ctx: AppCtx, json: string): Promise<Im
   // Ordinea din SYNCED_TABLES aduce părinții înaintea copiilor, deci id-urile
   // noi ale părinților sunt cunoscute când ajungem la copii.
   for (const t of SYNCED_TABLES) {
+    // Fotografiile nu se readuc: fișierul nu e în copie (poate fi șters între
+    // timp din Storage), iar în altă gospodărie calea lui nu mai e valabilă.
+    if (t === "recipe_photos") continue;
     for (const original of backup.tables[t] ?? []) {
       const { created_at: _c, updated_at: backupUpdatedAt, ...fields } = original;
       void _c;
