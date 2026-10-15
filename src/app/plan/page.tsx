@@ -11,7 +11,8 @@ import { Card, PageHeader, Spinner } from "@/components/ui/misc";
 import { Sheet } from "@/components/ui/sheet";
 import { LabeledInput, LabeledSelect, Toggle } from "@/components/ui/fields";
 import { useToast } from "@/components/ui/toast";
-import { RecipeVisual, SLOT_LABELS } from "@/components/recipes/recipe-visual";
+import { SLOT_LABELS } from "@/components/recipes/recipe-visual";
+import { RecipeImage } from "@/components/recipes/recipe-photo";
 import { owned, priceIndex, visible } from "@/lib/services/queries";
 import { addMeal, copyWeek, duplicateMeal, generateListFromPlan, moveMeal, removeMeal, updateMealServings } from "@/lib/services/kitchen";
 import { createList } from "@/lib/services/shopping";
@@ -205,7 +206,7 @@ function PlanScreen() {
                 }}
                 className="flex min-h-14 w-full items-center gap-3 rounded-xl px-2 text-left hover:bg-surface-2"
               >
-                <RecipeVisual recipe={r} size="sm" />
+                <RecipeImage recipe={r} size="sm" />
                 <span className="flex-1">
                   {r.name}
                   {data.favs.has(r.id) && <span className="ml-1 text-xs text-accent">♥</span>}

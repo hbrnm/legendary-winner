@@ -6,9 +6,10 @@ import { getMeta, setMeta } from "@/lib/db/database";
 import type { AppCtx } from "@/lib/services/context";
 import { DEMO_HOUSEHOLD_ID, DEMO_USER_ID, ensureDemoHousehold, openDatabase, seedCatalog } from "@/lib/services/bootstrap";
 import { isCloudConfigured, supabase } from "@/lib/supabase/client";
-import { SyncEngine, type SyncStatus } from "@/lib/sync/engine";
+import { SyncEngine, serverMissingKey, type SyncStatus } from "@/lib/sync/engine";
+import { useLiveQuery } from "dexie-react-hooks";
 import { SupabaseFiles, SupabaseRemote } from "@/lib/sync/supabase-remote";
-import { browserPhotoCache } from "@/lib/sync/files";
+import { browserPhotoCache, type PhotoCache, type RemoteFiles } from "@/lib/sync/files";
 import type { Role } from "@/lib/domain/types";
 
 export interface HouseholdInfo {
@@ -32,6 +33,8 @@ export interface AppState {
   db: CamaraDB | null;
   ctx: AppCtx | null;
   sync: SyncStatus | null;
+  /** Fotografiile gospodăriei: Storage și cache (null în modul demonstrativ); `enabled` după ce serverul are tabelul. */
+  photos: { files: RemoteFiles | null; cache: PhotoCache | null; enabled: boolean };
   switchHousehold: (id: string) => Promise<void>;
   refreshHouseholds: () => Promise<void>;
   syncNow: () => Promise<void>;
@@ -83,6 +86,11 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [isAppAdmin, setIsAppAdmin] = useState(false);
   const [sync, setSync] = useState<SyncStatus | null>(null);
   const engineRef = useRef<SyncEngine | null>(null);
+  // Storage și cache doar în browser, în modul cu cont.
+  const photoStore = useMemo(
+    () => (mode === "cloud" && typeof window !== "undefined" ? { files: new SupabaseFiles(supabase()), cache: browserPhotoCache() } : { files: null, cache: null }),
+    [mode],
+  );
 
   // Pornire: modul demonstrativ sau sesiunea Supabase.
   useEffect(() => {
@@ -167,7 +175,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   // Sincronizarea: la pornire, la revenirea conexiunii, la revenirea în aplicație, periodic și la notificări în timp real.
   useEffect(() => {
     if (mode !== "cloud" || !db || !activeId) return;
-    const engine = new SyncEngine(db, new SupabaseRemote(supabase()), { files: new SupabaseFiles(supabase()), cache: browserPhotoCache() });
+    const engine = new SyncEngine(db, new SupabaseRemote(supabase()), { files: photoStore.files ?? undefined, cache: photoStore.cache });
     engineRef.current = engine;
     const off = engine.onStatus(setSync);
     let timer: ReturnType<typeof setTimeout> | null = null;
@@ -194,7 +202,11 @@ export function AppProvider({ children }: { children: ReactNode }) {
       if (timer) clearTimeout(timer);
       engineRef.current = null;
     };
-  }, [mode, db, activeId]);
+  }, [mode, db, activeId, photoStore]);
+
+  // Pe producție, butonul de fotografie apare abia după ce serverul are tabelul (migrația aplicată).
+  const photosMissing = useLiveQuery(async () => (db ? ((await getMeta<boolean>(db, serverMissingKey("recipe_photos"))) ?? null) : null), [db]);
+  const photos = useMemo(() => ({ ...photoStore, enabled: mode === "demo" || photosMissing === false }), [photoStore, mode, photosMissing]);
 
   const household = households.find((h) => h.id === activeId) ?? null;
 
@@ -249,6 +261,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     db,
     ctx,
     sync,
+    photos,
     switchHousehold,
     refreshHouseholds,
     syncNow: async () => {

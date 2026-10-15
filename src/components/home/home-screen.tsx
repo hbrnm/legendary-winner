@@ -7,7 +7,8 @@ import { useAction, useData } from "@/components/app/hooks";
 import { ProductSearch } from "@/components/shopping/product-search";
 import { BudgetBar, Card, SectionTitle, Spinner } from "@/components/ui/misc";
 import { useToast } from "@/components/ui/toast";
-import { RecipeVisual, SLOT_LABELS } from "@/components/recipes/recipe-visual";
+import { SLOT_LABELS } from "@/components/recipes/recipe-visual";
+import { RecipeImage } from "@/components/recipes/recipe-photo";
 import { listItems, owned, priceIndex, spendRecords, visible } from "@/lib/services/queries";
 import { addItem, createList } from "@/lib/services/shopping";
 import { budgetStatus } from "@/lib/domain/budget";
@@ -163,7 +164,7 @@ export function HomeScreen() {
           {data.todayMeals.map(({ meal, recipe }) => (
             <li key={meal.id}>
               <Link href={recipe ? `/retete/reteta/?id=${recipe.id}` : "/plan/"} className="flex items-center gap-3 rounded-2xl border border-line bg-surface p-3 hover:bg-surface-2">
-                {recipe && <RecipeVisual recipe={recipe} size="sm" />}
+                {recipe && <RecipeImage recipe={recipe} size="sm" />}
                 <span className="min-w-0 flex-1">
                   <span className="block text-xs text-ink-2">{SLOT_LABELS[meal.slot]}</span>
                   <span className="block truncate font-medium">{recipe?.name ?? "Rețetă ștearsă"}</span>
@@ -200,7 +201,7 @@ export function HomeScreen() {
             {data.suggestions.map(({ recipe, why }) => (
               <li key={recipe.id}>
                 <Link href={`/retete/reteta/?id=${recipe.id}`} className="flex items-center gap-3 rounded-2xl border border-line bg-surface p-3 hover:bg-surface-2 sm:flex-col sm:items-start">
-                  <RecipeVisual recipe={recipe} size="sm" />
+                  <RecipeImage recipe={recipe} size="sm" />
                   <span className="min-w-0 flex-1">
                     <span className="block truncate font-medium">{recipe.name}</span>
                     <span className="text-xs text-ink-2">{why}</span>
