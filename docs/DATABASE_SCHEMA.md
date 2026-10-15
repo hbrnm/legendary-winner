@@ -48,12 +48,16 @@ Citesc și scriu doar membrii gospodăriei.
 | `shopping_transaction_items` | `transaction_id`, `list_item_id`, `product_id`, `quantity`, `amount`, `retailer_id`, `purchased_at` |
 | `product_prices` | `product_id`, `retailer_id`, `source`, `amount`, `quantity`, `unit`, `price_type`, `confidence`, `observed_on` |
 | `favorite_recipes` | `recipe_id` |
+| `recipe_photos` | `recipe_id` (globală sau a gospodăriei), `storage_path` (`{household_id}/{recipe_id}/{id}.webp` sau `.jpg`, legată de rând), `width`, `height` (1–1280), `created_by`; cel mult una activă pe gospodărie și rețetă |
 | `meal_plan_items` | `date`, `slot`, `recipe_id`, `servings`, `note` |
 | `pantry_items` | `product_id`/`name`, `quantity`, `unit`, `location_id`, `purchased_on`, `expires_on` |
 | `budgets` | `name`, `period`, `scope` (total, sursă, categorie sau magazin), `amount`, `active` |
 
+## Storage
+Bucketul privat `recipe-photos` (max. 1 MB pe fișier, `image/webp` și `image/jpeg`) ține fișierele din `recipe_photos`. Politicile pe `storage.objects` lasă doar membrii gospodăriei din primul segment al căii să citească, să încarce, să înlocuiască și să șteargă (`is_member(photo_household(name))`; o cale fără gospodărie e refuzată). Niciun URL public.
+
 ## Realtime
-Publicația `supabase_realtime` include listele, tranzacțiile, prețurile, planul, cămara, bugetele, favoritele, setările, produsele și rețetele.
+Publicația `supabase_realtime` include listele, tranzacțiile, prețurile, planul, cămara, bugetele, favoritele, setările, produsele, rețetele și fotografiile rețetelor.
 
 ## Catalogul inițial
 `supabase/seed.sql` e generat din `src/data` cu `npm run seed:sql`. Testul `src/data/catalog.test.ts` verifică dacă e la zi.
