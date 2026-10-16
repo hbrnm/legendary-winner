@@ -11,14 +11,14 @@ Ordinea o decide proprietarul. Stările: **implementat** (în `main`), **verific
 ## 0.1.1 — stabilizare (vezi [AUDIT_0.1.1.md](AUDIT_0.1.1.md))
 | Ce | Stare |
 | --- | --- |
-| Testul de reluare a sincronizării întrerupte (PR #12) | verificat local; blocat: integrarea (aprobarea proprietarului) |
-| Prețuri după magazin și sursă, promoții și prețuri vechi marcate (PR #13) | verificat local; blocat: integrarea |
-| Numărul produselor fără preț din Buget (PR #14) | verificat local; blocat: integrarea |
-| Greutatea pe bucată: listă, cămară, cost (`.tasks/004`) | planificat; blocat: aprobarea valorilor și a migrației |
+| Testul de reluare a sincronizării întrerupte (PR #12) | implementat |
+| Prețuri după magazin și sursă, promoții și prețuri vechi marcate (PR #13) | implementat |
+| Numărul produselor fără preț din Buget (PR #14) | implementat |
+| Greutatea pe bucată: listă, cămară, cost (`.tasks/004`, PR #16) | implementat; migrația și valorile aplicate în producție |
 | Observațiile editoriale din rețete | blocat: aprobarea proprietarului |
 
 ## 0.2.0 — propuneri, după valoarea pentru utilizator și complexitate
-Stare (12 oct. 2026): comparația pe magazine e implementată (PR #17). În lucru: prețurile din bonurile fiscale, cu OCR pe telefon ([.tasks/005](../.tasks/005-bonuri-fiscale.md)). Monitorul Prețurilor: oprit de proprietar (12 oct. 2026), după proba din [.tasks/006](../.tasks/006-monitorul-preturilor.md). Urmează: Open Prices.
+Stare (16 oct. 2026): comparația pe magazine e implementată (PR #17); fotografiile rețetelor sunt implementate și aplicate în producție ([.tasks/008](../.tasks/008-fotografii-retete.md)), rămân verificarea pe telefoane și imaginile AI pentru catalog. Urmează importul rețetelor ([.tasks/009](../.tasks/009-import-retete.md)). Cu planul gata: prețurile din bonurile fiscale, cu OCR pe telefon ([.tasks/005](../.tasks/005-bonuri-fiscale.md)), și variantele comerciale ([.tasks/007](../.tasks/007-variante-comerciale.md)). Monitorul Prețurilor: oprit de proprietar (12 oct. 2026), după proba din [.tasks/006](../.tasks/006-monitorul-preturilor.md). Urmează: Open Prices.
 
 1. **Variante comerciale** (ambalaj, brand, EAN), apoi prețul pe kg din ambalaj ([AUDIT_0.1.1.md](AUDIT_0.1.1.md), secțiunea 4). Valoare mare, complexitate medie. Planificat (decizii 12 oct. 2026): [.tasks/007](../.tasks/007-variante-comerciale.md).
 2. ~~**Comparația pe magazine a unei liste întregi**~~: implementată (PR #17).
@@ -26,4 +26,4 @@ Stare (12 oct. 2026): comparația pe magazine e implementată (PR #17). În lucr
 4. **Realtime în E2E-ul local**: testul cloud acoperă acum sincronizarea la cerere, nu notificările Realtime. Valoare medie (încredere), complexitate medie.
 5. **Notificări push de pe server** (alimente care expiră, cu aplicația închisă). Cer chei VAPID și o funcție pe server. Acum există doar notificări locale. Valoare medie, complexitate mare.
 6. **Prețuri din cataloagele magazinelor**, doar din surse permise (parteneriate, fișiere publice, Open Food Facts pentru produse, nu pentru prețuri). Fără scraping. Valoare mare, complexitate mare și dependentă de parteneri.
-7. **Fotografii pentru rețete** (câmpul `image_url` există) și **valori nutriționale** dintr-o sursă verificată (acum `null`). Valoare medie, cer surse și drepturi.
+7. ~~**Fotografii pentru rețete**~~: implementate ([.tasks/008](../.tasks/008-fotografii-retete.md)). Rămân **valori nutriționale** dintr-o sursă verificată (acum `null`). Valoare medie, cer surse și drepturi.

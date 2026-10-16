@@ -1,6 +1,6 @@
 # 009 — Importul rețetelor de pe site-uri și din texte
 
-**Stare:** plan; începe după `.tasks/008` (fotografiile), într-o sesiune nouă.
+**Stare:** plan; urmează etapa 1, într-o sesiune nouă (008 e gata, în afară de imaginile AI, pe care le face proprietarul).
 **Ramura:** câte una pe etapă, fiecare cu PR-ul ei din `main`.
 
 ## Scop
@@ -48,4 +48,4 @@ Deciziile proprietarului (12 oct. 2026, chestionar):
 Pe telefon: lipesc linkul unei rețete de pe un site românesc → văd numele, porțiile, ingredientele (majoritatea potrivite automat) și pașii → aleg produsele lipsă → salvez; rețeta apare la „Rețetele mele”, cu sursa. Lipesc descrierea unei rețete de pe Instagram → o corectez → o salvez.
 
 ## Următorul pas
-Etapa 1 (logica), după ce `.tasks/008` e gata.
+Etapa 1 (logica), într-o sesiune nouă (decizia proprietarului, 16 oct. 2026: 009 urmează acum; imaginile din 008 le face el).
