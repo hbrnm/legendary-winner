@@ -1,6 +1,6 @@
 # 008 — Fotografii pentru rețete
 
-**Stare:** în lucru; etapele 1–6 gata pe server, rămâne verificarea pe telefoane reale (proprietarul); etapa 2c: 28 de imagini AI în catalog, rămân 4 (din Canva) de urcat.
+**Stare:** gata (16 oct. 2026): etapele 1–6 și 2c în producție, verificate de proprietar pe Android și iPhone. Opțional: cele 4 imagini Canva aprobate, când le urcă proprietarul.
 **Ramura:** câte una pe etapă, fiecare cu PR-ul ei din `main`.
 
 ## Scop
@@ -124,4 +124,4 @@ Poze pentru „Pilaf de pui”, „Tocană de cartofi”, „Paste cu ton și ro
 Pe telefon: „Ciorbă de perișoare” are fotografia din catalog, cu autorul menționat. Fac o poză ciorbei mele, offline; după ce revine internetul, poza apare și pe telefonul altui membru al gospodăriei, dar nu și la o altă gospodărie. Pornesc avionul: ambele poze se văd în continuare. Șterg poza mea: revine cea din catalog.
 
 ## Următorul pas
-Proprietarul verifică pe Android și iPhone; urcă cele 4 imagini Canva aprobate (etapa 2c, PR mic).
+Nimic obligatoriu. Opțional: proprietarul urcă cele 4 imagini Canva aprobate în `imagini-retete-etapa-2c/`, apoi un PR mic (aceeași conversie ca la etapa 2c).
