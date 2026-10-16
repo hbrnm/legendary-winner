@@ -1,6 +1,6 @@
 # 009 — Importul rețetelor de pe site-uri și din texte
 
-**Stare:** plan; începe după `.tasks/008` (fotografiile), într-o sesiune nouă.
+**Stare:** în lucru; etapa 1 gata.
 **Ramura:** câte una pe etapă, fiecare cu PR-ul ei din `main`.
 
 ## Scop
@@ -34,7 +34,7 @@ Deciziile proprietarului (12 oct. 2026, chestionar):
 ## Etape
 | # | Etapa | Stare | Commit |
 |---|---|---|---|
-| 1 | **Logica:** parsarea JSON-LD `Recipe` (inclusiv `@graph`, `HowToStep`/`HowToSection`, durate ISO 8601) și a textului lipit; citirea ingredientelor (cantitate, unitate, nume) în română și engleză; potrivirea cu catalogul. Teste cu pagini și texte salvate ca fixturi (fără rețea). | de făcut | |
+| 1 | **Logica:** parsarea JSON-LD `Recipe` (inclusiv `@graph`, `HowToStep`/`HowToSection`, durate ISO 8601) și a textului lipit; citirea ingredientelor (cantitate, unitate, nume) în română și engleză; potrivirea cu catalogul. Teste cu pagini și texte salvate ca fixturi (fără rețea). | gata | (vezi PR) |
 | 2 | **Serverul:** funcția Edge `import-recipe` (fetch sigur, extrage JSON-LD, întoarce `RecipeDraft`); teste pentru SSRF, limite, pagini fără rețetă. Migrația `recipes.source_url`. `npm run test:db`. | de făcut | |
 | 3 | **Ecranele:** „Importă rețetă” (link sau text), confirmarea cu ingredientele, salvarea; sursa pe pagina rețetei. E2E în modul demonstrativ (cu serverul simulat). | de făcut | |
 | 4 | **Textele + partajarea:** chestionarul cu textele noi; `share_target` pe Android. | de făcut | |
@@ -48,4 +48,4 @@ Deciziile proprietarului (12 oct. 2026, chestionar):
 Pe telefon: lipesc linkul unei rețete de pe un site românesc → văd numele, porțiile, ingredientele (majoritatea potrivite automat) și pașii → aleg produsele lipsă → salvez; rețeta apare la „Rețetele mele”, cu sursa. Lipesc descrierea unei rețete de pe Instagram → o corectez → o salvez.
 
 ## Următorul pas
-Etapa 1 (logica), după ce `.tasks/008` e gata.
+Etapa 2 (serverul), într-o sesiune nouă. Funcția Edge refolosește `extractJsonLd` / `draftFromHtml` din `src/lib/domain/recipe-import.ts` (modulul are doar importuri relative, dar fără extensia `.ts`, pe care Deno o cere: de ales la etapa 2 între import map, `--sloppy-imports` sau un bundle; se verifică și `search.ts`, `types.ts`).
