@@ -1,6 +1,6 @@
 # 010 — Design cald la 360 px și gospodăria model din modul demonstrativ
 
-**Stare:** în așteptare (proprietarul: aprobarea textelor noi și integrarea PR-ului)
+**Stare:** gata (16 oct. 2026): textele aprobate de proprietar („Aprob textele, integrează PR #45”), PR #45 integrat.
 **Ramura:** claude/010-design-cald-demo
 
 ## Scop
@@ -26,8 +26,8 @@ Verificat local: `npm test` 30 fișiere, 308 teste trec; `npm run lint`, `npm ru
 
 Testele e2e existente pornesc cu `camara-demo-gol` (în `e2e/helpers.ts`), deci rămân pe gospodăria goală.
 
-## Deschis pentru proprietar
-- Textele noi (de aprobat): „Graficul se umple după primele cumpărături.”, „Cheltuit …”, „În coș, estimat …”, „Adăugare rapidă”, „Din cămară și din ce cumperi des”, „s-a terminat”, „des”, „Exportă luna” (fost „Exportă luna (CSV)”).
+## Decizii
+- Textele noi, aprobate de proprietar pe 16 oct. 2026: „Graficul se umple după primele cumpărături.”, „Cheltuit …”, „În coș, estimat …”, „Adăugare rapidă”, „Din cămară și din ce cumperi des”, „s-a terminat”, „des”, „Exportă luna” (fost „Exportă luna (CSV)”).
 - Avatarul rețetelor fără poză inversează decizia din 12 oct. 2026 („fără pătrățele cu pictograme”), la cererea din 16 oct.; pe pagina rețetei rămâne fără imagine.
 - Prețurile din gospodăria model sunt de exemplu (doar în modul demonstrativ), o excepție de la „nu se inventează prețuri”.
 
@@ -35,4 +35,4 @@ Testele e2e existente pornesc cu `camara-demo-gol` (în `e2e/helpers.ts`), deci 
 `npm test` și `npm run test:e2e` (în special `e2e/demo-model.spec.ts`).
 
 ## Următorul pas
-Proprietarul aprobă textele și integrează PR-ul.
+Nimic; lucrarea e încheiată.
