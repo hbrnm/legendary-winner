@@ -81,6 +81,13 @@ describe("verificarea listei de fotografii", () => {
     expect(problems).toEqual(["sarmale: licența „GFDL” nu e acceptată", "bulz: lipsește legătura către licență"]);
   });
 
+  it("imaginea AI nu are autor, sursă sau licență", () => {
+    const ai: RecipePhotoSeed = { recipe_id: "sarmale", file: "sarmale.webp", author: "", source_url: "", source: "ai", license: "", license_url: null };
+    const sizes = files({ "sarmale.webp": 1, "bulz.webp": 1 });
+    expect(recipePhotoProblems([ai], recipeIds, sizes)).toEqual([]);
+    expect(recipePhotoProblems([{ ...ai, recipe_id: "bulz", file: "bulz.webp", author: "Gemini" }], recipeIds, sizes)).toEqual(["bulz: imaginea AI nu are autor, sursă sau licență"]);
+  });
+
   it("găsește autorul după adresa fotografiei, și la copiile rețetelor", () => {
     expect(catalogPhotoByUrl(null)).toBeNull();
     expect(catalogPhotoByUrl("https://exemplu.ro/poza.webp")).toBeNull();

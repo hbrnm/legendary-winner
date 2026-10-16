@@ -8,6 +8,7 @@ vi.mock("@/data/recipe-photos", async (load) => {
   const photos = [
     { recipe_id: "sarmale", file: "sarmale.webp", author: "Ana Pop", source_url: "https://unsplash.com/photos/sarmale-abc", source: "unsplash" as const, license: "Unsplash License", license_url: null },
     { recipe_id: "bulz", file: "bulz.webp", author: "Ion Pop", source_url: "https://commons.wikimedia.org/wiki/File:Bulz.jpg", source: "wikimedia" as const, license: "CC BY-SA 3.0", license_url: "https://creativecommons.org/licenses/by-sa/3.0" },
+    { recipe_id: "mici-la-gratar", file: "mici-la-gratar.webp", author: "", source_url: "", source: "ai" as const, license: "", license_url: null },
     { recipe_id: "gris-cu-lapte", file: "gris-cu-lapte.webp", author: "autor necunoscut", source_url: "https://commons.wikimedia.org/wiki/File:Gris.jpg", source: "wikimedia" as const, license: "Public domain", license_url: null },
   ];
   return { ...real, catalogPhotoByUrl: (url: string | null) => photos.find((p) => `/retete/${p.file}` === url) ?? null };
@@ -52,6 +53,11 @@ describe("RecipePhotoCredit", () => {
     const { container } = render(<RecipePhotoCredit recipe={{ image_url: "/retete/gris-cu-lapte.webp" }} />);
     expect(container.textContent).toBe("Foto: autor necunoscut / Wikimedia Commons · domeniu public");
     expect(container.querySelectorAll("a")).toHaveLength(1);
+  });
+
+  it("la o imagine AI nu arată nicio mențiune", () => {
+    expect(render(<RecipePhotoCredit recipe={{ image_url: "/retete/mici-la-gratar.webp" }} />).container.innerHTML).toBe("");
+    expect(render(<RecipeVisual recipe={{ image_url: "/retete/mici-la-gratar.webp" }} />).container.querySelector("img")).not.toBeNull();
   });
 
   it("fără fotografie din catalog nu arată nimic", () => {
