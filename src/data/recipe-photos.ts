@@ -6,7 +6,8 @@
 
 import { RECIPE_PHOTO_LIST } from "./recipe-photos-list";
 
-export type RecipePhotoSource = "unsplash" | "pexels" | "wikimedia";
+/** `ai`: imagine generată (etapa 2c), fără autor, sursă sau licență (decizia proprietarului, 15 oct. 2026). */
+export type RecipePhotoSource = "unsplash" | "pexels" | "wikimedia" | "ai";
 
 export interface RecipePhotoSeed {
   recipe_id: string;
@@ -22,7 +23,7 @@ export interface RecipePhotoSeed {
   license_url: string | null;
 }
 
-export const RECIPE_PHOTO_SOURCE_LABELS: Record<RecipePhotoSource, string> = { unsplash: "Unsplash", pexels: "Pexels", wikimedia: "Wikimedia Commons" };
+export const RECIPE_PHOTO_SOURCE_LABELS: Record<RecipePhotoSource, string> = { unsplash: "Unsplash", pexels: "Pexels", wikimedia: "Wikimedia Commons", ai: "imagine AI" };
 
 /** Fotografiile aprobate (în `recipe-photos-list.ts`); după fiecare schimbare, `npm run seed:sql`. */
 export const RECIPE_PHOTOS: readonly RecipePhotoSeed[] = RECIPE_PHOTO_LIST;
@@ -43,7 +44,7 @@ export function catalogPhotoByUrl(imageUrl: string | null): RecipePhotoSeed | nu
   return RECIPE_PHOTOS.find((p) => recipePhotoUrl(p) === imageUrl) ?? null;
 }
 
-const SOURCE: Record<RecipePhotoSource, RegExp> = {
+const SOURCE: Record<Exclude<RecipePhotoSource, "ai">, RegExp> = {
   unsplash: /^https:\/\/unsplash\.com\/photos\/[A-Za-z0-9_-]+$/,
   pexels: /^https:\/\/www\.pexels\.com\/photo\/[a-z0-9-]+\/?$/,
   wikimedia: /^https:\/\/commons\.wikimedia\.org\/wiki\/File:\S+$/,
@@ -65,6 +66,10 @@ export function recipePhotoProblems(photos: readonly RecipePhotoSeed[], recipeId
     const bytes = fileBytes(p.file);
     if (bytes === null) problems.push(`${at}: lipsește public/retete/${p.file}`);
     else if (bytes > maxBytes) problems.push(`${at}: fișierul are ${bytes} octeți (max. ${maxBytes})`);
+    if (p.source === "ai") {
+      if (p.author || p.source_url || p.license || p.license_url) problems.push(`${at}: imaginea AI nu are autor, sursă sau licență`);
+      continue;
+    }
     if (!p.author.trim()) problems.push(`${at}: lipsește autorul`);
     if (!(p.source in SOURCE)) problems.push(`${at}: sursă necunoscută`);
     else if (!SOURCE[p.source].test(p.source_url)) problems.push(`${at}: sursa nu e o pagină ${RECIPE_PHOTO_SOURCE_LABELS[p.source]}`);

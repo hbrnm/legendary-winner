@@ -1,6 +1,6 @@
 # 008 — Fotografii pentru rețete
 
-**Stare:** în lucru; etapele 1–6 gata pe server, rămâne verificarea pe telefoane reale (proprietarul); etapa 2c: 5 din ~30 imagini generate, restul așteaptă creditele Canva.
+**Stare:** în lucru; etapele 1–6 gata pe server, rămâne verificarea pe telefoane reale (proprietarul); etapa 2c: 28 de imagini AI în catalog, rămân 4 (din Canva) de urcat.
 **Ramura:** câte una pe etapă, fiecare cu PR-ul ei din `main`.
 
 ## Scop
@@ -106,8 +106,12 @@ Proprietarul a găsit pozele Wikimedia inegale. Proba: imagini AI (Canva) pentru
 - **Stilul (din probă):** fotografie realistă, unghi de 45°, lumină naturală de la fereastră, masă de lemn deschis la culoare, farfurie simplă de ceramică, fără text, fără oameni sau mâini; în descriere, ingredientele care fac felul recognoscibil (ex. sarmale în foi de varză, cu afumătură, smântână și mămăligă). Proba (media Canva): sarmale `MAHYC-RwEEg` (rulourile arată a clătite, de refăcut), ciorbă de perișoare `MAHYC1HUJOE` (bună), mici `MAHYCzBGHZ8` (seamănă cu cârnații), papanași `MAHYC7LXIWA` (un singur papanaș).
 - **Blocaj:** creditele Canva s-au terminat după 4 imagini; proprietarul le reîncarcă sau așteaptă resetarea și anunță.
 - **16 oct. 2026:** creditele au revenit doar pentru 5 imagini, apoi din nou „quota exceeded”. Generate (de aprobat poză cu poză): sarmale refăcute `MAHYI9-nWOY` (rulouri de varză, bune), borș de pește `MAHYIzxxIL4`, ciorbă țărănească de porc `MAHYI-6apbc`, varză călită cu carne `MAHYI0dScvc` (varza arată a paste, de refăcut), păstrăv la grătar `MAHYI_i82IQ`. Rămân 25 (+ refacerea pentru mici, papanași, varză călită). Cota Canva pare de ~5 imagini pe perioadă: la următoarea revenire, câte 5 pe rând, în ordinea listei de mai sus.
-- **Generatorul (chestionar, 16 oct. 2026): Pollinations** (FLUX, gratuit, fără cheie), în locul Canva. Proprietarul a adăugat `image.pollinations.ai` la Allowed domains; în sesiunea în care a făcut setarea proxy-ul încă îl refuza, deci se rulează dintr-o sesiune nouă: `python3 -I .tasks/008-genereaza-imagini.py <scratchpad>/ai` (28 de descrieri: cele 24 rămase plus refacerile pentru varză călită, mici, papanași). Apoi o pagină de aprobare cu toate (cele 4 Canva bune incluse).
+- **Generatorul (chestionar, 16 oct. 2026): Pollinations** (FLUX, gratuit, fără cheie), în locul Canva. Proprietarul a adăugat `image.pollinations.ai` la Allowed domains; în sesiunea în care a făcut setarea proxy-ul încă îl refuza, deci descrierile (28: cele 24 rămase plus refacerile pentru varză călită, mici, papanași) au fost în `.tasks/008-genereaza-imagini.py`, scos după ce Pollinations nu a mers (rămâne în istoricul ramurii). Apoi o pagină de aprobare cu toate (cele 4 Canva bune incluse).
 - **De făcut în cod la generare:** sursa `ai` în `RecipePhotoSource` (fără autor sau licență afișate), testul din `recipe-photos.test.ts` adaptat, `npm run seed:sql`.
+
+- **Rezultatul (16 oct. 2026):** Pollinations fără cont dă doar modelul „sana” (imagini slabe, cu filigran), deci proprietarul a generat cele 28 de imagini în Gemini, cu descrierile din script, și le-a urcat pe ramură. Pagina de aprobare (artifact privat, alegerile în baza lui): **toate 32 aprobate** (28 Gemini + 4 Canva).
+- În cod: cele 28 în `public/retete/{recipe_id}.webp` (1200×896, WebP calitate 80, 50–110 KB, fără EXIF); 17 înlocuiesc poze Wikimedia, 11 sunt rețete fără poză. Sursa `ai` în `RecipePhotoSource`: fără autor, sursă sau licență (testul refuză altceva), `RecipePhotoCredit` nu arată nimic. `CATALOG_VERSION` = 2026-10-16T09:00, ca telefoanele să primească noile `image_url`; `seed.sql` regenerat. Originalele (folderul `imagini-retete-etapa-2c`) scoase din repo, rămân în istoricul ramurii.
+- **Rămase:** cele 4 aprobate din Canva (sarmale `MAHYI9-nWOY`, borș de pește `MAHYIzxxIL4`, ciorbă țărănească de porc `MAHYI-6apbc`, păstrăv la grătar `MAHYI_i82IQ`): `media.canva.com` e blocat în rețea, deci proprietarul le descarcă din Canva și le urcă; apoi aceeași conversie, PR mic. Baza de pe producție (`image_url` din catalogul global) nu s-a atins.
 
 ### Rămas din etapa 2 (pentru o sesiune viitoare, opțional)
 Poze pentru „Pilaf de pui”, „Tocană de cartofi”, „Paste cu ton și roșii”, „Mâncare de mazăre cu pui” (căutare nouă, aceeași pagină de aprobare).
@@ -120,4 +124,4 @@ Poze pentru „Pilaf de pui”, „Tocană de cartofi”, „Paste cu ton și ro
 Pe telefon: „Ciorbă de perișoare” are fotografia din catalog, cu autorul menționat. Fac o poză ciorbei mele, offline; după ce revine internetul, poza apare și pe telefonul altui membru al gospodăriei, dar nu și la o altă gospodărie. Pornesc avionul: ambele poze se văd în continuare. Șterg poza mea: revine cea din catalog.
 
 ## Următorul pas
-Proprietarul verifică pe Android și iPhone; etapa 2c când revin creditele Canva.
+Proprietarul verifică pe Android și iPhone; urcă cele 4 imagini Canva aprobate (etapa 2c, PR mic).
