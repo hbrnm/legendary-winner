@@ -1,6 +1,6 @@
 # 009 — Importul rețetelor de pe site-uri și din texte
 
-**Stare:** în lucru; etapele 1–3 gata (doar în repo, nu pe producție).
+**Stare:** în lucru; etapele 1–4 gata (doar în repo, nu pe producție); rămâne producția (etapa 5).
 **Ramura:** câte una pe etapă, fiecare cu PR-ul ei din `main`.
 
 ## Scop
@@ -37,7 +37,7 @@ Deciziile proprietarului (12 oct. 2026, chestionar):
 | 1 | **Logica:** parsarea JSON-LD `Recipe` (inclusiv `@graph`, `HowToStep`/`HowToSection`, durate ISO 8601) și a textului lipit; citirea ingredientelor (cantitate, unitate, nume) în română și engleză; potrivirea cu catalogul. Teste cu pagini și texte salvate ca fixturi (fără rețea). | gata | (vezi PR) |
 | 2 | **Serverul:** funcția Edge `import-recipe` (fetch sigur, extrage JSON-LD, întoarce `RecipeDraft`); teste pentru SSRF, limite, pagini fără rețetă. Migrația `recipes.source_url`. `npm run test:db`. | gata (în repo) | (vezi PR) |
 | 3 | **Ecranele:** „Importă rețetă” (link sau text), confirmarea cu ingredientele, salvarea; sursa pe pagina rețetei. E2E în modul demonstrativ (cu serverul simulat). | gata | (vezi PR) |
-| 4 | **Textele + partajarea:** chestionarul cu textele noi; `share_target` pe Android. | de făcut | |
+| 4 | **Textele + partajarea:** chestionarul cu textele noi; `share_target` pe Android. | gata | (vezi PR) |
 | 5 | **Producția:** migrația și funcția Edge cu acordul proprietarului; verificare pe Android și iPhone cu 3–4 site-uri românești reale. | de făcut | |
 
 ### Etapa 2 (16 oct. 2026)
@@ -55,14 +55,20 @@ Deciziile proprietarului (12 oct. 2026, chestionar):
 - **Serviciul** `src/lib/services/recipe-import.ts`: `prepareImport` (citire + potrivire), `draftFromPastedText`, `draftFromLink` (codurile serverului → mesaje). Cererea către funcție: `callImportRecipe` în `src/lib/supabase/client.ts`, cu tokenul sesiunii.
 - **Pagina rețetei:** „Sursa: exemplu.ro”, legătură în altă filă (`noopener noreferrer nofollow`).
 - **Teste:** `recipe-import.test.ts` (servicii, 5), `e2e/import-retete.spec.ts` (text → ingredient de ales → produs nou → salvare; linkul fără cont), `/retete/import/` în testul de lățime (360 px). Nu am făcut test de componentă pentru păstrarea sursei la modificare: în proiect nu există încă testele de componentă cu aplicația simulată, iar modul demonstrativ nu poate importa din link. Se verifică la etapa 5, pe producție.
-- **Textele noi (de aprobat la etapa 4):** „Importă”, „Importă rețetă”, „De unde iei rețeta”, „Link” / „Text”, „Linkul rețetei” (+ indiciul despre Instagram/TikTok/Facebook), „Textul rețetei” (+ indiciul), „Importul din link merge când ești conectat cu cont…”, „Citește rețeta” / „Citesc rețeta…”, „Verifică rețeta”, „Am citit rețeta de pe {site}. Verifică ce am înțeles…”, „din rețetă: …”, „Schimbă”, „De ales:”, „Un ingredient nu are încă produsul ales.” / „{n} ingrediente…”, „Caută produsul în catalog”, „Nu e în catalog? Creează produsul”, „Adaugă produsul”, „Alege categoria”, „Alege produsul pentru fiecare ingredient sau scoate-l din rețetă.”, „Sursa:”, „Adresa sursei nu e validă.”, mesajul pentru textul fără rețetă și mesajele de eroare din `IMPORT_ERROR_MESSAGES`.
+- **Textele noi (aprobate la etapa 4):** „Importă”, „Importă rețetă”, „De unde iei rețeta”, „Link” / „Text”, „Linkul rețetei” (+ indiciul despre Instagram/TikTok/Facebook), „Textul rețetei” (+ indiciul), „Importul din link merge când ești conectat cu cont…”, „Citește rețeta” / „Citesc rețeta…”, „Verifică rețeta”, „Am citit rețeta de pe {site}. Verifică ce am înțeles…”, „din rețetă: …”, „Schimbă”, „De ales:”, „Un ingredient nu are încă produsul ales.” / „{n} ingrediente…”, „Caută produsul în catalog”, „Nu e în catalog? Creează produsul”, „Adaugă produsul”, „Alege categoria”, „Alege produsul pentru fiecare ingredient sau scoate-l din rețetă.”, „Sursa:”, „Adresa sursei nu e validă.”, mesajul pentru textul fără rețetă și mesajele de eroare din `IMPORT_ERROR_MESSAGES`.
+
+### Etapa 4 (16 oct. 2026)
+- **Textele** de la etapa 3, aprobate toate cum erau (chestionar, 16 oct. 2026): ecranul de import, confirmarea („De ales:”) și mesajele de eroare (cu sfatul „lipește textul la „Text””).
+- **Partajarea pe Android** (decizia proprietarului: „citește direct”): `share_target` în manifest (`GET /retete/import/` cu `title`, `text`, `url`). `sharedImport` alege: un `url` https sau un text care e doar un link (eventual cu titlul paginii) → linkul se citește singur, după ce aplicația e gata; altfel textul (cu titlul în față) ajunge la „Text”, de citit cu un clic. Parametrii dispar din adresă după primire. Fără cont, linkul rămâne în câmp, cu mesajul obișnuit. Offline, service worker-ul servește pagina după cale, deci textul partajat merge și fără internet. Pe iPhone, Safari nu are `share_target`: se lipește linkul.
+- Linkul din text: fără punctuația lipită; devine link doar dacă textul e linkul (eventual cu titlul paginii), altfel o descriere scurtă ar fi pierdută. Fără cont, `AppShell` trimite la autentificare cu tot cu parametri, deci partajarea ajunge la import și după conectare.
+- **Reparat pe drum:** `inapoi` de la autentificare accepta și `//alt-site.ro` (redirecționare spre alt site, problemă veche); acum doar căi ale aplicației.
+- Teste: `sharedImport` (3, în `recipe-import.test.ts`), E2E „partajare (Android)” (text → „Text”; link fără cont) și „după autentificare… nu la alt site” (pică pe codul vechi).
 
 ## De ce are nevoie de la proprietar
-- **Etapa 4:** aprobarea textelor noi.
 - **Etapa 5:** acordul pentru migrație și pentru funcția Edge pe producție.
 
 ## Cum verific la final
 Pe telefon: lipesc linkul unei rețete de pe un site românesc → văd numele, porțiile, ingredientele (majoritatea potrivite automat) și pașii → aleg produsele lipsă → salvez; rețeta apare la „Rețetele mele”, cu sursa. Lipesc descrierea unei rețete de pe Instagram → o corectez → o salvez.
 
 ## Următorul pas
-Etapa 4: chestionarul cu textele noi (lista de la etapa 3) și `share_target` pe Android.
+Etapa 5 (producția), cu acordul proprietarului: migrația `20261016000001_recipe_import.sql` și funcția Edge `import-recipe` pe Supabase „Camara”; apoi verificarea pe Android și iPhone cu 3–4 site-uri românești reale (și partajarea pe Android).

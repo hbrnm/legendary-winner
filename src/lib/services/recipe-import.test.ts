@@ -4,7 +4,7 @@ import { setClock } from "@/lib/clock";
 import { seedCatalog } from "./bootstrap";
 import type { AppCtx } from "./context";
 import { saveRecipe } from "./kitchen";
-import { IMPORT_ERROR_MESSAGES, draftFromLink, draftFromPastedText, prepareImport } from "./recipe-import";
+import { IMPORT_ERROR_MESSAGES, draftFromLink, draftFromPastedText, prepareImport, sharedImport } from "./recipe-import";
 import type { RecipeDraft } from "@/lib/domain/recipe-import";
 
 let ctx: AppCtx;
@@ -78,5 +78,29 @@ describe("draftFromLink", () => {
     const call = vi.fn();
     await expect(draftFromLink("exemplu.ro/reteta", call)).rejects.toThrow(IMPORT_ERROR_MESSAGES.invalid_url);
     expect(call).not.toHaveBeenCalled();
+  });
+});
+
+describe("sharedImport (Partajează pe Android)", () => {
+  const p = (q: Record<string, string>) => new URLSearchParams(q);
+
+  it("linkul vine în url sau în text, singur ori lângă titlul paginii", () => {
+    expect(sharedImport(p({ url: "https://exemplu.ro/ciorba" }))).toEqual({ mode: "link", link: "https://exemplu.ro/ciorba" });
+    expect(sharedImport(p({ text: "https://exemplu.ro/ciorba" }))).toEqual({ mode: "link", link: "https://exemplu.ro/ciorba" });
+    expect(sharedImport(p({ title: "Ciorbă de perișoare", text: "Ciorbă de perișoare https://exemplu.ro/ciorba" }))).toEqual({ mode: "link", link: "https://exemplu.ro/ciorba" });
+    expect(sharedImport(p({ text: "(https://exemplu.ro/ciorba)." }))).toEqual({ mode: "link", link: "https://exemplu.ro/ciorba" });
+  });
+
+  it("descrierea unei rețete (chiar cu un link în ea) ajunge la „Text”, cu titlul în față", () => {
+    const text = "Mici\nIngrediente\n1 kg carne tocată\n2 lingurițe bicarbonat\nMod de preparare\nAmestecă totul și lasă la frigider o noapte.\nMai multe pe https://exemplu.ro";
+    expect(sharedImport(p({ text }))).toEqual({ mode: "text", text });
+    expect(sharedImport(p({ title: "Rețeta mea", text: "1 kg carne" }))).toEqual({ mode: "text", text: "Rețeta mea\n1 kg carne" });
+    // O descriere scurtă cu un link în ea rămâne text (nu se pierde).
+    expect(sharedImport(p({ text: "Mici fără ou: 1 kg carne, usturoi https://exemplu.ro/mici" }))).toEqual({ mode: "text", text: "Mici fără ou: 1 kg carne, usturoi https://exemplu.ro/mici" });
+  });
+
+  it("fără nimic de folosit (sau cu un link http) nu face nimic", () => {
+    expect(sharedImport(p({}))).toBeNull();
+    expect(sharedImport(p({ url: "http://exemplu.ro/r", title: "Ciorbă" }))).toBeNull();
   });
 });

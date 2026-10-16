@@ -90,7 +90,8 @@ export function AppShell({ children, wide = false }: { children: ReactNode; wide
   const router = useRouter();
 
   useEffect(() => {
-    if (app.status === "signed_out") router.replace(`/autentificare/?inapoi=${encodeURIComponent(pathname)}`);
+    // Cu tot cu parametri: linkul partajat spre /retete/import/ ajunge acolo și după conectare.
+    if (app.status === "signed_out") router.replace(`/autentificare/?inapoi=${encodeURIComponent(pathname + window.location.search)}`);
     if (app.status === "no_household" && !pathname.startsWith("/gospodarie")) router.replace("/gospodarie/");
   }, [app.status, pathname, router]);
 
