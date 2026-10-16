@@ -35,6 +35,24 @@ function expiryBadge(item: PantryItem, today: string) {
   return null;
 }
 
+/** Rândurile care cer atenție: galben (expiră curând), roșu (expirat). */
+const ROW_TONE: Record<ReturnType<typeof expiryState>, string> = { expirat: "bg-accent-soft", expira_curand: "bg-warn-soft", ok: "", fara_data: "" };
+
+const MAIN_LOCATIONS = new Set(["frigider", "congelator", "camara"]);
+
+function LocationFilter({ active, onClick, children }: { active: boolean; onClick: () => void; children: React.ReactNode }) {
+  return (
+    <button
+      type="button"
+      aria-pressed={active}
+      onClick={onClick}
+      className={`h-11 min-w-0 rounded-xl border px-1 text-[13px] font-medium transition-colors ${active ? "border-brand bg-brand text-brand-ink" : "border-line bg-surface text-ink-2 hover:text-ink"}`}
+    >
+      {children}
+    </button>
+  );
+}
+
 interface Draft {
   id: string | null;
   product_id: string | null;
@@ -170,16 +188,25 @@ function PantryScreen() {
 
       <ProductSearch placeholder="Adaugă în cămară: ex. 1 kg făină" onPick={({ product, parsed }) => startAdd(product, parsed.text, parsed.quantity, parsed.unit)} />
 
-      <div className="-mx-4 mt-3 flex gap-2 overflow-x-auto px-4 pb-1">
-        <Chip active={location === null} onClick={() => setLocation(null)}>
-          Toate
-        </Chip>
-        {data.locations.map((l) => (
-          <Chip key={l.id} active={location === l.id} onClick={() => setLocation(location === l.id ? null : l.id)}>
+      {/* Cele 4 filtre principale încap pe un rând de la 360 px; celelalte locuri apar dedesubt doar dacă au produse. */}
+      <div role="group" aria-label="Unde caut" className="mt-3 grid grid-cols-4 gap-1.5">
+        {[{ id: null, name: "Toate" }, ...data.locations.filter((l) => MAIN_LOCATIONS.has(l.id))].map((l) => (
+          <LocationFilter key={l.id ?? "toate"} active={location === l.id} onClick={() => setLocation(l.id === null || location === l.id ? null : l.id)}>
             {l.name}
-          </Chip>
+          </LocationFilter>
         ))}
       </div>
+      {data.locations.some((l) => !MAIN_LOCATIONS.has(l.id) && data.items.some((i) => i.location_id === l.id)) && (
+        <div className="mt-1.5 flex flex-wrap gap-1.5">
+          {data.locations
+            .filter((l) => !MAIN_LOCATIONS.has(l.id) && data.items.some((i) => i.location_id === l.id))
+            .map((l) => (
+              <Chip key={l.id} active={location === l.id} onClick={() => setLocation(location === l.id ? null : l.id)}>
+                {l.name}
+              </Chip>
+            ))}
+        </div>
+      )}
 
       {data.items.length > 0 && (
         <div className="mt-3 flex items-center gap-2 rounded-xl border border-line bg-surface px-3">
@@ -204,7 +231,7 @@ function PantryScreen() {
                 <SectionTitle>{locName.get(loc) ?? "Alt loc"}</SectionTitle>
                 <ul className="divide-y divide-line overflow-hidden rounded-2xl border border-line bg-surface">
                   {items.map((i) => (
-                    <li key={i.id} className="flex items-center gap-2 py-1.5 pl-4 pr-2">
+                    <li key={i.id} className={`flex items-center gap-2 py-1.5 pl-4 pr-2 ${ROW_TONE[i.quantity > 0 ? expiryState(i, today) : "ok"]}`}>
                       <button type="button" onClick={() => startEdit(i)} className="min-w-0 flex-1 py-1 text-left">
                         <span className={`block text-[15px] ${i.quantity <= 0 ? "text-ink-3 line-through" : ""}`}>{i.name}</span>
                         <span className="flex flex-wrap items-center gap-2 text-xs text-ink-2">

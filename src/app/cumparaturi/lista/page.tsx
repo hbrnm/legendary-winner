@@ -3,7 +3,7 @@
 import { Suspense, useMemo, useState } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { Archive, ArrowLeft, Check, Copy, MoreHorizontal, Pencil, Repeat, Scale, Store, Trash2, LayoutList } from "lucide-react";
+import { Archive, ArrowLeft, Check, Copy, MoreHorizontal, Pencil, Plus, Repeat, Scale, Store, Trash2, LayoutList } from "lucide-react";
 import { AppShell } from "@/components/app/shell";
 import { useAction, useData } from "@/components/app/hooks";
 import { ProductSearch, type PickedProduct } from "@/components/shopping/product-search";
@@ -15,7 +15,7 @@ import { LabeledInput, Segmented, Toggle } from "@/components/ui/fields";
 import { useToast } from "@/components/ui/toast";
 import { listItems, owned, priceIndex, spendRecords, visible } from "@/lib/services/queries";
 import * as shop from "@/lib/services/shopping";
-import { compareRetailers, estimateFlag, groupByCategory, lineEstimate, listTotals } from "@/lib/domain/shopping";
+import { compareRetailers, estimateFlag, groupByCategory, lineEstimate, listTotals, quickSuggestions } from "@/lib/domain/shopping";
 import { budgetStatus, SOURCE_LABELS } from "@/lib/domain/budget";
 import { formatQuantity } from "@/lib/domain/units";
 import { formatRon } from "@/lib/domain/money";
@@ -44,7 +44,7 @@ function ListScreen() {
     async (ctx) => {
       const list = await ctx.db.shopping_lists.get(id);
       if (!list || list.deleted_at || list.household_id !== ctx.householdId) return { list: null } as const;
-      const [items, categories, retailers, prices, lists, budgets, spend, settings] = await Promise.all([
+      const [items, categories, retailers, prices, lists, budgets, spend, settings, pantry] = await Promise.all([
         listItems(ctx.db, id),
         visible(ctx.db, "product_categories", ctx.householdId),
         visible(ctx.db, "retailers", ctx.householdId),
@@ -53,6 +53,7 @@ function ListScreen() {
         owned(ctx.db, "budgets", ctx.householdId),
         spendRecords(ctx.db, ctx.householdId),
         ctx.db.household_settings.get(ctx.householdId),
+        owned(ctx.db, "pantry_items", ctx.householdId),
       ]);
       const mainBudget = budgets.find((b) => b.active && b.period === "lunar" && (b.scope.kind === "total" || b.scope.kind === "alimente")) ?? budgets.find((b) => b.active && b.scope.kind === "total");
       const catMap = new Map(categories.map((c) => [c.id, c]));
@@ -66,6 +67,12 @@ function ListScreen() {
         otherLists: lists.filter((l) => l.id !== id && !l.archived_at),
         budget,
         pantrySetting: settings?.pantry_on_purchase ?? "intreaba",
+        suggestions: quickSuggestions({
+          listProductIds: items.flatMap((i) => (i.product_id ? [i.product_id] : [])),
+          pantry,
+          history: spend.filter((s) => !s.id.startsWith("in-curs")),
+          today: toISODate(now()),
+        }),
       };
     },
     [id],
@@ -121,12 +128,18 @@ function ListScreen() {
           <ArrowLeft size={20} />
         </Link>
         <div className="min-w-0 flex-1">
-          <h1 className="truncate text-xl font-semibold tracking-tight">{list.name}</h1>
-          <p className="text-xs text-ink-2">
+          <h1 className="line-clamp-2 break-words text-xl font-semibold leading-snug tracking-tight">{list.name}</h1>
+          <p className="text-xs text-ink-2 tabular">
             {totals?.checked_count ?? 0} din {totals?.item_count ?? 0} luate
+            {totals && totals.projected_total > 0 && ` · ~${formatRon(totals.projected_total)}`}
             {list.is_recurring && " · listă recurentă"}
             {list.archived_at && " · arhivată"}
           </p>
+          {totals && totals.item_count > 0 && (
+            <div className="mt-1.5 h-1.5 overflow-hidden rounded-full bg-surface-2" aria-hidden>
+              <div className="h-full rounded-full bg-brand transition-[width]" style={{ width: `${(totals.checked_count / totals.item_count) * 100}%` }} />
+            </div>
+          )}
         </div>
         <IconButton label="Opțiunile listei" onClick={() => setMenu(true)}>
           <MoreHorizontal size={20} />
@@ -221,6 +234,32 @@ function ListScreen() {
           ))}
         </div>
       )}
+
+      {!list.archived_at && data.suggestions.length > 0 && (
+        <section aria-label="Adăugare rapidă" className="mt-6">
+          <h2 className="mb-1 px-1 text-[13px] font-semibold uppercase tracking-wide text-ink-2">Adăugare rapidă</h2>
+          <p className="mb-2 px-1 text-xs text-ink-2">Din cămară și din ce cumperi des</p>
+          <ul className="flex flex-wrap gap-2">
+            {data.suggestions.map((s) => (
+              <li key={s.product_id}>
+                <button
+                  type="button"
+                  onClick={() => run((ctx) => shop.addItem(ctx, id, { product_id: s.product_id }))}
+                  aria-label={`Adaugă ${s.name}`}
+                  className="inline-flex min-h-11 items-center gap-1.5 rounded-full border border-line bg-surface px-3.5 text-left text-sm text-ink hover:bg-surface-2"
+                >
+                  <Plus size={16} className="shrink-0 text-brand" />
+                  <span>{s.name}</span>
+                  <span className={`text-xs ${s.reason === "terminat" ? "text-warn" : "text-ink-3"}`}>{s.reason === "terminat" ? "s-a terminat" : "des"}</span>
+                </button>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
+
+      {/* Loc pentru bara cu totalul, fixată jos, ca ultimele rânduri să nu rămână sub ea. */}
+      {totals && totals.item_count > 0 && <div aria-hidden className="h-24 lg:h-16" />}
 
       {totals && totals.item_count > 0 && (
         <div className="pb-safe fixed inset-x-0 bottom-16 z-30 border-t border-line bg-surface/95 px-4 py-3 backdrop-blur lg:bottom-0 lg:left-60">

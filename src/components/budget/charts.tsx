@@ -14,9 +14,13 @@ export interface Bar {
   current?: boolean;
 }
 
-/** Coloane verticale (ex. ultimele 6 luni). */
+/** Înălțimile (0–1) coloanelor-schiță din graficul gol: nu sunt date, doar forma graficului. */
+const GHOST = [0.45, 0.7, 0.55, 0.85, 0.6, 0.75, 0.5, 0.65];
+
+/** Coloane verticale (ex. ultimele 6 luni). Fără nicio cheltuială, arată o schiță estompată și explicația. */
 export function ColumnChart({ bars, title, reference }: { bars: Bar[]; title: string; reference?: { value: number; label: string } }) {
   const [hover, setHover] = useState<number | null>(null);
+  if (bars.length > 0 && bars.every((b) => b.value <= 0)) return <EmptyColumnChart bars={bars} title={title} />;
   const max = Math.max(1, ...bars.map((b) => b.value), reference?.value ?? 0);
   const W = 320;
   const H = 150;
@@ -59,12 +63,42 @@ export function ColumnChart({ bars, title, reference }: { bars: Bar[]; title: st
       </svg>
       {hover !== null && (
         <div
-          className="pointer-events-none absolute -top-2 rounded-lg bg-ink px-2 py-1 text-xs text-bg tabular shadow"
+          className="pointer-events-none absolute -top-2 rounded-lg bg-ink px-2 py-1 text-xs text-bg tabular shadow-card"
           style={{ left: `${((hover + 0.5) / bars.length) * 100}%`, transform: "translateX(-50%)" }}
         >
           {bars[hover].label}: {formatRon(bars[hover].value)}
         </div>
       )}
+    </figure>
+  );
+}
+
+function EmptyColumnChart({ bars, title }: { bars: Bar[]; title: string }) {
+  const W = 320;
+  const H = 150;
+  const top = 18;
+  const base = H - 22;
+  const slot = W / bars.length;
+  const bw = Math.min(36, slot - 10);
+  return (
+    <figure className="relative">
+      <figcaption className="sr-only">{title}: încă nicio cheltuială</figcaption>
+      <svg viewBox={`0 0 ${W} ${H}`} className="h-44 w-full" aria-hidden>
+        <line x1={0} x2={W} y1={base} y2={base} stroke="var(--line)" strokeWidth={1} />
+        {bars.map((b, i) => {
+          const h = GHOST[i % GHOST.length] * (base - top);
+          const x = i * slot + (slot - bw) / 2;
+          return (
+            <g key={b.key}>
+              <path d={roundedTop(x, base - h, bw, h, 4)} fill="var(--line)" opacity={0.6} />
+              <text x={x + bw / 2} y={H - 6} textAnchor="middle" fontSize={11} fill="var(--ink-3)">
+                {b.label}
+              </text>
+            </g>
+          );
+        })}
+      </svg>
+      <p className="absolute inset-x-0 top-1/3 mx-auto w-fit max-w-[85%] rounded-xl bg-surface px-3 py-2 text-center text-sm text-ink-2 shadow-card">Graficul se umple după primele cumpărături.</p>
     </figure>
   );
 }

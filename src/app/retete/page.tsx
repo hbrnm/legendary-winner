@@ -76,9 +76,9 @@ function RecipesScreen() {
       <li>
         <Link href={`/retete/reteta/?id=${r.id}`} className="block">
           <Card className="flex items-center gap-3 p-3 hover:bg-surface-2">
-            <RecipeImage recipe={r} />
+            <RecipeImage recipe={r} avatar />
             <div className="min-w-0 flex-1">
-              <p className="truncate text-[16px] font-medium">
+              <p className="line-clamp-2 text-[16px] font-medium leading-snug">
                 {r.name}
                 {data!.favorites.has(r.id) && <Heart size={14} className="ml-1.5 inline fill-accent text-accent" aria-label="favorită" />}
               </p>
@@ -173,7 +173,7 @@ function RecipesScreen() {
               className="h-12 min-w-0 flex-1 bg-transparent text-base placeholder:text-ink-3 focus:outline-none"
             />
           </div>
-          <div className="-mx-4 mt-3 flex gap-2 overflow-x-auto px-4 pb-1">
+          <div className="mt-3 flex flex-wrap gap-2">
             <Chip active={maxTime === 30} onClick={() => setMaxTime(maxTime === 30 ? null : 30)}>
               <Clock size={14} /> sub 30 min
             </Chip>

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { compareRetailers, groupByCategory, listTotals, planMerge } from "./shopping";
+import { compareRetailers, groupByCategory, listTotals, planMerge, quickSuggestions } from "./shopping";
 import { buildPriceIndex } from "./pricing";
 import { category, listItem, price } from "@/test/factories";
 
@@ -124,5 +124,29 @@ describe("comparația pe magazine", () => {
 
   it("fără prețuri pe magazine nu întoarce nimic", () => {
     expect(compareRetailers(items.slice(3, 4), idx)).toEqual([]);
+  });
+});
+
+describe("sugestiile de sub listă", () => {
+  const h = (product_id: string, day: string) => ({ product_id, name: product_id, purchased_at: `${day}T10:00:00.000Z`, deleted_at: null });
+  const p = (product_id: string, quantity: number) => ({ product_id, name: product_id, quantity, deleted_at: null });
+
+  it("întâi ce s-a terminat în cămară, apoi ce cumperi des și nu e acasă, fără ce e deja pe listă", () => {
+    const out = quickSuggestions({
+      listProductIds: ["paine-alba"],
+      pantry: [p("unt", 0), p("lapte-integral", 1), p("paine-alba", 0)],
+      history: [h("oua", "2026-10-10"), h("oua", "2026-10-03"), h("lapte-integral", "2026-10-10"), h("lapte-integral", "2026-10-03"), h("mere", "2026-10-10"), h("cafea", "2026-05-01"), h("cafea", "2026-05-08")],
+      today: "2026-10-16",
+    });
+    // unt: terminat; oua: de 2 ori; laptele e acasă; merele o singură dată; cafeaua e prea veche; pâinea e pe listă.
+    expect(out).toEqual([
+      { product_id: "unt", name: "unt", reason: "terminat" },
+      { product_id: "oua", name: "oua", reason: "des" },
+    ]);
+  });
+
+  it("se oprește la limită", () => {
+    const pantry = ["a", "b", "c", "d"].map((x) => p(x, 0));
+    expect(quickSuggestions({ listProductIds: [], pantry, history: [], today: "2026-10-16", limit: 3 })).toHaveLength(3);
   });
 });

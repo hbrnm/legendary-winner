@@ -206,7 +206,7 @@ function PlanScreen() {
                 }}
                 className="flex min-h-14 w-full items-center gap-3 rounded-xl px-2 text-left hover:bg-surface-2"
               >
-                <RecipeImage recipe={r} size="sm" />
+                <RecipeImage recipe={r} size="sm" avatar />
                 <span className="flex-1">
                   {r.name}
                   {data.favs.has(r.id) && <span className="ml-1 text-xs text-accent">♥</span>}

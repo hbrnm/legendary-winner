@@ -71,8 +71,8 @@ function ListsScreen() {
               <Link href={`/cumparaturi/lista/?id=${list.id}`} className="block">
                 <Card className="flex items-center gap-3 p-4 transition-colors hover:bg-surface-2">
                   <div className="min-w-0 flex-1">
-                    <div className="flex items-center gap-2">
-                      <span className="truncate text-[17px] font-medium">{list.name}</span>
+                    <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
+                      <span className="line-clamp-2 break-words text-[17px] font-medium leading-snug">{list.name}</span>
                       {list.is_recurring && (
                         <Badge tone="brand">
                           <Repeat size={12} /> recurentă
@@ -80,9 +80,7 @@ function ListsScreen() {
                       )}
                     </div>
                     <p className="mt-1 text-sm text-ink-2 tabular">
-                      {totals.item_count === 0
-                        ? "Goală"
-                        : `${totals.item_count - totals.checked_count} de luat${totals.checked_count ? ` · ${totals.checked_count} luate` : ""} · ~${formatRon(totals.projected_total)}`}
+                      {totals.item_count === 0 ? "Goală" : `${totals.checked_count} din ${totals.item_count} luate${totals.projected_total > 0 ? ` · ~${formatRon(totals.projected_total)}` : ""}`}
                       {list.default_retailer_id && ` · ${retailerName.get(list.default_retailer_id) ?? ""}`}
                     </p>
                     {totals.item_count > 0 && (
