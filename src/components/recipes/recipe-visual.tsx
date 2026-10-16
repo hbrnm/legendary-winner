@@ -44,10 +44,11 @@ export function RecipeVisual({ recipe, size = "md" }: { recipe: Pick<Recipe, "im
 /**
  * Mențiunea autorului, sub o fotografie din catalog: „Foto: Ana Pop / Unsplash”,
  * iar la Wikimedia și licența: „Foto: Ana Pop / Wikimedia Commons · CC BY-SA 4.0” (texte aprobate, 12 oct. 2026).
+ * Imaginile AI nu au mențiune (decizia proprietarului, 15 oct. 2026).
  */
 export function RecipePhotoCredit({ recipe }: { recipe: Pick<Recipe, "image_url"> }) {
   const photo = catalogPhotoByUrl(recipe.image_url);
-  if (!photo) return null;
+  if (!photo || photo.source === "ai") return null;
   const link = "-my-3 inline-block py-3 underline underline-offset-2";
   const license = recipePhotoLicenseLabel(photo.license);
   return (
