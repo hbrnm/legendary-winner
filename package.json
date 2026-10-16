@@ -12,7 +12,8 @@
     "test:db": "vitest run -c vitest.db.config.ts",
     "test:e2e": "playwright test",
     "seed:sql": "tsx scripts/generate-seed-sql.ts",
-    "test:e2e:cloud": "sh scripts/build-cloud-e2e.sh && playwright test -c playwright.cloud.config.ts"
+    "test:e2e:cloud": "sh scripts/build-cloud-e2e.sh && playwright test -c playwright.cloud.config.ts",
+    "build:functions": "node scripts/build-functions.mjs"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.117.3",
@@ -33,6 +34,7 @@
     "@types/pg": "^8.23.1",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "esbuild": "0.28.2",
     "eslint": "^9",
     "eslint-config-next": "16.4.0",
     "fake-indexeddb": "^6.2.5",
