@@ -53,3 +53,24 @@ test("import din text: ciorna, ingredientul de ales, produsul nou, salvarea", as
   await expect(page.getByText("Pastă de chipotle")).toBeVisible();
   await expect(page.getByText("Fierbe totul 30 de minute.")).toBeVisible();
 });
+
+test("partajare (Android): textul ajunge la „Text”; linkul, fără cont, rămâne în câmp", async ({ page }) => {
+  await start(page, `/retete/import/?title=${encodeURIComponent("Ciorbă rapidă de legume")}&text=${encodeURIComponent(TEXT.split("\n").slice(1).join("\n"))}`);
+  await expect(page.getByRole("radio", { name: "Text" })).toHaveAttribute("aria-checked", "true");
+  await expect(page.getByLabel("Textul rețetei")).toHaveValue(TEXT);
+  await expect(page).toHaveURL(/\/retete\/import\/$/);
+  await page.getByRole("button", { name: "Citește rețeta" }).click();
+  await expect(page.getByLabel("Numele rețetei")).toHaveValue("Ciorbă rapidă de legume");
+
+  await page.goto(`/retete/import/?text=${encodeURIComponent("Ciorbă de perișoare https://exemplu.ro/ciorba")}&title=${encodeURIComponent("Ciorbă de perișoare")}`);
+  await expect(page.getByLabel("Linkul rețetei")).toHaveValue("https://exemplu.ro/ciorba");
+  await expect(page.getByText(/Importul din link merge când ești conectat cu cont/)).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Importă rețetă" })).toBeVisible();
+});
+
+test("după autentificare se revine doar la o pagină a aplicației (cu parametri), nu la alt site", async ({ page }) => {
+  await start(page, `/autentificare/?inapoi=${encodeURIComponent("//exemplu.invalid/capcana")}`);
+  await expect(page).toHaveURL(/^http:\/\/localhost:3100\/$/);
+  await page.goto(`/autentificare/?inapoi=${encodeURIComponent("/retete/import/?text=1 kg carne")}`);
+  await expect(page.getByLabel("Textul rețetei")).toHaveValue("1 kg carne");
+});

@@ -94,3 +94,26 @@ export async function draftFromLink(link: string, call: ImportCall): Promise<Rec
   const code = body?.error as ImportErrorCode | undefined;
   throw new UserError((code && IMPORT_ERROR_MESSAGES[code]) ?? IMPORT_ERROR_MESSAGES.fetch_failed);
 }
+
+/** Ce s-a primit prin „Partajează” (Android): linkul de citit direct sau textul de pus la „Text”. */
+export type SharedImport = { mode: "link"; link: string } | { mode: "text"; text: string } | null;
+
+/**
+ * Parametrii primiți prin `share_target` (`url`, `text`, `title`). Aplicațiile
+ * pun linkul fie în `url`, fie în `text` (singur sau după titlu): un text care
+ * e doar un link (cu titlul paginii) devine link; altfel e textul rețetei.
+ */
+export function sharedImport(params: { get(name: string): string | null }): SharedImport {
+  const url = params.get("url")?.trim() ?? "";
+  const text = params.get("text")?.trim() ?? "";
+  const title = params.get("title")?.trim() ?? "";
+  if (/^https:\/\/\S+$/i.test(url)) return { mode: "link", link: url };
+  // Fără punctuația lipită de link („…/ciorba.”, „(https://…)”).
+  const links = (text.match(/https:\/\/\S+/gi) ?? []).map((l) => l.replace(/[.,;:!?)\]>"'”»]+$/, ""));
+  const rest = links.reduce((t, l) => t.replace(l, ""), text).replace(/[\s.,;:!?()[\]<>"'„”«»|–—-]+/g, " ").trim();
+  // Doar linkul, eventual cu titlul paginii: altfel e o descriere, care merge la „Text”.
+  if (links.length === 1 && (!rest || rest === title.replace(/[\s.,;:!?()[\]<>"'„”«»|–—-]+/g, " ").trim())) return { mode: "link", link: links[0] };
+  if (!text) return null;
+  const full = [title && !text.startsWith(title) ? title : "", text].filter(Boolean).join("\n");
+  return full ? { mode: "text", text: full } : null;
+}

@@ -27,7 +27,9 @@ function AuthScreen() {
   const app = useApp();
   const router = useRouter();
   const params = useSearchParams();
-  const back = params.get("inapoi") || "/";
+  // Doar o pagină a aplicației: nu „//alt-site.ro” sau „/\alt-site.ro”, pe care browserul le-ar deschide ca alt site.
+  const asked = params.get("inapoi") ?? "";
+  const back = /^\/(?![/\\])/.test(asked) ? asked : "/";
   const [mode, setMode] = useState<Mode>("intrare");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -45,7 +47,7 @@ function AuthScreen() {
   }, []);
 
   useEffect(() => {
-    if (mode !== "parola-noua" && (app.status === "ready" || app.status === "no_household")) router.replace(back.startsWith("/") ? back : "/");
+    if (mode !== "parola-noua" && (app.status === "ready" || app.status === "no_household")) router.replace(back);
   }, [app.status, back, mode, router]);
 
   if (!isCloudConfigured) {

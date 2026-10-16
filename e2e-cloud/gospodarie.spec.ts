@@ -100,9 +100,10 @@ test("cont, gospodărie, invitație, listă comună sincronizată, gospodării i
   const recipe = "/retete/reteta/?id=ciorba-de-perisoare";
   await ana.goto(recipe);
   await syncNow(ana);
+  // Încărcarea poate porni singură, imediat după salvare: o așteptăm de dinainte să alegem fișierul.
+  const uploaded = ana.waitForResponse((r) => r.url().includes("/storage/v1/object/recipe-photos/") && r.request().method() === "POST" && r.ok());
   await ana.getByTestId("fotografie-fisier").setInputFiles({ name: "ciorba.jpg", mimeType: "image/jpeg", buffer: readFileSync("e2e/fixtures/ciorba-1600x1200.jpg") });
   await expect(ana.getByText("Am pus fotografia.")).toBeVisible();
-  const uploaded = ana.waitForResponse((r) => r.url().includes("/storage/v1/object/recipe-photos/") && r.request().method() === "POST" && r.ok());
   await syncNow(ana);
   await uploaded;
   await expect(ana.getByText(/Se încarcă/)).toHaveCount(0);

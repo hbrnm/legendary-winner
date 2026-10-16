@@ -20,6 +20,8 @@ export default function manifest(): MetadataRoute.Manifest {
       { src: "/icons/icon-512.png", sizes: "512x512", type: "image/png", purpose: "any" },
       { src: "/icons/icon-512.png", sizes: "512x512", type: "image/png", purpose: "maskable" },
     ],
+    // Pe Android, Cămara apare la „Partajează”: linkul sau textul unei rețete deschide importul (.tasks/009, etapa 4).
+    share_target: { action: "/retete/import/", method: "GET", params: { title: "title", text: "text", url: "url" } },
     shortcuts: [
       { name: "Lista de cumpărături", url: "/cumparaturi/", icons: [{ src: "/icons/icon-192.png", sizes: "192x192" }] },
       { name: "Planul meselor", url: "/plan/", icons: [{ src: "/icons/icon-192.png", sizes: "192x192" }] },
