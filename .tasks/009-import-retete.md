@@ -1,6 +1,6 @@
 # 009 — Importul rețetelor de pe site-uri și din texte
 
-**Stare:** în lucru; etapele 1–2 gata (etapa 2 doar în repo, nu pe producție).
+**Stare:** în lucru; etapele 1–3 gata (doar în repo, nu pe producție).
 **Ramura:** câte una pe etapă, fiecare cu PR-ul ei din `main`.
 
 ## Scop
@@ -36,7 +36,7 @@ Deciziile proprietarului (12 oct. 2026, chestionar):
 |---|---|---|---|
 | 1 | **Logica:** parsarea JSON-LD `Recipe` (inclusiv `@graph`, `HowToStep`/`HowToSection`, durate ISO 8601) și a textului lipit; citirea ingredientelor (cantitate, unitate, nume) în română și engleză; potrivirea cu catalogul. Teste cu pagini și texte salvate ca fixturi (fără rețea). | gata | (vezi PR) |
 | 2 | **Serverul:** funcția Edge `import-recipe` (fetch sigur, extrage JSON-LD, întoarce `RecipeDraft`); teste pentru SSRF, limite, pagini fără rețetă. Migrația `recipes.source_url`. `npm run test:db`. | gata (în repo) | (vezi PR) |
-| 3 | **Ecranele:** „Importă rețetă” (link sau text), confirmarea cu ingredientele, salvarea; sursa pe pagina rețetei. E2E în modul demonstrativ (cu serverul simulat). | de făcut | |
+| 3 | **Ecranele:** „Importă rețetă” (link sau text), confirmarea cu ingredientele, salvarea; sursa pe pagina rețetei. E2E în modul demonstrativ (cu serverul simulat). | gata | (vezi PR) |
 | 4 | **Textele + partajarea:** chestionarul cu textele noi; `share_target` pe Android. | de făcut | |
 | 5 | **Producția:** migrația și funcția Edge cu acordul proprietarului; verificare pe Android și iPhone cu 3–4 site-uri românești reale. | de făcut | |
 
@@ -49,6 +49,14 @@ Deciziile proprietarului (12 oct. 2026, chestionar):
 - **Deno:** `supabase/functions/import-recipe/index.ts` leagă rețeaua, DNS-ul (`Deno.resolveDns`) și limita; logica e în `core.js`, împachetat cu esbuild (`npm run build:functions`, `esbuild` devDependency la versiunea deja din proiect). Testul `scripts/build-functions.test.ts` cere ca `core.js` să fie la zi. Deno și CLI-ul Supabase nu sunt în mediul cloud: pachetul e verificat doar cu Node (modul ES), iar funcția se încearcă prima dată la etapa 5.
 - `source_url` nu e încă în tipul `Recipe` din client (etapa 3); sincronizarea nu validează strict, deci coloana nouă nu strică nimic.
 
+### Etapa 3 (16 oct. 2026)
+- **`/retete/import/`:** „Link” sau „Text” → „Citește rețeta” → același formular ca la „Rețetă nouă”, cu titlul „Verifică rețeta”. Butonul „Importă” e lângă „Rețetă nouă”, în lista de rețete. Linkul merge doar cu cont (în modul demonstrativ nu există server): în locul lui apare un mesaj, iar textul lipit merge oricum, și offline.
+- **Formularul** (`src/components/recipes/recipe-editor.tsx`, mutat din pagina de editare): ingredientele potrivite au sub nume rândul din rețetă și butonul „Schimbă”. Cele nepotrivite apar „De ales”, cu variantele propuse (doar alimente), căutarea în catalog sau „Creează produsul” (produs al gospodăriei, doar categorii de alimente). Un număr fără unitate („1 ceapă”) înseamnă bucăți. Salvarea cere produs pentru fiecare ingredient. La modificarea unei rețete, sursa rămâne cea de la import.
+- **Serviciul** `src/lib/services/recipe-import.ts`: `prepareImport` (citire + potrivire), `draftFromPastedText`, `draftFromLink` (codurile serverului → mesaje). Cererea către funcție: `callImportRecipe` în `src/lib/supabase/client.ts`, cu tokenul sesiunii.
+- **Pagina rețetei:** „Sursa: exemplu.ro”, legătură în altă filă (`noopener noreferrer nofollow`).
+- **Teste:** `recipe-import.test.ts` (servicii, 5), `e2e/import-retete.spec.ts` (text → ingredient de ales → produs nou → salvare; linkul fără cont), `/retete/import/` în testul de lățime (360 px). Nu am făcut test de componentă pentru păstrarea sursei la modificare: în proiect nu există încă testele de componentă cu aplicația simulată, iar modul demonstrativ nu poate importa din link. Se verifică la etapa 5, pe producție.
+- **Textele noi (de aprobat la etapa 4):** „Importă”, „Importă rețetă”, „De unde iei rețeta”, „Link” / „Text”, „Linkul rețetei” (+ indiciul despre Instagram/TikTok/Facebook), „Textul rețetei” (+ indiciul), „Importul din link merge când ești conectat cu cont…”, „Citește rețeta” / „Citesc rețeta…”, „Verifică rețeta”, „Am citit rețeta de pe {site}. Verifică ce am înțeles…”, „din rețetă: …”, „Schimbă”, „De ales:”, „Un ingredient nu are încă produsul ales.” / „{n} ingrediente…”, „Caută produsul în catalog”, „Nu e în catalog? Creează produsul”, „Adaugă produsul”, „Alege categoria”, „Alege produsul pentru fiecare ingredient sau scoate-l din rețetă.”, „Sursa:”, „Adresa sursei nu e validă.”, mesajul pentru textul fără rețetă și mesajele de eroare din `IMPORT_ERROR_MESSAGES`.
+
 ## De ce are nevoie de la proprietar
 - **Etapa 4:** aprobarea textelor noi.
 - **Etapa 5:** acordul pentru migrație și pentru funcția Edge pe producție.
@@ -57,4 +65,4 @@ Deciziile proprietarului (12 oct. 2026, chestionar):
 Pe telefon: lipesc linkul unei rețete de pe un site românesc → văd numele, porțiile, ingredientele (majoritatea potrivite automat) și pașii → aleg produsele lipsă → salvez; rețeta apare la „Rețetele mele”, cu sursa. Lipesc descrierea unei rețete de pe Instagram → o corectez → o salvez.
 
 ## Următorul pas
-Etapa 3 (ecranele), într-o sesiune nouă: „Importă rețetă” (link sau text), confirmarea, salvarea cu `source_url`; în modul demonstrativ și în E2E, serverul simulat.
+Etapa 4: chestionarul cu textele noi (lista de la etapa 3) și `share_target` pe Android.

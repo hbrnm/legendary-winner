@@ -89,6 +89,7 @@ const recipeInput = z.object({
   cook_minutes: z.number().int().min(0).max(2880),
   difficulty: z.enum(["usor", "mediu", "dificil"]),
   image_url: z.string().refine(isRecipeImageUrl, "Adresa fotografiei nu e validă.").nullable().default(null),
+  source_url: z.string().regex(/^https:\/\/\S+$/, "Adresa sursei nu e validă.").max(500, "Adresa sursei nu e validă.").nullable().default(null),
   ingredients: z
     .array(z.object({ product_id: z.string().min(1), quantity: zQuantity.nullable(), unit: zUnit.nullable(), note: z.string().trim().max(120).nullable().default(null), optional: z.boolean().default(false) }))
     .min(1, "Adaugă cel puțin un ingredient."),
