@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from "react";
 import Link from "next/link";
-import { CalendarDays, ChefHat, Clock, Heart, Plus, Search } from "lucide-react";
+import { CalendarDays, ChefHat, Clock, Download, Heart, Plus, Search } from "lucide-react";
 import { AppShell } from "@/components/app/shell";
 import { useData } from "@/components/app/hooks";
 import { Button } from "@/components/ui/button";
@@ -113,6 +113,10 @@ function RecipesScreen() {
               <CalendarDays size={18} />
               <span className="hidden sm:inline">Planul meselor</span>
               <span className="sm:hidden">Plan</span>
+            </Link>
+            <Link href="/retete/import/" className="inline-flex h-11 items-center gap-2 rounded-xl border border-line bg-surface px-3 text-[15px] font-medium hover:bg-surface-2">
+              <Download size={18} />
+              Importă
             </Link>
             <Link href="/retete/editare/" aria-label="Rețetă nouă" className="inline-flex h-11 w-11 items-center justify-center rounded-xl bg-brand text-brand-ink">
               <Plus size={20} />

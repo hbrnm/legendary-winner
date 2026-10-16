@@ -147,6 +147,7 @@ function RecipeScreen() {
       <RecipePhotoPanel recipe={r} />
       <h1 className="mt-4 text-2xl font-semibold tracking-tight">{r.name}</h1>
       <p className="mt-1 text-[15px] text-ink-2">{r.description}</p>
+      {r.source_url && <RecipeSource url={r.source_url} />}
       <div className="mt-3 flex flex-wrap gap-1.5">
         {r.categories.map((c) => (
           <Badge key={c}>{RECIPE_CATEGORY_LABELS[c]}</Badge>
@@ -346,5 +347,25 @@ export default function Page() {
         <RecipeScreen />
       </Suspense>
     </AppShell>
+  );
+}
+
+/** De unde vine rețeta importată: numele site-ului, cu legătură către pagină (.tasks/009). */
+function RecipeSource({ url }: { url: string }) {
+  let host: string;
+  try {
+    const u = new URL(url);
+    if (u.protocol !== "https:") return null;
+    host = u.hostname.replace(/^www\./, "");
+  } catch {
+    return null;
+  }
+  return (
+    <p className="mt-1 text-sm text-ink-2">
+      Sursa:{" "}
+      <a href={url} target="_blank" rel="noopener noreferrer nofollow" className="-my-3 inline-block py-3 underline underline-offset-2">
+        {host}
+      </a>
+    </p>
   );
 }

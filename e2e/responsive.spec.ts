@@ -1,7 +1,7 @@
 import { expect, test } from "@playwright/test";
 import { createList, quickAdd, start } from "./helpers";
 
-const PAGES = ["/", "/cumparaturi/", "/retete/", "/plan/", "/buget/", "/buget/preturi/", "/camara/", "/gospodarie/", "/admin/", "/cumparaturi/istoric/"];
+const PAGES = ["/", "/cumparaturi/", "/retete/", "/retete/import/", "/plan/", "/buget/", "/buget/preturi/", "/camara/", "/gospodarie/", "/admin/", "/cumparaturi/istoric/"];
 
 for (const width of [360, 1280]) {
   test(`fără derulare orizontală la ${width}px`, async ({ page }) => {
