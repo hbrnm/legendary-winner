@@ -67,6 +67,32 @@ export function BudgetBar({ pct, label }: { pct: number; label: string }) {
   );
 }
 
+/**
+ * Bară dublă: verde (brand) pentru ce s-a cheltuit, galben (warn) pentru
+ * costul estimat al coșului din listele deschise. Peste buget, partea care
+ * depășește e roșie (accent).
+ */
+export function DualBudgetBar({ spent, pending, total, label }: { spent: number; pending: number; total: number; label: string }) {
+  const scale = Math.max(total, spent + pending, 1);
+  const pct = (x: number) => `${(Math.max(0, x) / scale) * 100}%`;
+  const over = spent + pending > total;
+  const usedPct = total > 0 ? Math.round(((spent + pending) / total) * 100) : 0;
+  return (
+    <div
+      role="progressbar"
+      aria-label={label}
+      aria-valuenow={usedPct}
+      aria-valuemin={0}
+      aria-valuemax={100}
+      className="relative flex h-3 w-full overflow-hidden rounded-full bg-surface-2"
+    >
+      <div data-part="cheltuit" className={`h-full ${spent > total ? "bg-accent" : "bg-brand"}`} style={{ width: pct(spent) }} />
+      <div data-part="cos" className="h-full bg-warn" style={{ width: pct(pending) }} />
+      {over && total > 0 && <div aria-hidden className="absolute inset-y-0 w-0.5 bg-ink" style={{ left: pct(total) }} />}
+    </div>
+  );
+}
+
 export function Spinner({ label = "Se încarcă" }: { label?: string }) {
   return (
     <div role="status" className="flex items-center justify-center gap-2 py-10 text-sm text-ink-2">

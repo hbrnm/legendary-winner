@@ -10,7 +10,7 @@ import { ConfirmSheet } from "@/components/ui/sheet";
 import { useToast } from "@/components/ui/toast";
 import { activeRecipePhoto, addRecipePhoto, recipePhotoBlob, removeRecipePhoto } from "@/lib/services/recipe-photos";
 import { resizePhoto } from "@/lib/photo-resize";
-import { RecipePhotoCredit, RecipeVisual, visualDims, type RecipeVisualSize } from "./recipe-visual";
+import { hasRecipeVisual, RecipeAvatar, RecipePhotoCredit, RecipeVisual, visualDims, type RecipeVisualSize } from "./recipe-visual";
 
 // Fotografia gospodăriei la o rețetă (.tasks/008, etapa 5): are întâietate
 // față de cea din catalog. Textele aprobate de proprietar, 15 oct. 2026.
@@ -48,11 +48,15 @@ export function useHouseholdPhoto(recipeId: string): { photo: RecipePhoto | null
   return { photo, pending: data?.pending ?? false, src: photo && loaded?.id === photo.id ? loaded.src : null };
 }
 
-/** Imaginea rețetei în liste și pe pagina ei: a gospodăriei, altfel cea din catalog, altfel nimic. */
-export function RecipeImage({ recipe, size = "md" }: { recipe: Pick<Recipe, "id" | "image_url">; size?: RecipeVisualSize }) {
+/**
+ * Imaginea rețetei în liste și pe pagina ei: a gospodăriei, altfel cea din
+ * catalog; altfel, în liste (`avatar`), pătratul cu pictograma categoriei.
+ */
+export function RecipeImage({ recipe, size = "md", avatar = false }: { recipe: Pick<Recipe, "id" | "image_url"> & Partial<Pick<Recipe, "categories">>; size?: RecipeVisualSize; avatar?: boolean }) {
   const { src } = useHouseholdPhoto(recipe.id);
   // eslint-disable-next-line @next/next/no-img-element
   if (src) return <img src={src} alt="" className={`${visualDims(size)} shrink-0 object-cover`} />;
+  if (avatar && size !== "lg" && !hasRecipeVisual(recipe)) return <RecipeAvatar recipe={{ categories: recipe.categories ?? [] }} size={size} />;
   return <RecipeVisual recipe={recipe} size={size} />;
 }
 

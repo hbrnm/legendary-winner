@@ -90,7 +90,7 @@ export function Toggle({ checked, onChange, label, description }: { checked: boo
       <span className="relative inline-flex">
         <input type="checkbox" className="peer sr-only" checked={checked} onChange={(e) => onChange(e.target.checked)} />
         <span className="h-7 w-12 rounded-full bg-line transition-colors peer-checked:bg-brand peer-focus-visible:ring-2 peer-focus-visible:ring-brand/40" />
-        <span className="absolute left-1 top-1 h-5 w-5 rounded-full bg-surface shadow transition-transform peer-checked:translate-x-5" />
+        <span className="absolute left-1 top-1 h-5 w-5 rounded-full bg-surface shadow-card transition-transform peer-checked:translate-x-5" />
       </span>
     </label>
   );

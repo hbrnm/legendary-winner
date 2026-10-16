@@ -43,6 +43,15 @@ export interface AppState {
 
 const AppContext = createContext<AppState | null>(null);
 
+/** Cu `camara-demo-gol` în localStorage, modul demonstrativ pornește fără gospodăria model (testele end-to-end). */
+function demoStartsEmpty(): boolean {
+  try {
+    return window.localStorage.getItem("camara-demo-gol") === "1";
+  } catch {
+    return false;
+  }
+}
+
 export function useApp(): AppState {
   const v = useContext(AppContext);
   if (!v) throw new Error("useApp în afara AppProvider");
@@ -98,7 +107,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     async function startDemo() {
       const d = openDatabase("camara-demo");
       await seedCatalog(d);
-      await ensureDemoHousehold(d);
+      await ensureDemoHousehold(d, { example: !demoStartsEmpty() });
       if (cancelled) return;
       setDb(d);
       setUser({ id: DEMO_USER_ID, email: null, name: null });

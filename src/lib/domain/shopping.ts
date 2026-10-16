@@ -1,4 +1,5 @@
-import type { ShoppingListItem, ProductCategory, UnitCode } from "./types";
+import type { PantryItem, ShoppingListItem, ShoppingTransactionItem, ProductCategory, UnitCode } from "./types";
+import { addDays, localDateOf } from "./dates";
 import { estimateCost, type PriceIndex, type UnitPrice } from "./pricing";
 import type { ISODate } from "./types";
 import { sumMoney } from "./money";
@@ -196,4 +197,52 @@ export function planMerge(existing: ShoppingListItem[], needs: Need[]): MergeOp[
   }
   for (const [item_id, v] of pending) ops.push({ kind: "update", item_id, quantity: v.quantity, unit: v.unit });
   return ops;
+}
+
+export interface QuickSuggestion {
+  product_id: string;
+  name: string;
+  /** „terminat”: s-a terminat în cămară; „des”: îl cumperi des și nu mai e acasă. */
+  reason: "terminat" | "des";
+}
+
+/**
+ * Sugestiile de sub listă: întâi produsele terminate în cămară, apoi cele
+ * cumpărate de cel puțin 2 ori în ultimele `days` zile și care nu mai sunt
+ * acasă. Nimic din ce e deja pe listă (bifat sau nu).
+ */
+export function quickSuggestions(input: {
+  listProductIds: Iterable<string>;
+  pantry: Pick<PantryItem, "product_id" | "name" | "quantity" | "deleted_at">[];
+  history: Pick<ShoppingTransactionItem, "product_id" | "name" | "purchased_at" | "deleted_at">[];
+  today: ISODate;
+  days?: number;
+  limit?: number;
+}): QuickSuggestion[] {
+  const { today, days = 60, limit = 6 } = input;
+  const taken = new Set(input.listProductIds);
+  const atHome = new Set(input.pantry.filter((p) => !p.deleted_at && p.product_id && p.quantity > 0).map((p) => p.product_id!));
+  const out: QuickSuggestion[] = [];
+  const push = (s: QuickSuggestion) => {
+    if (taken.has(s.product_id) || out.length >= limit) return;
+    taken.add(s.product_id);
+    out.push(s);
+  };
+  for (const p of input.pantry) {
+    if (!p.deleted_at && p.product_id && p.quantity <= 0 && !atHome.has(p.product_id)) push({ product_id: p.product_id, name: p.name, reason: "terminat" });
+  }
+  const from = addDays(today, -days);
+  const counts = new Map<string, { name: string; n: number; last: string }>();
+  for (const h of input.history) {
+    if (h.deleted_at || !h.product_id) continue;
+    const day = localDateOf(h.purchased_at);
+    if (day < from || day > today) continue;
+    const c = counts.get(h.product_id) ?? { name: h.name, n: 0, last: "" };
+    counts.set(h.product_id, { name: c.name, n: c.n + 1, last: day > c.last ? day : c.last });
+  }
+  [...counts.entries()]
+    .filter(([id, c]) => c.n >= 2 && !atHome.has(id))
+    .sort((a, b) => b[1].n - a[1].n || b[1].last.localeCompare(a[1].last) || a[1].name.localeCompare(b[1].name, "ro"))
+    .forEach(([product_id, c]) => push({ product_id, name: c.name, reason: "des" }));
+  return out;
 }

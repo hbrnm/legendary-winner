@@ -2,6 +2,7 @@ import { CamaraDB, type TableName, getMeta, setMeta } from "@/lib/db/database";
 import { buildCatalog, CATALOG_VERSION, type Catalog } from "@/data/catalog";
 import { insertRow } from "@/lib/db/write";
 import { newId } from "@/lib/db/ids";
+import { seedDemoExample } from "./demo-seed";
 
 /**
  * Încarcă catalogul inițial (produse, rețete etc.) în baza locală, o singură
@@ -28,10 +29,14 @@ export async function seedCatalog(db: CamaraDB): Promise<void> {
 export const DEMO_HOUSEHOLD_ID = "00000000-0000-4000-8000-0000000000d1";
 export const DEMO_USER_ID = "00000000-0000-4000-8000-0000000000a1";
 
-/** Modul demonstrativ: o gospodărie locală, cu o listă goală. Fără prețuri inventate. */
-export async function ensureDemoHousehold(db: CamaraDB): Promise<void> {
+/**
+ * Modul demonstrativ: o gospodărie locală, cu o listă. Cu `example`, la prima
+ * pornire se umple cu gospodăria model (date de exemplu, doar pe dispozitiv);
+ * fără, lista rămâne goală (testele end-to-end pornesc de la zero).
+ */
+export async function ensureDemoHousehold(db: CamaraDB, opts: { example?: boolean } = {}): Promise<void> {
   if (await getMeta(db, "demo_ready")) return;
-  const opts = { outbox: false };
+  const write = { outbox: false };
   await db.household_settings.put({
     id: DEMO_HOUSEHOLD_ID,
     household_id: DEMO_HOUSEHOLD_ID,
@@ -45,8 +50,9 @@ export async function ensureDemoHousehold(db: CamaraDB): Promise<void> {
     db,
     "shopping_lists",
     { id: newId(), household_id: DEMO_HOUSEHOLD_ID, name: "Cumpărături săptămânale", is_recurring: true, cycle: 1, archived_at: null, default_retailer_id: null, sort_order: 0 },
-    opts,
+    write,
   );
+  if (opts.example) await seedDemoExample(db, DEMO_HOUSEHOLD_ID, DEMO_USER_ID);
   await setMeta(db, "demo_ready", true);
 }
 

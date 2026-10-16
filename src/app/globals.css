@@ -2,7 +2,10 @@
 
 /* Tokenii de culoare ai Cămarei. Componentele folosesc DOAR aceste nume
    (bg-bg, text-ink, bg-brand...), niciodată culori scrise direct. */
-:root {
+/* ::backdrop (fundalul ferestrelor <dialog>) nu moștenește variabilele pe
+   toate browserele, deci primește tokenii direct. */
+:root,
+::backdrop {
   --bg: #f7f5ef;
   --surface: #ffffff;
   --surface-2: #f0ede4;
@@ -25,7 +28,8 @@
 }
 
 @media (prefers-color-scheme: dark) {
-  :root:not([data-theme="luminos"]) {
+  :root:not([data-theme="luminos"]),
+  :root:not([data-theme="luminos"]) ::backdrop {
     --bg: #121513;
     --surface: #1a1e1b;
     --surface-2: #232824;
@@ -48,7 +52,8 @@
   }
 }
 
-:root[data-theme="intunecat"] {
+:root[data-theme="intunecat"],
+:root[data-theme="intunecat"] ::backdrop {
   --bg: #121513;
   --surface: #1a1e1b;
   --surface-2: #232824;

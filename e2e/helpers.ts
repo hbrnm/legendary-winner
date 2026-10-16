@@ -3,8 +3,10 @@ import { expect, type Page } from "@playwright/test";
 /** Data fixă pentru teste (duminică), ca rezultatele să nu depindă de ziua rulării. */
 export const FIXED_NOW = new Date("2026-03-08T09:00:00+02:00");
 
+/** Pornește aplicația în modul demonstrativ gol (fără gospodăria model), ca testele să plece de la zero. */
 export async function start(page: Page, path = "/") {
   await page.clock.setFixedTime(FIXED_NOW);
+  await page.addInitScript(() => window.localStorage.setItem("camara-demo-gol", "1"));
   await page.goto(path);
   await expect(page.getByText("Mod demonstrativ")).toBeVisible();
 }

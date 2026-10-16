@@ -1,7 +1,8 @@
 // @vitest-environment jsdom
 import { describe, expect, it, vi } from "vitest";
 import { render } from "@testing-library/react";
-import { RecipePhotoCredit, RecipeVisual } from "./recipe-visual";
+import { RecipeAvatar, RecipePhotoCredit, RecipeVisual, hasRecipeVisual, recipeCategoryIcon } from "./recipe-visual";
+import { CookingPot, Fish, Soup } from "lucide-react";
 
 vi.mock("@/data/recipe-photos", async (load) => {
   const real = await load<typeof import("@/data/recipe-photos")>();
@@ -63,5 +64,29 @@ describe("RecipePhotoCredit", () => {
   it("fără fotografie din catalog nu arată nimic", () => {
     expect(render(<RecipePhotoCredit recipe={{ image_url: null }} />).container.innerHTML).toBe("");
     expect(render(<RecipePhotoCredit recipe={{ image_url: "https://exemplu.ro/ciorba.jpg" }} />).container.innerHTML).toBe("");
+  });
+});
+
+describe("RecipeAvatar", () => {
+  it("în liste, rețeta fără fotografie are un pătrat uniform de 64 px, cu pictograma categoriei", () => {
+    const { getByTestId } = render(<RecipeAvatar recipe={{ categories: ["pranz", "peste"] }} />);
+    const el = getByTestId("avatar-reteta");
+    expect(el.className).toContain("h-16 w-16");
+    expect(el.className).toContain("bg-brand-soft");
+    expect(el.className).toContain("border-line");
+    expect(el.className).toContain("rounded-xl");
+    expect(el.querySelector("svg")).not.toBeNull();
+  });
+
+  it("alege pictograma după categorie, cu o oală pentru restul", () => {
+    expect(recipeCategoryIcon(["supe_ciorbe", "peste"])).toBe(Soup);
+    expect(recipeCategoryIcon(["cina", "peste"])).toBe(Fish);
+    expect(recipeCategoryIcon(["cina"])).toBe(CookingPot);
+  });
+
+  it("știe când rețeta are o fotografie de arătat", () => {
+    expect(hasRecipeVisual({ image_url: null })).toBe(false);
+    expect(hasRecipeVisual({ image_url: "/retete/retrasa.webp" })).toBe(false);
+    expect(hasRecipeVisual({ image_url: "/retete/bulz.webp" })).toBe(true);
   });
 });

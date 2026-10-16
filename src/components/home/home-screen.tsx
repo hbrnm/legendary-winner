@@ -164,7 +164,7 @@ export function HomeScreen() {
           {data.todayMeals.map(({ meal, recipe }) => (
             <li key={meal.id}>
               <Link href={recipe ? `/retete/reteta/?id=${recipe.id}` : "/plan/"} className="flex items-center gap-3 rounded-2xl border border-line bg-surface p-3 hover:bg-surface-2">
-                {recipe && <RecipeImage recipe={recipe} size="sm" />}
+                {recipe && <RecipeImage recipe={recipe} size="sm" avatar />}
                 <span className="min-w-0 flex-1">
                   <span className="block text-xs text-ink-2">{SLOT_LABELS[meal.slot]}</span>
                   <span className="block truncate font-medium">{recipe?.name ?? "Rețetă ștearsă"}</span>
@@ -201,7 +201,7 @@ export function HomeScreen() {
             {data.suggestions.map(({ recipe, why }) => (
               <li key={recipe.id}>
                 <Link href={`/retete/reteta/?id=${recipe.id}`} className="flex items-center gap-3 rounded-2xl border border-line bg-surface p-3 hover:bg-surface-2 sm:flex-col sm:items-start">
-                  <RecipeImage recipe={recipe} size="sm" />
+                  <RecipeImage recipe={recipe} size="sm" avatar />
                   <span className="min-w-0 flex-1">
                     <span className="block truncate font-medium">{recipe.name}</span>
                     <span className="text-xs text-ink-2">{why}</span>

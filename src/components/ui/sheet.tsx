@@ -53,7 +53,7 @@ export function Sheet({ open, onClose, title, children, footer }: { open: boolea
       }}
       aria-label={title}
       style={keyboardStyle}
-      className="m-0 mt-auto max-h-[92dvh] w-full max-w-none rounded-t-3xl border border-line bg-surface p-0 text-ink shadow-xl backdrop:bg-black/40 sm:m-auto sm:max-w-lg sm:rounded-3xl"
+      className="m-0 mt-auto max-h-[92dvh] w-full max-w-none rounded-t-3xl border border-line bg-surface p-0 text-ink shadow-card backdrop:bg-bg/70 backdrop:backdrop-blur-sm sm:m-auto sm:max-w-lg sm:rounded-3xl"
     >
       {open && (
         <div className="flex max-h-[inherit] flex-col">
@@ -103,7 +103,7 @@ export function ConfirmSheet({
               onConfirm();
               onClose();
             }}
-            className="h-11 flex-1 rounded-xl bg-accent font-medium text-white"
+            className="h-11 flex-1 rounded-xl bg-accent font-medium text-brand-ink"
           >
             {confirmLabel}
           </button>

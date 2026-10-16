@@ -6,7 +6,7 @@ import { ChevronLeft, ChevronRight, Download, Pencil, Plus, Tags, Trash2, Wallet
 import { AppShell } from "@/components/app/shell";
 import { useAction, useData } from "@/components/app/hooks";
 import { Button, IconButton } from "@/components/ui/button";
-import { BudgetBar, Card, EmptyState, PageHeader, SectionTitle, Spinner } from "@/components/ui/misc";
+import { BudgetBar, Card, DualBudgetBar, EmptyState, PageHeader, SectionTitle, Spinner } from "@/components/ui/misc";
 import { Sheet } from "@/components/ui/sheet";
 import { LabeledInput, LabeledSelect, Segmented } from "@/components/ui/fields";
 import { BarList, ColumnChart } from "@/components/budget/charts";
@@ -198,7 +198,21 @@ function BudgetScreen() {
                 <span className="text-sm text-ink-2">din {formatRon(s.budget.amount)}</span>
               </div>
               <div className="mt-2">
-                <BudgetBar pct={s.used_pct} label={`${s.budget.name}: ${s.used_pct}% folosit`} />
+                {s === mainStatus && data.openEstimate > 0 ? (
+                  <>
+                    <DualBudgetBar spent={s.spent} pending={data.openEstimate} total={s.budget.amount} label={`${s.budget.name}: cheltuit și coșul de acum`} />
+                    <p className="mt-1.5 flex flex-wrap gap-x-4 gap-y-1 text-xs text-ink-2 tabular">
+                      <span className="inline-flex items-center gap-1.5">
+                        <span aria-hidden className="h-2.5 w-2.5 rounded-full bg-brand" /> Cheltuit {formatRon(s.spent)}
+                      </span>
+                      <span className="inline-flex items-center gap-1.5">
+                        <span aria-hidden className="h-2.5 w-2.5 rounded-full bg-warn" /> În coș, estimat {formatRon(data.openEstimate)}
+                      </span>
+                    </p>
+                  </>
+                ) : (
+                  <BudgetBar pct={s.used_pct} label={`${s.budget.name}: ${s.used_pct}% folosit`} />
+                )}
               </div>
               <p className={`mt-2 text-sm ${s.over ? "font-medium text-accent" : "text-ink-2"}`}>
                 {s.over ? `Ai depășit bugetul cu ${formatRon(-s.remaining)}.` : `Mai ai ${formatRon(s.remaining)}.`}
@@ -294,14 +308,15 @@ function BudgetScreen() {
         {view.noAmount > 0 && <p className="mt-3 text-xs text-ink-2">{view.noAmount} produse fără preț nu apar în împărțire.</p>}
       </Card>
 
-      <div className="mt-6 flex flex-col gap-2 sm:flex-row">
-        <Link href="/buget/preturi/" className="inline-flex h-11 flex-1 items-center justify-center gap-2 rounded-xl border border-line bg-surface font-medium hover:bg-surface-2">
+      {/* Fără flex-1 în coloană: butoanele își păstrează înălțimea de 44 px. */}
+      <div className="mt-6 grid grid-cols-2 gap-2">
+        <Link href="/buget/preturi/" className="col-span-2 inline-flex h-11 w-full items-center justify-center gap-2 rounded-xl border border-line bg-surface font-medium hover:bg-surface-2">
           <Tags size={18} /> Prețuri și comparații
         </Link>
-        <Button variant="secondary" className="flex-1" icon={<Download size={18} />} onClick={() => exportCsv(false)} disabled={view.monthSpend.length === 0}>
-          Exportă luna (CSV)
+        <Button variant="secondary" block className="px-2" icon={<Download size={18} />} onClick={() => exportCsv(false)} disabled={view.monthSpend.length === 0}>
+          Exportă luna
         </Button>
-        <Button variant="secondary" className="flex-1" icon={<Download size={18} />} onClick={() => exportCsv(true)} disabled={data.spend.length === 0}>
+        <Button variant="secondary" block className="px-2" icon={<Download size={18} />} onClick={() => exportCsv(true)} disabled={data.spend.length === 0}>
           Exportă tot
         </Button>
       </div>
