@@ -15,6 +15,8 @@ test("lista funcționează fără internet, iar modificările rămân", async ({
   await createList(page, "Magazin cu semnal slab");
   await quickAdd(page, "lapte");
   const url = page.url();
+  // Reîncarcă abia după ce produsul apare în listă, adică după ce a ajuns în baza locală.
+  await expect(page.getByText("Lapte integral")).toBeVisible();
   // Încarcă o dată cu service worker-ul activ, ca pagina să fie în cache.
   await page.reload();
   await expect(page.getByText("Lapte integral")).toBeVisible();
