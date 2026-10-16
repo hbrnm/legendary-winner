@@ -1,6 +1,6 @@
 # 009 — Importul rețetelor de pe site-uri și din texte
 
-**Stare:** în lucru; etapa 1 gata.
+**Stare:** în lucru; etapele 1–2 gata (etapa 2 doar în repo, nu pe producție).
 **Ramura:** câte una pe etapă, fiecare cu PR-ul ei din `main`.
 
 ## Scop
@@ -35,10 +35,19 @@ Deciziile proprietarului (12 oct. 2026, chestionar):
 | # | Etapa | Stare | Commit |
 |---|---|---|---|
 | 1 | **Logica:** parsarea JSON-LD `Recipe` (inclusiv `@graph`, `HowToStep`/`HowToSection`, durate ISO 8601) și a textului lipit; citirea ingredientelor (cantitate, unitate, nume) în română și engleză; potrivirea cu catalogul. Teste cu pagini și texte salvate ca fixturi (fără rețea). | gata | (vezi PR) |
-| 2 | **Serverul:** funcția Edge `import-recipe` (fetch sigur, extrage JSON-LD, întoarce `RecipeDraft`); teste pentru SSRF, limite, pagini fără rețetă. Migrația `recipes.source_url`. `npm run test:db`. | de făcut | |
+| 2 | **Serverul:** funcția Edge `import-recipe` (fetch sigur, extrage JSON-LD, întoarce `RecipeDraft`); teste pentru SSRF, limite, pagini fără rețetă. Migrația `recipes.source_url`. `npm run test:db`. | gata (în repo) | (vezi PR) |
 | 3 | **Ecranele:** „Importă rețetă” (link sau text), confirmarea cu ingredientele, salvarea; sursa pe pagina rețetei. E2E în modul demonstrativ (cu serverul simulat). | de făcut | |
 | 4 | **Textele + partajarea:** chestionarul cu textele noi; `share_target` pe Android. | de făcut | |
 | 5 | **Producția:** migrația și funcția Edge cu acordul proprietarului; verificare pe Android și iPhone cu 3–4 site-uri românești reale. | de făcut | |
+
+### Etapa 2 (16 oct. 2026)
+- **Logica** în `src/lib/server/import-recipe.ts` (testată cu Vitest, fără rețea): `handleImportRequest` primește `POST {"url"}` cu tokenul omului și întoarce `{draft}` sau `{error}`, cu un cod pentru ecran: `bad_request`, `unauthorized`, `rate_limited`, `invalid_url`, `blocked_address`, `fetch_failed`, `timeout`, `too_large`, `not_html`, `no_recipe`. CORS deschis (tokenul vine în antet, fără cookie-uri).
+- **SSRF:** doar `https`, fără port, utilizator sau parolă, cu domeniu; toate adresele DNS (A și AAAA) ale numelui trebuie să fie publice (fără 10/8, 127/8, 169.254/16, 172.16/12, 192.168/16, 100.64/10, multicast, documentație; la IPv6 doar 2000::/3, fără 6to4, Teredo și documentație). Redirecționările se urmează de mână (max. 3), fiecare verificată din nou. **Limită cunoscută:** `fetch` din Deno rezolvă numele încă o dată, deci un DNS care se schimbă între verificare și descărcare (DNS rebinding) nu e prins; riscul e mic (funcția nu are secrete și nu vede rețeaua internă a proiectului), dar e de știut.
+- **Limite:** 10 s pentru tot (și pentru DNS), 5 s pentru limita de cereri, 3 MB pagina (după antet și pe măsură ce sosește), doar `text/html` / `application/xhtml+xml` (sau fără `Content-Type`); codarea din antet sau din `<meta charset>` (site-urile vechi, windows-1250). Pagina nu se păstrează.
+- **Limita de cereri:** 20 pe oră de om, în baza de date: `take_recipe_import_quota()` (security definer, doar `authenticated`), chemată prin PostgREST cu tokenul omului, înainte de descărcare. Tabelul `recipe_import_requests` nu se citește prin API; cererile mai vechi de o zi se șterg la următoarea cerere.
+- **Migrația** `20261016000001_recipe_import.sql`: `recipes.source_url` (nulabilă, doar `https://`, max. 500), tabelul și funcția de mai sus. Teste: `supabase/tests/recipe-import.test.ts` (5).
+- **Deno:** `supabase/functions/import-recipe/index.ts` leagă rețeaua, DNS-ul (`Deno.resolveDns`) și limita; logica e în `core.js`, împachetat cu esbuild (`npm run build:functions`, `esbuild` devDependency la versiunea deja din proiect). Testul `scripts/build-functions.test.ts` cere ca `core.js` să fie la zi. Deno și CLI-ul Supabase nu sunt în mediul cloud: pachetul e verificat doar cu Node (modul ES), iar funcția se încearcă prima dată la etapa 5.
+- `source_url` nu e încă în tipul `Recipe` din client (etapa 3); sincronizarea nu validează strict, deci coloana nouă nu strică nimic.
 
 ## De ce are nevoie de la proprietar
 - **Etapa 4:** aprobarea textelor noi.
@@ -48,4 +57,4 @@ Deciziile proprietarului (12 oct. 2026, chestionar):
 Pe telefon: lipesc linkul unei rețete de pe un site românesc → văd numele, porțiile, ingredientele (majoritatea potrivite automat) și pașii → aleg produsele lipsă → salvez; rețeta apare la „Rețetele mele”, cu sursa. Lipesc descrierea unei rețete de pe Instagram → o corectez → o salvez.
 
 ## Următorul pas
-Etapa 2 (serverul), într-o sesiune nouă. Funcția Edge refolosește `extractJsonLd` / `draftFromHtml` din `src/lib/domain/recipe-import.ts` (modulul are doar importuri relative, dar fără extensia `.ts`, pe care Deno o cere: de ales la etapa 2 între import map, `--sloppy-imports` sau un bundle; se verifică și `search.ts`, `types.ts`).
+Etapa 3 (ecranele), într-o sesiune nouă: „Importă rețetă” (link sau text), confirmarea, salvarea cu `source_url`; în modul demonstrativ și în E2E, serverul simulat.

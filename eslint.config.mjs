@@ -15,6 +15,8 @@ const eslintConfig = defineConfig([
     // Build-ul pentru E2E cloud și binarele Supabase local.
     "out-cloud/**",
     ".local-supabase/**",
+    // Codul funcțiilor Edge, generat de scripts/build-functions.mjs.
+    "supabase/functions/*/core.js",
   ]),
 ]);
 
