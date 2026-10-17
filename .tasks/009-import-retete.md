@@ -1,6 +1,6 @@
 # 009 — Importul rețetelor de pe site-uri și din texte
 
-**Stare:** în lucru; etapele 1–4 gata (doar în repo, nu pe producție); rămâne producția (etapa 5).
+**Stare:** în lucru; etapele 1–4 gata; etapa 5: migrația și funcția Edge sunt pe producție (17 oct. 2026), rămâne verificarea pe telefoane.
 **Ramura:** câte una pe etapă, fiecare cu PR-ul ei din `main`.
 
 ## Scop
@@ -38,7 +38,7 @@ Deciziile proprietarului (12 oct. 2026, chestionar):
 | 2 | **Serverul:** funcția Edge `import-recipe` (fetch sigur, extrage JSON-LD, întoarce `RecipeDraft`); teste pentru SSRF, limite, pagini fără rețetă. Migrația `recipes.source_url`. `npm run test:db`. | gata (în repo) | (vezi PR) |
 | 3 | **Ecranele:** „Importă rețetă” (link sau text), confirmarea cu ingredientele, salvarea; sursa pe pagina rețetei. E2E în modul demonstrativ (cu serverul simulat). | gata | (vezi PR) |
 | 4 | **Textele + partajarea:** chestionarul cu textele noi; `share_target` pe Android. | gata | (vezi PR) |
-| 5 | **Producția:** migrația și funcția Edge cu acordul proprietarului; verificare pe Android și iPhone cu 3–4 site-uri românești reale. | de făcut | |
+| 5 | **Producția:** migrația și funcția Edge cu acordul proprietarului; verificare pe Android și iPhone cu 3–4 site-uri românești reale. | pe server: gata; telefoanele: de verificat | (vezi PR) |
 
 ### Etapa 2 (16 oct. 2026)
 - **Logica** în `src/lib/server/import-recipe.ts` (testată cu Vitest, fără rețea): `handleImportRequest` primește `POST {"url"}` cu tokenul omului și întoarce `{draft}` sau `{error}`, cu un cod pentru ecran: `bad_request`, `unauthorized`, `rate_limited`, `invalid_url`, `blocked_address`, `fetch_failed`, `timeout`, `too_large`, `not_html`, `no_recipe`. CORS deschis (tokenul vine în antet, fără cookie-uri).
@@ -64,11 +64,17 @@ Deciziile proprietarului (12 oct. 2026, chestionar):
 - **Reparat pe drum:** `inapoi` de la autentificare accepta și `//alt-site.ro` (redirecționare spre alt site, problemă veche); acum doar căi ale aplicației.
 - Teste: `sharedImport` (3, în `recipe-import.test.ts`), E2E „partajare (Android)” (text → „Text”; link fără cont) și „după autentificare… nu la alt site” (pică pe codul vechi).
 
+### Etapa 5 (17 oct. 2026)
+- **Migrația** `20261016000001_recipe_import`, cu acordul proprietarului: prin conector (`apply_migration` de două ori, apoi `execute_sql`) fiecare scriere a expirat după 60 s fără să schimbe nimic (verificat de fiecare dată: nici coloană, nici tabel, nici istoric, nicio cerere rămasă). A rulat-o proprietarul în SQL Editor, într-o tranzacție, cu rândul din istoric. Verificat prin conector: `recipes.source_url` cu regula din repo, `recipe_import_requests` cu RLS și fără drepturi pentru `anon`/`authenticated`, `take_recipe_import_quota()` security definer, apelabilă doar de `authenticated`; istoricul la fel ca `supabase/migrations/`.
+- **`get_advisors`:** două semnalări noi, ambele intenționate: tabelul cu RLS fără politici (nu se citește prin API) și funcția de limită apelabilă de `authenticated` (ca celelalte RPC-uri, `.tasks/002`).
+- **Funcția Edge** `import-recipe`, cu acordul proprietarului: publicată prin conector, versiunea 1, `verify_jwt` pornit, `index.ts` + `core.js` din repo (`core.js` la zi, după `scripts/build-functions.test.ts`). Prima rulare pe Deno se vede la verificarea pe telefoane: rețeaua mediului cloud nu ajunge la `supabase.co`, deci n-am putut încerca funcția de aici.
+- **Găsit pe drum:** formularul de rețetă trimite `source_url` (și `null`) la orice salvare, iar codul de la etapa 3 era deja pe producție din 16 oct. Fără coloană, serverul ar fi refuzat salvarea, iar sincronizarea ar fi scos rețeta nouă și de pe telefon (o rețetă modificată revenea la varianta de pe server). Jurnalele arată că nu s-a salvat nicio rețetă între timp, deci nu s-a pierdut nimic; cu migrația aplicată, problema nu mai există. De reținut: migrația unei coloane noi ajunge pe producție înainte de codul care o scrie (sau tabelul intră în `OPTIONAL_TABLES`).
+
 ## De ce are nevoie de la proprietar
-- **Etapa 5:** acordul pentru migrație și pentru funcția Edge pe producție.
+- **Etapa 5:** verificarea pe Android și iPhone (mai jos).
 
 ## Cum verific la final
 Pe telefon: lipesc linkul unei rețete de pe un site românesc → văd numele, porțiile, ingredientele (majoritatea potrivite automat) și pașii → aleg produsele lipsă → salvez; rețeta apare la „Rețetele mele”, cu sursa. Lipesc descrierea unei rețete de pe Instagram → o corectez → o salvez.
 
 ## Următorul pas
-Etapa 5 (producția), cu acordul proprietarului: migrația `20261016000001_recipe_import.sql` și funcția Edge `import-recipe` pe Supabase „Camara”; apoi verificarea pe Android și iPhone cu 3–4 site-uri românești reale (și partajarea pe Android).
+Verificarea pe telefoane (proprietarul): pe Android și iPhone, importul din link de pe 3–4 site-uri românești reale, importul din text (o descriere de pe Instagram) și partajarea pe Android („Partajează” → Cămara); la fiecare rețetă salvată, „Sursa:” pe pagina ei. Dacă un link dă eroare, se notează site-ul și mesajul; jurnalul funcției (`query_logs`, `function_edge_logs`) arată codul.
