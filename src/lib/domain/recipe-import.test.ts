@@ -9,6 +9,7 @@ import {
   findRecipeNode,
   matchIngredients,
   guessLanguage,
+  imageUrlFrom,
   looksForeign,
   splitForTranslation,
   metricText,
@@ -50,7 +51,7 @@ describe("adresa sursei", () => {
 });
 
 describe("JSON-LD", () => {
-  it("găsește rețeta în @graph, sare peste blocurile stricate și ignoră poza și valorile nutriționale", () => {
+  it("găsește rețeta în @graph, sare peste blocurile stricate, ia poza și ignoră valorile nutriționale", () => {
     const draft = draftFromHtml(fixture("graph-wordpress.html"), "https://exemplu.ro/ciorba?utm_medium=social");
     expect(draft).toEqual({
       name: "Ciorbă de perișoare & leuștean",
@@ -65,7 +66,26 @@ describe("JSON-LD", () => {
         "Adaugă perișoarele și borșul – fierbe încă 30 de minute.",
       ],
       source_url: "https://exemplu.ro/ciorba",
+      image_url: "https://exemplu.ro/poza.jpg",
     });
+  });
+
+  it.each([
+    ["text", "https://site.ro/a.jpg", "https://site.ro/a.jpg"],
+    ["relativ la pagină", "/wp-content/a.webp", "https://exemplu.ro/wp-content/a.webp"],
+    ["ImageObject", { "@type": "ImageObject", url: "https://site.ro/b.jpg", width: 1200 }, "https://site.ro/b.jpg"],
+    ["contentUrl", { contentUrl: "https://site.ro/c.jpg" }, "https://site.ro/c.jpg"],
+    ["listă cu prima greșită", ["http://site.ro/x.jpg", { url: "https://site.ro/d.jpg" }], "https://site.ro/d.jpg"],
+    ["entități HTML", "https://site.ro/e.jpg?w=1&amp;h=2", "https://site.ro/e.jpg?w=1&h=2"],
+  ])("poza: %s", (_, image, expected) => {
+    expect(imageUrlFrom(image, "https://exemplu.ro/ciorba")).toBe(expected);
+  });
+
+  it("poza lipsă, http, javascript: sau cu parolă nu se ia", () => {
+    for (const image of [undefined, "", "http://site.ro/a.jpg", "javascript:alert(1)", "https://u:p@site.ro/a.jpg", { width: 3 }, "https://site.ro/" + "a".repeat(500)]) {
+      expect(imageUrlFrom(image, "https://exemplu.ro/ciorba")).toBeNull();
+    }
+    expect(imageUrlFrom("/a.jpg", null)).toBeNull();
   });
 
   it("acceptă @type ca listă, porțiile ca număr, pașii într-un singur text; timpul total nu devine timp de gătit", () => {

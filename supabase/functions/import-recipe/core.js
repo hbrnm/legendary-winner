@@ -107,11 +107,30 @@ function stringList(value) {
   const list = Array.isArray(value) ? value : typeof value === "string" ? value.split(/\r?\n/) : [];
   return list.map((v) => plainText(v)).filter(Boolean);
 }
+function imageUrlFrom(value, pageUrl, depth = 0) {
+  if (depth > 3 || value == null) return null;
+  if (Array.isArray(value)) {
+    for (const v of value) {
+      const found = imageUrlFrom(v, pageUrl, depth + 1);
+      if (found) return found;
+    }
+    return null;
+  }
+  if (isObject(value)) return imageUrlFrom(value.url ?? value.contentUrl, pageUrl, depth + 1);
+  if (typeof value !== "string" || !value.trim()) return null;
+  try {
+    const url = new URL(decodeEntities(value.trim()), pageUrl ?? void 0);
+    return url.protocol === "https:" && !url.username && !url.password && url.href.length <= MAX_URL ? url.href : null;
+  } catch {
+    return null;
+  }
+}
 function draftFromJsonLd(node, sourceUrl = null) {
   const name = plainText(node.name) || plainText(node.headline);
   const ingredients = stringList(node.recipeIngredient ?? node.ingredients).map((s) => clip(s, MAX_INGREDIENT));
   const steps = instructionTexts(node.recipeInstructions).map((s) => clip(s, MAX_STEP));
   if (!name || ingredients.length === 0 && steps.length === 0) return null;
+  const image = imageUrlFrom(node.image, sourceUrl);
   return {
     name: clip(name, MAX_NAME),
     description: clip(plainText(node.description), MAX_DESCRIPTION),
@@ -121,7 +140,8 @@ function draftFromJsonLd(node, sourceUrl = null) {
     cook_minutes: parseIsoDuration(node.cookTime),
     ingredients,
     steps,
-    source_url: sourceUrl ? cleanSourceUrl(sourceUrl) : null
+    source_url: sourceUrl ? cleanSourceUrl(sourceUrl) : null,
+    ...image ? { image_url: image } : {}
   };
 }
 function draftFromHtml(html, sourceUrl = null) {
@@ -254,6 +274,8 @@ var IMPORT_LIMITS = {
   /** Timpul total pentru pagină, cu tot cu redirecționări. */
   timeoutMs: 1e4,
   maxBytes: 3e6,
+  /** Fotografia rețetei (.tasks/013): cel mult 5 MB, se micșorează apoi pe telefon. */
+  maxImageBytes: 5e6,
   maxRedirects: 3,
   maxUrlLength: 500
 };
@@ -267,6 +289,7 @@ var STATUS = {
   timeout: 504,
   too_large: 413,
   not_html: 422,
+  not_image: 422,
   no_recipe: 422
 };
 var CORS = {
@@ -389,7 +412,8 @@ function decode(bytes, contentType) {
     return new TextDecoder("utf-8").decode(bytes);
   }
 }
-async function fetchRecipePage(start, deps, limits = IMPORT_LIMITS) {
+var IMAGE_TYPE = /^\s*(image\/(?:jpeg|png|webp|avif|gif))\s*(?:;|$)/i;
+async function fetchResource(start, deps, limits, kind) {
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), limits.timeoutMs);
   try {
@@ -399,7 +423,10 @@ async function fetchRecipePage(start, deps, limits = IMPORT_LIMITS) {
       const res = await deps.fetch(url.href, {
         redirect: "manual",
         signal: controller.signal,
-        headers: { accept: "text/html,application/xhtml+xml", "user-agent": "CamaraApp/0.1 (import retete)" }
+        headers: {
+          accept: kind === "page" ? "text/html,application/xhtml+xml" : "image/avif,image/webp,image/png,image/jpeg,image/gif",
+          "user-agent": "CamaraApp/0.1 (import retete)"
+        }
       }).catch((e) => {
         throw new ImportError(controller.signal.aborted || e instanceof Error && e.name === "AbortError" ? "timeout" : "fetch_failed");
       });
@@ -418,20 +445,29 @@ async function fetchRecipePage(start, deps, limits = IMPORT_LIMITS) {
         throw new ImportError("fetch_failed");
       }
       const type = res.headers.get("content-type") ?? "";
-      if (type.trim() && !/^\s*(text\/html|application\/xhtml\+xml)/i.test(type)) {
+      const wrongType = kind === "page" ? type.trim() && !/^\s*(text\/html|application\/xhtml\+xml)/i.test(type) : !IMAGE_TYPE.test(type);
+      if (wrongType) {
         await res.body?.cancel().catch(() => {
         });
-        throw new ImportError("not_html");
+        throw new ImportError(kind === "page" ? "not_html" : "not_image");
       }
-      const bytes = await readLimited(res, limits.maxBytes).catch((e) => {
+      const bytes = await readLimited(res, kind === "page" ? limits.maxBytes : limits.maxImageBytes).catch((e) => {
         if (e instanceof ImportError) throw e;
         throw new ImportError(controller.signal.aborted ? "timeout" : "fetch_failed");
       });
-      return { html: decode(bytes, type), url };
+      return { bytes, type, url };
     }
   } finally {
     clearTimeout(timer);
   }
+}
+async function fetchRecipePage(start, deps, limits = IMPORT_LIMITS) {
+  const { bytes, type, url } = await fetchResource(start, deps, limits, "page");
+  return { html: decode(bytes, type), url };
+}
+async function fetchRecipeImage(start, deps, limits = IMPORT_LIMITS) {
+  const { bytes, type } = await fetchResource(start, deps, limits, "image");
+  return { bytes, type: IMAGE_TYPE.exec(type)[1].toLowerCase() };
 }
 function reply(body, status) {
   return new Response(body ? JSON.stringify(body) : null, {
@@ -451,12 +487,18 @@ async function handleImportRequest(req, deps, limits = IMPORT_LIMITS) {
   } catch {
     return fail("bad_request");
   }
-  const url = parseImportUrl(body?.url);
+  const wanted = body;
+  const image = wanted?.image !== void 0;
+  const url = parseImportUrl(image ? wanted?.image : wanted?.url);
   if (!url) return fail("invalid_url");
   try {
     const quota = await deps.takeQuota(authorization);
     if (quota === null) return fail("unauthorized");
     if (!quota) return fail("rate_limited");
+    if (image) {
+      const photo = await fetchRecipeImage(url, deps, limits);
+      return new Response(photo.bytes, { status: 200, headers: { ...CORS, "content-type": photo.type, "cache-control": "no-store" } });
+    }
     const page = await fetchRecipePage(url, deps, limits);
     const draft = draftFromHtml(page.html, page.url.href);
     return draft ? reply({ draft }, 200) : fail("no_recipe");
@@ -481,6 +523,7 @@ function quotaViaRest(fetchFn, supabaseUrl, anonKey, rpc = "take_recipe_import_q
 }
 export {
   IMPORT_LIMITS,
+  fetchRecipeImage,
   fetchRecipePage,
   handleImportRequest,
   isPublicAddress,
