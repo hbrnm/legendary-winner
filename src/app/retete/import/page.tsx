@@ -11,8 +11,9 @@ import { Button } from "@/components/ui/button";
 import { Field, Input, Segmented, TextArea } from "@/components/ui/fields";
 import { Spinner } from "@/components/ui/misc";
 import { callImportRecipe } from "@/lib/supabase/client";
+import { looksForeign } from "@/lib/domain/recipe-import";
 import { productMap } from "@/lib/services/queries";
-import { draftFromLink, draftFromPastedText, prepareImport, sharedImport, type PreparedImport } from "@/lib/services/recipe-import";
+import { draftFromLink, draftFromPastedText, myMemoryTranslator, prepareImport, sharedImport, translateDraft, type PreparedImport } from "@/lib/services/recipe-import";
 import type { EditorSource } from "@/components/recipes/recipe-editor";
 
 type Mode = "link" | "text";
@@ -33,6 +34,7 @@ function Importer() {
   const [link, setLink] = useState(shared?.mode === "link" ? shared.link : "");
   const [text, setText] = useState(shared?.mode === "text" ? shared.text : "");
   const [ready, setReady] = useState<{ prepared: PreparedImport; source: EditorSource } | null>(null);
+  const [translating, setTranslating] = useState(false);
   const linkWorks = appMode === "cloud";
   const autoRead = useRef(shared?.mode === "link");
 
@@ -49,8 +51,11 @@ function Importer() {
 
   async function read(how: Mode = mode, value: string = how === "link" ? link : text) {
     const result = await run(async (ctx) => {
-      const draft = how === "link" ? await draftFromLink(value, callImportRecipe) : draftFromPastedText(value);
-      const prepared = await prepareImport(ctx, draft);
+      const original = how === "link" ? await draftFromLink(value, callImportRecipe) : draftFromPastedText(value);
+      // Rețetele în altă limbă se traduc în română, din telefon (.tasks/012).
+      setTranslating(looksForeign(original));
+      const { draft, translation } = await translateDraft(original, myMemoryTranslator()).finally(() => setTranslating(false));
+      const prepared = { ...(await prepareImport(ctx, draft)), translation };
       return { prepared, source: { products: await productMap(ctx.db, ctx.householdId), recipe: null, ingredients: [], steps: [] } };
     });
     if (result) setReady(result);
@@ -96,7 +101,7 @@ function Importer() {
           </Field>
         )}
         <Button type="submit" block size="lg" disabled={busy || (mode === "link" ? !linkWorks || !link.trim() : !text.trim())}>
-          {busy ? "Citesc rețeta…" : "Citește rețeta"}
+          {busy ? (translating ? "Traduc rețeta…" : "Citesc rețeta…") : "Citește rețeta"}
         </Button>
       </div>
     </form>

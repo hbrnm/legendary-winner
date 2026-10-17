@@ -29,7 +29,7 @@ const MAX_URL = 500;
 
 const ENTITIES: Record<string, string> = { amp: "&", lt: "<", gt: ">", quot: '"', apos: "'", nbsp: " ", ndash: "–", mdash: "—", hellip: "…", rsquo: "’", lsquo: "‘", rdquo: "”", ldquo: "„", deg: "°", frac12: "½", frac14: "¼", frac34: "¾" };
 
-function decodeEntities(s: string): string {
+export function decodeEntities(s: string): string {
   return s.replace(/&(#x[0-9a-f]+|#\d+|[a-z0-9]+);/gi, (all, code: string) => {
     if (code[0] === "#") {
       const n = code[1] === "x" || code[1] === "X" ? parseInt(code.slice(2), 16) : parseInt(code.slice(1), 10);
@@ -521,6 +521,84 @@ export function parseIngredientLine(input: string): ParsedIngredient {
     note: notes.length ? clip(notes.join(", "), 120) : null,
     optional,
   };
+}
+
+// --- Limba rețetei ----------------------------------------------------------------------
+
+/**
+ * Cuvinte frecvente în rețetele românești și rare în alte limbi (fără „de”, „la”,
+ * „un”, „se”, „este”, comune cu spaniola, franceza, italiana), cu imperativul
+ * la singular și la plural și forma „noi” din bloguri.
+ */
+const ROMANIAN_WORDS = new Set([
+  "si", "cu", "pentru", "apoi", "pana", "dupa", "sau", "care", "sa", "cand", "putin", "bine", "mai", "intr", "gust", "tava", "cuptor", "oala",
+  "adauga", "adaugati", "adaugam", "amesteca", "amestecati", "amestecam", "fierbe", "fierbeti", "fierbem", "taie", "taiati", "taiem",
+  "pune", "puneti", "punem", "lasa", "lasati", "lasam", "coace", "coaceti", "coacem", "framanta", "framantati", "framantam",
+]);
+
+/**
+ * Rețeta nu pare scrisă în română (deci are rost s-o traducem): fără destule
+ * semne românești și fără destule cuvinte românești uzuale. „ş/ţ” cu sedilă
+ * (texte vechi) contează doar lângă „ă”, pentru că „ş” e și în turcă.
+ */
+export function looksForeign(draft: Pick<RecipeDraft, "name" | "description" | "steps">): boolean {
+  const text = [draft.name, draft.description, ...draft.steps].join(" ");
+  const words = normalize(text).split(" ").filter((w) => /[a-z]/.test(w));
+  if (words.length < 3) return false;
+  const breve = (text.match(/[ăĂ]/g) ?? []).length;
+  const comma = (text.match(/[șȘțȚ]/g) ?? []).length;
+  const cedilla = (text.match(/[şŞţŢ]/g) ?? []).length;
+  if (breve + comma + (breve ? cedilla : 0) >= 3) return false;
+  const romanian = words.filter((w) => ROMANIAN_WORDS.has(w)).length;
+  return romanian / words.length < 0.05;
+}
+
+/** Limbile din care traducem (MyMemory cere limba sursă), cu cuvintele lor cele mai frecvente. */
+const SOURCE_WORDS: Record<"en" | "fr" | "it" | "es" | "de", string[]> = {
+  en: ["the", "and", "with", "into", "until", "for", "of", "to", "add", "bake", "mix", "minutes"],
+  fr: ["le", "les", "et", "avec", "dans", "pour", "des", "du", "ajouter", "cuire", "jusqu"],
+  it: ["il", "e", "con", "nel", "nella", "per", "di", "della", "aggiungere", "cuocere", "fino"],
+  es: ["el", "los", "y", "con", "en", "para", "del", "las", "agregar", "hasta", "se"],
+  de: ["der", "die", "und", "mit", "in", "den", "das", "fur", "bis", "minuten", "zugeben"],
+};
+
+/** Limba probabilă a unei rețete străine (după cuvintele frecvente); engleza dacă nu se știe. */
+export function guessLanguage(text: string): keyof typeof SOURCE_WORDS {
+  const words = normalize(text).split(" ");
+  let best: keyof typeof SOURCE_WORDS = "en";
+  let bestCount = 0;
+  for (const [lang, list] of Object.entries(SOURCE_WORDS) as [keyof typeof SOURCE_WORDS, string[]][]) {
+    const set = new Set(list);
+    const count = words.filter((w) => set.has(w)).length;
+    if (count > bestCount) [best, bestCount] = [lang, count];
+  }
+  return best;
+}
+
+const utf8Length = (s: string) => new TextEncoder().encode(s).length;
+
+/**
+ * Textul împărțit în bucăți de cel mult `maxBytes` octeți (MyMemory primește
+ * cel mult 500): pe propoziții, iar o propoziție prea lungă pe cuvinte.
+ */
+export function splitForTranslation(text: string, maxBytes = 450): string[] {
+  const pieces = text.match(/[^.!?]+[.!?]*\s*/g)?.map((p) => p.trim()).filter(Boolean) ?? [];
+  const out: string[] = [];
+  let current = "";
+  const push = (piece: string) => {
+    const joined = current ? `${current} ${piece}` : piece;
+    if (utf8Length(joined) <= maxBytes) current = joined;
+    else {
+      if (current) out.push(current);
+      current = piece;
+    }
+  };
+  for (const piece of pieces) {
+    if (utf8Length(piece) <= maxBytes) push(piece);
+    else for (const word of piece.split(/\s+/)) push(utf8Length(word) <= maxBytes ? word : word.slice(0, Math.floor(maxBytes / 4)));
+  }
+  if (current) out.push(current);
+  return out;
 }
 
 // --- Temperaturi și lungimi în pași ----------------------------------------------------

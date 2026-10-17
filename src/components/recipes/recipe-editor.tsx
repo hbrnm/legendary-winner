@@ -140,7 +140,13 @@ export function RecipeEditor({ id, isGlobal, source, imported, onBack }: { id: s
       </div>
       {imported && (
         <p className="mb-4 text-sm text-ink-2">
-          Am citit rețeta{d?.source_url ? ` de pe ${new URL(d.source_url).hostname.replace(/^www\./, "")}` : ""}. Verifică ce am înțeles, alege categoriile și produsele lipsă, apoi salvează.
+          Am citit rețeta{d?.source_url ? ` de pe ${new URL(d.source_url).hostname.replace(/^www\./, "")}` : ""}
+          {imported.translation === "done" ? " și am tradus-o în română" : ""}. Verifică ce am înțeles, alege categoriile și produsele lipsă, apoi salvează.
+        </p>
+      )}
+      {imported?.translation === "failed" && (
+        <p role="note" className="mb-4 rounded-xl bg-warn-soft px-3 py-2 text-sm text-ink">
+          Nu am putut traduce rețeta, așa că am păstrat textul original. Îl poți corecta aici.
         </p>
       )}
 

@@ -8,6 +8,9 @@ import {
   extractJsonLd,
   findRecipeNode,
   matchIngredients,
+  guessLanguage,
+  looksForeign,
+  splitForTranslation,
   metricText,
   phraseDictionary,
   parseIngredientLine,
@@ -306,6 +309,58 @@ describe("unitățile imperiale → metric (.tasks/011)", () => {
     ["Mix in a bowl.", "Mix in a bowl."],
   ])("%s", (step, expected) => {
     expect(metricText(step)).toBe(expected);
+  });
+});
+
+describe("limba rețetei (.tasks/012)", () => {
+  const r = (name: string, steps: string[], description = "") => ({ name, description, steps });
+
+  it.each([
+    ["engleză", r("Banana Bread", ["Preheat oven to 175°C.", "Mash the bananas and mix with the butter.", "Bake for 60 minutes."], "Moist and easy.")],
+    ["italiană", r("Pasta al pomodoro", ["Cuocere la pasta in acqua salata.", "Aggiungere il sugo e mescolare."])],
+    ["franceză", r("Tarte aux pommes", ["Préchauffer le four à 180°C.", "Étaler la pâte et ajouter les pommes."])],
+    ["spaniolă (cu „se”)", r("Bizcocho", ["Se mezcla la harina con el azúcar.", "Se agrega la leche y se bate.", "Se hornea 30 minutos."])],
+    ["turcă (cu „ş”)", r("Kurabiye", ["Şekeri ve tereyağını karıştırın.", "Unu ekleyin, şekil verin ve pişirin."])],
+  ])("%s: de tradus", (_, draft) => {
+    expect(looksForeign(draft)).toBe(true);
+  });
+
+  it.each([
+    ["cu diacritice", r("Ciorbă de perișoare", ["Fierbe oasele 30 de minute.", "Adaugă perișoarele și legumele tăiate."])],
+    ["fără diacritice", r("Ciorba de perisoare", ["Fierbe oasele si apoi adauga legumele.", "Lasa la foc mic pana se fac."])],
+    ["scurtă, cu plural", r("Cozonac", ["Framantati aluatul 10 minute.", "Lasati la crescut."])],
+    ["cu sedilă (text vechi)", r("Plăcintă", ["Adăugaţi zahărul şi amestecaţi."])],
+    ["prea scurtă", r("Pizza", [])],
+  ])("%s: rămâne cum e", (_, draft) => {
+    expect(looksForeign(draft)).toBe(false);
+  });
+});
+
+describe("limba sursă și bucățile pentru traducere (.tasks/012)", () => {
+  it.each([
+    ["Mix the flour with the sugar and bake for 30 minutes.", "en"],
+    ["Ajouter le sucre et cuire dans le four pour 30 minutes.", "fr"],
+    ["Cuocere la pasta e aggiungere il sugo nella pentola.", "it"],
+    ["Se mezcla la harina con el azúcar y se hornea para 30 minutos.", "es"],
+    ["Die Butter mit dem Zucker und den Eiern verrühren.", "de"],
+    ["Pizza", "en"],
+  ])("%s → %s", (text, lang) => {
+    expect(guessLanguage(text)).toBe(lang);
+  });
+
+  it("împarte pe propoziții, sub limită, fără să piardă text", () => {
+    const text = Array.from({ length: 40 }, (_, i) => `Pasul ${i} e scris aici.`).join(" ");
+    const parts = splitForTranslation(text, 100);
+    expect(parts.every((p) => new TextEncoder().encode(p).length <= 100)).toBe(true);
+    expect(parts.join(" ")).toBe(text);
+    expect(splitForTranslation("")).toEqual([]);
+    expect(splitForTranslation("Fără punct la final")).toEqual(["Fără punct la final"]);
+  });
+
+  it("o propoziție prea lungă se împarte pe cuvinte", () => {
+    const parts = splitForTranslation("cuvânt ".repeat(50).trim(), 60);
+    expect(parts.length).toBeGreaterThan(1);
+    expect(parts.every((p) => new TextEncoder().encode(p).length <= 60)).toBe(true);
   });
 });
 

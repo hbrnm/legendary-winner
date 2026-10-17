@@ -1,5 +1,5 @@
 import type { Product, UnitCode } from "@/lib/domain/types";
-import { draftFromText, matchIngredients, metricText, parseIngredientLine, phraseDictionary, type RecipeDraft } from "@/lib/domain/recipe-import";
+import { decodeEntities, draftFromText, guessLanguage, looksForeign, matchIngredients, metricText, parseIngredientLine, phraseDictionary, splitForTranslation, type RecipeDraft } from "@/lib/domain/recipe-import";
 import { ENGLISH_INGREDIENTS } from "@/data/import-en";
 import { type AppCtx, UserError } from "./context";
 import { productSearchIndex } from "./catalog";
@@ -27,9 +27,70 @@ export interface ImportedIngredient {
 export interface PreparedImport {
   draft: RecipeDraft;
   ingredients: ImportedIngredient[];
+  /** Traducerea în română (.tasks/012): făcută, nereușită (rămâne originalul) sau deloc (rețeta e deja în română). */
+  translation?: "done" | "failed";
 }
 
 const englishIngredient = phraseDictionary(ENGLISH_INGREDIENTS);
+
+type RecipeText = Pick<RecipeDraft, "name" | "description" | "steps">;
+
+/** Traduce în română textele unei rețete (aceleași câmpuri, același număr de pași). */
+export type Translate = (recipe: RecipeText, from: string) => Promise<RecipeText>;
+
+const MYMEMORY = "https://api.mymemory.translated.net/get";
+
+/**
+ * Traducerea cu MyMemory, direct din telefon (decizia proprietarului: gratuit,
+ * fără cont și fără cheie; ~5.000 de caractere pe zi pentru fiecare telefon).
+ * Fiecare text se trimite în bucăți de cel mult 450 de octeți, câte 3 deodată;
+ * limita zilnică atinsă sau un răspuns neașteptat sunt erori.
+ */
+export function myMemoryTranslator(fetchFn: typeof fetch = fetch, timeoutMs = 30_000): Translate {
+  return async (recipe, from) => {
+    const signal = AbortSignal.timeout(timeoutMs);
+    const fields = [recipe.name, recipe.description, ...recipe.steps];
+    const chunks = fields.map((text) => splitForTranslation(text));
+    const jobs = chunks.flatMap((list, f) => list.map((text, c) => ({ f, c, text })));
+    const done: string[][] = chunks.map((list) => list.map(() => ""));
+    const one = async (text: string) => {
+      const res = await fetchFn(`${MYMEMORY}?q=${encodeURIComponent(text)}&langpair=${from}|ro`, { signal });
+      const body = (await res.json().catch(() => null)) as { responseStatus?: number | string; quotaFinished?: boolean; responseData?: { translatedText?: unknown } } | null;
+      const out = body?.responseData?.translatedText;
+      if (!res.ok || Number(body?.responseStatus) !== 200 || body?.quotaFinished || typeof out !== "string" || /^MYMEMORY WARNING|LIMIT EXCEEDED/i.test(out)) {
+        throw new Error(`MyMemory ${body?.responseStatus ?? res.status}`);
+      }
+      return decodeEntities(out).trim();
+    };
+    for (let i = 0; i < jobs.length; i += 3) {
+      await Promise.all(jobs.slice(i, i + 3).map(async (j) => (done[j.f][j.c] = await one(j.text))));
+    }
+    const joined = done.map((list) => list.join(" "));
+    return { name: joined[0], description: joined[1], steps: joined.slice(2) };
+  };
+}
+
+/**
+ * Traduce în română numele, descrierea și pașii unei rețete care nu pare în
+ * română (.tasks/012). Dacă nu merge (fără internet, limita zilnică, eroare),
+ * rămâne originalul: importul continuă oricum.
+ */
+export async function translateDraft(draft: RecipeDraft, translate: Translate): Promise<{ draft: RecipeDraft; translation?: "done" | "failed" }> {
+  if (!looksForeign(draft)) return { draft };
+  try {
+    const r = await translate({ name: draft.name, description: draft.description, steps: draft.steps }, guessLanguage([draft.name, draft.description, ...draft.steps].join(" ")));
+    const text = (v: unknown): v is string => typeof v === "string";
+    const steps = Array.isArray(r?.steps) && r.steps.length === draft.steps.length && r.steps.every((s, i) => text(s) && (s.trim() !== "" || draft.steps[i].trim() === ""));
+    if (r && text(r.name) && r.name.trim() && text(r.description) && steps) {
+      return { draft: { ...draft, name: clip(r.name, 120), description: clip(r.description, 1000), steps: r.steps.map((s) => clip(s, 1500)) }, translation: "done" };
+    }
+  } catch {
+    // fără internet sau limita zilnică: rămâne originalul
+  }
+  return { draft, translation: "failed" };
+}
+
+const clip = (s: string, max: number) => (s.length <= max ? s : s.slice(0, max - 1).trimEnd() + "…");
 
 /** Citește fiecare rând de ingredient (unitățile americane devin metrice) și caută produsul în catalogul gospodăriei. */
 export async function prepareImport(ctx: AppCtx, draft: RecipeDraft): Promise<PreparedImport> {
