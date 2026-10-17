@@ -45,6 +45,17 @@ describe("prepareImport", () => {
     expect(ingredients[3].candidates.length).toBeGreaterThan(0);
   });
 
+  it("o rețetă americană ajunge în metric: cănile în ml, °F în °C, inch în cm", async () => {
+    const us: RecipeDraft = { ...draft, description: "Bake at 350°F.", ingredients: ["1 1/2 cups milk", "1 stick butter"], steps: ["Preheat oven to 350°F.", "Grease a 9x13 inch pan."] };
+    const { draft: d, ingredients } = await prepareImport(ctx, us);
+    expect(ingredients.map((i) => [i.quantity, i.unit, i.text])).toEqual([
+      [360, "ml", "1 1/2 cups milk"],
+      [113, "g", "1 stick butter"],
+    ]);
+    expect(d.steps).toEqual(["Preheat oven to 175°C.", "Grease a 23×33 cm pan."]);
+    expect(d.description).toBe("Bake at 175°C.");
+  });
+
   it("rețeta importată se salvează cu sursa, iar o modificare fără sursă o păstrează doar dacă formularul o trimite", async () => {
     const base = { name: "Ciorbă", categories: ["supe_ciorbe" as const], servings: 6, prep_minutes: 30, cook_minutes: 75, difficulty: "mediu" as const, ingredients: [{ product_id: "sare", quantity: null, unit: null }], steps: ["Fierbe."] };
     const id = await saveRecipe(ctx, { ...base, source_url: "https://exemplu.ro/ciorba" });

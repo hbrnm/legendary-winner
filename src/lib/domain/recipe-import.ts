@@ -322,7 +322,13 @@ const UNITS: [string, UnitCode, number][] = [
   ["oz", "g", 28.349523125], ["ounce", "g", 28.349523125], ["ounces", "g", 28.349523125],
   ["lingura", "lingura", 1], ["linguri", "lingura", 1], ["lg", "lingura", 1], ["tbsp", "lingura", 1], ["tablespoon", "lingura", 1], ["tablespoons", "lingura", 1],
   ["lingurita", "lingurita", 1], ["lingurite", "lingurita", 1], ["lgt", "lingurita", 1], ["lgta", "lingurita", 1], ["tsp", "lingurita", 1], ["teaspoon", "lingurita", 1], ["teaspoons", "lingurita", 1],
-  ["cana", "cana", 1], ["cani", "cana", 1], ["cup", "cana", 1], ["cups", "cana", 1],
+  ["cana", "cana", 1], ["cani", "cana", 1],
+  // Măsurile americane de volum, în ml (cana de 240 ml, ca pe etichetele din SUA).
+  ["cup", "ml", 240], ["cups", "ml", 240],
+  // Fără abrevieri („pt” e și „pentru” în română).
+  ["pint", "ml", 473], ["pints", "ml", 473],
+  ["quart", "ml", 946], ["quarts", "ml", 946],
+  ["gallon", "ml", 3785], ["gallons", "ml", 3785],
   ["buc", "buc", 1], ["bucata", "buc", 1], ["bucati", "buc", 1], ["pcs", "buc", 1], ["piece", "buc", 1], ["pieces", "buc", 1],
   ["legatura", "legatura", 1], ["legaturi", "legatura", 1], ["bunch", "legatura", 1], ["bunches", "legatura", 1],
   ["catel", "catel", 1], ["catei", "catel", 1], ["clove", "catel", 1], ["cloves", "catel", 1],
@@ -339,8 +345,8 @@ const UNIT_MAP = new Map(UNITS.map(([w, code, factor]) => [w, { code, factor }])
 
 const WORD_NUMBERS = new Map(Object.entries({ un: 1, o: 1, una: 1, unu: 1, a: 1, an: 1, one: 1, doua: 2, doi: 2, two: 2, trei: 3, three: 3, patru: 4, four: 4, cinci: 5, five: 5, sase: 6, six: 6, jumatate: 0.5, half: 0.5 }));
 const FRACTIONS = new Map(Object.entries({ "½": 0.5, "¼": 0.25, "¾": 0.75, "⅓": 1 / 3, "⅔": 2 / 3, "⅛": 0.125 }));
-/** Măsuri fără echivalent sigur („2 pumni de nuci”, „1 fir de ceapă verde”, „8 fl oz”): cantitatea rămâne în notă. */
-const MEASURES = new Set(["pumn", "pumni", "fir", "fire", "foaie", "foi", "crenguta", "crengute", "mana", "pahar", "pahare", "ceasca", "cesti", "strop", "stropi", "cub", "cuburi", "handful", "handfuls", "sprig", "sprigs", "dash", "drop", "drops", "splash", "stick", "sticks", "fl"]);
+/** Măsuri fără echivalent sigur („2 pumni de nuci”, „1 fir de ceapă verde”): cantitatea rămâne în notă. */
+const MEASURES = new Set(["pumn", "pumni", "fir", "fire", "foaie", "foi", "crenguta", "crengute", "mana", "pahar", "pahare", "ceasca", "cesti", "strop", "stropi", "cub", "cuburi", "handful", "handfuls", "sprig", "sprigs", "dash", "drop", "drops", "splash", "stick", "sticks"]);
 const TO_TASTE: string[][] = [["dupa", "gust"], ["cat", "cuprinde"], ["to", "taste"], ["as", "needed"]];
 /** „un vârf de cuțit de sare”, „un praf de piper”, „a pinch of salt” (dar nu „praf de copt”). */
 const PINCH = /^(?:un |a )?(?:varf de cutit|varf|praf|pinch|dash)(?! de copt\b)(?: de| of)? /;
@@ -450,17 +456,22 @@ export function parseIngredientLine(input: string): ParsedIngredient {
 
   let unit: UnitCode | null = null;
   const unitWord = tokens[i] ? normalize(tokens[i].replace(/\.$/, "")) : "";
-  const u = UNIT_MAP.get(unitWord);
-  if (u && (quantity != null || uncertain) && tokens.length > i + 1) {
+  // „8 fl oz”, „2 fl. oz.”: uncia de volum, 30 ml (8 fl oz = o cană).
+  const fluid = unitWord === "fl" && normalize((tokens[i + 1] ?? "").replace(/\.$/, "")) === "oz";
+  // Un „stick” de unt are 113 g; alte „sticks” (țelină, scorțișoară) rămân măsuri.
+  const butterStick = /^sticks?$/.test(unitWord) && tokens.slice(i + 1).some((t) => normalize(t) === "butter");
+  const u = fluid ? { code: "ml" as UnitCode, factor: 30 } : butterStick ? { code: "g" as UnitCode, factor: 113 } : UNIT_MAP.get(unitWord);
+  if (u && (quantity != null || uncertain) && tokens.length > i + 1 + (fluid ? 1 : 0)) {
+    if (fluid) tokens.splice(i, 2, "fl oz");
     unit = u.code;
     if (quantity != null && u.factor !== 1) quantity = Math.round(quantity * u.factor);
     i += 1;
     if (uncertain) uncertain += ` ${tokens[i - 1]}`;
   }
-  // „2 pumni de nuci”, „8 fl oz lapte”: măsură necunoscută, cantitatea doar în notă.
+  // „2 pumni de nuci”: măsură necunoscută, cantitatea doar în notă.
   let measured = false;
   if (!unit && (quantity != null || uncertain) && MEASURES.has(normalize(tokens[i] ?? "")) && tokens.length > i + 1) {
-    i += normalize(tokens[i]) === "fl" && normalize(tokens[i + 1] ?? "") === "oz" ? 2 : 1;
+    i += 1;
     uncertain = tokens.slice(0, i).join(" ");
     measured = true;
   }
@@ -510,6 +521,54 @@ export function parseIngredientLine(input: string): ParsedIngredient {
     note: notes.length ? clip(notes.join(", "), 120) : null,
     optional,
   };
+}
+
+// --- Temperaturi și lungimi în pași ----------------------------------------------------
+
+// Fără literă după „F”, „C” sau „inch” (cu flag-ul `u`, ca „250 făină” să nu fie temperatură).
+const FAHRENHEIT = String.raw`(?<!\d)(\d{2,3})\s*(?:[°º]\s*F|degrees?\s+(?:F|Fahrenheit)|F)(?!\p{L})`;
+const CELSIUS = String.raw`(?<!\d)(\d{2,3})\s*[°º]\s*C(?!\p{L})`;
+/** Cele două valori ale aceleiași temperaturi: „350°F (175°C)”, „180°C/350°F”, „350°F, or 175°C”. */
+const PAIR = String.raw`\s*(?:\(\s*X\s*\)|\/\s*X|,?\s+(?:or|and|sau|ori|si|și)\s+X)`;
+const RANGE = String.raw`\s*(?:-|–|to)\s*`;
+const INCHES = String.raw`(?<![\d/])(\d+\s+\d\/\d|\d\/\d|\d+(?:\.\d+)?)`;
+const INCH = String.raw`\s*-?\s*inch(?:es)?(?!\p{L})`;
+
+function toCelsius(f: number): number {
+  return Math.round((((f - 32) * 5) / 9) / 5) * 5;
+}
+
+function readInches(s: string): number {
+  return s.trim().split(/\s+/).reduce((sum, part) => sum + (readNumber(part) ?? 0), 0);
+}
+
+/** Centimetri pentru bucătărie: la jumătate de cm sub 3 cm, apoi la cm întreg. */
+function toCm(inches: string): string {
+  const cm = readInches(inches) * 2.54;
+  const r = cm < 3 ? Math.round(cm * 2) / 2 : Math.round(cm);
+  return String(r).replace(".", ",");
+}
+
+/**
+ * Trece în metric temperaturile și lungimile dintr-un pas al rețetei:
+ * „350°F” → „175°C” (rotunjit la 5 grade), „350-375°F” → „175–190°C”,
+ * „9x13 inch” → „23×33 cm”. Dacă pasul are deja și °C („350°F (175°C)”),
+ * rămâne doar valoarea în °C.
+ */
+export function metricText(text: string): string {
+  const re = (source: string) => new RegExp(source, "giu");
+  return text
+    .replace(re(FAHRENHEIT + PAIR.replaceAll("X", CELSIUS)), (...m: string[]) => `${m[2] ?? m[3] ?? m[4]}°C`)
+    .replace(re(CELSIUS + PAIR.replaceAll("X", FAHRENHEIT)), (_, c: string) => `${c}°C`)
+    .replace(re(String.raw`(?<!\d)(\d{2,3})(?:\s*[°º]\s*F?)?` + RANGE + FAHRENHEIT), (_, a: string, b: string) => `${toCelsius(Number(a))}–${toCelsius(Number(b))}°C`)
+    .replace(re(FAHRENHEIT), (all: string, f: string) => {
+      // „F” singur doar pentru temperaturi de cuptor, ca să nu schimbe alte texte.
+      const n = Number(f);
+      return /[°º]|degree/i.test(all) || (n >= 200 && n <= 600) ? `${toCelsius(n)}°C` : all;
+    })
+    .replace(re(`${INCHES}\\s*[x×]\\s*${INCHES}${INCH}`), (_, a: string, b: string) => `${toCm(a)}×${toCm(b)} cm`)
+    .replace(re(`${INCHES}${RANGE}${INCHES}${INCH}`), (_, a: string, b: string) => `${toCm(a)}–${toCm(b)} cm`)
+    .replace(re(`${INCHES}${INCH}`), (_, a: string) => `${toCm(a)} cm`);
 }
 
 // --- Potrivirea cu catalogul ------------------------------------------------------------

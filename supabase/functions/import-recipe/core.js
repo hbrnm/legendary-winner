@@ -180,8 +180,16 @@ var UNITS = [
   ["teaspoons", "lingurita", 1],
   ["cana", "cana", 1],
   ["cani", "cana", 1],
-  ["cup", "cana", 1],
-  ["cups", "cana", 1],
+  // Măsurile americane de volum, în ml (cana de 240 ml, ca pe etichetele din SUA).
+  ["cup", "ml", 240],
+  ["cups", "ml", 240],
+  // Fără abrevieri („pt” e și „pentru” în română).
+  ["pint", "ml", 473],
+  ["pints", "ml", 473],
+  ["quart", "ml", 946],
+  ["quarts", "ml", 946],
+  ["gallon", "ml", 3785],
+  ["gallons", "ml", 3785],
   ["buc", "buc", 1],
   ["bucata", "buc", 1],
   ["bucati", "buc", 1],
@@ -234,6 +242,12 @@ var UNITS = [
 var UNIT_MAP = new Map(UNITS.map(([w, code, factor]) => [w, { code, factor }]));
 var WORD_NUMBERS = new Map(Object.entries({ un: 1, o: 1, una: 1, unu: 1, a: 1, an: 1, one: 1, doua: 2, doi: 2, two: 2, trei: 3, three: 3, patru: 4, four: 4, cinci: 5, five: 5, sase: 6, six: 6, jumatate: 0.5, half: 0.5 }));
 var FRACTIONS = new Map(Object.entries({ "½": 0.5, "¼": 0.25, "¾": 0.75, "⅓": 1 / 3, "⅔": 2 / 3, "⅛": 0.125 }));
+var FAHRENHEIT = String.raw`(?<!\d)(\d{2,3})\s*(?:[°º]\s*F|degrees?\s+(?:F|Fahrenheit)|F)(?!\p{L})`;
+var CELSIUS = String.raw`(?<!\d)(\d{2,3})\s*[°º]\s*C(?!\p{L})`;
+var PAIR = String.raw`\s*(?:\(\s*X\s*\)|\/\s*X|,?\s+(?:or|and|sau|ori|si|și)\s+X)`;
+var RANGE = String.raw`\s*(?:-|–|to)\s*`;
+var INCHES = String.raw`(?<![\d/])(\d+\s+\d\/\d|\d\/\d|\d+(?:\.\d+)?)`;
+var INCH = String.raw`\s*-?\s*inch(?:es)?(?!\p{L})`;
 
 // src/lib/server/import-recipe.ts
 var IMPORT_LIMITS = {
