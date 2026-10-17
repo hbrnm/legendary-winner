@@ -17,6 +17,7 @@ export type ImportErrorCode =
   | "timeout"
   | "too_large"
   | "not_html"
+  | "not_image"
   | "no_recipe";
 
 export type ImportResponse = { draft: RecipeDraft } | { error: ImportErrorCode };
@@ -33,6 +34,8 @@ export const IMPORT_LIMITS = {
   /** Timpul total pentru pagină, cu tot cu redirecționări. */
   timeoutMs: 10_000,
   maxBytes: 3_000_000,
+  /** Fotografia rețetei (.tasks/013): cel mult 5 MB, se micșorează apoi pe telefon. */
+  maxImageBytes: 5_000_000,
   maxRedirects: 3,
   maxUrlLength: 500,
 };
@@ -47,6 +50,7 @@ const STATUS: Record<ImportErrorCode, number> = {
   timeout: 504,
   too_large: 413,
   not_html: 422,
+  not_image: 422,
   no_recipe: 422,
 };
 
@@ -205,11 +209,14 @@ function decode(bytes: Uint8Array, contentType: string): string {
   }
 }
 
+/** Tipurile de imagine pe care le poate citi telefonul (createImageBitmap). */
+const IMAGE_TYPE = /^\s*(image\/(?:jpeg|png|webp|avif|gif))\s*(?:;|$)/i;
+
 /**
- * Pagina de la acest link, cu adresa finală. Fiecare adresă (și fiecare
- * redirecționare) trebuie să fie publică; timpul și mărimea sunt limitate.
+ * Descarcă o pagină sau o imagine în siguranță: doar adrese publice (și după
+ * fiecare redirecționare), cu limită de timp și de mărime, doar tipul cerut.
  */
-export async function fetchRecipePage(start: URL, deps: ImportDeps, limits = IMPORT_LIMITS): Promise<{ html: string; url: URL }> {
+async function fetchResource(start: URL, deps: ImportDeps, limits: typeof IMPORT_LIMITS, kind: "page" | "image"): Promise<{ bytes: Uint8Array; type: string; url: URL }> {
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), limits.timeoutMs);
   try {
@@ -220,7 +227,10 @@ export async function fetchRecipePage(start: URL, deps: ImportDeps, limits = IMP
         .fetch(url.href, {
           redirect: "manual",
           signal: controller.signal,
-          headers: { accept: "text/html,application/xhtml+xml", "user-agent": "CamaraApp/0.1 (import retete)" },
+          headers: {
+            accept: kind === "page" ? "text/html,application/xhtml+xml" : "image/avif,image/webp,image/png,image/jpeg,image/gif",
+            "user-agent": "CamaraApp/0.1 (import retete)",
+          },
         })
         .catch((e: unknown) => {
           throw new ImportError(controller.signal.aborted || (e instanceof Error && e.name === "AbortError") ? "timeout" : "fetch_failed");
@@ -238,20 +248,36 @@ export async function fetchRecipePage(start: URL, deps: ImportDeps, limits = IMP
         throw new ImportError("fetch_failed");
       }
       const type = res.headers.get("content-type") ?? "";
-      // Fără Content-Type, pagina se citește ca HTML.
-      if (type.trim() && !/^\s*(text\/html|application\/xhtml\+xml)/i.test(type)) {
+      // Fără Content-Type, pagina se citește ca HTML; imaginea trebuie să-și spună tipul.
+      const wrongType = kind === "page" ? type.trim() && !/^\s*(text\/html|application\/xhtml\+xml)/i.test(type) : !IMAGE_TYPE.test(type);
+      if (wrongType) {
         await res.body?.cancel().catch(() => {});
-        throw new ImportError("not_html");
+        throw new ImportError(kind === "page" ? "not_html" : "not_image");
       }
-      const bytes = await readLimited(res, limits.maxBytes).catch((e: unknown) => {
+      const bytes = await readLimited(res, kind === "page" ? limits.maxBytes : limits.maxImageBytes).catch((e: unknown) => {
         if (e instanceof ImportError) throw e;
         throw new ImportError(controller.signal.aborted ? "timeout" : "fetch_failed");
       });
-      return { html: decode(bytes, type), url };
+      return { bytes, type, url };
     }
   } finally {
     clearTimeout(timer);
   }
+}
+
+/**
+ * Pagina de la acest link, cu adresa finală. Fiecare adresă (și fiecare
+ * redirecționare) trebuie să fie publică; timpul și mărimea sunt limitate.
+ */
+export async function fetchRecipePage(start: URL, deps: ImportDeps, limits = IMPORT_LIMITS): Promise<{ html: string; url: URL }> {
+  const { bytes, type, url } = await fetchResource(start, deps, limits, "page");
+  return { html: decode(bytes, type), url };
+}
+
+/** Fotografia rețetei (.tasks/013): octeții și tipul imaginii. */
+export async function fetchRecipeImage(start: URL, deps: ImportDeps, limits = IMPORT_LIMITS): Promise<{ bytes: Uint8Array; type: string }> {
+  const { bytes, type } = await fetchResource(start, deps, limits, "image");
+  return { bytes, type: IMAGE_TYPE.exec(type)![1].toLowerCase() };
 }
 
 // --- Cererea -------------------------------------------------------------------------
@@ -265,7 +291,7 @@ function reply(body: ImportResponse | null, status: number): Response {
 
 const fail = (code: ImportErrorCode) => reply({ error: code }, STATUS[code]);
 
-/** Cererea aplicației: POST cu `{ "url": "https://…" }` și tokenul omului în `Authorization`. */
+/** Cererea aplicației: POST cu `{ "url": "https://…" }` (sau `{ "image": … }`) și tokenul omului în `Authorization`. */
 export async function handleImportRequest(req: Request, deps: ImportDeps, limits = IMPORT_LIMITS): Promise<Response> {
   if (req.method === "OPTIONS") return reply(null, 204);
   if (req.method !== "POST") return fail("bad_request");
@@ -278,13 +304,21 @@ export async function handleImportRequest(req: Request, deps: ImportDeps, limits
   } catch {
     return fail("bad_request");
   }
-  const url = parseImportUrl((body as { url?: unknown } | null)?.url);
+  // `{"image": "https://…"}`: fotografia rețetei citite înainte (.tasks/013); altfel `{"url"}`: pagina.
+  const wanted = body as { url?: unknown; image?: unknown } | null;
+  const image = typeof wanted?.image === "string";
+  if (image && wanted?.url !== undefined) return fail("bad_request");
+  const url = parseImportUrl(image ? wanted?.image : wanted?.url);
   if (!url) return fail("invalid_url");
 
   try {
     const quota = await deps.takeQuota(authorization);
     if (quota === null) return fail("unauthorized");
     if (!quota) return fail("rate_limited");
+    if (image) {
+      const photo = await fetchRecipeImage(url, deps, limits);
+      return new Response(photo.bytes as BodyInit, { status: 200, headers: { ...CORS, "content-type": photo.type, "cache-control": "no-store", "x-content-type-options": "nosniff" } });
+    }
     const page = await fetchRecipePage(url, deps, limits);
     const draft = draftFromHtml(page.html, page.url.href);
     return draft ? reply({ draft }, 200) : fail("no_recipe");

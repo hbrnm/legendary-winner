@@ -112,7 +112,7 @@ describe("handleImportRequest", () => {
       "https://exemplu.ro/antet": { body: "mic", length: 5000 },
       "https://exemplu.ro/flux": { body: big },
     });
-    const limits = { timeoutMs: 1000, maxBytes: 1000, maxRedirects: 3, maxUrlLength: 500 };
+    const limits = { timeoutMs: 1000, maxBytes: 1000, maxImageBytes: 1000, maxRedirects: 3, maxUrlLength: 500 };
     expect(await call({ url: "https://exemplu.ro/antet" }, d, undefined, limits)).toMatchObject({ status: 413, json: { error: "too_large" } });
     expect(await call({ url: "https://exemplu.ro/flux" }, d, undefined, limits)).toMatchObject({ status: 413, json: { error: "too_large" } });
   });
@@ -124,7 +124,7 @@ describe("handleImportRequest", () => {
       resolveHost: async () => ["93.184.215.14"],
       takeQuota: async () => true,
     };
-    const r = await call({ url: "https://exemplu.ro/lent" }, d, undefined, { timeoutMs: 20, maxBytes: 1000, maxRedirects: 3, maxUrlLength: 500 });
+    const r = await call({ url: "https://exemplu.ro/lent" }, d, undefined, { timeoutMs: 20, maxBytes: 1000, maxImageBytes: 1000, maxRedirects: 3, maxUrlLength: 500 });
     expect(r).toMatchObject({ status: 504, json: { error: "timeout" } });
   });
 
@@ -142,7 +142,7 @@ describe("handleImportRequest", () => {
 
   it("se oprește după timpul maxim și când DNS-ul nu răspunde", async () => {
     const d: ImportDeps = { fetch: vi.fn() as unknown as typeof fetch, resolveHost: () => new Promise(() => {}), takeQuota: async () => true };
-    const r = await call({ url: "https://exemplu.ro/lent" }, d, undefined, { timeoutMs: 20, maxBytes: 1000, maxRedirects: 3, maxUrlLength: 500 });
+    const r = await call({ url: "https://exemplu.ro/lent" }, d, undefined, { timeoutMs: 20, maxBytes: 1000, maxImageBytes: 1000, maxRedirects: 3, maxUrlLength: 500 });
     expect(r).toMatchObject({ status: 504, json: { error: "timeout" } });
     expect(d.fetch).not.toHaveBeenCalled();
   });
@@ -191,6 +191,85 @@ describe("handleImportRequest", () => {
     const pre = await handleImportRequest(new Request("https://f.ro/x", { method: "OPTIONS" }), d);
     expect(pre.status).toBe(204);
     expect(pre.headers.get("access-control-allow-headers")).toContain("authorization");
+  });
+});
+
+describe("fotografia rețetei (.tasks/013)", () => {
+  const jpeg = new Uint8Array([0xff, 0xd8, 0xff, 0xe0, 1, 2, 3]);
+
+  it("întoarce imaginea, cu tipul ei, după aceleași verificări ca pagina", async () => {
+    const { d, fetchFn } = deps({ "https://exemplu.ro/poza.jpg": { type: "image/jpeg; charset=binary", body: jpeg } });
+    const res = await handleImportRequest(post({ image: "https://exemplu.ro/poza.jpg" }), d);
+    expect(res.status).toBe(200);
+    expect(res.headers.get("content-type")).toBe("image/jpeg");
+    expect(res.headers.get("access-control-allow-origin")).toBe("*");
+    expect(new Uint8Array(await res.arrayBuffer())).toEqual(jpeg);
+    expect(d.takeQuota).toHaveBeenCalledOnce();
+    expect((fetchFn.mock.calls[0][1]?.headers as Record<string, string>).accept).toContain("image/webp");
+  });
+
+  it("refuză ce nu e imagine, imaginile prea mari și adresele interne", async () => {
+    const { d } = deps(
+      {
+        "https://exemplu.ro/pagina": { type: "text/html", body: "<html>" },
+        "https://exemplu.ro/fara-tip": { type: "", body: jpeg },
+        "https://exemplu.ro/svg": { type: "image/svg+xml", body: "<svg/>" },
+        "https://exemplu.ro/mare.jpg": { type: "image/jpeg", body: new Uint8Array(2000) },
+      },
+      { "intern.exemplu.ro": ["10.0.0.5"] },
+    );
+    const limits = { timeoutMs: 1000, maxBytes: 1000, maxImageBytes: 1000, maxRedirects: 3, maxUrlLength: 500 };
+    const err = async (image: string) => (await (await handleImportRequest(post({ image }), d, limits)).json()).error;
+    expect(await err("https://exemplu.ro/pagina")).toBe("not_image");
+    expect(await err("https://exemplu.ro/fara-tip")).toBe("not_image");
+    expect(await err("https://exemplu.ro/svg")).toBe("not_image");
+    expect(await err("https://exemplu.ro/mare.jpg")).toBe("too_large");
+    expect(await err("https://intern.exemplu.ro/a.jpg")).toBe("blocked_address");
+    expect(await err("http://exemplu.ro/a.jpg")).toBe("invalid_url");
+  });
+
+  it("redirecționarea imaginii spre o adresă internă sau http e oprită", async () => {
+    const { d } = deps(
+      {
+        "https://exemplu.ro/r1.jpg": { status: 302, location: "https://intern.exemplu.ro/x.jpg" },
+        "https://exemplu.ro/r2.jpg": { status: 302, location: "http://exemplu.ro/x.jpg" },
+      },
+      { "intern.exemplu.ro": ["169.254.169.254"] },
+    );
+    const err = async (image: string) => (await (await handleImportRequest(post({ image }), d)).json()).error;
+    expect(await err("https://exemplu.ro/r1.jpg")).toBe("blocked_address");
+    expect(await err("https://exemplu.ro/r2.jpg")).toBe("invalid_url");
+  });
+
+  it("imaginea prea mare se oprește și fără Content-Length, pe măsură ce sosește", async () => {
+    const stream = new ReadableStream<Uint8Array>({
+      pull(c) {
+        c.enqueue(new Uint8Array(400));
+      },
+    });
+    const fetchFn = vi.fn(async () => new Response(stream, { headers: { "content-type": "image/png" } }));
+    const d: ImportDeps = { fetch: fetchFn as unknown as typeof fetch, resolveHost: async () => ["93.184.215.14"], takeQuota: async () => true };
+    const res = await handleImportRequest(post({ image: "https://exemplu.ro/fara-sfarsit.png" }), d, { timeoutMs: 1000, maxBytes: 1000, maxImageBytes: 1000, maxRedirects: 3, maxUrlLength: 500 });
+    expect((await res.json()).error).toBe("too_large");
+  });
+
+  it("tipul: majuscule și parametri merg, tipurile asemănătoare nu; antetul nosniff", async () => {
+    const { d } = deps({
+      "https://exemplu.ro/a": { type: "Image/JPEG ; q=1", body: jpeg },
+      "https://exemplu.ro/b": { type: "image/jpegx", body: jpeg },
+    });
+    const ok = await handleImportRequest(post({ image: "https://exemplu.ro/a" }), d);
+    expect([ok.status, ok.headers.get("content-type"), ok.headers.get("x-content-type-options")]).toEqual([200, "image/jpeg", "nosniff"]);
+    expect((await (await handleImportRequest(post({ image: "https://exemplu.ro/b" }), d)).json()).error).toBe("not_image");
+  });
+
+  it("limita de cereri și tokenul nevalid; „image” doar ca text, nu împreună cu „url”", async () => {
+    const over = deps({}, {}, false).d;
+    expect((await (await handleImportRequest(post({ image: "https://exemplu.ro/a.jpg" }), over)).json()).error).toBe("rate_limited");
+    expect((await (await handleImportRequest(post({ image: "https://exemplu.ro/a.jpg" }), deps({}, {}, null).d)).json()).error).toBe("unauthorized");
+    const { d } = deps({ "https://exemplu.ro/r": { body: fixture("graph-wordpress.html") } });
+    expect((await (await handleImportRequest(post({ url: "https://exemplu.ro/r", image: null }), d)).json()).draft?.name).toBeTruthy();
+    expect((await (await handleImportRequest(post({ url: "https://exemplu.ro/r", image: "https://exemplu.ro/a.jpg" }), d)).json()).error).toBe("bad_request");
   });
 });
 
