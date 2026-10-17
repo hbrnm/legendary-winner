@@ -74,3 +74,47 @@ test("după autentificare se revine doar la o pagină a aplicației (cu parametr
   await page.goto(`/autentificare/?inapoi=${encodeURIComponent("/retete/import/?text=1 kg carne")}`);
   await expect(page.getByLabel("Textul rețetei")).toHaveValue("1 kg carne");
 });
+
+// Rețetă în engleză (.tasks/011): unitățile americane în metric, ingredientele
+// potrivite din dicționarul englez–român, temperatura și tava în °C și cm.
+const BANANA_BREAD = `Banana Bread
+Moist and easy.
+Ingredients
+3 ripe bananas, mashed
+1/3 cup unsalted butter, melted
+3/4 cup sugar
+1 large egg, beaten
+1 1/2 cups all-purpose flour
+1 tbsp peanut butter
+Instructions
+1. Preheat oven to 350°F (175°C).
+2. Grease a 9x5 inch loaf pan.
+3. Bake for 60 minutes.`;
+
+test("import din text în engleză: metric și ingredientele potrivite din dicționar", async ({ page }) => {
+  await start(page, "/retete/import/");
+  await page.getByRole("radio", { name: "Text" }).click();
+  await page.getByLabel("Textul rețetei").fill(BANANA_BREAD);
+  await page.getByRole("button", { name: "Citește rețeta" }).click();
+
+  await expect(page.getByRole("heading", { name: "Verifică rețeta" })).toBeVisible();
+  await expect(page.getByLabel("Numele rețetei")).toHaveValue("Banana Bread");
+  // Potrivite automat, cu rândul original dedesubt.
+  await expect(page.getByText("din rețetă: 1/3 cup unsalted butter, melted")).toBeVisible();
+  await expect(page.getByLabel("Cantitate Unt")).toHaveValue("80");
+  await expect(page.getByLabel("Unitate Unt")).toHaveValue("ml");
+  await expect(page.getByLabel("Cantitate Făină albă 000")).toHaveValue("360");
+  await expect(page.getByLabel("Cantitate Zahăr")).toHaveValue("180");
+  await expect(page.getByLabel("Cantitate Banane")).toHaveValue("3");
+  // „peanut butter” nu e unt: rămâne de ales.
+  await expect(page.getByRole("status")).toHaveText("Un ingredient nu are încă produsul ales.");
+  // Pașii în °C și cm.
+  await expect(page.getByLabel("Pasul 1", { exact: true })).toHaveValue("Preheat oven to 175°C.");
+  await expect(page.getByLabel("Pasul 2", { exact: true })).toHaveValue("Grease a 23×13 cm loaf pan.");
+
+  await page.getByRole("button", { name: "Scoate 1 tbsp peanut butter" }).click();
+  await page.getByRole("button", { name: "Cină" }).click();
+  await page.getByRole("button", { name: "Salvează rețeta" }).click();
+  await expect(page.getByRole("heading", { name: "Banana Bread" })).toBeVisible();
+  await expect(page.getByText("Preheat oven to 175°C.")).toBeVisible();
+});
