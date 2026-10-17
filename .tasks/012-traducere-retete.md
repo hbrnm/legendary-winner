@@ -1,14 +1,14 @@
 # 012 — Traducerea rețetelor importate în română
 
-**Stare:** în lucru; etapele 1–2 gata în repo; etapa 2 se integrează după etapa 3 (funcția trebuie să existe pe producție)
+**Stare:** gata în repo (17 oct. 2026): traducerea se face din telefon, cu MyMemory; rămâne încercarea pe telefon
 **Ramura:** câte una pe etapă, fiecare cu PR-ul ei din `main`.
 
 ## Scop
 O rețetă importată în altă limbă (link sau text) ajunge în română: numele, descrierea și pașii. Ingredientele se potrivesc deja cu catalogul (dicționarul din `.tasks/011`), iar unitățile sunt deja metrice.
 
 Deciziile proprietarului (17 oct. 2026, chestionar):
-- **Traducerea pe server** (funcție Supabase Edge nouă), **automat la import:** dacă rețeta nu pare în română, se traduce singură înainte de ecranul „Verifică rețeta”.
-- **Furnizorul: DeepL API Free** (decizia din 17 oct. 2026, după ce proprietarul a cerut ca traducerea să fie gratuită; prima variantă, Claude Haiku 5.5, costa ~$0,001 pe rețetă și a fost înlocuită înainte de producție). Gratuit până la 500.000 de caractere pe lună (~250 de rețete); la limită DeepL răspunde 456 și rețeta rămâne în limba ei până luna următoare, fără plată.
+- **Automat la import:** dacă rețeta nu pare în română, se traduce singură înainte de ecranul „Verifică rețeta”.
+- **Gratuit.** Furnizorul s-a schimbat de două ori, la cererea proprietarului: Claude Haiku 5.5 pe server (~$0,001 pe rețetă; „vreau să fie gratuit”), apoi DeepL API Free (proprietarul n-a putut face contul: i s-a oferit doar o perioadă de probă), iar în final **MyMemory, direct din telefon**: fără cont, fără cheie, fără server; ~5.000 de caractere pe zi pentru fiecare telefon (2–3 rețete), calitate mai slabă decât DeepL.
 
 ## În afara scopului
 - Traducerea rândurilor de ingrediente (rămân originale sub produs, „din rețetă: …”; produsele sunt deja în română).
@@ -16,23 +16,21 @@ Deciziile proprietarului (17 oct. 2026, chestionar):
 - Traducerea în modul demonstrativ (fără server) sau offline: rețeta rămâne în limba ei, ca acum.
 
 ## Restricții
-- **Cheia** `DEEPL_API_KEY` stă doar în secretele funcțiilor din Supabase (o pune proprietarul din panou); niciodată în repo, în loguri sau în mediul cloud. Funcția nu are nevoie de `service_role`.
-- **Doar membri autentificați** (JWT), cu limită de cereri (ca la import: 20 pe oră de om, separat de import), limită de mărime a textului trimis și de timp.
-- **Datele:** se trimite la DeepL doar textul rețetei (nume, descriere, pași); nimic despre gospodărie sau om. Nu se păstrează nimic pe server.
-- **Conținut:** traducerea nu adaugă și nu scoate nimic; se verifică același număr de pași și niciun câmp golit sau inventat. Dacă traducerea nu merge (fără internet, limită, refuz, eroare), rețeta rămâne în limba ei, cu un mesaj scurt.
-- Textele noi se aprobă într-un singur chestionar (etapa 2). Pe producție doar cu acordul proprietarului.
+- **Datele:** din telefon pleacă la MyMemory (Translated, Italia) doar textul rețetei (nume, descriere, pași); nimic despre gospodărie sau om, fără cont și fără cheie.
+- **Conținut:** traducerea nu adaugă și nu scoate nimic: același număr de pași, niciun câmp golit; textele se taie la limitele ciornei. Dacă traducerea nu merge (fără internet, limita zilnică, 30 s fără răspuns, răspuns greșit), rețeta rămâne în limba ei, cu un mesaj scurt.
+- Textele noi aprobate într-un singur chestionar (etapa 2).
 
 ## Model
-- **Serverul** (`src/lib/server/translate-recipe.ts`, testat cu Vitest): `handleTranslateRequest` primește `POST {"recipe": {name, description, steps}}` cu tokenul omului și întoarce `{recipe}` tradus sau `{error}` (`bad_request`, `unauthorized`, `rate_limited`, `too_large`, `failed`). Traducerea e o dependență (`translate`), ca în teste să fie simulată: `deeplTranslator` (`POST /v2/translate`, `target_lang: "RO"`, câte cel mult 50 de texte, câmpurile goale netrimise; cheile gratuite „:fx” la api-free.deepl.com).
-- **Limita de cereri:** migrație nouă, `recipe_import_requests.kind` (`import` / `translate`) și `take_recipe_translate_quota()`.
-- **Clientul:** după citirea rețetei, `looksForeign(draft)` (puține cuvinte și semne românești) → `callTranslateRecipe` → numele, descrierea și pașii traduși, apoi `metricText`. Doar cu cont și cu internet.
+- **Limba:** `looksForeign` (de tradus sau nu) și `guessLanguage` (engleză, franceză, italiană, spaniolă, germană; engleza dacă nu se știe), pentru că MyMemory cere limba sursă (recunoașterea automată a limbii e nesigură la ei).
+- **Traducerea** (`myMemoryTranslator`, `src/lib/services/recipe-import.ts`): `GET https://api.mymemory.translated.net/get?q=…&langpair=en|ro`, fiecare text în bucăți de cel mult 450 de octeți (`splitForTranslation`, pe propoziții), câte 3 cereri deodată; `quotaFinished`, „MYMEMORY WARNING” sau alt status decât 200 sunt erori. `translateDraft` verifică rezultatul și păstrează originalul la eșec.
+- Merge și în modul demonstrativ și fără cont (doar cu internet); service worker-ul nu atinge cererile către alte site-uri.
 
 ## Etape
 | # | Etapa | Stare | Commit |
 |---|---|---|---|
-| 1 | **Serverul:** logica, schema, instrucțiunile pentru model, limitele, testele (fără rețea); migrația pentru limită + `npm run test:db`; `index.ts` cu SDK-ul. | gata (în repo) | (vezi PR) |
-| 2 | **Clientul:** recunoașterea limbii, apelul, „Traduc rețeta…”, mesajul la eșec; textele noi într-un chestionar; teste. | gata (PR deschis până la etapa 3) | (vezi PR) |
-| 3 | **Producția:** migrația, secretul (proprietarul, din panou), publicarea funcției, încercarea pe telefon. | migrația aplicată (17 oct.); restul de făcut | |
+| 1 | **Serverul** (Claude, apoi DeepL): logica, limita de cereri, migrația. | înlocuită (vezi mai jos) | (vezi PR) |
+| 2 | **Aplicația:** limba, traducerea, „Traduc rețeta…”, mesajul la eșec; textele noi; teste. Cu MyMemory din telefon. | gata | (vezi PR) |
+| 3 | **Producția:** migrația (aplicată, acum nefolosită); integrarea PR-ului; încercarea pe telefon. | de verificat pe telefon | |
 
 ## Rezumat pe etape
 ### Etapa 1 (17 oct. 2026)
@@ -55,8 +53,15 @@ Deciziile proprietarului (17 oct. 2026, chestionar):
 - `modelTranslator` (Claude) înlocuit cu `deeplTranslator`; scoase instrucțiunile și schema pentru model, `deno.json` și devDependency `@anthropic-ai/sdk`. Funcția nu mai are dependențe (ca `import-recipe`). Secretul e `DEEPL_API_KEY`. Teste: cheie gratuită/Pro, câmpuri goale, loturi de 50, 456/403/răspuns greșit.
 - **Migrația** `20261017000001_recipe_translate` aplicată de proprietar în SQL Editor (17 oct. 2026), verificată prin conector: `kind` cu `'import'` implicit, indexul nou, drepturile (limita comună nu se cheamă de `anon`/`authenticated`), istoricul ca în repo, rândurile vechi „import”.
 
+### Trecerea la MyMemory, din telefon (17 oct. 2026)
+- Proprietarul n-a putut face cont DeepL API Free (i s-a oferit doar o perioadă de probă). Chestionar: MyMemory din telefon (ales), Google AI Studio (Gemini; cardul nesigur), traducere de mână, fără traducere.
+- Scoase din repo: funcția Edge `translate-recipe` (logica, testele, `index.ts`, `core.js`) și intrarea din `scripts/build-functions.mjs`, `callTranslateRecipe`. Nu fusese publicată niciodată.
+- **Rămâne pe producție, nefolosit:** migrația `20261017000001_recipe_translate` (coloana `kind`, `take_recipe_translate_quota()`), aplicată înainte de schimbare. Nu strică nimic (limita de import se comportă la fel); se poate scoate cu o migrație nouă, dacă proprietarul vrea.
+- `import-recipe/core.js` din repo diferă de cel publicat doar prin parametrul `rpc` al lui `quotaViaRest` (același efect); se publică din nou la următoarea schimbare a funcției.
+- **Teste:** `guessLanguage` (6), `splitForTranslation` (3), `translateDraft` (3, cu traducătorul simulat), `myMemoryTranslator` (2: bucăți sub 500 de octeți, `langpair`, entități HTML; limita zilnică, „MYMEMORY WARNING”, 403, răspuns non-JSON). E2E (MyMemory simulat cu `page.route`, fără rețea): „tradus în română, metric…” și „fără traducere (limita zilnică)” cu mesajul. `npm run test:e2e`: 31 trec.
+
 ## Cum verific la final
-Pe telefon, cu cont: import din link o rețetă de pe un site american → pe „Verifică rețeta” numele, descrierea și pașii sunt în română, cu °C și cm; ingredientele potrivite cu catalogul → salvez.
+Pe telefon: import din link (cu cont) sau din text o rețetă în engleză → pe „Verifică rețeta” numele, descrierea și pașii sunt în română, cu °C și cm; ingredientele potrivite cu catalogul → salvez.
 
 ## Următorul pas
-Etapa 3: proprietarul face cont DeepL API Free și pune `DEEPL_API_KEY` în Supabase; apoi publicarea `translate-recipe` și din nou `import-recipe` (aprobate), integrarea PR-ului etapei 2 și încercarea pe telefon.
+Proprietarul, pe telefon (după integrare): o rețetă în engleză lipită la „Text” și una din link de pe un site american → numele, descrierea și pașii în română, cu °C.

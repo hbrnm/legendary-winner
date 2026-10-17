@@ -29,7 +29,7 @@ const MAX_URL = 500;
 
 const ENTITIES: Record<string, string> = { amp: "&", lt: "<", gt: ">", quot: '"', apos: "'", nbsp: " ", ndash: "–", mdash: "—", hellip: "…", rsquo: "’", lsquo: "‘", rdquo: "”", ldquo: "„", deg: "°", frac12: "½", frac14: "¼", frac34: "¾" };
 
-function decodeEntities(s: string): string {
+export function decodeEntities(s: string): string {
   return s.replace(/&(#x[0-9a-f]+|#\d+|[a-z0-9]+);/gi, (all, code: string) => {
     if (code[0] === "#") {
       const n = code[1] === "x" || code[1] === "X" ? parseInt(code.slice(2), 16) : parseInt(code.slice(1), 10);
@@ -551,6 +551,54 @@ export function looksForeign(draft: Pick<RecipeDraft, "name" | "description" | "
   if (breve + comma + (breve ? cedilla : 0) >= 3) return false;
   const romanian = words.filter((w) => ROMANIAN_WORDS.has(w)).length;
   return romanian / words.length < 0.05;
+}
+
+/** Limbile din care traducem (MyMemory cere limba sursă), cu cuvintele lor cele mai frecvente. */
+const SOURCE_WORDS: Record<"en" | "fr" | "it" | "es" | "de", string[]> = {
+  en: ["the", "and", "with", "into", "until", "for", "of", "to", "add", "bake", "mix", "minutes"],
+  fr: ["le", "les", "et", "avec", "dans", "pour", "des", "du", "ajouter", "cuire", "jusqu"],
+  it: ["il", "e", "con", "nel", "nella", "per", "di", "della", "aggiungere", "cuocere", "fino"],
+  es: ["el", "los", "y", "con", "en", "para", "del", "las", "agregar", "hasta", "se"],
+  de: ["der", "die", "und", "mit", "in", "den", "das", "fur", "bis", "minuten", "zugeben"],
+};
+
+/** Limba probabilă a unei rețete străine (după cuvintele frecvente); engleza dacă nu se știe. */
+export function guessLanguage(text: string): keyof typeof SOURCE_WORDS {
+  const words = normalize(text).split(" ");
+  let best: keyof typeof SOURCE_WORDS = "en";
+  let bestCount = 0;
+  for (const [lang, list] of Object.entries(SOURCE_WORDS) as [keyof typeof SOURCE_WORDS, string[]][]) {
+    const set = new Set(list);
+    const count = words.filter((w) => set.has(w)).length;
+    if (count > bestCount) [best, bestCount] = [lang, count];
+  }
+  return best;
+}
+
+const utf8Length = (s: string) => new TextEncoder().encode(s).length;
+
+/**
+ * Textul împărțit în bucăți de cel mult `maxBytes` octeți (MyMemory primește
+ * cel mult 500): pe propoziții, iar o propoziție prea lungă pe cuvinte.
+ */
+export function splitForTranslation(text: string, maxBytes = 450): string[] {
+  const pieces = text.match(/[^.!?]+[.!?]*\s*/g)?.map((p) => p.trim()).filter(Boolean) ?? [];
+  const out: string[] = [];
+  let current = "";
+  const push = (piece: string) => {
+    const joined = current ? `${current} ${piece}` : piece;
+    if (utf8Length(joined) <= maxBytes) current = joined;
+    else {
+      if (current) out.push(current);
+      current = piece;
+    }
+  };
+  for (const piece of pieces) {
+    if (utf8Length(piece) <= maxBytes) push(piece);
+    else for (const word of piece.split(/\s+/)) push(utf8Length(word) <= maxBytes ? word : word.slice(0, Math.floor(maxBytes / 4)));
+  }
+  if (current) out.push(current);
+  return out;
 }
 
 // --- Temperaturi și lungimi în pași ----------------------------------------------------

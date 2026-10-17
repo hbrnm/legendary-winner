@@ -4,7 +4,7 @@ import { setClock } from "@/lib/clock";
 import { seedCatalog } from "./bootstrap";
 import type { AppCtx } from "./context";
 import { saveRecipe } from "./kitchen";
-import { IMPORT_ERROR_MESSAGES, draftFromLink, draftFromPastedText, prepareImport, sharedImport, translateDraft } from "./recipe-import";
+import { IMPORT_ERROR_MESSAGES, draftFromLink, draftFromPastedText, myMemoryTranslator, prepareImport, sharedImport, translateDraft } from "./recipe-import";
 import type { RecipeDraft } from "@/lib/domain/recipe-import";
 
 let ctx: AppCtx;
@@ -136,38 +136,66 @@ describe("sharedImport (Partajează pe Android)", () => {
 describe("translateDraft (.tasks/012)", () => {
   const english: RecipeDraft = { ...draft, name: "Banana Bread", description: "Moist and easy.", steps: ["Preheat the oven.", "Bake for 60 minutes."] };
   const romanian = { name: "Chec cu banane", description: "Pufos și ușor de făcut.", steps: ["Preîncălzește cuptorul.", "Coace 60 de minute."] };
-  const answer = (status: number, body: unknown) => vi.fn(async () => new Response(JSON.stringify(body), { status }));
+  const answer = (out: unknown) => vi.fn(async () => out as { name: string; description: string; steps: string[] });
 
-  it("traduce numele, descrierea și pașii; restul ciornei rămâne", async () => {
-    const call = answer(200, { recipe: romanian });
-    const { draft: d, translation } = await translateDraft(english, call);
+  it("traduce numele, descrierea și pașii din limba ghicită; restul ciornei rămâne", async () => {
+    const translate = answer(romanian);
+    const { draft: d, translation } = await translateDraft(english, translate);
     expect(translation).toBe("done");
     expect(d).toEqual({ ...english, ...romanian });
-    expect(call).toHaveBeenCalledWith({ recipe: { name: english.name, description: english.description, steps: english.steps } });
+    expect(translate).toHaveBeenCalledWith({ name: english.name, description: english.description, steps: english.steps }, "en");
   });
 
-  it("o rețetă în română nu se trimite la server", async () => {
-    const call = answer(200, { recipe: romanian });
-    expect(await translateDraft({ ...draft, steps: ["Fierbe carnea și apoi adaugă legumele."] }, call)).toEqual({ draft: { ...draft, steps: ["Fierbe carnea și apoi adaugă legumele."] } });
-    expect(call).not.toHaveBeenCalled();
+  it("o rețetă în română nu se trimite la tradus", async () => {
+    const translate = answer(romanian);
+    const ro = { ...draft, steps: ["Fierbe carnea și apoi adaugă legumele."] };
+    expect(await translateDraft(ro, translate)).toEqual({ draft: ro });
+    expect(translate).not.toHaveBeenCalled();
   });
 
   it("fără internet, cu limita atinsă sau cu un răspuns greșit rămâne originalul", async () => {
     const offline = vi.fn(async () => {
       throw new TypeError("Failed to fetch");
     });
-    const notJson = vi.fn(async () => new Response("<html>", { status: 200 }));
-    for (const call of [
+    for (const translate of [
       offline,
-      notJson,
-      answer(429, { error: "rate_limited" }),
-      answer(502, { recipe: romanian }),
-      answer(200, { recipe: { ...romanian, steps: ["Unul."] } }),
-      answer(200, { recipe: { ...romanian, steps: [null, "Coace."] } }),
-      answer(200, { recipe: { ...romanian, steps: ["", "Coace."] } }),
-      answer(200, { recipe: { ...romanian, name: " " } }),
+      answer({ ...romanian, steps: ["Unul."] }),
+      answer({ ...romanian, steps: [null, "Coace."] }),
+      answer({ ...romanian, steps: ["", "Coace."] }),
+      answer({ ...romanian, name: " " }),
+      answer(null),
     ]) {
-      expect(await translateDraft(english, call)).toEqual({ draft: english, translation: "failed" });
+      expect(await translateDraft(english, translate)).toEqual({ draft: english, translation: "failed" });
     }
+  });
+});
+
+describe("myMemoryTranslator", () => {
+  const reply = (body: unknown, status = 200) => new Response(JSON.stringify(body), { status });
+  const ok = (text: string) => reply({ responseStatus: 200, quotaFinished: false, responseData: { translatedText: text } });
+
+  it("trimite fiecare text (pe bucăți) din limba dată în română și le pune la loc", async () => {
+    const fetchFn = vi.fn(async (url: string | URL | Request) => {
+      const q = new URL(String(url)).searchParams.get("q")!;
+      return ok(`RO(${q}) &amp; gata`);
+    });
+    const long = Array.from({ length: 30 }, (_, i) => `Sentence number ${i} is here.`).join(" ");
+    const out = await myMemoryTranslator(fetchFn as unknown as typeof fetch)({ name: "Banana Bread", description: "", steps: [long] }, "en");
+    expect(out.name).toBe("RO(Banana Bread) & gata");
+    expect(out.description).toBe("");
+    const urls = fetchFn.mock.calls.map(([u]) => new URL(String(u)));
+    expect(urls[0].origin + urls[0].pathname).toBe("https://api.mymemory.translated.net/get");
+    expect(urls.every((u) => u.searchParams.get("langpair") === "en|ro")).toBe(true);
+    expect(urls.every((u) => new TextEncoder().encode(u.searchParams.get("q")!).length <= 500)).toBe(true);
+    expect(urls.length).toBeGreaterThan(2);
+    expect(out.steps[0]).toContain("RO(Sentence number 0 is here.");
+  });
+
+  it("limita zilnică sau un răspuns ciudat sunt erori", async () => {
+    const t = (r: Response) => myMemoryTranslator((async () => r) as unknown as typeof fetch)({ name: "Bread", description: "", steps: [] }, "en");
+    await expect(t(reply({ responseStatus: 429, quotaFinished: true, responseData: { translatedText: "MYMEMORY WARNING: YOU USED ALL AVAILABLE FREE TRANSLATIONS FOR TODAY" } }))).rejects.toThrow();
+    await expect(t(reply({ responseStatus: 200, responseData: { translatedText: "MYMEMORY WARNING: YOU USED ALL AVAILABLE FREE TRANSLATIONS FOR TODAY" } }))).rejects.toThrow();
+    await expect(t(reply({ responseStatus: "403", responseData: { translatedText: "INVALID LANGUAGE PAIR" } }))).rejects.toThrow();
+    await expect(t(new Response("<html>", { status: 500 }))).rejects.toThrow();
   });
 });
