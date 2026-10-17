@@ -7,9 +7,8 @@
 O rețetă importată în altă limbă (link sau text) ajunge în română: numele, descrierea și pașii. Ingredientele se potrivesc deja cu catalogul (dicționarul din `.tasks/011`), iar unitățile sunt deja metrice.
 
 Deciziile proprietarului (17 oct. 2026, chestionar):
-- **Traducerea cu Claude, pe server** (funcție Supabase Edge nouă), cu cheie API Anthropic.
-- **Modelul:** Claude Haiku 5.5 (`claude-haiku-5-5`), cel mai ieftin: aproximativ $0,001 pe rețetă (~1–2k tokeni la intrare și la ieșire; $0,10 / $0,50 pe milion).
-- **Automat la import:** dacă rețeta nu pare în română, se traduce singură înainte de ecranul „Verifică rețeta”.
+- **Traducerea pe server** (funcție Supabase Edge nouă), **automat la import:** dacă rețeta nu pare în română, se traduce singură înainte de ecranul „Verifică rețeta”.
+- **Furnizorul: DeepL API Free** (decizia din 17 oct. 2026, după ce proprietarul a cerut ca traducerea să fie gratuită; prima variantă, Claude Haiku 5.5, costa ~$0,001 pe rețetă și a fost înlocuită înainte de producție). Gratuit până la 500.000 de caractere pe lună (~250 de rețete); la limită DeepL răspunde 456 și rețeta rămâne în limba ei până luna următoare, fără plată.
 
 ## În afara scopului
 - Traducerea rândurilor de ingrediente (rămân originale sub produs, „din rețetă: …”; produsele sunt deja în română).
@@ -17,14 +16,14 @@ Deciziile proprietarului (17 oct. 2026, chestionar):
 - Traducerea în modul demonstrativ (fără server) sau offline: rețeta rămâne în limba ei, ca acum.
 
 ## Restricții
-- **Cheia** `ANTHROPIC_API_KEY` stă doar în secretele funcțiilor din Supabase (o pune proprietarul din panou); niciodată în repo, în loguri sau în mediul cloud. Funcția nu are nevoie de `service_role`.
+- **Cheia** `DEEPL_API_KEY` stă doar în secretele funcțiilor din Supabase (o pune proprietarul din panou); niciodată în repo, în loguri sau în mediul cloud. Funcția nu are nevoie de `service_role`.
 - **Doar membri autentificați** (JWT), cu limită de cereri (ca la import: 20 pe oră de om, separat de import), limită de mărime a textului trimis și de timp.
-- **Datele:** se trimite la Anthropic doar textul rețetei (nume, descriere, pași); nimic despre gospodărie sau om. Nu se păstrează nimic pe server.
-- **Conținut:** traducerea nu adaugă și nu scoate nimic (fără ingrediente, cantități sau sfaturi inventate); numerele, temperaturile și unitățile rămân cum sunt. Dacă traducerea nu merge (fără internet, limită, refuz, eroare), rețeta rămâne în limba ei, cu un mesaj scurt.
+- **Datele:** se trimite la DeepL doar textul rețetei (nume, descriere, pași); nimic despre gospodărie sau om. Nu se păstrează nimic pe server.
+- **Conținut:** traducerea nu adaugă și nu scoate nimic; se verifică același număr de pași și niciun câmp golit sau inventat. Dacă traducerea nu merge (fără internet, limită, refuz, eroare), rețeta rămâne în limba ei, cu un mesaj scurt.
 - Textele noi se aprobă într-un singur chestionar (etapa 2). Pe producție doar cu acordul proprietarului.
 
 ## Model
-- **Serverul** (`src/lib/server/translate-recipe.ts`, testat cu Vitest): `handleTranslateRequest` primește `POST {"recipe": {name, description, steps}}` cu tokenul omului și întoarce `{recipe}` tradus sau `{error}` (`bad_request`, `unauthorized`, `rate_limited`, `too_large`, `failed`). Apelul la model e o dependență (`translate`), ca în teste să fie simulat; în `supabase/functions/translate-recipe/index.ts` e făcut cu SDK-ul oficial (`npm:@anthropic-ai/sdk`), cu răspuns JSON după schemă (`output_config.format`), efort `low`.
+- **Serverul** (`src/lib/server/translate-recipe.ts`, testat cu Vitest): `handleTranslateRequest` primește `POST {"recipe": {name, description, steps}}` cu tokenul omului și întoarce `{recipe}` tradus sau `{error}` (`bad_request`, `unauthorized`, `rate_limited`, `too_large`, `failed`). Traducerea e o dependență (`translate`), ca în teste să fie simulată: `deeplTranslator` (`POST /v2/translate`, `target_lang: "RO"`, câte cel mult 50 de texte, câmpurile goale netrimise; cheile gratuite „:fx” la api-free.deepl.com).
 - **Limita de cereri:** migrație nouă, `recipe_import_requests.kind` (`import` / `translate`) și `take_recipe_translate_quota()`.
 - **Clientul:** după citirea rețetei, `looksForeign(draft)` (puține cuvinte și semne românești) → `callTranslateRecipe` → numele, descrierea și pașii traduși, apoi `metricText`. Doar cu cont și cu internet.
 
@@ -33,7 +32,7 @@ Deciziile proprietarului (17 oct. 2026, chestionar):
 |---|---|---|---|
 | 1 | **Serverul:** logica, schema, instrucțiunile pentru model, limitele, testele (fără rețea); migrația pentru limită + `npm run test:db`; `index.ts` cu SDK-ul. | gata (în repo) | (vezi PR) |
 | 2 | **Clientul:** recunoașterea limbii, apelul, „Traduc rețeta…”, mesajul la eșec; textele noi într-un chestionar; teste. | gata (PR deschis până la etapa 3) | (vezi PR) |
-| 3 | **Producția:** migrația, secretul (proprietarul, din panou), publicarea funcției, încercarea pe telefon. | de făcut | |
+| 3 | **Producția:** migrația, secretul (proprietarul, din panou), publicarea funcției, încercarea pe telefon. | migrația aplicată (17 oct.); restul de făcut | |
 
 ## Rezumat pe etape
 ### Etapa 1 (17 oct. 2026)
@@ -51,8 +50,13 @@ Deciziile proprietarului (17 oct. 2026, chestionar):
 - `verificare`: nimic blocant; reparate cu teste: răspunsul serverului verificat strict (pași text, nume negol), spaniola cu „se” și turca cu „ş” se traduc, plural românesc fără diacritice nu, cererea de traducere se oprește după 30 s (butonul nu rămâne pe „Traduc rețeta…”).
 - **Ordinea:** PR-ul etapei 2 se integrează după ce funcția e pe producție; altfel fiecare rețetă străină ar arăta mesajul de eșec.
 
+### Schimbarea furnizorului: DeepL (17 oct. 2026)
+- Proprietarul a cerut traducere gratuită (Claude nu are nivel gratuit; traducerea din Chrome merge doar pe calculator). Variante în chestionar: DeepL API Free (aleasă), MyMemory fără cont (câteva rețete pe zi, calitate mai slabă), fără traducere, Claude cu limită de cheltuieli.
+- `modelTranslator` (Claude) înlocuit cu `deeplTranslator`; scoase instrucțiunile și schema pentru model, `deno.json` și devDependency `@anthropic-ai/sdk`. Funcția nu mai are dependențe (ca `import-recipe`). Secretul e `DEEPL_API_KEY`. Teste: cheie gratuită/Pro, câmpuri goale, loturi de 50, 456/403/răspuns greșit.
+- **Migrația** `20261017000001_recipe_translate` aplicată de proprietar în SQL Editor (17 oct. 2026), verificată prin conector: `kind` cu `'import'` implicit, indexul nou, drepturile (limita comună nu se cheamă de `anon`/`authenticated`), istoricul ca în repo, rândurile vechi „import”.
+
 ## Cum verific la final
 Pe telefon, cu cont: import din link o rețetă de pe un site american → pe „Verifică rețeta” numele, descrierea și pașii sunt în română, cu °C și cm; ingredientele potrivite cu catalogul → salvez.
 
 ## Următorul pas
-Etapa 3, cu acordul proprietarului: migrația `20261017000001_recipe_translate`, secretul `ANTHROPIC_API_KEY` (proprietarul, din panou), publicarea `translate-recipe` și din nou `import-recipe`; apoi integrarea PR-ului etapei 2 și încercarea pe telefon.
+Etapa 3: proprietarul face cont DeepL API Free și pune `DEEPL_API_KEY` în Supabase; apoi publicarea `translate-recipe` și din nou `import-recipe` (aprobate), integrarea PR-ului etapei 2 și încercarea pe telefon.

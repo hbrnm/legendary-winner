@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
-import { TRANSLATE_LIMITS, TRANSLATION_SCHEMA, checkTranslation, handleTranslateRequest, modelTranslator, quotaViaRest, type RecipeText, type TranslateDeps } from "./translate-recipe";
+import { TRANSLATE_LIMITS, checkTranslation, deeplTranslator, handleTranslateRequest, quotaViaRest, type RecipeText, type TranslateDeps } from "./translate-recipe";
 
-// Funcția Edge translate-recipe, fără rețea: modelul și limita de cereri sunt simulate.
+// Funcția Edge translate-recipe, fără rețea: DeepL și limita de cereri sunt simulate.
 
 const recipe: RecipeText = {
   name: "Banana Bread",
@@ -38,11 +38,11 @@ async function call(body: unknown, d: TranslateDeps, auth?: string | null) {
 }
 
 describe("translate-recipe", () => {
-  it("trimite modelului doar rețeta și întoarce traducerea", async () => {
+  it("trimite la traducere doar rețeta și întoarce traducerea", async () => {
     const d = deps();
     expect(await call({ recipe }, d)).toEqual({ status: 200, json: { recipe: romanian }, cors: "*" });
     expect(d.takeQuota).toHaveBeenCalledWith("Bearer token-ana");
-    expect(d.translate).toHaveBeenCalledWith(JSON.stringify(recipe));
+    expect(d.translate).toHaveBeenCalledWith(recipe);
   });
 
   it("fără token, cu o cerere greșită sau prea mare nu cheamă modelul și nu consumă din limită", async () => {
@@ -67,8 +67,8 @@ describe("translate-recipe", () => {
     expect((await call({ recipe }, deps(romanian, null))).json).toEqual({ error: "unauthorized" });
   });
 
-  it("o eroare a modelului sau un răspuns greșit dă „failed”", async () => {
-    expect(await call({ recipe }, deps(new Error("refusal")))).toMatchObject({ status: 502, json: { error: "failed" } });
+  it("o eroare a traducerii sau un răspuns greșit dă „failed”", async () => {
+    expect(await call({ recipe }, deps(new Error("DeepL 456")))).toMatchObject({ status: 502, json: { error: "failed" } });
     expect((await call({ recipe }, deps({ ...romanian, steps: ["Un singur pas."] }))).json).toEqual({ error: "failed" });
   });
 });
@@ -92,29 +92,36 @@ describe("checkTranslation", () => {
   });
 });
 
-describe("modelTranslator", () => {
-  type Answer = { stop_reason: string; content: { type: string; text?: string }[] };
-  const translator = (answer: Answer) => {
-    const create = vi.fn(async () => answer);
-    return { create, translate: modelTranslator(create as unknown as Parameters<typeof modelTranslator>[0]) };
+describe("deeplTranslator", () => {
+  const deepl = (...answers: Response[]) => {
+    const fetchFn = vi.fn(async () => answers.shift()!);
+    return fetchFn;
   };
+  const ok = (texts: string[]) => new Response(JSON.stringify({ translations: texts.map((text) => ({ detected_source_language: "EN", text })) }), { status: 200 });
 
-  it("cere Claude Haiku 5.5, efort mic și JSON după schemă; întoarce JSON-ul", async () => {
-    const { create, translate } = translator({ stop_reason: "end_turn", content: [{ type: "thinking" }, { type: "text", text: JSON.stringify(romanian) }] });
-    expect(await translate(JSON.stringify(recipe))).toEqual(romanian);
-    expect(create).toHaveBeenCalledWith(
-      expect.objectContaining({
-        model: "claude-haiku-5-5",
-        output_config: { effort: "low", format: { type: "json_schema", schema: TRANSLATION_SCHEMA } },
-        messages: [{ role: "user", content: JSON.stringify(recipe) }],
-      }),
-    );
+  it("cheia gratuită (:fx) merge la api-free, în română; câmpurile goale nu se trimit", async () => {
+    const fetchFn = deepl(ok(["Chec cu banane", "Preîncălzește cuptorul la 175°C.", "Coace 60 de minute."]));
+    const translate = deeplTranslator(fetchFn as unknown as typeof fetch, "cheie:fx");
+    expect(await translate({ ...recipe, description: "" })).toEqual({ ...romanian, description: "" });
+    const [url, init] = fetchFn.mock.calls[0] as unknown as [string, RequestInit];
+    expect(url).toBe("https://api-free.deepl.com/v2/translate");
+    expect(init.headers).toEqual({ authorization: "DeepL-Auth-Key cheie:fx", "content-type": "application/json" });
+    expect(JSON.parse(String(init.body))).toEqual({ text: ["Banana Bread", ...recipe.steps], target_lang: "RO", preserve_formatting: true });
   });
 
-  it("refuzul, textul tăiat sau lipsa textului sunt erori", async () => {
-    await expect(translator({ stop_reason: "refusal", content: [] }).translate("{}")).rejects.toThrow("refusal");
-    await expect(translator({ stop_reason: "max_tokens", content: [{ type: "text", text: "{" }] }).translate("{}")).rejects.toThrow("max_tokens");
-    await expect(translator({ stop_reason: "end_turn", content: [] }).translate("{}")).rejects.toThrow();
+  it("cheia Pro merge la api.deepl.com; peste 50 de texte, în mai multe cereri", async () => {
+    const steps = Array.from({ length: 55 }, (_, i) => `Step ${i}.`);
+    const fetchFn = deepl(ok(["Nume", "Descriere", ...steps.slice(0, 48).map((_, i) => `Pas ${i}.`)]), ok(steps.slice(48).map((_, i) => `Pas ${48 + i}.`)));
+    const out = (await deeplTranslator(fetchFn as unknown as typeof fetch, "cheie-pro")({ name: "Name", description: "Description", steps })) as RecipeText;
+    expect(fetchFn).toHaveBeenCalledTimes(2);
+    expect((fetchFn.mock.calls[0] as unknown as [string])[0]).toBe("https://api.deepl.com/v2/translate");
+    expect(out.steps[54]).toBe("Pas 54.");
+  });
+
+  it("limita lunară (456), cheia greșită sau un răspuns neașteptat sunt erori", async () => {
+    await expect(deeplTranslator(deepl(new Response("", { status: 456 })) as unknown as typeof fetch, "k:fx")(recipe)).rejects.toThrow("456");
+    await expect(deeplTranslator(deepl(new Response("", { status: 403 })) as unknown as typeof fetch, "k:fx")(recipe)).rejects.toThrow("403");
+    await expect(deeplTranslator(deepl(ok(["Unul"])) as unknown as typeof fetch, "k:fx")(recipe)).rejects.toThrow("neașteptat");
   });
 });
 
