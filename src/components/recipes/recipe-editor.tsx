@@ -11,6 +11,8 @@ import { Chip, SectionTitle } from "@/components/ui/misc";
 import { Field, Input, LabeledInput, LabeledSelect, Select, TextArea } from "@/components/ui/fields";
 import { RECIPE_CATEGORY_LABELS } from "@/components/recipes/recipe-visual";
 import { saveRecipe } from "@/lib/services/kitchen";
+import { addRecipePhoto, type NewRecipePhoto } from "@/lib/services/recipe-photos";
+import { ImportedPhoto } from "@/components/recipes/imported-photo";
 import { createProduct } from "@/lib/services/catalog";
 import { visible } from "@/lib/services/queries";
 import { UserError } from "@/lib/services/context";
@@ -86,6 +88,7 @@ export function RecipeEditor({ id, isGlobal, source, imported, onBack }: { id: s
           optional: i.optional,
         })),
   );
+  const [photo, setPhoto] = useState<Omit<NewRecipePhoto, "recipeId"> | null>(null);
   const [steps, setSteps] = useState<string[]>(source.steps.length ? source.steps.map((s) => s.text) : d?.steps.length ? d.steps : [""]);
 
   if (isGlobal && !isAppAdmin) return <p className="text-ink-2">Rețetele din catalogul comun pot fi modificate doar de administratori.</p>;
@@ -93,9 +96,9 @@ export function RecipeEditor({ id, isGlobal, source, imported, onBack }: { id: s
   const pending = ingredients.filter((i) => !i.product_id).length;
 
   async function save() {
-    const savedId = await run((ctx) => {
+    const savedId = await run(async (ctx) => {
       if (pending) throw new UserError("Alege produsul pentru fiecare ingredient sau scoate-l din rețetă.");
-      return saveRecipe(
+      const savedId = await saveRecipe(
         ctx,
         {
           name,
@@ -117,6 +120,9 @@ export function RecipeEditor({ id, isGlobal, source, imported, onBack }: { id: s
         },
         { id: id ?? undefined, global: isGlobal },
       );
+      // Fotografia de pe site (.tasks/013), ca fotografia gospodăriei la rețetă.
+      if (photo) await addRecipePhoto(ctx, { ...photo, recipeId: savedId });
+      return savedId;
     });
     if (savedId) router.replace(`/retete/reteta/?id=${savedId}`);
   }
@@ -143,6 +149,9 @@ export function RecipeEditor({ id, isGlobal, source, imported, onBack }: { id: s
           Am citit rețeta{d?.source_url ? ` de pe ${new URL(d.source_url).hostname.replace(/^www\./, "")}` : ""}
           {imported.translation === "done" ? " și am tradus-o în română" : ""}. Verifică ce am înțeles, alege categoriile și produsele lipsă, apoi salvează.
         </p>
+      )}
+      {d?.image_url && (
+        <ImportedPhoto imageUrl={d.image_url} site={new URL(d.source_url ?? d.image_url).hostname.replace(/^www\./, "")} onChange={setPhoto} />
       )}
       {imported?.translation === "failed" && (
         <p role="note" className="mb-4 rounded-xl bg-warn-soft px-3 py-2 text-sm text-ink">

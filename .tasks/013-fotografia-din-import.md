@@ -1,6 +1,6 @@
 # 013 — Fotografia rețetei importate din link
 
-**Stare:** în lucru; etapa 1 gata (în repo), urmează etapa 2
+**Stare:** gata pe producție (17 oct. 2026); rămâne încercarea pe telefon
 **Ramura:** câte una pe etapă, fiecare cu PR-ul ei din `main`.
 
 ## Scop
@@ -28,8 +28,8 @@ Decizia proprietarului (17 oct. 2026, chestionar): **copie privată**. Fotografi
 | # | Etapa | Stare | Commit |
 |---|---|---|---|
 | 1 | **Ciorna și serverul:** `image_url` din JSON-LD; descărcarea imaginii în `import-recipe`; teste (fără rețea). | gata (în repo) | (vezi PR) |
-| 2 | **Aplicația:** descărcare, micșorare, previzualizare, scoatere, salvare; textele noi; teste. | de făcut | |
-| 3 | **Producția:** publicarea `import-recipe` (cu acord), încercarea pe telefon. | de făcut | |
+| 2 | **Aplicația:** descărcare, micșorare, previzualizare, scoatere, salvare; textele noi; teste. | gata (în repo) | (vezi PR) |
+| 3 | **Producția:** publicarea `import-recipe` (cu acord), încercarea pe telefon. | funcția publicată (17 oct.); telefonul de verificat | |
 
 ## Rezumat pe etape
 ### Etapa 1 (17 oct. 2026)
@@ -44,8 +44,17 @@ Decizia proprietarului (17 oct. 2026, chestionar): **copie privată**. Fotografi
 - Cât se descarcă: „Aduc fotografia…”.
 - La eșec (varianta aleasă, nu cea recomandată): „Nu am putut aduce fotografia. O poți pune din galerie după ce salvezi.”
 
+### Etapa 2 (17 oct. 2026)
+- **Serviciul** `photoFromLink` (`src/lib/services/recipe-import.ts`): `import-recipe` cu `{image}`; orice eșec (fără internet, refuz, alt tip decât imagine) dă `IMPORT_PHOTO_ERROR`. `callImportRecipe` primește și `{image}`; `not_image` în codurile cunoscute.
+- **Componenta** `ImportedPhoto` (`src/components/recipes/imported-photo.tsx`), pe „Verifică rețeta” când ciorna are `image_url`: „Aduc fotografia…” → `resizePhoto` (ca o poză din galerie: 1280 px, WebP/JPEG, fără EXIF) → previzualizare 4:3 cu „Fotografia de pe {site}” și „Scoate fotografia”; la eșec, nota „Nu am putut aduce fotografia. O poți pune din galerie după ce salvezi.” Doar cu cont (în modul demonstrativ nu există server, iar importul din link cere oricum cont).
+- **Salvarea** (`recipe-editor.tsx`): după `saveRecipe`, în aceeași acțiune, `addRecipePhoto` cu poza micșorată (coada locală de fotografii, ca la `.tasks/008`; merge și offline).
+- **Teste:** `photoFromLink` (2). Drumul cu fotografie nu are E2E: modul demonstrativ n-are server, iar E2E cloud nu are funcțiile Edge; se verifică pe telefon la etapa 3. Toate cele 15 E2E de import și lățime trec.
+
+### Etapa 3 (17 oct. 2026)
+- `import-recipe` publicată din nou prin conector, cu acordul proprietarului: versiunea 2, `verify_jwt` pornit, `index.ts` + `core.js` din repo (verificat cu `get_edge_function`: conținutul de pe server e cel din repo). Apoi integrat PR-ul etapei 2.
+
 ## Cum verific la final
 Pe telefon, cu cont: import din link o rețetă de pe un site românesc → pe „Verifică rețeta” se vede fotografia → salvez → rețeta are fotografia (și offline, și pe al doilea telefon al gospodăriei).
 
 ## Următorul pas
-Etapa 2 (aplicația și textele noi).
+Proprietarul, pe telefon: import din link de pe un site cu poză → „Aduc fotografia…”, apoi poza cu „Fotografia de pe {site}” → salvează → rețeta are poza (și pe al doilea telefon).

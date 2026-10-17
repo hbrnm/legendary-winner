@@ -18,7 +18,7 @@ export function supabase(): SupabaseClient {
 }
 
 /** Cererea către funcția Edge `import-recipe`, cu tokenul sesiunii (.tasks/009). */
-export async function callImportRecipe(body: { url: string }): Promise<Response> {
+export async function callImportRecipe(body: { url: string } | { image: string }): Promise<Response> {
   const { data } = await supabase().auth.getSession();
   return fetch(`${url}/functions/v1/import-recipe`, {
     method: "POST",
