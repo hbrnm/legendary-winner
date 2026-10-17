@@ -1,6 +1,6 @@
 # 011 — Rețete din alte limbi, cu unități metrice
 
-**Stare:** în lucru; etapa 1 gata (17 oct. 2026)
+**Stare:** în lucru; etapele 1–2 gata; rămâne etapa 3
 **Ramura:** câte una pe etapă, fiecare cu PR-ul ei din `main`.
 
 ## Scop
@@ -28,7 +28,7 @@ Decizia proprietarului (17 oct. 2026, chestionar): **întâi fără AI**, în ap
 | # | Etapa | Stare | Commit |
 |---|---|---|---|
 | 1 | **Unitățile și temperaturile:** cup/fl oz/pint/quart/gallon/stick → metric în `parseIngredientLine`; °F → °C și inch → cm în pași. Teste cu rânduri reale. | gata | (vezi PR) |
-| 2 | **Dicționarul englez–român** pentru potrivirea cu catalogul (cele mai folosite ~150 de ingrediente), cu test: o rețetă americană tipică are majoritatea ingredientelor potrivite automat. Lista, în chestionar, spre aprobare. | de făcut | |
+| 2 | **Dicționarul englez–român** pentru potrivirea cu catalogul, cu test: o rețetă americană tipică are majoritatea ingredientelor potrivite automat. Lista, în chestionar, spre aprobare. | gata | (vezi PR) |
 | 3 | **Textele noi** (dacă apar, ex. „Am transformat unitățile în metric.”) într-un singur chestionar; E2E în modul demonstrativ cu o rețetă în engleză lipită la „Text”. | de făcut | |
 
 Totul e în client (`src/lib/domain/recipe-import.ts`, folosit și de funcția Edge prin `core.js`). La o schimbare în parsarea JSON-LD: `npm run build:functions` și funcția publicată din nou pe producție, cu acordul proprietarului.
@@ -40,8 +40,14 @@ Totul e în client (`src/lib/domain/recipe-import.ts`, folosit și de funcția E
 - `verificare` a găsit 6 probleme, toate reparate cu teste care pică pe prima variantă (11): `\b` din JavaScript nu știe de diacritice („250 făină” devenea „120°Căină”; acum flag-ul `u` și „fără literă după”), intervalele, „pt”/„qt”/„gal”, „butternut”, „fl oz” fără nume, „350°F, or 175°C”.
 - Fără texte noi. Teste: 29 noi în `recipe-import.test.ts` (unități, „sticks” de țelină, temperaturi, inch, pași românești neschimbați) și unul în `services/recipe-import.test.ts` (rețetă americană → metric).
 
+### Etapa 2 (17 oct. 2026)
+- **Dicționarul** `src/data/import-en.ts`: 440 de expresii englezești, 374 legate de un produs din catalog și 66 oprite (`null`), ca un cuvânt din ele să nu ia alt produs („peanut butter” nu e unt, „coconut milk” nu e lapte, „sesame oil” nu e susan). Folosit doar la import; catalogul, sinonimele și baza de producție nu se schimbă.
+- **Potrivirea** (`phraseDictionary`, `matchIngredients` în `src/lib/domain/recipe-import.ts`): expresia cea mai lungă câștigă; la aceeași lungime, cea din dreapta (în engleză substantivul e la urmă: „dill pickle” e murătură). La singular, fără diacritice, cratime și apostrofuri („confectioners' sugar”, „jalapeño”). Un produs găsit doar în notă („boneless, skinless chicken breasts”) e doar variantă, nebifat, pentru că nota poate fi și „seasoned with salt”. Serviciul bifează doar produse care există în catalogul gospodăriei și sunt alimente.
+- `verificare` a găsit nota care bifa produse greșite („steak, seasoned with salt” → Sare; blocant) și ~20 de expresii-capcană; toate reparate, cu teste pe dicționarul real (18 potriviri, 26 de capcane). `core.js` nu se schimbă.
+- **Aprobat de proprietar** (chestionar, 17 oct. 2026): tot dicționarul, cum e, inclusiv alegerile discutabile („chicken” → Pui întreg, „pepper” → Piper negru măcinat, „corn” → Porumb la conservă, fasolea → la conservă, „yeast” → Drojdie uscată, „thyme”/„basil” → proaspăt, „water” → Apă plată, „heavy cream” → Smântână dulce).
+
 ## Cum verific la final
 Pe telefon: import din link o rețetă de pe un site american (ex. o rețetă de banana bread) → ingredientele în grame/ml, majoritatea potrivite automat cu catalogul, temperatura în °C în pași → salvez.
 
 ## Următorul pas
-Etapa 2: dicționarul englez–român (~150 de ingrediente) pentru potrivirea cu catalogul, cu lista în chestionar spre aprobare.
+Etapa 3 (texte noi, dacă e nevoie, și E2E cu o rețetă în engleză).
