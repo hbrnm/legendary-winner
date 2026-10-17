@@ -21,8 +21,8 @@ Decizia proprietarului (17 oct. 2026, chestionar): **întâi fără AI**, în ap
 
 ## Model
 - **Dicționarul englez–român** (`src/data/import-en.ts`): cuvinte și expresii („all-purpose flour” → „făină”, „ground beef” → „carne tocată de vită”, „scallions” → „ceapă verde”), folosite doar înainte de căutarea în catalog. Rândul original rămâne afișat („din rețetă: …”). E conținut scris de agenți: lista se aprobă de proprietar înainte de producție.
-- **Unitățile:** `cup` → 240 ml, `fl oz` → 30 ml (convenția din bucătărie: 8 fl oz = o cană), `pint`/`quart`/`gallon` (SUA) → 473/946/3785 ml; `lb`/`oz` → g (din `.tasks/009`); `tbsp`/`tsp` rămân „lingură”/„linguriță”. „Cană” din textele românești rămâne „cană”. Un „stick” de unt → 113 g; alte „sticks” rămân în notă.
-- **Temperaturile și lungimile din pași și descriere** (`metricText`): „350°F”, „350 F”, „350 degrees Fahrenheit” → „175°C” (rotunjit la 5); dacă pasul are deja și °C („350°F (175°C)”, „180°C/350°F”), rămâne doar °C. „F” fără semnul de grad doar între 200 și 600 (temperaturi de cuptor). „9x13 inch” → „23×33 cm”, „1/2-inch” → „1,5 cm” (la jumătate de cm sub 3 cm, apoi la cm întreg). Rândul original al ingredientului rămâne afișat („din rețetă: …”).
+- **Unitățile:** `cup` → 240 ml, `fl oz` → 30 ml (convenția din bucătărie: 8 fl oz = o cană), `pint`/`quart`/`gallon` (SUA) → 473/946/3785 ml, fără abrevieri („pt” e și „pentru”); `lb`/`oz` → g (din `.tasks/009`); `tbsp`/`tsp` rămân „lingură”/„linguriță”. „Cană” din textele românești rămâne „cană”. Un „stick” de unt (cuvântul „butter” întreg, nu „butternut”) → 113 g; alte „sticks” rămân în notă.
+- **Temperaturile și lungimile din pași și descriere** (`metricText`): „350°F”, „350 F”, „350 degrees Fahrenheit” → „175°C” (rotunjit la 5); dacă pasul are deja și °C („350°F (175°C)”, „180°C/350°F”), rămâne doar °C. „F” fără semnul de grad doar între 200 și 600 (temperaturi de cuptor) și niciodată urmat de literă („250 făină” rămâne așa). Intervalele se transformă la ambele capete („350-375°F” → „175–190°C”, „1-2 inches” → „2,5–5 cm”). „9x13 inch” → „23×33 cm”, „1/2-inch” → „1,5 cm” (la jumătate de cm sub 3 cm, apoi la cm întreg). Rândul original al ingredientului rămâne afișat („din rețetă: …”).
 
 ## Etape
 | # | Etapa | Stare | Commit |
@@ -37,6 +37,7 @@ Totul e în client (`src/lib/domain/recipe-import.ts`, folosit și de funcția E
 ### Etapa 1 (17 oct. 2026)
 - `parseIngredientLine` (`src/lib/domain/recipe-import.ts`): unitățile americane de volum în ml, „fl oz” ca unitate (nu mai e doar notă), „stick” de unt în grame. `metricText` nouă, aplicată în `prepareImport` (`src/lib/services/recipe-import.ts`) pe pași și descriere, deci merge la link și la text, și offline.
 - `core.js` regenerat: se schimbă doar tabelele de unități, pe care funcția Edge nu le folosește (ingredientele se citesc în telefon). Funcția de pe producție se comportă la fel; nu trebuie publicată din nou.
+- `verificare` a găsit 6 probleme, toate reparate cu teste care pică pe prima variantă (11): `\b` din JavaScript nu știe de diacritice („250 făină” devenea „120°Căină”; acum flag-ul `u` și „fără literă după”), intervalele, „pt”/„qt”/„gal”, „butternut”, „fl oz” fără nume, „350°F, or 175°C”.
 - Fără texte noi. Teste: 29 noi în `recipe-import.test.ts` (unități, „sticks” de țelină, temperaturi, inch, pași românești neschimbați) și unul în `services/recipe-import.test.ts` (rețetă americană → metric).
 
 ## Cum verific la final

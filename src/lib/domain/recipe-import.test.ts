@@ -268,6 +268,15 @@ describe("unitățile imperiale → metric (.tasks/011)", () => {
   });
 
   it.each([
+    ["2 sticks butternut squash", { quantity: null, unit: null, name: "butternut squash", note: "2 sticks" }],
+    ["2 pt salată", { quantity: 2, unit: null, name: "pt salată" }],
+    ["1 qt ulei", { quantity: 1, unit: null, name: "qt ulei" }],
+    ["8 fl oz", { quantity: 8, unit: null, name: "fl oz" }],
+  ])("%s: nu se transformă", (line, expected) => {
+    expect(parseIngredientLine(line)).toMatchObject(expected);
+  });
+
+  it.each([
     ["Preheat oven to 350°F.", "Preheat oven to 175°C."],
     ["Bake at 375 degrees F for 25 minutes.", "Bake at 190°C for 25 minutes."],
     ["Heat the oven to 425 F.", "Heat the oven to 220°C."],
@@ -284,6 +293,15 @@ describe("unitățile imperiale → metric (.tasks/011)", () => {
     ["Cut into 1-inch cubes, about 2 inches long.", "Cut into 2,5 cm cubes, about 5 cm long."],
     ["Cut into 1/4 inch slices.", "Cut into 0,5 cm slices."],
     ["Add 2 F sticks.", "Add 2 F sticks."],
+    ["Adaugă 250 făină și frământă.", "Adaugă 250 făină și frământă."],
+    ["Taie 300 fâșii, apoi 250 Feliuțe.", "Taie 300 fâșii, apoi 250 Feliuțe."],
+    ["Bake at 350-375°F.", "Bake at 175–190°C."],
+    ["Bake at 350 to 375 degrees F.", "Bake at 175–190°C."],
+    ["Heat to 1350°F.", "Heat to 1350°F."],
+    ["Preheat to 350°F, or 175°C.", "Preheat to 175°C."],
+    ["Bake at 180°C and 350°F.", "Bake at 180°C."],
+    ["Cut 1-2 inches thick.", "Cut 2,5–5 cm thick."],
+    ["Taie fâșii de 2 cm.", "Taie fâșii de 2 cm."],
     ["Mix in a bowl.", "Mix in a bowl."],
   ])("%s", (step, expected) => {
     expect(metricText(step)).toBe(expected);
