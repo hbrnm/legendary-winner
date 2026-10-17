@@ -9,6 +9,7 @@ import {
   findRecipeNode,
   matchIngredients,
   metricText,
+  phraseDictionary,
   parseIngredientLine,
   parseIsoDuration,
 } from "./recipe-import";
@@ -348,6 +349,36 @@ describe("potrivirea cu catalogul", () => {
     const typo = match("ustoroi");
     expect(typo.product_id).toBeNull();
     expect(typo.candidates).toContain("usturoi");
+  });
+
+  describe("cu dicționarul englez–român", () => {
+    const known = phraseDictionary([["butter", "unt"], ["peanut butter", null], ["milk", "lapte"], ["chicken breast", "piept"], ["chicken", "pui"], ["all purpose flour", "faina"], ["confectioners sugar", "pudra"], ["tomato", "rosii"], ["cherry", "cirese"], ["peach", "piersici"], ["bay leaf", "dafin"]]);
+    const en = (line: string) => matchIngredients([parseIngredientLine(line)], index, 5, known)[0];
+
+    it.each([
+      ["2 tbsp unsalted butter, melted", "unt"],
+      ["1 cup whole milk", "lapte"],
+      ["2 large chicken breasts", "piept"],
+      ["1 whole chicken", "pui"],
+      ["2 cups all-purpose flour", "faina"],
+      ["1 cup confectioners' sugar", "pudra"],
+      ["3 ripe tomatoes", "rosii"],
+      ["1 cup cherries", "cirese"],
+      ["2 peaches", "piersici"],
+      ["2 bay leaves", "dafin"],
+      ["2 boneless, skinless chicken breasts", "piept"],
+    ])("%s → %s, bifat", (line, id) => {
+      expect(en(line)).toMatchObject({ product_id: id, candidates: [id] });
+    });
+
+    it("o expresie oprită nu ia produsul unui cuvânt din ea („peanut butter” nu e unt)", () => {
+      expect(en("2 tbsp peanut butter")).toMatchObject({ product_id: null, candidates: [] });
+    });
+
+    it("rândurile românești merg ca înainte", () => {
+      expect(en("200 ml smântână de gătit").product_id).toBe("smantana");
+      expect(en("unt de arahide")).toMatchObject({ product_id: null, candidates: ["unt"] });
+    });
   });
 
   it("fără nicio potrivire: de ales de om, fără variante", () => {

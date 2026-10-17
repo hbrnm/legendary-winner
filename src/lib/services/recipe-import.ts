@@ -1,5 +1,6 @@
 import type { Product, UnitCode } from "@/lib/domain/types";
-import { draftFromText, matchIngredients, metricText, parseIngredientLine, type RecipeDraft } from "@/lib/domain/recipe-import";
+import { draftFromText, matchIngredients, metricText, parseIngredientLine, phraseDictionary, type RecipeDraft } from "@/lib/domain/recipe-import";
+import { ENGLISH_INGREDIENTS } from "@/data/import-en";
 import { type AppCtx, UserError } from "./context";
 import { productSearchIndex } from "./catalog";
 import { visible } from "./queries";
@@ -28,17 +29,19 @@ export interface PreparedImport {
   ingredients: ImportedIngredient[];
 }
 
+const englishIngredient = phraseDictionary(ENGLISH_INGREDIENTS);
+
 /** Citește fiecare rând de ingredient (unitățile americane devin metrice) și caută produsul în catalogul gospodăriei. */
 export async function prepareImport(ctx: AppCtx, draft: RecipeDraft): Promise<PreparedImport> {
   const products = new Map((await visible(ctx.db, "products", ctx.householdId)).map((p) => [p.id, p]));
   // Pentru rețete se propun doar alimente (nu „pastă de dinți” pentru „pastă de ardei”).
   const nonFood = new Set((await visible(ctx.db, "product_categories", ctx.householdId)).filter((c) => !c.is_food).map((c) => c.id));
   const isFood = (id: string) => !nonFood.has(products.get(id)?.category_id ?? "");
-  const matches = matchIngredients(draft.ingredients.map(parseIngredientLine), await productSearchIndex(ctx));
+  const matches = matchIngredients(draft.ingredients.map(parseIngredientLine), await productSearchIndex(ctx), 5, englishIngredient);
   const ingredients = matches.map(({ ingredient: i, product_id, candidates }) => ({
     text: i.text,
     name: i.name,
-    product_id: product_id && isFood(product_id) ? product_id : null,
+    product_id: product_id && products.has(product_id) && isFood(product_id) ? product_id : null,
     quantity: i.quantity,
     // Un număr fără unitate („1 ceapă”) înseamnă bucăți.
     unit: i.unit ?? (i.quantity != null ? "buc" : null),

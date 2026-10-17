@@ -56,6 +56,17 @@ describe("prepareImport", () => {
     expect(d.description).toBe("Bake at 175°C.");
   });
 
+  it("o rețetă americană tipică are ingredientele potrivite cu catalogul din dicționar", async () => {
+    const lines = [
+      "3 ripe bananas, mashed", "1/3 cup unsalted butter, melted", "3/4 cup sugar", "1 large egg, beaten", "1 tsp vanilla extract",
+      "1 tsp baking soda", "pinch of salt", "1 1/2 cups all-purpose flour", "1/2 cup chopped walnuts", "1 tbsp peanut butter",
+    ];
+    const { ingredients } = await prepareImport(ctx, { ...draft, ingredients: lines });
+    expect(ingredients.map((i) => i.product_id)).toEqual([
+      "banane", "unt", "zahar", "oua", "esenta-vanilie", "bicarbonat", "sare", "faina-alba", "nuci-miez", null,
+    ]);
+  });
+
   it("rețeta importată se salvează cu sursa, iar o modificare fără sursă o păstrează doar dacă formularul o trimite", async () => {
     const base = { name: "Ciorbă", categories: ["supe_ciorbe" as const], servings: 6, prep_minutes: 30, cook_minutes: 75, difficulty: "mediu" as const, ingredients: [{ product_id: "sare", quantity: null, unit: null }], steps: ["Fierbe."] };
     const id = await saveRecipe(ctx, { ...base, source_url: "https://exemplu.ro/ciorba" });

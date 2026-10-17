@@ -585,14 +585,58 @@ export interface IngredientMatch {
 const AUTO_MATCH_SCORE = 30;
 const FILLER = new Set(["de", "cu", "si", "la", "din", "pentru", "of", "and", "with", "for", "the"]);
 
+/** Singularul englezesc aproximativ: tomatoes → tomato, cherries → cherry, peaches → peach. */
+function englishSingular(w: string): string {
+  if (w === "leaves") return "leaf";
+  if (w.length <= 3 || /(ss|us|is)$/.test(w)) return w;
+  if (w.endsWith("ies")) return `${w.slice(0, -3)}y`;
+  if (/(oes|shes|ches|xes)$/.test(w)) return w.slice(0, -2);
+  return w.endsWith("s") ? w.slice(0, -1) : w;
+}
+
+function englishWords(text: string): string[] {
+  return normalize(text).split(" ").filter(Boolean).map(englishSingular);
+}
+
+/**
+ * Dicționarul de denumiri (expresie → produs; `null` = fără potrivire automată):
+ * întoarce produsul expresiei celei mai lungi din text, sau `undefined` dacă
+ * nicio expresie nu apare. Fără diacritice, cratime sau apostrofuri, la singular.
+ */
+export function phraseDictionary(entries: [string, string | null][]): (text: string) => string | null | undefined {
+  const map = new Map(entries.map(([phrase, id]) => [englishWords(phrase).join(" "), id]));
+  const longest = Math.max(1, ...[...map.keys()].map((k) => k.split(" ").length));
+  return (text) => {
+    const words = englishWords(text);
+    for (let n = Math.min(longest, words.length); n >= 1; n--) {
+      for (let i = 0; i + n <= words.length; i++) {
+        const key = words.slice(i, i + n).join(" ");
+        if (map.has(key)) return map.get(key);
+      }
+    }
+    return undefined;
+  };
+}
+
 /**
  * Caută produsul pentru fiecare ingredient, cu căutarea din aplicație
  * (diacritice, sinonime, forme de plural). Dacă denumirea întreagă nu se
  * găsește („ulei de măsline extravirgin”), încearcă începuturi tot mai scurte
- * („ulei de măsline”, „ulei”).
+ * („ulei de măsline”, „ulei”). `known` e dicționarul englez–român (.tasks/011).
  */
-export function matchIngredients(ingredients: ParsedIngredient[], index: SearchIndex, maxCandidates = 5): IngredientMatch[] {
+export function matchIngredients(
+  ingredients: ParsedIngredient[],
+  index: SearchIndex,
+  maxCandidates = 5,
+  known?: (text: string) => string | null | undefined,
+): IngredientMatch[] {
   return ingredients.map((ingredient) => {
+    // Întâi dicționarul (rețetele în engleză); „boneless, skinless chicken breasts”
+    // are produsul după virgulă, deci se încearcă și cu nota.
+    let id = known?.(ingredient.name);
+    if (id === undefined && ingredient.note) id = known?.(`${ingredient.name} ${ingredient.note}`);
+    if (id !== undefined) return { ingredient, product_id: id, candidates: id ? [id] : [] };
+
     const words = normalize(ingredient.name).split(" ").filter(Boolean);
     for (let n = words.length; n >= 1; n--) {
       if (FILLER.has(words[n - 1])) continue;
