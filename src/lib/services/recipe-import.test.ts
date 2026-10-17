@@ -4,7 +4,7 @@ import { setClock } from "@/lib/clock";
 import { seedCatalog } from "./bootstrap";
 import type { AppCtx } from "./context";
 import { saveRecipe } from "./kitchen";
-import { IMPORT_ERROR_MESSAGES, draftFromLink, draftFromPastedText, myMemoryTranslator, prepareImport, sharedImport, translateDraft } from "./recipe-import";
+import { IMPORT_ERROR_MESSAGES, IMPORT_PHOTO_ERROR, photoFromLink, draftFromLink, draftFromPastedText, myMemoryTranslator, prepareImport, sharedImport, translateDraft } from "./recipe-import";
 import type { RecipeDraft } from "@/lib/domain/recipe-import";
 
 let ctx: AppCtx;
@@ -197,5 +197,23 @@ describe("myMemoryTranslator", () => {
     await expect(t(reply({ responseStatus: 200, responseData: { translatedText: "MYMEMORY WARNING: YOU USED ALL AVAILABLE FREE TRANSLATIONS FOR TODAY" } }))).rejects.toThrow();
     await expect(t(reply({ responseStatus: "403", responseData: { translatedText: "INVALID LANGUAGE PAIR" } }))).rejects.toThrow();
     await expect(t(new Response("<html>", { status: 500 }))).rejects.toThrow();
+  });
+});
+
+describe("photoFromLink (.tasks/013)", () => {
+  it("cere fotografia prin funcția de import și o întoarce", async () => {
+    const call = vi.fn(async () => new Response(new Uint8Array([1, 2, 3]), { headers: { "content-type": "image/webp" } }));
+    const blob = await photoFromLink("https://exemplu.ro/poza.webp", call);
+    expect(call).toHaveBeenCalledWith({ image: "https://exemplu.ro/poza.webp" });
+    expect(blob.size).toBe(3);
+  });
+
+  it("orice eșec dă același mesaj scurt", async () => {
+    const offline = vi.fn(async () => {
+      throw new TypeError("Failed to fetch");
+    });
+    const html = vi.fn(async () => new Response("<html>", { headers: { "content-type": "text/html" } }));
+    const refused = vi.fn(async () => new Response(JSON.stringify({ error: "not_image" }), { status: 422, headers: { "content-type": "application/json" } }));
+    for (const call of [offline, html, refused]) await expect(photoFromLink("https://exemplu.ro/a.jpg", call)).rejects.toThrow(IMPORT_PHOTO_ERROR);
   });
 });

@@ -124,7 +124,7 @@ export function draftFromPastedText(text: string): RecipeDraft {
   return draft;
 }
 
-export type ImportErrorCode = "bad_request" | "unauthorized" | "rate_limited" | "invalid_url" | "blocked_address" | "fetch_failed" | "timeout" | "too_large" | "not_html" | "no_recipe";
+export type ImportErrorCode = "bad_request" | "unauthorized" | "rate_limited" | "invalid_url" | "blocked_address" | "fetch_failed" | "timeout" | "too_large" | "not_html" | "not_image" | "no_recipe";
 
 const PASTE_TEXT = "Copiază textul rețetei de pe pagină și lipește-l la „Text”.";
 
@@ -138,11 +138,29 @@ export const IMPORT_ERROR_MESSAGES: Record<ImportErrorCode, string> = {
   timeout: "Pagina se încarcă prea greu. Încearcă din nou puțin mai târziu.",
   too_large: `Pagina e prea mare. ${PASTE_TEXT}`,
   not_html: `Linkul nu duce la o pagină cu rețetă. ${PASTE_TEXT}`,
+  // Doar la fotografie (.tasks/013), unde mesajul e IMPORT_PHOTO_ERROR.
+  not_image: "Nu am putut deschide pagina. Verifică linkul și încearcă din nou.",
   no_recipe: `Nu găsesc rețeta pe pagină. ${PASTE_TEXT}`,
 };
 
 /** Cererea către funcția Edge: corpul JSON → răspunsul serverului. */
-export type ImportCall = (body: { url: string }) => Promise<Response>;
+export type ImportCall = (body: { url: string } | { image: string }) => Promise<Response>;
+
+export const IMPORT_PHOTO_ERROR = "Nu am putut aduce fotografia. O poți pune din galerie după ce salvezi.";
+
+/**
+ * Fotografia rețetei de pe site (.tasks/013), prin funcția Edge: browserul nu
+ * poate citi imaginea altui site. Orice eșec dă același mesaj scurt.
+ */
+export async function photoFromLink(imageUrl: string, call: ImportCall): Promise<Blob> {
+  try {
+    const res = await call({ image: imageUrl });
+    if (res.ok && /^image\//.test(res.headers.get("content-type") ?? "")) return await res.blob();
+  } catch {
+    // fără internet
+  }
+  throw new UserError(IMPORT_PHOTO_ERROR);
+}
 
 /** Ciorna din pagina unei rețete, prin funcția Edge; erorile devin mesaje pentru om. */
 export async function draftFromLink(link: string, call: ImportCall): Promise<RecipeDraft> {
