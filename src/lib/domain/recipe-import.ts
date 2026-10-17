@@ -598,18 +598,25 @@ function englishWords(text: string): string[] {
   return normalize(text).split(" ").filter(Boolean).map(englishSingular);
 }
 
+/** Cheia unei expresii din dicționar (fără diacritice, la singular), ca să se poată verifica dublurile. */
+export function englishKey(phrase: string): string {
+  return englishWords(phrase).join(" ");
+}
+
 /**
  * Dicționarul de denumiri (expresie → produs; `null` = fără potrivire automată):
  * întoarce produsul expresiei celei mai lungi din text, sau `undefined` dacă
- * nicio expresie nu apare. Fără diacritice, cratime sau apostrofuri, la singular.
+ * nicio expresie nu apare. La aceeași lungime câștigă cea din dreapta: în
+ * engleză substantivul e la urmă („dill pickle” e murătură, nu mărar).
+ * Fără diacritice, cratime sau apostrofuri, la singular.
  */
 export function phraseDictionary(entries: [string, string | null][]): (text: string) => string | null | undefined {
-  const map = new Map(entries.map(([phrase, id]) => [englishWords(phrase).join(" "), id]));
+  const map = new Map(entries.map(([phrase, id]) => [englishKey(phrase), id]));
   const longest = Math.max(1, ...[...map.keys()].map((k) => k.split(" ").length));
   return (text) => {
     const words = englishWords(text);
     for (let n = Math.min(longest, words.length); n >= 1; n--) {
-      for (let i = 0; i + n <= words.length; i++) {
+      for (let i = words.length - n; i >= 0; i--) {
         const key = words.slice(i, i + n).join(" ");
         if (map.has(key)) return map.get(key);
       }
@@ -631,11 +638,13 @@ export function matchIngredients(
   known?: (text: string) => string | null | undefined,
 ): IngredientMatch[] {
   return ingredients.map((ingredient) => {
-    // Întâi dicționarul (rețetele în engleză); „boneless, skinless chicken breasts”
-    // are produsul după virgulă, deci se încearcă și cu nota.
-    let id = known?.(ingredient.name);
-    if (id === undefined && ingredient.note) id = known?.(`${ingredient.name} ${ingredient.note}`);
+    // Întâi dicționarul (rețetele în engleză).
+    const id = known?.(ingredient.name);
     if (id !== undefined) return { ingredient, product_id: id, candidates: id ? [id] : [] };
+    // „boneless, skinless chicken breasts” are produsul după virgulă, dar nota poate
+    // fi și „seasoned with salt”: din notă doar o variantă, nebifată.
+    const fromNote = ingredient.note ? known?.(ingredient.note) : undefined;
+    if (fromNote) return { ingredient, product_id: null, candidates: [fromNote] };
 
     const words = normalize(ingredient.name).split(" ").filter(Boolean);
     for (let n = words.length; n >= 1; n--) {

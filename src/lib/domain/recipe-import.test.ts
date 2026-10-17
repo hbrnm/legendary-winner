@@ -366,9 +366,13 @@ describe("potrivirea cu catalogul", () => {
       ["1 cup cherries", "cirese"],
       ["2 peaches", "piersici"],
       ["2 bay leaves", "dafin"],
-      ["2 boneless, skinless chicken breasts", "piept"],
     ])("%s → %s, bifat", (line, id) => {
       expect(en(line)).toMatchObject({ product_id: id, candidates: [id] });
+    });
+
+    it("produsul găsit doar în notă e o variantă, nebifată („seasoned with salt” nu e sare)", () => {
+      expect(en("2 boneless, skinless chicken breasts")).toMatchObject({ product_id: null, candidates: ["piept"] });
+      expect(en("1 lb steak, seasoned with butter")).toMatchObject({ product_id: null, candidates: ["unt"] });
     });
 
     it("o expresie oprită nu ia produsul unui cuvânt din ea („peanut butter” nu e unt)", () => {

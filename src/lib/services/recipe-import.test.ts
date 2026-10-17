@@ -67,6 +67,12 @@ describe("prepareImport", () => {
     ]);
   });
 
+  it("un produs din dicționar care lipsește din catalogul gospodăriei rămâne de ales", async () => {
+    await ctx.db.products.delete("zahar");
+    const { ingredients } = await prepareImport(ctx, { ...draft, ingredients: ["1 cup sugar"] });
+    expect(ingredients[0].product_id).toBeNull();
+  });
+
   it("rețeta importată se salvează cu sursa, iar o modificare fără sursă o păstrează doar dacă formularul o trimite", async () => {
     const base = { name: "Ciorbă", categories: ["supe_ciorbe" as const], servings: 6, prep_minutes: 30, cook_minutes: 75, difficulty: "mediu" as const, ingredients: [{ product_id: "sare", quantity: null, unit: null }], steps: ["Fierbe."] };
     const id = await saveRecipe(ctx, { ...base, source_url: "https://exemplu.ro/ciorba" });
