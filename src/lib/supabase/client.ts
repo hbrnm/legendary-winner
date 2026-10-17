@@ -17,6 +17,17 @@ export function supabase(): SupabaseClient {
   return client;
 }
 
+/** Traducerea în română a unei rețete importate (funcția Edge translate-recipe, Gemini, .tasks/012), cu tokenul sesiunii. */
+export async function callTranslateRecipe(body: { recipe: { name: string; description: string; steps: string[] } }): Promise<Response> {
+  const { data } = await supabase().auth.getSession();
+  return fetch(`${url}/functions/v1/translate-recipe`, {
+    method: "POST",
+    headers: { authorization: `Bearer ${data.session?.access_token ?? ""}`, apikey: anonKey!, "content-type": "application/json" },
+    body: JSON.stringify(body),
+    signal: AbortSignal.timeout(30_000),
+  });
+}
+
 /** Cererea către funcția Edge `import-recipe`, cu tokenul sesiunii (.tasks/009). */
 export async function callImportRecipe(body: { url: string } | { image: string }): Promise<Response> {
   const { data } = await supabase().auth.getSession();

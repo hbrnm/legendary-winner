@@ -10,10 +10,10 @@ import { RecipeEditor } from "@/components/recipes/recipe-editor";
 import { Button } from "@/components/ui/button";
 import { Field, Input, Segmented, TextArea } from "@/components/ui/fields";
 import { Spinner } from "@/components/ui/misc";
-import { callImportRecipe } from "@/lib/supabase/client";
+import { callImportRecipe, callTranslateRecipe } from "@/lib/supabase/client";
 import { looksForeign } from "@/lib/domain/recipe-import";
 import { productMap } from "@/lib/services/queries";
-import { draftFromLink, draftFromPastedText, myMemoryTranslator, prepareImport, sharedImport, translateDraft, type PreparedImport } from "@/lib/services/recipe-import";
+import { draftFromLink, draftFromPastedText, firstWorking, myMemoryTranslator, prepareImport, serverTranslator, sharedImport, translateDraft, type PreparedImport } from "@/lib/services/recipe-import";
 import type { EditorSource } from "@/components/recipes/recipe-editor";
 
 type Mode = "link" | "text";
@@ -52,9 +52,11 @@ function Importer() {
   async function read(how: Mode = mode, value: string = how === "link" ? link : text) {
     const result = await run(async (ctx) => {
       const original = how === "link" ? await draftFromLink(value, callImportRecipe) : draftFromPastedText(value);
-      // Rețetele în altă limbă se traduc în română, din telefon (.tasks/012).
+      // Rețetele în altă limbă se traduc în română (.tasks/012).
       setTranslating(looksForeign(original));
-      const { draft, translation } = await translateDraft(original, myMemoryTranslator()).finally(() => setTranslating(false));
+      // Cu cont: Gemini prin server (traducere mai bună), cu MyMemory de rezervă; fără cont, doar MyMemory.
+      const translator = linkWorks ? firstWorking(serverTranslator(callTranslateRecipe), myMemoryTranslator()) : myMemoryTranslator();
+      const { draft, translation } = await translateDraft(original, translator).finally(() => setTranslating(false));
       const prepared = { ...(await prepareImport(ctx, draft)), translation };
       return { prepared, source: { products: await productMap(ctx.db, ctx.householdId), recipe: null, ingredients: [], steps: [] } };
     });
