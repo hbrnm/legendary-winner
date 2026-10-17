@@ -7,7 +7,10 @@ import { readFileSync, writeFileSync } from "node:fs";
 
 const ROOT = new URL("..", import.meta.url).pathname;
 
-export const FUNCTIONS = [{ entry: "src/lib/server/import-recipe.ts", out: "supabase/functions/import-recipe/core.js" }];
+export const FUNCTIONS = [
+  { entry: "src/lib/server/import-recipe.ts", out: "supabase/functions/import-recipe/core.js" },
+  { entry: "src/lib/server/translate-recipe.ts", out: "supabase/functions/translate-recipe/core.js" },
+];
 
 const BANNER = "// Generat de scripts/build-functions.mjs din src/lib/server/. Nu edita de mână: npm run build:functions.";
 

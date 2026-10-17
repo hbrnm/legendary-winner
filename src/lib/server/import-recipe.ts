@@ -293,10 +293,10 @@ export async function handleImportRequest(req: Request, deps: ImportDeps, limits
   }
 }
 
-/** Limita de cereri prin PostgREST, cu tokenul omului (fără service_role). */
-export function quotaViaRest(fetchFn: typeof fetch, supabaseUrl: string, anonKey: string): ImportDeps["takeQuota"] {
+/** Limita de cereri prin PostgREST, cu tokenul omului (fără service_role). `rpc` alege limita (import sau traducere). */
+export function quotaViaRest(fetchFn: typeof fetch, supabaseUrl: string, anonKey: string, rpc = "take_recipe_import_quota"): ImportDeps["takeQuota"] {
   return async (authorization) => {
-    const res = await fetchFn(`${supabaseUrl}/rest/v1/rpc/take_recipe_import_quota`, {
+    const res = await fetchFn(`${supabaseUrl}/rest/v1/rpc/${rpc}`, {
       method: "POST",
       headers: { apikey: anonKey, authorization, "content-type": "application/json" },
       body: "{}",
