@@ -1,5 +1,5 @@
 import type { Product, UnitCode } from "@/lib/domain/types";
-import { draftFromText, matchIngredients, metricText, parseIngredientLine, phraseDictionary, type RecipeDraft } from "@/lib/domain/recipe-import";
+import { draftFromText, looksForeign, matchIngredients, metricText, parseIngredientLine, phraseDictionary, type RecipeDraft } from "@/lib/domain/recipe-import";
 import { ENGLISH_INGREDIENTS } from "@/data/import-en";
 import { type AppCtx, UserError } from "./context";
 import { productSearchIndex } from "./catalog";
@@ -27,9 +27,34 @@ export interface ImportedIngredient {
 export interface PreparedImport {
   draft: RecipeDraft;
   ingredients: ImportedIngredient[];
+  /** Traducerea în română (.tasks/012): făcută, nereușită (rămâne originalul) sau deloc (rețeta e deja în română). */
+  translation?: "done" | "failed";
 }
 
 const englishIngredient = phraseDictionary(ENGLISH_INGREDIENTS);
+
+/** Cererea către funcția Edge translate-recipe: corpul JSON → răspunsul serverului. */
+export type TranslateCall = (body: { recipe: Pick<RecipeDraft, "name" | "description" | "steps"> }) => Promise<Response>;
+
+/**
+ * Traduce în română numele, descrierea și pașii unei rețete care nu pare în
+ * română (.tasks/012). Dacă nu merge (fără internet, limită, eroare), rămâne
+ * originalul: importul continuă oricum.
+ */
+export async function translateDraft(draft: RecipeDraft, call: TranslateCall): Promise<{ draft: RecipeDraft; translation?: "done" | "failed" }> {
+  if (!looksForeign(draft)) return { draft };
+  try {
+    const res = await call({ recipe: { name: draft.name, description: draft.description, steps: draft.steps } });
+    const body = (await res.json().catch(() => null)) as { recipe?: Pick<RecipeDraft, "name" | "description" | "steps"> } | null;
+    const r = body?.recipe;
+    if (res.ok && r && typeof r.name === "string" && typeof r.description === "string" && Array.isArray(r.steps) && r.steps.length === draft.steps.length) {
+      return { draft: { ...draft, name: r.name, description: r.description, steps: r.steps }, translation: "done" };
+    }
+  } catch {
+    // fără internet: rămâne originalul
+  }
+  return { draft, translation: "failed" };
+}
 
 /** Citește fiecare rând de ingredient (unitățile americane devin metrice) și caută produsul în catalogul gospodăriei. */
 export async function prepareImport(ctx: AppCtx, draft: RecipeDraft): Promise<PreparedImport> {

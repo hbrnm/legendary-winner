@@ -523,6 +523,24 @@ export function parseIngredientLine(input: string): ParsedIngredient {
   };
 }
 
+// --- Limba rețetei ----------------------------------------------------------------------
+
+/** Cuvinte frecvente în rețetele românești și rare în alte limbi (fără „de”, „la”, „un”, comune cu spaniola, franceza, italiana). */
+const ROMANIAN_WORDS = new Set(["si", "cu", "se", "pentru", "apoi", "pana", "dupa", "sau", "care", "este", "sa", "cand", "putin", "bine", "adauga", "amesteca", "fierbe", "taie", "pune", "lasa", "gust", "tava", "cuptor", "oala"]);
+
+/**
+ * Rețeta nu pare scrisă în română (deci are rost s-o traducem): fără destule
+ * semne românești (ă, ș, ț) și fără destule cuvinte românești uzuale.
+ */
+export function looksForeign(draft: Pick<RecipeDraft, "name" | "description" | "steps">): boolean {
+  const text = [draft.name, draft.description, ...draft.steps].join(" ");
+  const words = normalize(text).split(" ").filter((w) => /[a-z]/.test(w));
+  if (words.length < 3) return false;
+  if ((text.match(/[ăĂșşȘŞțţȚŢ]/g) ?? []).length >= 3) return false;
+  const romanian = words.filter((w) => ROMANIAN_WORDS.has(w)).length;
+  return romanian / words.length < 0.05;
+}
+
 // --- Temperaturi și lungimi în pași ----------------------------------------------------
 
 // Fără literă după „F”, „C” sau „inch” (cu flag-ul `u`, ca „250 făină” să nu fie temperatură).

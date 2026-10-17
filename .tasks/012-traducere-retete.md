@@ -1,6 +1,6 @@
 # 012 — Traducerea rețetelor importate în română
 
-**Stare:** în lucru; etapa 1 gata (doar în repo), urmează etapa 2
+**Stare:** în lucru; etapele 1–2 gata în repo; etapa 2 se integrează după etapa 3 (funcția trebuie să existe pe producție)
 **Ramura:** câte una pe etapă, fiecare cu PR-ul ei din `main`.
 
 ## Scop
@@ -32,7 +32,7 @@ Deciziile proprietarului (17 oct. 2026, chestionar):
 | # | Etapa | Stare | Commit |
 |---|---|---|---|
 | 1 | **Serverul:** logica, schema, instrucțiunile pentru model, limitele, testele (fără rețea); migrația pentru limită + `npm run test:db`; `index.ts` cu SDK-ul. | gata (în repo) | (vezi PR) |
-| 2 | **Clientul:** recunoașterea limbii, apelul, „Traduc rețeta…”, mesajul la eșec; textele noi într-un chestionar; teste. | de făcut | |
+| 2 | **Clientul:** recunoașterea limbii, apelul, „Traduc rețeta…”, mesajul la eșec; textele noi într-un chestionar; teste. | gata (PR deschis până la etapa 3) | (vezi PR) |
 | 3 | **Producția:** migrația, secretul (proprietarul, din panou), publicarea funcției, încercarea pe telefon. | de făcut | |
 
 ## Rezumat pe etape
@@ -43,8 +43,15 @@ Deciziile proprietarului (17 oct. 2026, chestionar):
 - **De știut:** limita se consumă și când traducerea nu reușește (fiecare apel la model costă). La eșec, jurnalul funcției are doar motivul, fără textul rețetei. `quotaViaRest` (comun cu `import-recipe`) a primit numele limitei: `import-recipe/core.js` se schimbă, deci la etapa 3 se publică din nou și `import-recipe` (același comportament).
 - `verificare`: nimic blocant; reparate: textele lungi după traducere se taie în loc să pice, un câmp gol rămâne gol, fără reîncercare după timeout, jurnalul la eșec, cererile prea mari refuzate înainte de citire, apelul la model mutat în logica testată (teste pentru refuz, `max_tokens`, text lipsă), test SQL pentru ștergerea după fel.
 
+### Etapa 2 (17 oct. 2026)
+- **Textele noi** (aprobate, chestionar, 17 oct. 2026, toate variantele recomandate): butonul „Traduc rețeta…”; după traducere, fraza de sus devine „Am citit rețeta de pe {site} și am tradus-o în română. Verifică ce am înțeles…”; la eșec, „Nu am putut traduce rețeta, așa că am păstrat textul original. Îl poți corecta aici.”
+- **Limba** (`looksForeign`, `src/lib/domain/recipe-import.ts`): în română dacă are cel puțin 3 semne ă/ș/ț sau cel puțin 5% cuvinte românești uzuale (fără „de”, „la”, „un”, comune cu limbile romanice); rețetele foarte scurte nu se traduc.
+- **Serviciul** `translateDraft` (`src/lib/services/recipe-import.ts`): doar pentru rețetele străine; înlocuiește numele, descrierea și pașii; la eșec (fără internet, limită, răspuns greșit) rămâne originalul, cu `translation: "failed"`. `callTranslateRecipe` în `src/lib/supabase/client.ts`. Pe ecran (`/retete/import/`): doar cu cont; traducerea înainte de `prepareImport`, deci °F → °C și după traducere.
+- **Teste:** `looksForeign` (engleză, italiană, franceză de tradus; română cu și fără diacritice, rețetă scurtă rămân), `translateDraft` (3). E2E: toate 30 trec; drumul cu traducere nu are E2E (modul demonstrativ n-are server, iar E2E cloud nu are funcțiile Edge): se verifică pe telefon la etapa 3.
+- **Ordinea:** PR-ul etapei 2 se integrează după ce funcția e pe producție; altfel fiecare rețetă străină ar arăta mesajul de eșec.
+
 ## Cum verific la final
 Pe telefon, cu cont: import din link o rețetă de pe un site american → pe „Verifică rețeta” numele, descrierea și pașii sunt în română, cu °C și cm; ingredientele potrivite cu catalogul → salvez.
 
 ## Următorul pas
-Etapa 2 (clientul și textele noi).
+Etapa 3, cu acordul proprietarului: migrația `20261017000001_recipe_translate`, secretul `ANTHROPIC_API_KEY` (proprietarul, din panou), publicarea `translate-recipe` și din nou `import-recipe`; apoi integrarea PR-ului etapei 2 și încercarea pe telefon.

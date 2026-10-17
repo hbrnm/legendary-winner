@@ -8,6 +8,7 @@ import {
   extractJsonLd,
   findRecipeNode,
   matchIngredients,
+  looksForeign,
   metricText,
   phraseDictionary,
   parseIngredientLine,
@@ -306,6 +307,26 @@ describe("unitățile imperiale → metric (.tasks/011)", () => {
     ["Mix in a bowl.", "Mix in a bowl."],
   ])("%s", (step, expected) => {
     expect(metricText(step)).toBe(expected);
+  });
+});
+
+describe("limba rețetei (.tasks/012)", () => {
+  const r = (name: string, steps: string[], description = "") => ({ name, description, steps });
+
+  it.each([
+    ["engleză", r("Banana Bread", ["Preheat oven to 175°C.", "Mash the bananas and mix with the butter.", "Bake for 60 minutes."], "Moist and easy.")],
+    ["italiană", r("Pasta al pomodoro", ["Cuocere la pasta in acqua salata.", "Aggiungere il sugo e mescolare."])],
+    ["franceză", r("Tarte aux pommes", ["Préchauffer le four à 180°C.", "Étaler la pâte et ajouter les pommes."])],
+  ])("%s: de tradus", (_, draft) => {
+    expect(looksForeign(draft)).toBe(true);
+  });
+
+  it.each([
+    ["cu diacritice", r("Ciorbă de perișoare", ["Fierbe oasele 30 de minute.", "Adaugă perișoarele și legumele tăiate."])],
+    ["fără diacritice", r("Ciorba de perisoare", ["Fierbe oasele si apoi adauga legumele.", "Lasa la foc mic pana se fac."])],
+    ["prea scurtă", r("Pizza", [])],
+  ])("%s: rămâne cum e", (_, draft) => {
+    expect(looksForeign(draft)).toBe(false);
   });
 });
 

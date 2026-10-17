@@ -4,7 +4,7 @@ import { setClock } from "@/lib/clock";
 import { seedCatalog } from "./bootstrap";
 import type { AppCtx } from "./context";
 import { saveRecipe } from "./kitchen";
-import { IMPORT_ERROR_MESSAGES, draftFromLink, draftFromPastedText, prepareImport, sharedImport } from "./recipe-import";
+import { IMPORT_ERROR_MESSAGES, draftFromLink, draftFromPastedText, prepareImport, sharedImport, translateDraft } from "./recipe-import";
 import type { RecipeDraft } from "@/lib/domain/recipe-import";
 
 let ctx: AppCtx;
@@ -130,5 +130,34 @@ describe("sharedImport (Partajează pe Android)", () => {
   it("fără nimic de folosit (sau cu un link http) nu face nimic", () => {
     expect(sharedImport(p({}))).toBeNull();
     expect(sharedImport(p({ url: "http://exemplu.ro/r", title: "Ciorbă" }))).toBeNull();
+  });
+});
+
+describe("translateDraft (.tasks/012)", () => {
+  const english: RecipeDraft = { ...draft, name: "Banana Bread", description: "Moist and easy.", steps: ["Preheat the oven.", "Bake for 60 minutes."] };
+  const romanian = { name: "Chec cu banane", description: "Pufos și ușor de făcut.", steps: ["Preîncălzește cuptorul.", "Coace 60 de minute."] };
+  const answer = (status: number, body: unknown) => vi.fn(async () => new Response(JSON.stringify(body), { status }));
+
+  it("traduce numele, descrierea și pașii; restul ciornei rămâne", async () => {
+    const call = answer(200, { recipe: romanian });
+    const { draft: d, translation } = await translateDraft(english, call);
+    expect(translation).toBe("done");
+    expect(d).toEqual({ ...english, ...romanian });
+    expect(call).toHaveBeenCalledWith({ recipe: { name: english.name, description: english.description, steps: english.steps } });
+  });
+
+  it("o rețetă în română nu se trimite la server", async () => {
+    const call = answer(200, { recipe: romanian });
+    expect(await translateDraft({ ...draft, steps: ["Fierbe carnea și apoi adaugă legumele."] }, call)).toEqual({ draft: { ...draft, steps: ["Fierbe carnea și apoi adaugă legumele."] } });
+    expect(call).not.toHaveBeenCalled();
+  });
+
+  it("fără internet, cu limita atinsă sau cu un răspuns greșit rămâne originalul", async () => {
+    const offline = vi.fn(async () => {
+      throw new TypeError("Failed to fetch");
+    });
+    for (const call of [offline, answer(429, { error: "rate_limited" }), answer(200, { recipe: { ...romanian, steps: ["Unul."] } })]) {
+      expect(await translateDraft(english, call)).toEqual({ draft: english, translation: "failed" });
+    }
   });
 });
