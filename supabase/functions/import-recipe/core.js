@@ -464,9 +464,9 @@ async function handleImportRequest(req, deps, limits = IMPORT_LIMITS) {
     return fail(e instanceof ImportError ? e.code : "fetch_failed");
   }
 }
-function quotaViaRest(fetchFn, supabaseUrl, anonKey) {
+function quotaViaRest(fetchFn, supabaseUrl, anonKey, rpc = "take_recipe_import_quota") {
   return async (authorization) => {
-    const res = await fetchFn(`${supabaseUrl}/rest/v1/rpc/take_recipe_import_quota`, {
+    const res = await fetchFn(`${supabaseUrl}/rest/v1/rpc/${rpc}`, {
       method: "POST",
       headers: { apikey: anonKey, authorization, "content-type": "application/json" },
       body: "{}",

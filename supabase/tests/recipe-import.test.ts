@@ -54,3 +54,21 @@ describe("take_recipe_import_quota", () => {
     await expect(asUser(ana, (q) => q("insert into recipe_import_requests (user_id) values ($1)", [ana.id]))).rejects.toThrow(/permission denied/);
   });
 });
+
+describe("take_recipe_translate_quota (.tasks/012)", () => {
+  const take = (u: TestUser | null, fn: string) => asUser(u, async (q) => (await q(`select public.${fn}() as ok`)).rows[0].ok as boolean);
+
+  it("are limita ei: traducerile nu consumă din importuri și invers", async () => {
+    await db().query("delete from recipe_import_requests where user_id = $1", [bogdan.id]);
+    for (let i = 0; i < 20; i++) expect(await take(bogdan, "take_recipe_translate_quota")).toBe(true);
+    expect(await take(bogdan, "take_recipe_translate_quota")).toBe(false);
+    expect(await take(bogdan, "take_recipe_import_quota")).toBe(true);
+    const { rows } = await db().query("select kind, count(*)::int as n from recipe_import_requests where user_id = $1 group by kind order by kind", [bogdan.id]);
+    expect(rows).toEqual([{ kind: "import", n: 1 }, { kind: "translate", n: 20 }]);
+  });
+
+  it("anonimii nu o pot chema, iar limita comună nu se cheamă direct", async () => {
+    await expect(take(null, "take_recipe_translate_quota")).rejects.toThrow(/permission denied/);
+    await expect(asUser(ana, (q) => q("select public.take_recipe_request_quota('translate')"))).rejects.toThrow(/permission denied/);
+  });
+});
