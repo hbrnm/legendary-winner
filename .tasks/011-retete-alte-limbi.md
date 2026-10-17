@@ -1,6 +1,6 @@
 # 011 — Rețete din alte limbi, cu unități metrice
 
-**Stare:** în lucru; etapele 1–2 gata; rămâne etapa 3
+**Stare:** gata (17 oct. 2026), etapele 1–3; rămâne doar încercarea pe telefon (mai jos)
 **Ramura:** câte una pe etapă, fiecare cu PR-ul ei din `main`.
 
 ## Scop
@@ -29,7 +29,7 @@ Decizia proprietarului (17 oct. 2026, chestionar): **întâi fără AI**, în ap
 |---|---|---|---|
 | 1 | **Unitățile și temperaturile:** cup/fl oz/pint/quart/gallon/stick → metric în `parseIngredientLine`; °F → °C și inch → cm în pași. Teste cu rânduri reale. | gata | (vezi PR) |
 | 2 | **Dicționarul englez–român** pentru potrivirea cu catalogul, cu test: o rețetă americană tipică are majoritatea ingredientelor potrivite automat. Lista, în chestionar, spre aprobare. | gata | (vezi PR) |
-| 3 | **Textele noi** (dacă apar, ex. „Am transformat unitățile în metric.”) într-un singur chestionar; E2E în modul demonstrativ cu o rețetă în engleză lipită la „Text”. | de făcut | |
+| 3 | **Textele noi** (dacă apar, ex. „Am transformat unitățile în metric.”) într-un singur chestionar; E2E în modul demonstrativ cu o rețetă în engleză lipită la „Text”. | gata | (vezi PR) |
 
 Totul e în client (`src/lib/domain/recipe-import.ts`, folosit și de funcția Edge prin `core.js`). La o schimbare în parsarea JSON-LD: `npm run build:functions` și funcția publicată din nou pe producție, cu acordul proprietarului.
 
@@ -46,8 +46,12 @@ Totul e în client (`src/lib/domain/recipe-import.ts`, folosit și de funcția E
 - `verificare` a găsit nota care bifa produse greșite („steak, seasoned with salt” → Sare; blocant) și ~20 de expresii-capcană; toate reparate, cu teste pe dicționarul real (18 potriviri, 26 de capcane). `core.js` nu se schimbă.
 - **Aprobat de proprietar** (chestionar, 17 oct. 2026): tot dicționarul, cum e, inclusiv alegerile discutabile („chicken” → Pui întreg, „pepper” → Piper negru măcinat, „corn” → Porumb la conservă, fasolea → la conservă, „yeast” → Drojdie uscată, „thyme”/„basil” → proaspăt, „water” → Apă plată, „heavy cream” → Smântână dulce).
 
+### Etapa 3 (17 oct. 2026)
+- **Fără text nou** (decizia proprietarului, chestionar, 17 oct. 2026): la ingrediente se vede deja rândul original („din rețetă: 1/3 cup unsalted butter, melted”), iar pașii apar direct în °C și cm.
+- **E2E** `e2e/import-retete.spec.ts`, „import din text în engleză”: o rețetă de banana bread lipită la „Text” → Unt 80 ml, Făină albă 000 360 ml, Zahăr 180 ml, Banane 3, potrivite automat; „peanut butter” rămâne de ales; „350°F (175°C)” → „175°C”, „9x5 inch” → „23×13 cm”; se salvează. `npx playwright test e2e/import-retete.spec.ts`: 4 trec.
+
 ## Cum verific la final
 Pe telefon: import din link o rețetă de pe un site american (ex. o rețetă de banana bread) → ingredientele în grame/ml, majoritatea potrivite automat cu catalogul, temperatura în °C în pași → salvez.
 
 ## Următorul pas
-Etapa 3 (texte noi, dacă e nevoie, și E2E cu o rețetă în engleză).
+Proprietarul, pe telefon: importul unei rețete de pe un site american (link) și al uneia în engleză lipite la „Text”. Eventual, într-o lucrare nouă: traducerea numelui și a pașilor cu AI.
