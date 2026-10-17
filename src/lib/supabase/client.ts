@@ -17,7 +17,6 @@ export function supabase(): SupabaseClient {
   return client;
 }
 
-/** Cererea către funcția Edge `import-recipe`, cu tokenul sesiunii (.tasks/009). */
 /** Traducerea în română a unei rețete importate (funcția Edge translate-recipe, .tasks/012), cu tokenul sesiunii. */
 export async function callTranslateRecipe(body: { recipe: { name: string; description: string; steps: string[] } }): Promise<Response> {
   const { data } = await supabase().auth.getSession();
@@ -25,9 +24,12 @@ export async function callTranslateRecipe(body: { recipe: { name: string; descri
     method: "POST",
     headers: { authorization: `Bearer ${data.session?.access_token ?? ""}`, apikey: anonKey!, "content-type": "application/json" },
     body: JSON.stringify(body),
+    // Fără răspuns în 30 s: rețeta rămâne în limba ei, iar butonul nu rămâne blocat.
+    signal: AbortSignal.timeout(30_000),
   });
 }
 
+/** Cererea către funcția Edge `import-recipe`, cu tokenul sesiunii (.tasks/009). */
 export async function callImportRecipe(body: { url: string }): Promise<Response> {
   const { data } = await supabase().auth.getSession();
   return fetch(`${url}/functions/v1/import-recipe`, {

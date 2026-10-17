@@ -156,7 +156,17 @@ describe("translateDraft (.tasks/012)", () => {
     const offline = vi.fn(async () => {
       throw new TypeError("Failed to fetch");
     });
-    for (const call of [offline, answer(429, { error: "rate_limited" }), answer(200, { recipe: { ...romanian, steps: ["Unul."] } })]) {
+    const notJson = vi.fn(async () => new Response("<html>", { status: 200 }));
+    for (const call of [
+      offline,
+      notJson,
+      answer(429, { error: "rate_limited" }),
+      answer(502, { recipe: romanian }),
+      answer(200, { recipe: { ...romanian, steps: ["Unul."] } }),
+      answer(200, { recipe: { ...romanian, steps: [null, "Coace."] } }),
+      answer(200, { recipe: { ...romanian, steps: ["", "Coace."] } }),
+      answer(200, { recipe: { ...romanian, name: " " } }),
+    ]) {
       expect(await translateDraft(english, call)).toEqual({ draft: english, translation: "failed" });
     }
   });

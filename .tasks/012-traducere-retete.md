@@ -45,9 +45,10 @@ Deciziile proprietarului (17 oct. 2026, chestionar):
 
 ### Etapa 2 (17 oct. 2026)
 - **Textele noi** (aprobate, chestionar, 17 oct. 2026, toate variantele recomandate): butonul „Traduc rețeta…”; după traducere, fraza de sus devine „Am citit rețeta de pe {site} și am tradus-o în română. Verifică ce am înțeles…”; la eșec, „Nu am putut traduce rețeta, așa că am păstrat textul original. Îl poți corecta aici.”
-- **Limba** (`looksForeign`, `src/lib/domain/recipe-import.ts`): în română dacă are cel puțin 3 semne ă/ș/ț sau cel puțin 5% cuvinte românești uzuale (fără „de”, „la”, „un”, comune cu limbile romanice); rețetele foarte scurte nu se traduc.
+- **Limba** (`looksForeign`, `src/lib/domain/recipe-import.ts`): în română dacă are cel puțin 3 semne ă/ș/ț (cu „ş/ţ” cu sedilă doar lângă „ă”, pentru că „ş” e și în turcă) sau cel puțin 5% cuvinte românești uzuale (fără „de”, „la”, „un”, „se”, „este”, comune cu spaniola, franceza, italiana; cu imperativul la plural și forma „noi”); rețetele foarte scurte nu se traduc.
 - **Serviciul** `translateDraft` (`src/lib/services/recipe-import.ts`): doar pentru rețetele străine; înlocuiește numele, descrierea și pașii; la eșec (fără internet, limită, răspuns greșit) rămâne originalul, cu `translation: "failed"`. `callTranslateRecipe` în `src/lib/supabase/client.ts`. Pe ecran (`/retete/import/`): doar cu cont; traducerea înainte de `prepareImport`, deci °F → °C și după traducere.
 - **Teste:** `looksForeign` (engleză, italiană, franceză de tradus; română cu și fără diacritice, rețetă scurtă rămân), `translateDraft` (3). E2E: toate 30 trec; drumul cu traducere nu are E2E (modul demonstrativ n-are server, iar E2E cloud nu are funcțiile Edge): se verifică pe telefon la etapa 3.
+- `verificare`: nimic blocant; reparate cu teste: răspunsul serverului verificat strict (pași text, nume negol), spaniola cu „se” și turca cu „ş” se traduc, plural românesc fără diacritice nu, cererea de traducere se oprește după 30 s (butonul nu rămâne pe „Traduc rețeta…”).
 - **Ordinea:** PR-ul etapei 2 se integrează după ce funcția e pe producție; altfel fiecare rețetă străină ar arăta mesajul de eșec.
 
 ## Cum verific la final

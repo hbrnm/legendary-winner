@@ -47,7 +47,9 @@ export async function translateDraft(draft: RecipeDraft, call: TranslateCall): P
     const res = await call({ recipe: { name: draft.name, description: draft.description, steps: draft.steps } });
     const body = (await res.json().catch(() => null)) as { recipe?: Pick<RecipeDraft, "name" | "description" | "steps"> } | null;
     const r = body?.recipe;
-    if (res.ok && r && typeof r.name === "string" && typeof r.description === "string" && Array.isArray(r.steps) && r.steps.length === draft.steps.length) {
+    const text = (v: unknown): v is string => typeof v === "string";
+    const steps = Array.isArray(r?.steps) && r.steps.length === draft.steps.length && r.steps.every((s, i) => text(s) && (s.trim() !== "" || draft.steps[i].trim() === ""));
+    if (res.ok && r && text(r.name) && r.name.trim() && text(r.description) && steps) {
       return { draft: { ...draft, name: r.name, description: r.description, steps: r.steps }, translation: "done" };
     }
   } catch {

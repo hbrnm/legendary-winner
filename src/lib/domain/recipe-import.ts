@@ -525,18 +525,30 @@ export function parseIngredientLine(input: string): ParsedIngredient {
 
 // --- Limba rețetei ----------------------------------------------------------------------
 
-/** Cuvinte frecvente în rețetele românești și rare în alte limbi (fără „de”, „la”, „un”, comune cu spaniola, franceza, italiana). */
-const ROMANIAN_WORDS = new Set(["si", "cu", "se", "pentru", "apoi", "pana", "dupa", "sau", "care", "este", "sa", "cand", "putin", "bine", "adauga", "amesteca", "fierbe", "taie", "pune", "lasa", "gust", "tava", "cuptor", "oala"]);
+/**
+ * Cuvinte frecvente în rețetele românești și rare în alte limbi (fără „de”, „la”,
+ * „un”, „se”, „este”, comune cu spaniola, franceza, italiana), cu imperativul
+ * la singular și la plural și forma „noi” din bloguri.
+ */
+const ROMANIAN_WORDS = new Set([
+  "si", "cu", "pentru", "apoi", "pana", "dupa", "sau", "care", "sa", "cand", "putin", "bine", "mai", "intr", "gust", "tava", "cuptor", "oala",
+  "adauga", "adaugati", "adaugam", "amesteca", "amestecati", "amestecam", "fierbe", "fierbeti", "fierbem", "taie", "taiati", "taiem",
+  "pune", "puneti", "punem", "lasa", "lasati", "lasam", "coace", "coaceti", "coacem", "framanta", "framantati", "framantam",
+]);
 
 /**
  * Rețeta nu pare scrisă în română (deci are rost s-o traducem): fără destule
- * semne românești (ă, ș, ț) și fără destule cuvinte românești uzuale.
+ * semne românești și fără destule cuvinte românești uzuale. „ş/ţ” cu sedilă
+ * (texte vechi) contează doar lângă „ă”, pentru că „ş” e și în turcă.
  */
 export function looksForeign(draft: Pick<RecipeDraft, "name" | "description" | "steps">): boolean {
   const text = [draft.name, draft.description, ...draft.steps].join(" ");
   const words = normalize(text).split(" ").filter((w) => /[a-z]/.test(w));
   if (words.length < 3) return false;
-  if ((text.match(/[ăĂșşȘŞțţȚŢ]/g) ?? []).length >= 3) return false;
+  const breve = (text.match(/[ăĂ]/g) ?? []).length;
+  const comma = (text.match(/[șȘțȚ]/g) ?? []).length;
+  const cedilla = (text.match(/[şŞţŢ]/g) ?? []).length;
+  if (breve + comma + (breve ? cedilla : 0) >= 3) return false;
   const romanian = words.filter((w) => ROMANIAN_WORDS.has(w)).length;
   return romanian / words.length < 0.05;
 }

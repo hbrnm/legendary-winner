@@ -317,6 +317,8 @@ describe("limba rețetei (.tasks/012)", () => {
     ["engleză", r("Banana Bread", ["Preheat oven to 175°C.", "Mash the bananas and mix with the butter.", "Bake for 60 minutes."], "Moist and easy.")],
     ["italiană", r("Pasta al pomodoro", ["Cuocere la pasta in acqua salata.", "Aggiungere il sugo e mescolare."])],
     ["franceză", r("Tarte aux pommes", ["Préchauffer le four à 180°C.", "Étaler la pâte et ajouter les pommes."])],
+    ["spaniolă (cu „se”)", r("Bizcocho", ["Se mezcla la harina con el azúcar.", "Se agrega la leche y se bate.", "Se hornea 30 minutos."])],
+    ["turcă (cu „ş”)", r("Kurabiye", ["Şekeri ve tereyağını karıştırın.", "Unu ekleyin, şekil verin ve pişirin."])],
   ])("%s: de tradus", (_, draft) => {
     expect(looksForeign(draft)).toBe(true);
   });
@@ -324,6 +326,8 @@ describe("limba rețetei (.tasks/012)", () => {
   it.each([
     ["cu diacritice", r("Ciorbă de perișoare", ["Fierbe oasele 30 de minute.", "Adaugă perișoarele și legumele tăiate."])],
     ["fără diacritice", r("Ciorba de perisoare", ["Fierbe oasele si apoi adauga legumele.", "Lasa la foc mic pana se fac."])],
+    ["scurtă, cu plural", r("Cozonac", ["Framantati aluatul 10 minute.", "Lasati la crescut."])],
+    ["cu sedilă (text vechi)", r("Plăcintă", ["Adăugaţi zahărul şi amestecaţi."])],
     ["prea scurtă", r("Pizza", [])],
   ])("%s: rămâne cum e", (_, draft) => {
     expect(looksForeign(draft)).toBe(false);
