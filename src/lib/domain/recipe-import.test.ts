@@ -8,6 +8,7 @@ import {
   extractJsonLd,
   findRecipeNode,
   matchIngredients,
+  metricText,
   parseIngredientLine,
   parseIsoDuration,
 } from "./recipe-import";
@@ -190,7 +191,7 @@ describe("rândul de ingredient", () => {
     ["300g ciuperci", { quantity: 300, unit: "g", name: "ciuperci", note: null, optional: false }],
     ["1/2 linguriță sare", { quantity: 0.5, unit: "lingurita", name: "sare", note: null, optional: false }],
     ["½ cană lapte", { quantity: 0.5, unit: "cana", name: "lapte", note: null, optional: false }],
-    ["1 1/2 cups flour", { quantity: 1.5, unit: "cana", name: "flour", note: null, optional: false }],
+    ["1 1/2 cups flour", { quantity: 360, unit: "ml", name: "flour", note: null, optional: false }],
     ["1 ½ cană apă", { quantity: 1.5, unit: "cana", name: "apă", note: null, optional: false }],
     ["3 ouă", { quantity: 3, unit: null, name: "ouă", note: null, optional: false }],
     ["o ceapă mare, tocată", { quantity: 1, unit: null, name: "ceapă mare", note: "tocată", optional: false }],
@@ -200,7 +201,7 @@ describe("rândul de ingredient", () => {
     ["1 lb ground beef", { quantity: 454, unit: "g", name: "ground beef", note: null, optional: false }],
     ["100 ml (1/2 cană) lapte", { quantity: 100, unit: "ml", name: "lapte", note: "1/2 cană", optional: false }],
     ["2 tbsp butter, melted", { quantity: 2, unit: "lingura", name: "butter", note: "melted", optional: false }],
-    ["a cup of sugar", { quantity: 1, unit: "cana", name: "sugar", note: null, optional: false }],
+    ["a cup of sugar", { quantity: 240, unit: "ml", name: "sugar", note: null, optional: false }],
     ["1 lingură zahăr (opțional)", { quantity: 1, unit: "lingura", name: "zahăr", note: null, optional: true }],
     ["50 g nuci opțional", { quantity: 50, unit: "g", name: "nuci", note: null, optional: true }],
   ])("%s", (line, expected) => {
@@ -221,7 +222,6 @@ describe("rândul de ingredient", () => {
     ["1,500 kg cartofi", { name: "cartofi", note: "1,500 kg" }],
     ["2 pumni de nuci", { name: "nuci", note: "2 pumni" }],
     ["un fir de ceapă verde", { name: "ceapă verde", note: "un fir" }],
-    ["8 fl oz milk", { name: "milk", note: "8 fl oz" }],
     ["2 până la 3 ouă", { name: "ouă", note: "2–3" }],
   ])("%s: fără cantitate", (line, expected) => {
     expect(parseIngredientLine(line)).toMatchObject({ quantity: null, unit: null, ...expected });
@@ -242,6 +242,51 @@ describe("rândul de ingredient", () => {
 
   it("nu ia unitatea drept nume când după ea nu mai urmează nimic", () => {
     expect(parseIngredientLine("200 g")).toMatchObject({ quantity: 200, unit: null, name: "g" });
+  });
+});
+
+describe("unitățile imperiale → metric (.tasks/011)", () => {
+  it.each([
+    ["1 cup milk", { quantity: 240, unit: "ml", name: "milk" }],
+    ["3/4 cup sugar", { quantity: 180, unit: "ml", name: "sugar" }],
+    ["1/3 cup olive oil", { quantity: 80, unit: "ml", name: "olive oil" }],
+    ["8 fl oz milk", { quantity: 240, unit: "ml", name: "milk" }],
+    ["2 fl. oz. cream", { quantity: 60, unit: "ml", name: "cream" }],
+    ["1 pint heavy cream", { quantity: 473, unit: "ml", name: "heavy cream" }],
+    ["1 quart chicken stock", { quantity: 946, unit: "ml", name: "chicken stock" }],
+    ["1 gallon water", { quantity: 3785, unit: "ml", name: "water" }],
+    ["1 stick butter, softened", { quantity: 113, unit: "g", name: "butter", note: "softened" }],
+    ["2 sticks unsalted butter", { quantity: 226, unit: "g", name: "unsalted butter" }],
+    ["1 1/2 lbs chicken thighs", { quantity: 680, unit: "g", name: "chicken thighs" }],
+    ["½ cană lapte", { quantity: 0.5, unit: "cana", name: "lapte" }],
+  ])("%s", (line, expected) => {
+    expect(parseIngredientLine(line)).toMatchObject(expected);
+  });
+
+  it("un „stick” care nu e de unt rămâne în notă", () => {
+    expect(parseIngredientLine("2 sticks celery")).toMatchObject({ quantity: null, unit: null, name: "celery", note: "2 sticks" });
+  });
+
+  it.each([
+    ["Preheat oven to 350°F.", "Preheat oven to 175°C."],
+    ["Bake at 375 degrees F for 25 minutes.", "Bake at 190°C for 25 minutes."],
+    ["Heat the oven to 425 F.", "Heat the oven to 220°C."],
+    ["Roast at 400 degrees Fahrenheit.", "Roast at 205°C."],
+    ["Cook until it reaches 165°F inside.", "Cook until it reaches 75°C inside."],
+    ["Preheat oven to 350°F (175°C).", "Preheat oven to 175°C."],
+    ["Preheat oven to 350°F/180°C.", "Preheat oven to 180°C."],
+    ["Preheat oven to 180°C (350°F).", "Preheat oven to 180°C."],
+    ["Coacem la 180°C, 40 de minute.", "Coacem la 180°C, 40 de minute."],
+    ["Grease a 9x13 inch baking pan.", "Grease a 23×33 cm baking pan."],
+    ["Use a 9 x 13-inch dish.", "Use a 23×33 cm dish."],
+    ["Pour into a 9-inch round pan.", "Pour into a 23 cm round pan."],
+    ["Cut into 1/2-inch pieces.", "Cut into 1,5 cm pieces."],
+    ["Cut into 1-inch cubes, about 2 inches long.", "Cut into 2,5 cm cubes, about 5 cm long."],
+    ["Cut into 1/4 inch slices.", "Cut into 0,5 cm slices."],
+    ["Add 2 F sticks.", "Add 2 F sticks."],
+    ["Mix in a bowl.", "Mix in a bowl."],
+  ])("%s", (step, expected) => {
+    expect(metricText(step)).toBe(expected);
   });
 });
 

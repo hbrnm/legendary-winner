@@ -1,5 +1,5 @@
 import type { Product, UnitCode } from "@/lib/domain/types";
-import { draftFromText, matchIngredients, parseIngredientLine, type RecipeDraft } from "@/lib/domain/recipe-import";
+import { draftFromText, matchIngredients, metricText, parseIngredientLine, type RecipeDraft } from "@/lib/domain/recipe-import";
 import { type AppCtx, UserError } from "./context";
 import { productSearchIndex } from "./catalog";
 import { visible } from "./queries";
@@ -28,7 +28,7 @@ export interface PreparedImport {
   ingredients: ImportedIngredient[];
 }
 
-/** Citește fiecare rând de ingredient și caută produsul în catalogul gospodăriei. */
+/** Citește fiecare rând de ingredient (unitățile americane devin metrice) și caută produsul în catalogul gospodăriei. */
 export async function prepareImport(ctx: AppCtx, draft: RecipeDraft): Promise<PreparedImport> {
   const products = new Map((await visible(ctx.db, "products", ctx.householdId)).map((p) => [p.id, p]));
   // Pentru rețete se propun doar alimente (nu „pastă de dinți” pentru „pastă de ardei”).
@@ -49,7 +49,8 @@ export async function prepareImport(ctx: AppCtx, draft: RecipeDraft): Promise<Pr
       return p && isFood(id) ? [{ id: p.id, name: p.name }] : [];
     }),
   }));
-  return { draft, ingredients };
+  // Temperaturile și lungimile din rețetele americane, în metric (.tasks/011).
+  return { draft: { ...draft, description: metricText(draft.description), steps: draft.steps.map(metricText) }, ingredients };
 }
 
 /** Ciorna din textul lipit (descrierea de pe Instagram, TikTok, Facebook). */

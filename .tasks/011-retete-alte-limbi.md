@@ -1,6 +1,6 @@
 # 011 — Rețete din alte limbi, cu unități metrice
 
-**Stare:** de făcut (după verificarea pe telefoane de la `.tasks/009`, etapa 5)
+**Stare:** în lucru; etapa 1 gata (17 oct. 2026)
 **Ramura:** câte una pe etapă, fiecare cu PR-ul ei din `main`.
 
 ## Scop
@@ -21,20 +21,26 @@ Decizia proprietarului (17 oct. 2026, chestionar): **întâi fără AI**, în ap
 
 ## Model
 - **Dicționarul englez–român** (`src/data/import-en.ts`): cuvinte și expresii („all-purpose flour” → „făină”, „ground beef” → „carne tocată de vită”, „scallions” → „ceapă verde”), folosite doar înainte de căutarea în catalog. Rândul original rămâne afișat („din rețetă: …”). E conținut scris de agenți: lista se aprobă de proprietar înainte de producție.
-- **Unitățile:** `cup` → 240 ml, `fl oz` → 30 ml (29,57 rotunjit), `pint`/`quart`/`gallon` (SUA) → ml/l; `tbsp`/`tsp` rămân „lingură”/„linguriță” (aceeași măsură în bucătăria românească). „Cană” din textele românești rămâne „cană”. `stick of butter` → 113 g. Cantitățile se rotunjesc la valori de bucătărie (ex. 237 → 240 ml), fără să inventeze precizie.
-- **Temperaturile din pași:** „350°F”, „350 F”, „350 degrees Fahrenheit” → „175°C” (rotunjit la 5), cu valoarea originală în paranteză doar dacă proprietarul alege așa la chestionar. Inch → cm în pași („9x13 inch pan” → „23×33 cm”).
+- **Unitățile:** `cup` → 240 ml, `fl oz` → 30 ml (convenția din bucătărie: 8 fl oz = o cană), `pint`/`quart`/`gallon` (SUA) → 473/946/3785 ml; `lb`/`oz` → g (din `.tasks/009`); `tbsp`/`tsp` rămân „lingură”/„linguriță”. „Cană” din textele românești rămâne „cană”. Un „stick” de unt → 113 g; alte „sticks” rămân în notă.
+- **Temperaturile și lungimile din pași și descriere** (`metricText`): „350°F”, „350 F”, „350 degrees Fahrenheit” → „175°C” (rotunjit la 5); dacă pasul are deja și °C („350°F (175°C)”, „180°C/350°F”), rămâne doar °C. „F” fără semnul de grad doar între 200 și 600 (temperaturi de cuptor). „9x13 inch” → „23×33 cm”, „1/2-inch” → „1,5 cm” (la jumătate de cm sub 3 cm, apoi la cm întreg). Rândul original al ingredientului rămâne afișat („din rețetă: …”).
 
 ## Etape
 | # | Etapa | Stare | Commit |
 |---|---|---|---|
-| 1 | **Unitățile și temperaturile:** cup/fl oz/pint/quart/gallon/stick → metric în `parseIngredient`; °F → °C și inch → cm în pași. Teste cu rânduri reale (fixturi). | de făcut | |
+| 1 | **Unitățile și temperaturile:** cup/fl oz/pint/quart/gallon/stick → metric în `parseIngredientLine`; °F → °C și inch → cm în pași. Teste cu rânduri reale. | gata | (vezi PR) |
 | 2 | **Dicționarul englez–român** pentru potrivirea cu catalogul (cele mai folosite ~150 de ingrediente), cu test: o rețetă americană tipică are majoritatea ingredientelor potrivite automat. Lista, în chestionar, spre aprobare. | de făcut | |
 | 3 | **Textele noi** (dacă apar, ex. „Am transformat unitățile în metric.”) într-un singur chestionar; E2E în modul demonstrativ cu o rețetă în engleză lipită la „Text”. | de făcut | |
 
 Totul e în client (`src/lib/domain/recipe-import.ts`, folosit și de funcția Edge prin `core.js`). La o schimbare în parsarea JSON-LD: `npm run build:functions` și funcția publicată din nou pe producție, cu acordul proprietarului.
 
+## Rezumat pe etape
+### Etapa 1 (17 oct. 2026)
+- `parseIngredientLine` (`src/lib/domain/recipe-import.ts`): unitățile americane de volum în ml, „fl oz” ca unitate (nu mai e doar notă), „stick” de unt în grame. `metricText` nouă, aplicată în `prepareImport` (`src/lib/services/recipe-import.ts`) pe pași și descriere, deci merge la link și la text, și offline.
+- `core.js` regenerat: se schimbă doar tabelele de unități, pe care funcția Edge nu le folosește (ingredientele se citesc în telefon). Funcția de pe producție se comportă la fel; nu trebuie publicată din nou.
+- Fără texte noi. Teste: 29 noi în `recipe-import.test.ts` (unități, „sticks” de țelină, temperaturi, inch, pași românești neschimbați) și unul în `services/recipe-import.test.ts` (rețetă americană → metric).
+
 ## Cum verific la final
 Pe telefon: import din link o rețetă de pe un site american (ex. o rețetă de banana bread) → ingredientele în grame/ml, majoritatea potrivite automat cu catalogul, temperatura în °C în pași → salvez.
 
 ## Următorul pas
-Etapa 1, într-o sesiune nouă, după ce se termină verificarea pe telefoane a `.tasks/009`.
+Etapa 2: dicționarul englez–român (~150 de ingrediente) pentru potrivirea cu catalogul, cu lista în chestionar spre aprobare.
