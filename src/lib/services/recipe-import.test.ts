@@ -4,7 +4,7 @@ import { setClock } from "@/lib/clock";
 import { seedCatalog } from "./bootstrap";
 import type { AppCtx } from "./context";
 import { saveRecipe } from "./kitchen";
-import { IMPORT_ERROR_MESSAGES, IMPORT_PHOTO_ERROR, photoFromLink, draftFromLink, draftFromPastedText, myMemoryTranslator, prepareImport, sharedImport, translateDraft } from "./recipe-import";
+import { IMPORT_ERROR_MESSAGES, IMPORT_PHOTO_ERROR, photoFromLink, draftFromLink, draftFromPastedText, myMemoryTranslator, firstWorking, serverTranslator, prepareImport, sharedImport, translateDraft } from "./recipe-import";
 import type { RecipeDraft } from "@/lib/domain/recipe-import";
 
 let ctx: AppCtx;
@@ -215,5 +215,27 @@ describe("photoFromLink (.tasks/013)", () => {
     const html = vi.fn(async () => new Response("<html>", { headers: { "content-type": "text/html" } }));
     const refused = vi.fn(async () => new Response(JSON.stringify({ error: "not_image" }), { status: 422, headers: { "content-type": "application/json" } }));
     for (const call of [offline, html, refused]) await expect(photoFromLink("https://exemplu.ro/a.jpg", call)).rejects.toThrow(IMPORT_PHOTO_ERROR);
+  });
+});
+
+describe("serverTranslator și firstWorking (Gemini, apoi MyMemory)", () => {
+  const recipe = { name: "Bread", description: "", steps: ["Bake."] };
+  const ro = { name: "Pâine", description: "", steps: ["Coace."] };
+
+  it("serverul întoarce rețeta tradusă; un refuz e eroare", async () => {
+    const call = vi.fn(async () => new Response(JSON.stringify({ recipe: ro }), { status: 200 }));
+    expect(await serverTranslator(call)(recipe, "en")).toEqual(ro);
+    expect(call).toHaveBeenCalledWith({ recipe });
+    await expect(serverTranslator(async () => new Response(JSON.stringify({ error: "rate_limited" }), { status: 429 }))(recipe, "en")).rejects.toThrow("429");
+  });
+
+  it("dacă primul nu merge, se folosește al doilea; dacă niciunul, eroarea", async () => {
+    const broken = vi.fn(async () => {
+      throw new Error("Gemini 429");
+    });
+    const backup = vi.fn(async () => ro);
+    expect(await firstWorking(broken, backup)(recipe, "en")).toEqual(ro);
+    expect(backup).toHaveBeenCalledWith(recipe, "en");
+    await expect(firstWorking(broken, broken)(recipe, "en")).rejects.toThrow("Gemini 429");
   });
 });

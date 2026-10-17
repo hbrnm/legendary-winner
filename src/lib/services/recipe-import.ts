@@ -70,6 +70,34 @@ export function myMemoryTranslator(fetchFn: typeof fetch = fetch, timeoutMs = 30
   };
 }
 
+/** Cererea către funcția Edge translate-recipe (Gemini, cu cont). */
+export type TranslateCall = (body: { recipe: RecipeText }) => Promise<Response>;
+
+/** Traducerea prin server (Gemini): un răspuns fără rețetă e o eroare. */
+export function serverTranslator(call: TranslateCall): Translate {
+  return async (recipe) => {
+    const res = await call({ recipe });
+    const body = (await res.json().catch(() => null)) as { recipe?: RecipeText } | null;
+    if (!res.ok || !body?.recipe) throw new Error(`translate-recipe ${res.status}`);
+    return body.recipe;
+  };
+}
+
+/** Prima traducere care reușește: Gemini, iar dacă nu merge (limita gratuită, eroare), MyMemory. */
+export function firstWorking(...translators: Translate[]): Translate {
+  return async (recipe, from) => {
+    let last: unknown;
+    for (const t of translators) {
+      try {
+        return await t(recipe, from);
+      } catch (e) {
+        last = e;
+      }
+    }
+    throw last;
+  };
+}
+
 /**
  * Traduce în română numele, descrierea și pașii unei rețete care nu pare în
  * română (.tasks/012). Dacă nu merge (fără internet, limita zilnică, eroare),

@@ -1,6 +1,6 @@
 # 012 — Traducerea rețetelor importate în română
 
-**Stare:** gata în repo (17 oct. 2026): traducerea se face din telefon, cu MyMemory; rămâne încercarea pe telefon
+**Stare:** în lucru: Gemini prin server (cu MyMemory de rezervă) în repo; rămân cheia, publicarea funcției și încercarea pe telefon
 **Ramura:** câte una pe etapă, fiecare cu PR-ul ei din `main`.
 
 ## Scop
@@ -59,6 +59,12 @@ Deciziile proprietarului (17 oct. 2026, chestionar):
 - **Rămâne pe producție, nefolosit:** migrația `20261017000001_recipe_translate` (coloana `kind`, `take_recipe_translate_quota()`), aplicată înainte de schimbare. Nu strică nimic (limita de import se comportă la fel); se poate scoate cu o migrație nouă, dacă proprietarul vrea.
 - `import-recipe/core.js` din repo diferă de cel publicat doar prin parametrul `rpc` al lui `quotaViaRest` (același efect); se publică din nou la următoarea schimbare a funcției.
 - **Teste:** `guessLanguage` (6), `splitForTranslation` (3), `translateDraft` (3, cu traducătorul simulat), `myMemoryTranslator` (2: bucăți sub 500 de octeți, `langpair`, entități HTML; limita zilnică, „MYMEMORY WARNING”, 403, răspuns non-JSON). E2E (MyMemory simulat cu `page.route`, fără rețea): „tradus în română, metric…” și „fără traducere (limita zilnică)” cu mesajul. `npm run test:e2e`: 31 trec.
+
+### Gemini prin server, cu MyMemory de rezervă (17 oct. 2026)
+- Pe telefon, traducerea MyMemory e „cuvânt cu cuvânt”. Chestionar: Google Gemini gratuit (ales), Claude cu limită mică, rămâne MyMemory.
+- Readusă funcția Edge `translate-recipe` (din varianta DeepL, deja verificată: limita de cereri, mărimi, `checkTranslation`), cu `geminiTranslator`: `models/{model}:generateContent`, cheia în antetul `x-goog-api-key` (nu în adresă), JSON după schemă, `temperature` 0,2, instrucțiunile „traduce sensul, nu cuvânt cu cuvânt”, numerele și unitățile neschimbate, textul rețetei e date. Modelul implicit `gemini-2.5-flash`, schimbabil fără cod cu secretul `GEMINI_MODEL` (ID-urile gratuite diferă între surse). Secretul `GEMINI_API_KEY` îl pune proprietarul.
+- Aplicația: cu cont, `firstWorking(serverTranslator, myMemoryTranslator)`; fără cont sau în modul demonstrativ, doar MyMemory. Înainte de publicarea funcției (sau fără cheie) traducerea trece singură pe MyMemory, deci integrarea nu strică nimic.
+- Teste: `geminiTranslator` (3: cerere, model, erori 429/403/SAFETY/MAX_TOKENS), `serverTranslator`/`firstWorking` (2); `core.js` încercat cu Node. `npm test`: 468; E2E de import: 5.
 
 ## Cum verific la final
 Pe telefon: import din link (cu cont) sau din text o rețetă în engleză → pe „Verifică rețeta” numele, descrierea și pașii sunt în română, cu °C și cm; ingredientele potrivite cu catalogul → salvez.
