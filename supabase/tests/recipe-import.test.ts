@@ -67,6 +67,13 @@ describe("take_recipe_translate_quota (.tasks/012)", () => {
     expect(rows).toEqual([{ kind: "import", n: 1 }, { kind: "translate", n: 20 }]);
   });
 
+  it("cererile vechi se șterg doar din felul lor", async () => {
+    await db().query("update recipe_import_requests set created_at = now() - interval '2 days' where user_id = $1", [bogdan.id]);
+    expect(await take(bogdan, "take_recipe_translate_quota")).toBe(true);
+    const { rows } = await db().query("select kind, count(*)::int as n from recipe_import_requests where user_id = $1 group by kind order by kind", [bogdan.id]);
+    expect(rows).toEqual([{ kind: "import", n: 1 }, { kind: "translate", n: 1 }]);
+  });
+
   it("anonimii nu o pot chema, iar limita comună nu se cheamă direct", async () => {
     await expect(take(null, "take_recipe_translate_quota")).rejects.toThrow(/permission denied/);
     await expect(asUser(ana, (q) => q("select public.take_recipe_request_quota('translate')"))).rejects.toThrow(/permission denied/);

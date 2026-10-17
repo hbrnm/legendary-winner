@@ -1,6 +1,6 @@
 # 012 — Traducerea rețetelor importate în română
 
-**Stare:** în lucru (etapa 1)
+**Stare:** în lucru; etapa 1 gata (doar în repo), urmează etapa 2
 **Ramura:** câte una pe etapă, fiecare cu PR-ul ei din `main`.
 
 ## Scop
@@ -31,12 +31,20 @@ Deciziile proprietarului (17 oct. 2026, chestionar):
 ## Etape
 | # | Etapa | Stare | Commit |
 |---|---|---|---|
-| 1 | **Serverul:** logica, schema, instrucțiunile pentru model, limitele, testele (fără rețea); migrația pentru limită + `npm run test:db`; `index.ts` cu SDK-ul. | în lucru | |
+| 1 | **Serverul:** logica, schema, instrucțiunile pentru model, limitele, testele (fără rețea); migrația pentru limită + `npm run test:db`; `index.ts` cu SDK-ul. | gata (în repo) | (vezi PR) |
 | 2 | **Clientul:** recunoașterea limbii, apelul, „Traduc rețeta…”, mesajul la eșec; textele noi într-un chestionar; teste. | de făcut | |
 | 3 | **Producția:** migrația, secretul (proprietarul, din panou), publicarea funcției, încercarea pe telefon. | de făcut | |
+
+## Rezumat pe etape
+### Etapa 1 (17 oct. 2026)
+- **Logica** `src/lib/server/translate-recipe.ts`: `handleTranslateRequest` (token, mărimea cererii și a rețetei, limita, modelul, verificarea răspunsului), `checkTranslation` (același număr de pași, nimic golit sau inventat, textele tăiate la limitele ciornei), `modelTranslator` (Claude Haiku 5.5, efort `low`, JSON după `TRANSLATION_SCHEMA`; refuzul sau textul tăiat sunt erori). Instrucțiunile pentru model: doar traducere, numerele și unitățile neschimbate, textul rețetei e date, nu instrucțiuni.
+- **Deno** `supabase/functions/translate-recipe/`: `index.ts` (SDK-ul, `timeout` 25 s, fără reîncercări), `deno.json` (`@anthropic-ai/sdk` → `npm:@anthropic-ai/sdk@0.130.0`, aceeași versiune ca devDependency, pentru tipuri), `core.js` împachetat. Funcția nu a rulat încă pe Deno și nu a chemat modelul real (nici Deno, nici rețeaua spre Supabase nu sunt în mediul cloud): prima încercare e la etapa 3.
+- **Migrația** `20261017000001_recipe_translate.sql`: `recipe_import_requests.kind` (`import` / `translate`), limita comună `take_recipe_request_quota(kind)` (nu se cheamă prin API), `take_recipe_import_quota()` neschimbată ca efect, `take_recipe_translate_quota()` nouă. `npm run test:db`: 48 trec.
+- **De știut:** limita se consumă și când traducerea nu reușește (fiecare apel la model costă). La eșec, jurnalul funcției are doar motivul, fără textul rețetei. `quotaViaRest` (comun cu `import-recipe`) a primit numele limitei: `import-recipe/core.js` se schimbă, deci la etapa 3 se publică din nou și `import-recipe` (același comportament).
+- `verificare`: nimic blocant; reparate: textele lungi după traducere se taie în loc să pice, un câmp gol rămâne gol, fără reîncercare după timeout, jurnalul la eșec, cererile prea mari refuzate înainte de citire, apelul la model mutat în logica testată (teste pentru refuz, `max_tokens`, text lipsă), test SQL pentru ștergerea după fel.
 
 ## Cum verific la final
 Pe telefon, cu cont: import din link o rețetă de pe un site american → pe „Verifică rețeta” numele, descrierea și pașii sunt în română, cu °C și cm; ingredientele potrivite cu catalogul → salvez.
 
 ## Următorul pas
-Etapa 1.
+Etapa 2 (clientul și textele noi).

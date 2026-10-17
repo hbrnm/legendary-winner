@@ -139,7 +139,7 @@ function quotaViaRest(fetchFn, supabaseUrl, anonKey, rpc = "take_recipe_import_q
 }
 
 // src/lib/server/translate-recipe.ts
-var TRANSLATE_LIMITS = { maxName: 120, maxDescription: 1e3, maxStep: 1500, maxSteps: 60, maxChars: 2e4 };
+var TRANSLATE_LIMITS = { maxName: 120, maxDescription: 1e3, maxStep: 1500, maxSteps: 60, maxChars: 2e4, maxBody: 1e5 };
 var STATUS = {
   bad_request: 400,
   unauthorized: 401,
@@ -186,20 +186,44 @@ function tooLarge(r, limits = TRANSLATE_LIMITS) {
   const total = r.name.length + r.description.length + r.steps.reduce((n, s) => n + s.length, 0);
   return r.name.length > limits.maxName || r.description.length > limits.maxDescription || r.steps.length > limits.maxSteps || r.steps.some((s) => s.length > limits.maxStep) || total > limits.maxChars;
 }
+function clip(s, max) {
+  return s.length <= max ? s : s.slice(0, max - 1).trimEnd() + "…";
+}
 function checkTranslation(original, value, limits = TRANSLATE_LIMITS) {
   const t = readRecipeText(value);
   if (!t || t.steps.length !== original.steps.length) return null;
-  const clean = (s) => s.replace(/\s+/g, " ").trim();
-  const out = { name: clean(t.name), description: clean(t.description), steps: t.steps.map(clean) };
-  const emptied = (a, b) => a.trim() !== "" && b === "";
-  if (emptied(original.name, out.name) || emptied(original.description, out.description) || original.steps.some((s, i) => emptied(s, out.steps[i]))) return null;
-  return tooLarge(out, limits) ? null : out;
+  const field = (orig, out, max) => {
+    if (orig.trim() === "") return "";
+    const clean = out.replace(/\s+/g, " ").trim();
+    return clean ? clip(clean, max) : null;
+  };
+  const name = field(original.name, t.name, limits.maxName);
+  const description = field(original.description, t.description, limits.maxDescription);
+  const steps = original.steps.map((s, i) => field(s, t.steps[i], limits.maxStep));
+  if (name === null || description === null || steps.some((s) => s === null)) return null;
+  return { name, description, steps };
+}
+function modelTranslator(create) {
+  return async (input) => {
+    const response = await create({
+      model: "claude-haiku-5-5",
+      max_tokens: 16e3,
+      system: TRANSLATION_SYSTEM,
+      output_config: { effort: "low", format: { type: "json_schema", schema: TRANSLATION_SCHEMA } },
+      messages: [{ role: "user", content: input }]
+    });
+    if (response.stop_reason !== "end_turn") throw new Error(`stop_reason: ${response.stop_reason}`);
+    const text = response.content.find((block) => block.type === "text");
+    if (!text || text.type !== "text") throw new Error("fără text în răspuns");
+    return JSON.parse(text.text);
+  };
 }
 async function handleTranslateRequest(req, deps, limits = TRANSLATE_LIMITS) {
   if (req.method === "OPTIONS") return reply(null, 204);
   if (req.method !== "POST") return fail("bad_request");
   const authorization = req.headers.get("authorization") ?? "";
   if (!/^Bearer \S+$/.test(authorization)) return fail("unauthorized");
+  if (Number(req.headers.get("content-length")) > limits.maxBody) return fail("too_large");
   let body;
   try {
     body = await req.json();
@@ -214,8 +238,10 @@ async function handleTranslateRequest(req, deps, limits = TRANSLATE_LIMITS) {
     if (quota === null) return fail("unauthorized");
     if (!quota) return fail("rate_limited");
     const translated = checkTranslation(recipe, await deps.translate(JSON.stringify(recipe)), limits);
+    if (!translated) console.error("translate-recipe: răspunsul modelului nu are forma cerută");
     return translated ? reply({ recipe: translated }, 200) : fail("failed");
-  } catch {
+  } catch (e) {
+    console.error(`translate-recipe: ${e instanceof Error ? `${e.name}: ${e.message}` : "eroare"}`);
     return fail("failed");
   }
 }
@@ -225,6 +251,7 @@ export {
   TRANSLATION_SYSTEM,
   checkTranslation,
   handleTranslateRequest,
+  modelTranslator,
   quotaViaRest,
   readRecipeText
 };
