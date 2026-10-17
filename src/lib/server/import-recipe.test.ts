@@ -227,6 +227,50 @@ describe("fotografia rețetei (.tasks/013)", () => {
     expect(await err("https://intern.exemplu.ro/a.jpg")).toBe("blocked_address");
     expect(await err("http://exemplu.ro/a.jpg")).toBe("invalid_url");
   });
+
+  it("redirecționarea imaginii spre o adresă internă sau http e oprită", async () => {
+    const { d } = deps(
+      {
+        "https://exemplu.ro/r1.jpg": { status: 302, location: "https://intern.exemplu.ro/x.jpg" },
+        "https://exemplu.ro/r2.jpg": { status: 302, location: "http://exemplu.ro/x.jpg" },
+      },
+      { "intern.exemplu.ro": ["169.254.169.254"] },
+    );
+    const err = async (image: string) => (await (await handleImportRequest(post({ image }), d)).json()).error;
+    expect(await err("https://exemplu.ro/r1.jpg")).toBe("blocked_address");
+    expect(await err("https://exemplu.ro/r2.jpg")).toBe("invalid_url");
+  });
+
+  it("imaginea prea mare se oprește și fără Content-Length, pe măsură ce sosește", async () => {
+    const stream = new ReadableStream<Uint8Array>({
+      pull(c) {
+        c.enqueue(new Uint8Array(400));
+      },
+    });
+    const fetchFn = vi.fn(async () => new Response(stream, { headers: { "content-type": "image/png" } }));
+    const d: ImportDeps = { fetch: fetchFn as unknown as typeof fetch, resolveHost: async () => ["93.184.215.14"], takeQuota: async () => true };
+    const res = await handleImportRequest(post({ image: "https://exemplu.ro/fara-sfarsit.png" }), d, { timeoutMs: 1000, maxBytes: 1000, maxImageBytes: 1000, maxRedirects: 3, maxUrlLength: 500 });
+    expect((await res.json()).error).toBe("too_large");
+  });
+
+  it("tipul: majuscule și parametri merg, tipurile asemănătoare nu; antetul nosniff", async () => {
+    const { d } = deps({
+      "https://exemplu.ro/a": { type: "Image/JPEG ; q=1", body: jpeg },
+      "https://exemplu.ro/b": { type: "image/jpegx", body: jpeg },
+    });
+    const ok = await handleImportRequest(post({ image: "https://exemplu.ro/a" }), d);
+    expect([ok.status, ok.headers.get("content-type"), ok.headers.get("x-content-type-options")]).toEqual([200, "image/jpeg", "nosniff"]);
+    expect((await (await handleImportRequest(post({ image: "https://exemplu.ro/b" }), d)).json()).error).toBe("not_image");
+  });
+
+  it("limita de cereri și tokenul nevalid; „image” doar ca text, nu împreună cu „url”", async () => {
+    const over = deps({}, {}, false).d;
+    expect((await (await handleImportRequest(post({ image: "https://exemplu.ro/a.jpg" }), over)).json()).error).toBe("rate_limited");
+    expect((await (await handleImportRequest(post({ image: "https://exemplu.ro/a.jpg" }), deps({}, {}, null).d)).json()).error).toBe("unauthorized");
+    const { d } = deps({ "https://exemplu.ro/r": { body: fixture("graph-wordpress.html") } });
+    expect((await (await handleImportRequest(post({ url: "https://exemplu.ro/r", image: null }), d)).json()).draft?.name).toBeTruthy();
+    expect((await (await handleImportRequest(post({ url: "https://exemplu.ro/r", image: "https://exemplu.ro/a.jpg" }), d)).json()).error).toBe("bad_request");
+  });
 });
 
 describe("quotaViaRest", () => {

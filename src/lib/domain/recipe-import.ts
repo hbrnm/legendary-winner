@@ -165,7 +165,6 @@ function stringList(value: unknown): string[] {
   return list.map((v) => plainText(v)).filter(Boolean);
 }
 
-/** Ciorna din obiectul `Recipe`. Imaginea și valorile nutriționale se ignoră. */
 /**
  * Prima adresă `https` a fotografiei din JSON-LD `image` (text, `ImageObject`
  * cu `url` sau `contentUrl`, listă), relativă la pagină; null dacă nu are.
@@ -179,16 +178,18 @@ export function imageUrlFrom(value: unknown, pageUrl: string | null, depth = 0):
     }
     return null;
   }
-  if (isObject(value)) return imageUrlFrom(value.url ?? value.contentUrl, pageUrl, depth + 1);
+  if (isObject(value)) return imageUrlFrom(value.url, pageUrl, depth + 1) ?? imageUrlFrom(value.contentUrl, pageUrl, depth + 1);
   if (typeof value !== "string" || !value.trim()) return null;
   try {
     const url = new URL(decodeEntities(value.trim()), pageUrl ?? undefined);
-    return url.protocol === "https:" && !url.username && !url.password && url.href.length <= MAX_URL ? url.href : null;
+    // Aceleași reguli ca la descărcare (parseImportUrl): https, fără port, utilizator sau parolă.
+    return url.protocol === "https:" && !url.port && !url.username && !url.password && url.href.length <= MAX_URL ? url.href : null;
   } catch {
     return null;
   }
 }
 
+/** Ciorna din obiectul `Recipe`, cu fotografia (.tasks/013). Valorile nutriționale se ignoră. */
 export function draftFromJsonLd(node: Json, sourceUrl: string | null = null): RecipeDraft | null {
   const name = plainText(node.name) || plainText(node.headline);
   const ingredients = stringList(node.recipeIngredient ?? node.ingredients).map((s) => clip(s, MAX_INGREDIENT));

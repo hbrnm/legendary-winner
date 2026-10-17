@@ -36,7 +36,13 @@ Decizia proprietarului (17 oct. 2026, chestionar): **copie privată**. Fotografi
 - **Ciorna:** `imageUrlFrom` (`src/lib/domain/recipe-import.ts`) ia prima adresă `https` din `image` (text, `ImageObject.url`/`contentUrl`, listă), relativă la pagină, cu entitățile HTML decodate; `draftFromJsonLd` pune `image_url` doar când există (celelalte ciorne rămân la fel). Testul vechi „ignoră poza” schimbat cu bună știință.
 - **Serverul** (`src/lib/server/import-recipe.ts`): descărcarea comună `fetchResource` (pagină sau imagine: SSRF, redirecționări verificate, timp, mărime); `fetchRecipeImage` acceptă doar `image/jpeg|png|webp|avif|gif` cu tipul declarat (fără SVG, fără tip lipsă), cel mult 5 MB; `POST {"image"}` întoarce octeții imaginii (`cache-control: no-store`), cu eroarea nouă `not_image`. Se socotește în limita de import.
 - **Teste:** 8 pentru poza din JSON-LD, 2 pentru server (imaginea întoarsă; refuzuri: pagină, fără tip, SVG, prea mare, adresă internă, http). `core.js` regenerat și încercat cu Node.
+- `verificare`: nimic blocant (nu e proxy deschis: doar cu cont, cu limită, https, adrese publice, 5 MB, 5 tipuri). Reparate: `image` doar ca text (cu `url` împreună → `bad_request`), `x-content-type-options: nosniff`, `contentUrl` când `url` e greșit, fără port în `image_url`, comentarii mutate la locul lor; teste noi: redirecționare spre adresă internă/http, imagine fără `Content-Length` peste limită, tipuri cu majuscule și `image/jpegx`, limita și tokenul, `//cdn`, `data:`, adâncime, listă goală.
 - Funcția de pe producție nu are încă descărcarea imaginii: se publică la etapa 3; până atunci aplicația (etapa 2) trebuie să meargă și fără poză.
+
+### Textele etapei 2 (aprobate, chestionar, 17 oct. 2026)
+- Lângă fotografie: „Fotografia de pe {site}” și butonul „Scoate fotografia”.
+- Cât se descarcă: „Aduc fotografia…”.
+- La eșec (varianta aleasă, nu cea recomandată): „Nu am putut aduce fotografia. O poți pune din galerie după ce salvezi.”
 
 ## Cum verific la final
 Pe telefon, cu cont: import din link o rețetă de pe un site românesc → pe „Verifică rețeta” se vede fotografia → salvez → rețeta are fotografia (și offline, și pe al doilea telefon al gospodăriei).

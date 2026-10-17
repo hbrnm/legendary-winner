@@ -209,10 +209,6 @@ function decode(bytes: Uint8Array, contentType: string): string {
   }
 }
 
-/**
- * Pagina de la acest link, cu adresa finală. Fiecare adresă (și fiecare
- * redirecționare) trebuie să fie publică; timpul și mărimea sunt limitate.
- */
 /** Tipurile de imagine pe care le poate citi telefonul (createImageBitmap). */
 const IMAGE_TYPE = /^\s*(image\/(?:jpeg|png|webp|avif|gif))\s*(?:;|$)/i;
 
@@ -269,6 +265,10 @@ async function fetchResource(start: URL, deps: ImportDeps, limits: typeof IMPORT
   }
 }
 
+/**
+ * Pagina de la acest link, cu adresa finală. Fiecare adresă (și fiecare
+ * redirecționare) trebuie să fie publică; timpul și mărimea sunt limitate.
+ */
 export async function fetchRecipePage(start: URL, deps: ImportDeps, limits = IMPORT_LIMITS): Promise<{ html: string; url: URL }> {
   const { bytes, type, url } = await fetchResource(start, deps, limits, "page");
   return { html: decode(bytes, type), url };
@@ -306,7 +306,8 @@ export async function handleImportRequest(req: Request, deps: ImportDeps, limits
   }
   // `{"image": "https://…"}`: fotografia rețetei citite înainte (.tasks/013); altfel `{"url"}`: pagina.
   const wanted = body as { url?: unknown; image?: unknown } | null;
-  const image = wanted?.image !== undefined;
+  const image = typeof wanted?.image === "string";
+  if (image && wanted?.url !== undefined) return fail("bad_request");
   const url = parseImportUrl(image ? wanted?.image : wanted?.url);
   if (!url) return fail("invalid_url");
 
@@ -316,7 +317,7 @@ export async function handleImportRequest(req: Request, deps: ImportDeps, limits
     if (!quota) return fail("rate_limited");
     if (image) {
       const photo = await fetchRecipeImage(url, deps, limits);
-      return new Response(photo.bytes as BodyInit, { status: 200, headers: { ...CORS, "content-type": photo.type, "cache-control": "no-store" } });
+      return new Response(photo.bytes as BodyInit, { status: 200, headers: { ...CORS, "content-type": photo.type, "cache-control": "no-store", "x-content-type-options": "nosniff" } });
     }
     const page = await fetchRecipePage(url, deps, limits);
     const draft = draftFromHtml(page.html, page.url.href);

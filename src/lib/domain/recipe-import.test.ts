@@ -77,12 +77,14 @@ describe("JSON-LD", () => {
     ["contentUrl", { contentUrl: "https://site.ro/c.jpg" }, "https://site.ro/c.jpg"],
     ["listă cu prima greșită", ["http://site.ro/x.jpg", { url: "https://site.ro/d.jpg" }], "https://site.ro/d.jpg"],
     ["entități HTML", "https://site.ro/e.jpg?w=1&amp;h=2", "https://site.ro/e.jpg?w=1&h=2"],
+    ["fără protocol (//cdn)", "//cdn.ro/f.jpg", "https://cdn.ro/f.jpg"],
+    ["url greșit, contentUrl bun", { url: "http://x.ro/a.jpg", contentUrl: "https://x.ro/a.jpg" }, "https://x.ro/a.jpg"],
   ])("poza: %s", (_, image, expected) => {
     expect(imageUrlFrom(image, "https://exemplu.ro/ciorba")).toBe(expected);
   });
 
   it("poza lipsă, http, javascript: sau cu parolă nu se ia", () => {
-    for (const image of [undefined, "", "http://site.ro/a.jpg", "javascript:alert(1)", "https://u:p@site.ro/a.jpg", { width: 3 }, "https://site.ro/" + "a".repeat(500)]) {
+    for (const image of [undefined, "", [], [[[[["https://site.ro/adanc.jpg"]]]]], "data:image/png;base64,AAAA", "https://cdn.ro:8443/a.jpg", "http://site.ro/a.jpg", "javascript:alert(1)", "https://u:p@site.ro/a.jpg", { width: 3 }, "https://site.ro/" + "a".repeat(500)]) {
       expect(imageUrlFrom(image, "https://exemplu.ro/ciorba")).toBeNull();
     }
     expect(imageUrlFrom("/a.jpg", null)).toBeNull();

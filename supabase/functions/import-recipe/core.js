@@ -116,11 +116,11 @@ function imageUrlFrom(value, pageUrl, depth = 0) {
     }
     return null;
   }
-  if (isObject(value)) return imageUrlFrom(value.url ?? value.contentUrl, pageUrl, depth + 1);
+  if (isObject(value)) return imageUrlFrom(value.url, pageUrl, depth + 1) ?? imageUrlFrom(value.contentUrl, pageUrl, depth + 1);
   if (typeof value !== "string" || !value.trim()) return null;
   try {
     const url = new URL(decodeEntities(value.trim()), pageUrl ?? void 0);
-    return url.protocol === "https:" && !url.username && !url.password && url.href.length <= MAX_URL ? url.href : null;
+    return url.protocol === "https:" && !url.port && !url.username && !url.password && url.href.length <= MAX_URL ? url.href : null;
   } catch {
     return null;
   }
@@ -488,7 +488,8 @@ async function handleImportRequest(req, deps, limits = IMPORT_LIMITS) {
     return fail("bad_request");
   }
   const wanted = body;
-  const image = wanted?.image !== void 0;
+  const image = typeof wanted?.image === "string";
+  if (image && wanted?.url !== void 0) return fail("bad_request");
   const url = parseImportUrl(image ? wanted?.image : wanted?.url);
   if (!url) return fail("invalid_url");
   try {
@@ -497,7 +498,7 @@ async function handleImportRequest(req, deps, limits = IMPORT_LIMITS) {
     if (!quota) return fail("rate_limited");
     if (image) {
       const photo = await fetchRecipeImage(url, deps, limits);
-      return new Response(photo.bytes, { status: 200, headers: { ...CORS, "content-type": photo.type, "cache-control": "no-store" } });
+      return new Response(photo.bytes, { status: 200, headers: { ...CORS, "content-type": photo.type, "cache-control": "no-store", "x-content-type-options": "nosniff" } });
     }
     const page = await fetchRecipePage(url, deps, limits);
     const draft = draftFromHtml(page.html, page.url.href);
