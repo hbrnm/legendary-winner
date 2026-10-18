@@ -86,7 +86,7 @@ function CropBox({ url, aspect, crop, onChange }: { url: string; aspect: number;
     // Marginea de 24 px ține colțurile (44 px) în pagină, fără derulare orizontală.
     <div className="p-6">
     <div ref={ref} className="relative mx-auto w-full select-none" style={{ maxWidth: `min(28rem, calc(70dvh * ${aspect}))` }}>
-      <div className="relative overflow-hidden rounded-2xl">
+      <div className="relative overflow-hidden rounded-lg">
         {/* eslint-disable-next-line @next/next/no-img-element -- fotografia locală, din telefon */}
         <img src={url} alt="Fotografia bonului" className="block w-full" draggable={false} />
         <div
@@ -220,7 +220,7 @@ function ReceiptScreen() {
 
   const header = (
     <div className="mb-4 flex items-center gap-1">
-      <Link href="/cumparaturi/" aria-label="Înapoi la cumpărături" className="-ml-2 inline-flex h-11 w-11 items-center justify-center rounded-xl text-ink-2 hover:bg-surface-2">
+      <Link href="/cumparaturi/" aria-label="Înapoi la cumpărături" className="-ml-2 inline-flex h-11 w-11 items-center justify-center rounded-lg text-ink-2 hover:bg-surface-2">
         <ArrowLeft size={20} />
       </Link>
       <h1 className="text-2xl font-semibold tracking-tight">{step.kind === "verifica" ? "Verifică bonul" : "Adaugă bon"}</h1>
@@ -311,7 +311,7 @@ function ReceiptScreen() {
         ))}
       </LabeledSelect>
 
-      <ul className="mt-4 divide-y divide-line overflow-hidden rounded-2xl border border-line bg-surface">
+      <ul className="mt-4 divide-y divide-line overflow-hidden rounded-lg border border-line bg-surface">
         {lines.map((l) => (
           <li key={l.key} className={`flex flex-col gap-2 px-4 py-3 ${l.keep ? "" : "opacity-60"}`}>
             <div className="flex items-start gap-2">
@@ -341,7 +341,7 @@ function ReceiptScreen() {
         ))}
       </ul>
 
-      <div className="mt-4 rounded-2xl bg-surface-2 px-4 py-3 text-[15px]">
+      <div className="mt-4 rounded-lg bg-surface-2 px-4 py-3 text-[15px]">
         <p className="flex justify-between">
           <span>Suma produselor</span>
           <span className="font-medium tabular">{formatRon(sum)}</span>

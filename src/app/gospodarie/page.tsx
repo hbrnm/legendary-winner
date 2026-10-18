@@ -104,7 +104,7 @@ function Members() {
 
   return (
     <>
-      <ul className="divide-y divide-line overflow-hidden rounded-2xl border border-line bg-surface">
+      <ul className="divide-y divide-line overflow-hidden rounded-lg border border-line bg-surface">
         {members.map((m) => (
           <li key={m.user_id}>
             <button type="button" disabled={!isAdmin && m.user_id !== app.userId} onClick={() => setSelected(m)} className="flex min-h-14 w-full items-center gap-3 px-4 text-left disabled:cursor-default">
@@ -130,7 +130,7 @@ function Members() {
           {invites.length > 0 && (
             <div className="mt-3">
               <p className="mb-1 text-sm text-ink-2">Invitații în așteptare</p>
-              <ul className="divide-y divide-line rounded-2xl border border-line bg-surface">
+              <ul className="divide-y divide-line rounded-lg border border-line bg-surface">
                 {invites.map((i) => (
                   <li key={i.id} className="flex items-center gap-2 px-4 py-2 text-sm">
                     <span className="flex-1">
@@ -200,7 +200,7 @@ function Members() {
         {created ? (
           <div className="flex flex-col gap-2">
             <p className="text-[15px]">Trimite acest link persoanei invitate. E valabil 7 zile și poate fi folosit o singură dată.</p>
-            <p className="break-all rounded-xl bg-surface-2 p-3 font-mono text-xs">{hh.invitationLink(created.token)}</p>
+            <p className="break-all rounded-lg bg-surface-2 p-3 font-mono text-xs">{hh.invitationLink(created.token)}</p>
           </div>
         ) : (
           <div className="flex flex-col gap-4">
@@ -311,7 +311,7 @@ function Places() {
   return (
     <>
       {places.length > 0 && (
-        <ul className="mb-3 divide-y divide-line overflow-hidden rounded-2xl border border-line bg-surface">
+        <ul className="mb-3 divide-y divide-line overflow-hidden rounded-lg border border-line bg-surface">
           {places.map((p) => (
             <li key={p.id}>
               <button
@@ -567,7 +567,7 @@ function HouseholdScreen() {
         <Button variant="secondary" icon={<Download size={18} />} onClick={download}>
           Descarcă datele
         </Button>
-        <label className="inline-flex h-11 cursor-pointer items-center justify-center gap-2 rounded-xl border border-line font-medium hover:bg-surface-2 has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-brand">
+        <label className="inline-flex h-11 cursor-pointer items-center justify-center gap-2 rounded-lg border border-line font-medium hover:bg-surface-2 has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-brand">
           <Upload size={18} /> Încarcă o copie
           <input
             type="file"
@@ -581,7 +581,7 @@ function HouseholdScreen() {
         </label>
         <p className="text-xs text-ink-2">Încărcarea nu șterge nimic: adaugă ce lipsește și păstrează modificările tale mai noi.</p>
         {app.isAppAdmin && (
-          <Link href="/admin/" className="inline-flex h-11 items-center justify-center gap-2 rounded-xl border border-line font-medium hover:bg-surface-2">
+          <Link href="/admin/" className="inline-flex h-11 items-center justify-center gap-2 rounded-lg border border-line font-medium hover:bg-surface-2">
             <Shield size={18} /> Administrarea catalogului
           </Link>
         )}

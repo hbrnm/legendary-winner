@@ -218,8 +218,9 @@ function RecipeScreen() {
       </Card>
 
       {view.allergens.length > 0 && (
-        <p className="mt-3 rounded-lg bg-warn-soft px-3 py-2 text-sm text-warn">
-          Conține: {view.allergens.map((a) => ALLERGEN_LABELS[a]).join(", ")}. Verifică și eticheta produselor folosite.
+        // Etichetă de borcan, ca „Expiră curând” (decizia proprietarului, 18 oct. 2026).
+        <p data-testid="alergeni" className="mt-3 rounded-md border border-dashed border-accent bg-surface px-3.5 py-2.5 text-sm text-ink">
+          <span className="font-mono text-xs font-medium uppercase tracking-wider text-accent">Conține:</span> {view.allergens.map((a) => ALLERGEN_LABELS[a]).join(", ")}. Verifică și eticheta produselor folosite.
         </p>
       )}
 

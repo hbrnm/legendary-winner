@@ -103,7 +103,7 @@ function AuthScreen() {
   return (
     <main className="mx-auto flex min-h-dvh max-w-sm flex-col justify-center px-4 py-10">
       <div className="mb-8 flex flex-col items-center text-center">
-        <span className="inline-flex h-14 w-14 items-center justify-center rounded-2xl bg-brand text-brand-ink">
+        <span className="inline-flex h-14 w-14 items-center justify-center rounded-lg bg-brand text-brand-ink">
           <Warehouse size={28} />
         </span>
         <h1 className="mt-3 text-2xl font-semibold tracking-tight">Cămara</h1>
@@ -147,12 +147,12 @@ function AuthScreen() {
           />
         )}
         {error && (
-          <p role="alert" className="rounded-xl bg-accent-soft px-3 py-2 text-sm text-accent">
+          <p role="alert" className="rounded-lg bg-accent-soft px-3 py-2 text-sm text-accent">
             {error}
           </p>
         )}
         {info && (
-          <p role="status" className="rounded-xl bg-brand-soft px-3 py-2 text-sm text-brand">
+          <p role="status" className="rounded-lg bg-brand-soft px-3 py-2 text-sm text-brand">
             {info}
           </p>
         )}

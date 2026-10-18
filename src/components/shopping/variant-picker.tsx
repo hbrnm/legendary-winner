@@ -107,7 +107,7 @@ export function VariantPicker({
       )}
 
       {adding && (
-        <div className="flex flex-col gap-3 rounded-2xl border border-line bg-surface-2 p-3">
+        <div className="flex flex-col gap-3 rounded-lg border border-line bg-surface-2 p-3">
           <div className="grid grid-cols-2 gap-2">
             <LabeledInput
               label="Marca"

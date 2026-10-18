@@ -1,6 +1,6 @@
 # 014 — Redesign editorial (hârtie, verde de pădure, terracotta, serif)
 
-**Stare:** în lucru (18 oct. 2026). Etapele 1–7 gata (vezi PR-urile).
+**Stare:** gata (18 oct. 2026): etapele 1–8 (vezi PR-urile).
 **Ramuri:** câte una pe etapă, din `main` (`claude/014-...`).
 
 ## Scop
@@ -13,6 +13,7 @@ Cererea proprietarului din 18 oct. 2026 („Cămară — Editorial redesign”):
 - Etapa 5 (chestionar, 18 oct. 2026): peste 80% (dar nu 100%), suma cu „~” în față („~8,50 lei/porție”); la 80% sau mai puțin, în listă „preț pentru 3 din 7 ingrediente” fără sumă, iar pe pagina rețetei rândul „Preț pentru 3 din 7 ingrediente” cu suma și fără „pe porție”; planul aplică aceeași regulă pe toate ingredientele săptămânii; în cămară termenul e ștampilă ca pe Acasă („expirat”, „azi”, „mâine”, „în 2 zile”), fără fundal galben/roșu, iar caseta „expiră curând” e etichetă de borcan.
 - Etapa 3 (chestionar, 18 oct. 2026): la Cheltuieli recente, magazinul pe rândul principal (mai multe: „Kaufland, Lidl”; fără magazin, sursa; altfel numele listei); rețetele fără poză au inițiala în serif pe kraft (inversează pictograma categoriei din 16 oct.); bugetul și următoarea listă într-un singur bloc-registru; „Expiră curând” ca etichete de borcan.
 - Etapa 4 (chestionar, 18 oct. 2026): la Adăugare rapidă, două grupuri cu titlu („S-a terminat în cămară”, „Cumperi des”), fără sufix pe butoane (subtitlul „Din cămară și din ce cumperi des” dispare); barele peste buget rămân pe tokenul `accent` (#A8553C), fără token nou pentru #C86D51; caseta „Înainte de cumpărături” de pe Buget duce la Cumpărături.
+- Etapa 8 (chestionar, 18 oct. 2026): alergenii ca etichetă de borcan (chenar punctat terracotta, „Conține:” ca ștampilă, același text); colțurile rămase ca primitivele (8 px); PR #74 (etapa 7) integrat înainte.
 - Etapa 6 (chestionar, 18 oct. 2026): în Istoric, pe rândul principal magazinul, ca la Cheltuieli recente (fără magazin, sursa; altfel numele listei), iar lista dedesubt, lângă dată, când există și nu e deja titlul; „cel mai bun”, „promoție”, „preț vechi” și „N fără preț” devin ștampile în mono, fără pastilă.
 - Etapa 7 (chestionar, 18 oct. 2026): colțurile mari rămase pe ecranele secundare se schimbă într-o etapă 8, separată; caseta de alergeni de pe pagina rețetei devine etichetă de borcan (chenar punctat terracotta, fără fundal galben); pe desktop, numele gospodăriei din antet în serif, ca pe telefon.
 - Tokenii își păstrează numele (`bg-bg`, `text-ink`, `bg-brand`...); se schimbă doar valorile.
@@ -31,7 +32,7 @@ Cererea proprietarului din 18 oct. 2026 („Cămară — Editorial redesign”):
 | 5 | Rețete, plan, cămară („(parțial)”) | gata | `retete/page.tsx`, `retete/reteta/page.tsx`, `plan/page.tsx`, `camara/page.tsx`, `recipes/recipe-cost.ts` |
 | 6 | Istoric și prețuri în stil registru | gata | `cumparaturi/istoric/page.tsx`, `buget/preturi/page.tsx` |
 | 7 | Verificare finală (capturi 360 px și desktop, ambele moduri) | gata | `e2e/demo-model.spec.ts`, `buget/preturi/page.tsx` |
-| 8 | Ecranele rămase (colțuri mici), alergenii ca etichetă de borcan, antetul de pe desktop în serif | de făcut | `gospodarie/`, `admin/`, `cumparaturi/bon/`, `retete/reteta/page.tsx`, `recipe-editor.tsx`, `imported-photo.tsx`, `recipe-visual.tsx`, `variant-picker.tsx`, `autentificare/`, `invitatie/`, `offline/`, `shell.tsx` |
+| 8 | Ecranele rămase (colțuri mici), alergenii ca etichetă de borcan, antetul de pe desktop în serif | gata | `gospodarie/`, `admin/`, `cumparaturi/bon/`, `retete/reteta/page.tsx`, `recipe-editor.tsx`, `imported-photo.tsx`, `recipe-visual.tsx`, `variant-picker.tsx`, `autentificare/`, `invitatie/`, `offline/`, `shell.tsx` |
 
 ## Rezumat pe etape
 ### Etapa 1 (18 oct. 2026)
@@ -74,8 +75,14 @@ Cererea proprietarului din 18 oct. 2026 („Cămară — Editorial redesign”):
 - Găsit și reparat: la Prețuri, cantitățile cu zecimale apăreau cu punct („0.5 kg”); acum „0,5 kg” (test e2e, pică pe codul vechi).
 - Rămase pentru etapa 8: colțuri mari pe ecranele secundare, caseta galbenă de alergeni, numele gospodăriei pe desktop fără serif.
 
+### Etapa 8 (18 oct. 2026)
+- Colțurile mari rămase (45 de locuri: Gospodărie, Admin, Bon, importul și editorul de rețete, autentificare, invitație, offline, poza mare a rețetei, fereastra produsului, variante) au acum 8 px. `tokens.test.ts` interzice `rounded-xl/2xl/3xl` (fereastra de jos își păstrează cei 12 px din etapa 2).
+- Pagina rețetei: alergenii pe o etichetă de borcan în locul casetei galbene.
+- Desktop: numele gospodăriei din antet în serif.
+- e2e: alergenii și antetul (pică pe codul vechi); Gospodăria intră în capturile la 360 px și desktop.
+
 ## Cum verific la final
 `npm test`, `npm run build`, `npm run test:e2e`; capturile la 360 px din `e2e/demo-model.spec.ts`.
 
 ## Următorul pas
-Etapa 8, într-o sesiune nouă: ecranele rămase, alergenii, antetul de pe desktop (vezi tabelul).
+Niciunul: redesignul e gata. Rămâne verificarea pe telefon a proprietarului.

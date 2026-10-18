@@ -39,7 +39,7 @@ async function short(page: Page) {
 /** Paginile redesenate (inclusiv o listă și o rețetă): nimic în afara ecranului, butoane de 44 px, câte o captură. */
 async function checkScreens(page: Page, info: TestInfo, prefix: string) {
   const screens: [string, string | (() => Promise<void>)][] = [
-    ...["/", "/cumparaturi/", "/cumparaturi/istoric/", "/retete/", "/plan/", "/buget/", "/buget/preturi/", "/camara/"].map((p): [string, string] => [p, p]),
+    ...["/", "/cumparaturi/", "/cumparaturi/istoric/", "/retete/", "/plan/", "/buget/", "/buget/preturi/", "/camara/", "/gospodarie/"].map((p): [string, string] => [p, p]),
     ["/cumparaturi/lista/", async () => {
       await page.goto("/cumparaturi/");
       await page.getByText("Cumpărături săptămânale").click();
@@ -211,4 +211,17 @@ test("la Prețuri, cantitățile cu zecimale se scriu cu virgulă", async ({ pag
   await startModel(page, "/buget/preturi/");
   await expect(page.getByText("16,80 RON / 0,5 kg")).toBeVisible();
   await expect(page.getByText(/\d\.\d+ (kg|l)\b/)).toHaveCount(0);
+});
+
+test("alergenii ca etichetă de borcan, numele gospodăriei în serif pe desktop", async ({ page }) => {
+  await page.setViewportSize({ width: 1280, height: 800 });
+  await startModel(page, "/retete/");
+  await page.getByLabel("Caută rețete").fill("papanasi");
+  await page.getByRole("link", { name: /Papanași/ }).click();
+  const allergens = page.getByTestId("alergeni");
+  await expect(allergens).toHaveText(/^Conține: .*gluten.*Verifică și eticheta produselor folosite\.$/);
+  await expect(allergens).toHaveCSS("border-top-style", "dashed");
+  const name = page.locator("header").getByText("Gospodăria mea", { exact: true }).filter({ visible: true });
+  await expect(name).toBeVisible();
+  expect(await name.evaluate((el) => getComputedStyle(el).fontFamily)).toMatch(/^"?fraunces/);
 });
