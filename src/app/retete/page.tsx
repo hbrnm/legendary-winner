@@ -6,7 +6,7 @@ import { CalendarDays, ChefHat, Clock, Download, Heart, Plus, Search } from "luc
 import { AppShell } from "@/components/app/shell";
 import { useData } from "@/components/app/hooks";
 import { Button } from "@/components/ui/button";
-import { Badge, Card, Chip, EmptyState, PageHeader, Spinner } from "@/components/ui/misc";
+import { Badge, Chip, EmptyState, PageHeader, Spinner } from "@/components/ui/misc";
 import { Segmented } from "@/components/ui/fields";
 import { RECIPE_CATEGORY_LABELS } from "@/components/recipes/recipe-visual";
 import { RecipeImage } from "@/components/recipes/recipe-photo";
@@ -15,7 +15,7 @@ import { normalize } from "@/lib/domain/search";
 import { recipeCost, totalMinutes, whatCanICook } from "@/lib/domain/recipes";
 import { productUnitsOf } from "@/lib/domain/quantities";
 import { pantryStock } from "@/lib/domain/pantry";
-import { formatRon } from "@/lib/domain/money";
+import { costAmount, partialCostLabel } from "@/components/recipes/recipe-cost";
 import type { Recipe, RecipeCategoryId } from "@/lib/domain/types";
 
 type Tab = "toate" | "favorite" | "camara";
@@ -70,33 +70,33 @@ function RecipesScreen() {
 
   if (!data) return <Spinner />;
 
+  // Rândurile stau pe o singură foaie, despărțite de filete (ca pe Acasă).
   function RecipeRow({ r, extra }: { r: Recipe; extra?: React.ReactNode }) {
     const c = data!.costs.get(r.id);
+    const perServing = c ? costAmount(c.per_serving, c.priced_count, c.costable_count) : null;
     return (
       <li>
-        <Link href={`/retete/reteta/?id=${r.id}`} className="block">
-          <Card className="flex items-center gap-3 p-3 hover:bg-surface-2">
-            <RecipeImage recipe={r} avatar />
-            <div className="min-w-0 flex-1">
-              <p className="line-clamp-2 text-[16px] font-medium leading-snug">
-                {r.name}
-                {data!.favorites.has(r.id) && <Heart size={14} className="ml-1.5 inline fill-accent text-accent" aria-label="favorită" />}
-              </p>
-              <p className="mt-0.5 flex flex-wrap items-center gap-x-2 text-sm text-ink-2">
-                <span className="inline-flex items-center gap-1">
-                  <Clock size={13} /> {totalMinutes(r)} min
-                </span>
-                <span>· {r.servings} porții</span>
-                {c && c.priced_count > 0 && (
-                  <span className="tabular">
-                    · {formatRon(c.per_serving)}/porție{!c.complete && " (parțial)"}
-                  </span>
-                )}
-                {r.household_id && <Badge>a gospodăriei</Badge>}
-              </p>
-              {extra}
-            </div>
-          </Card>
+        <Link href={`/retete/reteta/?id=${r.id}`} className="flex items-center gap-3 px-3 py-3 transition-colors duration-150 ease-out hover:bg-surface-2 active:bg-surface-2">
+          <RecipeImage recipe={r} avatar />
+          <div className="min-w-0 flex-1">
+            <p className="line-clamp-2 font-serif text-[17px] font-medium leading-snug">
+              {r.name}
+              {data!.favorites.has(r.id) && <Heart size={14} className="ml-1.5 inline fill-accent text-accent" aria-label="favorită" />}
+            </p>
+            <p className="mt-0.5 flex flex-wrap items-center gap-x-2 text-sm text-ink-2">
+              <span className="inline-flex items-center gap-1 font-mono text-xs">
+                <Clock size={13} strokeWidth={1.75} /> {totalMinutes(r)} min
+              </span>
+              <span>
+                · <span className="font-mono text-xs">{r.servings}</span> porții
+              </span>
+              {c && c.priced_count > 0 && (
+                <span>· {perServing ? <span className="font-mono text-xs">{perServing}/porție</span> : partialCostLabel(c.priced_count, c.costable_count)}</span>
+              )}
+              {r.household_id && <Badge>a gospodăriei</Badge>}
+            </p>
+            {extra}
+          </div>
         </Link>
       </li>
     );
@@ -109,16 +109,16 @@ function RecipesScreen() {
         subtitle={`${data.recipes.length} rețete`}
         action={
           <div className="flex gap-2">
-            <Link href="/plan/" className="inline-flex h-11 items-center gap-2 rounded-xl border border-line bg-surface px-3 text-[15px] font-medium hover:bg-surface-2">
-              <CalendarDays size={18} />
+            <Link href="/plan/" className="inline-flex h-11 items-center gap-2 rounded-lg border border-line bg-surface px-3 text-[15px] font-medium transition-colors duration-150 ease-out hover:bg-surface-2">
+              <CalendarDays size={18} strokeWidth={1.75} />
               <span className="hidden sm:inline">Planul meselor</span>
               <span className="sm:hidden">Plan</span>
             </Link>
-            <Link href="/retete/import/" className="inline-flex h-11 items-center gap-2 rounded-xl border border-line bg-surface px-3 text-[15px] font-medium hover:bg-surface-2">
-              <Download size={18} />
+            <Link href="/retete/import/" className="inline-flex h-11 items-center gap-2 rounded-lg border border-line bg-surface px-3 text-[15px] font-medium transition-colors duration-150 ease-out hover:bg-surface-2">
+              <Download size={18} strokeWidth={1.75} />
               Importă
             </Link>
-            <Link href="/retete/editare/" aria-label="Rețetă nouă" className="inline-flex h-11 w-11 items-center justify-center rounded-xl bg-brand text-brand-ink">
+            <Link href="/retete/editare/" aria-label="Rețetă nouă" className="inline-flex h-11 w-11 items-center justify-center rounded-lg bg-brand text-brand-ink">
               <Plus size={20} />
             </Link>
           </div>
@@ -146,7 +146,7 @@ function RecipesScreen() {
           ) : data.cook.length === 0 ? (
             <EmptyState title="Nicio rețetă nu se potrivește încă">Adaugă mai multe produse în cămară sau caută o rețetă și vezi ce-ți lipsește.</EmptyState>
           ) : (
-            <ul className="flex flex-col gap-2">
+            <ul className="divide-y divide-line overflow-hidden rounded-lg border border-line bg-surface">
               {data.cook.slice(0, 30).map((m) => (
                 <RecipeRow
                   key={m.recipe.id}
@@ -163,14 +163,14 @@ function RecipesScreen() {
         </div>
       ) : (
         <>
-          <div className="mt-4 flex items-center gap-2 rounded-2xl border border-line bg-surface px-3 focus-within:border-brand focus-within:ring-2 focus-within:ring-brand/25">
+          <div className="mt-4 flex items-center gap-2 rounded-lg border border-line bg-surface-2 px-3 transition-colors duration-150 ease-out focus-within:border-brand focus-within:bg-surface focus-within:ring-2 focus-within:ring-brand/25">
             <Search size={18} className="text-ink-3" aria-hidden />
             <input
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               placeholder="Caută după nume sau ingredient (ex. dovlecei)"
               aria-label="Caută rețete"
-              className="h-12 min-w-0 flex-1 bg-transparent text-base placeholder:text-ink-3 focus:outline-none"
+              className="h-12 min-w-0 flex-1 bg-transparent text-base text-ink placeholder:text-ink-3 focus:outline-none"
             />
           </div>
           <div className="mt-3 flex flex-wrap gap-2">
@@ -208,7 +208,7 @@ function RecipesScreen() {
               {tab === "favorite" ? "Apasă inima de pe o rețetă ca s-o găsești repede aici." : "Încearcă alt cuvânt sau alt filtru."}
             </EmptyState>
           ) : (
-            <ul className="flex flex-col gap-2">
+            <ul className="divide-y divide-line overflow-hidden rounded-lg border border-line bg-surface">
               {filtered.map((r) => (
                 <RecipeRow key={r.id} r={r} />
               ))}

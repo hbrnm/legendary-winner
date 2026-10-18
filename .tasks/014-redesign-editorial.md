@@ -1,6 +1,6 @@
 # 014 — Redesign editorial (hârtie, verde de pădure, terracotta, serif)
 
-**Stare:** în lucru (18 oct. 2026). Etapele 1–4 gata (vezi PR-urile).
+**Stare:** în lucru (18 oct. 2026). Etapele 1–6 gata (vezi PR-urile).
 **Ramuri:** câte una pe etapă, din `main` (`claude/014-...`).
 
 ## Scop
@@ -10,6 +10,7 @@ Cererea proprietarului din 18 oct. 2026 („Cămară — Editorial redesign”):
 - Fonturi: Fraunces (titluri, nume de rețete), DM Sans (interfață), JetBrains Mono (sume, date, cantități); locale, prin `next/font/local`, licență OFL (`src/app/fonts/`).
 - Terracotta: `#A8553C` pentru text (contrast ≥ 4,5 pe hârtie și pe foi); `#C86D51` doar pentru bare, fundaluri și text mare, când ajungem la ele.
 - „(parțial)”: costul pe porție doar peste 80% acoperire; altfel „preț pentru X din Y ingrediente” (textul exact se aprobă în etapa 5).
+- Etapa 5 (chestionar, 18 oct. 2026): peste 80% (dar nu 100%), suma cu „~” în față („~8,50 lei/porție”); la 80% sau mai puțin, în listă „preț pentru 3 din 7 ingrediente” fără sumă, iar pe pagina rețetei rândul „Preț pentru 3 din 7 ingrediente” cu suma și fără „pe porție”; planul aplică aceeași regulă pe toate ingredientele săptămânii; în cămară termenul e ștampilă ca pe Acasă („expirat”, „azi”, „mâine”, „în 2 zile”), fără fundal galben/roșu, iar caseta „expiră curând” e etichetă de borcan.
 - Etapa 3 (chestionar, 18 oct. 2026): la Cheltuieli recente, magazinul pe rândul principal (mai multe: „Kaufland, Lidl”; fără magazin, sursa; altfel numele listei); rețetele fără poză au inițiala în serif pe kraft (inversează pictograma categoriei din 16 oct.); bugetul și următoarea listă într-un singur bloc-registru; „Expiră curând” ca etichete de borcan.
 - Etapa 4 (chestionar, 18 oct. 2026): la Adăugare rapidă, două grupuri cu titlu („S-a terminat în cămară”, „Cumperi des”), fără sufix pe butoane (subtitlul „Din cămară și din ce cumperi des” dispare); barele peste buget rămân pe tokenul `accent` (#A8553C), fără token nou pentru #C86D51; caseta „Înainte de cumpărături” de pe Buget duce la Cumpărături.
 - Etapa 6 (chestionar, 18 oct. 2026): în Istoric, pe rândul principal magazinul, ca la Cheltuieli recente (fără magazin, sursa; altfel numele listei), iar lista dedesubt, lângă dată, când există și nu e deja titlul; „cel mai bun”, „promoție”, „preț vechi” și „N fără preț” devin ștampile în mono, fără pastilă.
@@ -26,7 +27,7 @@ Cererea proprietarului din 18 oct. 2026 („Cămară — Editorial redesign”):
 | 2 | Antet, bara de jos, primitive (fără blur, filete, colțuri mici, banda demonstrativă discretă) | gata | `shell.tsx`, `ui/misc.tsx`, `ui/button.tsx`, `ui/fields.tsx`, `ui/sheet.tsx`, `ui/toast.tsx`, `tokens.test.ts` |
 | 3 | Acasă (registru, rețete în serif, expiră curând, cheltuieli recente cu magazinul) | gata | `home-screen.tsx`, `recipe-visual.tsx`, `recipe-photo.tsx`, `product-search.tsx` |
 | 4 | Buget și liste (sume în mono, „des” grupat) | gata | `buget/page.tsx`, `charts.tsx`, `cumparaturi/page.tsx`, `cumparaturi/lista/page.tsx` |
-| 5 | Rețete, plan, cămară („(parțial)”) | de făcut | `retete/page.tsx`, `retete/reteta/page.tsx`, `plan/page.tsx`, `camara/page.tsx` |
+| 5 | Rețete, plan, cămară („(parțial)”) | gata | `retete/page.tsx`, `retete/reteta/page.tsx`, `plan/page.tsx`, `camara/page.tsx`, `recipes/recipe-cost.ts` |
 | 6 | Istoric și prețuri în stil registru | gata | `cumparaturi/istoric/page.tsx`, `buget/preturi/page.tsx` |
 | 7 | Verificare finală (capturi 360 px și desktop, ambele moduri) | de făcut | `e2e/` |
 
@@ -54,6 +55,13 @@ Cererea proprietarului din 18 oct. 2026 („Cămară — Editorial redesign”):
 - Lista: prețurile în mono, totalul de jos în mono, colțuri mici; Adăugare rapidă pe grupuri.
 - e2e: grupurile de la adăugarea rapidă (inclusiv „S-a terminat în cămară”, după ce untul ajunge la zero în cămară) și legătura spre liste de pe Buget; ambele pică pe codul vechi.
 
+### Etapa 5 (18 oct. 2026)
+- `recipe-cost.ts`: regula de acoperire („peste 80%” e strict: 4 din 5 nu arată suma), cu test; folosită în lista de rețete, pe pagina rețetei și în plan. „(parțial)” a dispărut.
+- Rețete: rândurile pe o singură foaie cu filete, numele în serif, minutele, porțiile și costul în mono; căutarea „îngropată” (kraft).
+- Rețeta: timpul, dificultatea și porțiile pe aceeași foaie; sumele și cantitățile în mono; pașii numerotați în serif, verde.
+- Plan: ziua în serif, data în mono, ziua de azi cu chenar verde; mesele în serif, porțiile în mono.
+- Cămară: ștampilele de termen, eticheta de borcan, rețetele de folosit în serif, cantitățile și datele în mono.
+- e2e: textele de acoperire în plan, listă și pagina rețetei (pică pe codul vechi cu „(parțial)”); ștampilele în cămară.
 ### Etapa 6 (18 oct. 2026)
 - Istoric: luna în serif cu totalul în mono; cumpărăturile pe o foaie cu filete punctate; magazinul pe rândul principal, data cu majusculă, „N produse” cu acord; suma în mono, „N fără preț” ca ștampilă; în fereastră, cantitățile, sumele și totalul în mono.
 - Prețuri: numele produsului în serif; datele și sumele în mono; ștampilele „cel mai bun” (verde), „promoție” (terracotta), „preț vechi” (gri); colțuri mici.
@@ -63,4 +71,4 @@ Cererea proprietarului din 18 oct. 2026 („Cămară — Editorial redesign”):
 `npm test`, `npm run build`, `npm run test:e2e`; capturile la 360 px din `e2e/demo-model.spec.ts`.
 
 ## Următorul pas
-Etapa 5: rețete, plan, cămară (inclusiv „(parțial)”).
+Etapa 7: verificarea finală (capturi la 360 px și desktop, ambele moduri).

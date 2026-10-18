@@ -2,12 +2,12 @@
 
 import { useMemo, useState } from "react";
 import Link from "next/link";
-import { AlertTriangle, Minus, Plus, Search, ShoppingBasket, Trash2, Warehouse } from "lucide-react";
+import { Minus, Plus, Search, ShoppingBasket, Trash2, Warehouse } from "lucide-react";
 import { AppShell } from "@/components/app/shell";
 import { useAction, useData } from "@/components/app/hooks";
 import { ProductSearch } from "@/components/shopping/product-search";
 import { Button, IconButton } from "@/components/ui/button";
-import { Badge, Card, Chip, EmptyState, PageHeader, SectionTitle, Spinner } from "@/components/ui/misc";
+import { Chip, EmptyState, PageHeader, SectionTitle, Spinner } from "@/components/ui/misc";
 import { Sheet } from "@/components/ui/sheet";
 import { Field, Input, LabeledInput, LabeledSelect } from "@/components/ui/fields";
 import { useToast } from "@/components/ui/toast";
@@ -24,19 +24,24 @@ import type { PantryItem, Product, UnitCode } from "@/lib/domain/types";
 
 const STEP: Partial<Record<UnitCode, number>> = { kg: 0.25, g: 100, l: 0.25, ml: 100 };
 
+/** Termenul ca o ștampilă, ca pe Acasă (decizia proprietarului, 18 oct. 2026). */
+const STAMP = "font-mono text-xs font-medium uppercase tracking-wider text-accent";
+
 function expiryBadge(item: PantryItem, today: string) {
   const s = expiryState(item, today);
-  if (s === "expirat") return <Badge tone="accent">expirat</Badge>;
+  if (s === "expirat") return <span className={STAMP}>expirat</span>;
   if (s === "expira_curand") {
     const d = daysBetween(today, item.expires_on!);
-    return <Badge tone="warn">{d === 0 ? "expiră azi" : d === 1 ? "expiră mâine" : `expiră în ${d} zile`}</Badge>;
+    return (
+      <span className={STAMP}>
+        <span className="sr-only">expiră </span>
+        {d === 0 ? "azi" : d === 1 ? "mâine" : `în ${d} zile`}
+      </span>
+    );
   }
-  if (s === "ok") return <span className="text-xs text-ink-2">până pe {formatShortDate(item.expires_on!)}</span>;
+  if (s === "ok") return <span className="text-xs text-ink-2">până pe <span className="font-mono">{formatShortDate(item.expires_on!)}</span></span>;
   return null;
 }
-
-/** Rândurile care cer atenție: galben (expiră curând), roșu (expirat). */
-const ROW_TONE: Record<ReturnType<typeof expiryState>, string> = { expirat: "bg-accent-soft", expira_curand: "bg-warn-soft", ok: "", fara_data: "" };
 
 const MAIN_LOCATIONS = new Set(["frigider", "congelator", "camara"]);
 
@@ -46,7 +51,7 @@ function LocationFilter({ active, onClick, children }: { active: boolean; onClic
       type="button"
       aria-pressed={active}
       onClick={onClick}
-      className={`h-11 min-w-0 rounded-xl border px-1 text-[13px] font-medium transition-colors ${active ? "border-brand bg-brand text-brand-ink" : "border-line bg-surface text-ink-2 hover:text-ink"}`}
+      className={`h-11 min-w-0 rounded-lg border px-1 text-[13px] font-medium transition-colors ${active ? "border-brand bg-brand text-brand-ink" : "border-line bg-surface text-ink-2 hover:text-ink"}`}
     >
       {children}
     </button>
@@ -166,24 +171,23 @@ function PantryScreen() {
       <PageHeader title="Cămară și frigider" subtitle={`${data.items.filter((i) => i.quantity > 0).length} produse acasă`} />
 
       {data.soon.length > 0 && (
-        <Card className="mb-4 border-warn/30 bg-warn-soft p-4">
-          <p className="flex items-center gap-2 font-medium text-warn">
-            <AlertTriangle size={18} /> {data.soon.length === 1 ? "Un produs expiră curând" : `${data.soon.length} produse expiră curând`}
-          </p>
+        // Etichetă de borcan: chenar punctat terracotta, ca „Expiră curând” de pe Acasă.
+        <section aria-label="Expiră curând" className="mb-4 rounded-md border border-dashed border-accent bg-surface p-4">
+          <p className="font-serif text-lg font-semibold text-accent">{data.soon.length === 1 ? "Un produs expiră curând" : `${data.soon.length} produse expiră curând`}</p>
           <p className="mt-1 text-sm text-ink">{data.soon.map((i) => i.name).join(", ")}</p>
           {data.useSoon.length > 0 && (
             <div className="mt-3">
               <p className="text-xs text-ink-2">Le poți folosi în:</p>
               <div className="mt-1 flex flex-wrap gap-2">
                 {data.useSoon.map((r) => (
-                  <Link key={r.recipe.id} href={`/retete/reteta/?id=${r.recipe.id}`} className="rounded-full bg-surface px-3 py-1.5 text-sm text-ink shadow-card">
+                  <Link key={r.recipe.id} href={`/retete/reteta/?id=${r.recipe.id}`} className="inline-flex min-h-11 items-center rounded-md border border-line bg-surface px-3 font-serif text-[15px] font-medium text-ink transition-colors duration-150 ease-out hover:bg-surface-2 active:bg-surface-2">
                     {r.recipe.name}
                   </Link>
                 ))}
               </div>
             </div>
           )}
-        </Card>
+        </section>
       )}
 
       <ProductSearch placeholder="Adaugă în cămară: ex. 1 kg făină" onPick={({ product, parsed }) => startAdd(product, parsed.text, parsed.quantity, parsed.unit)} />
@@ -209,7 +213,7 @@ function PantryScreen() {
       )}
 
       {data.items.length > 0 && (
-        <div className="mt-3 flex items-center gap-2 rounded-xl border border-line bg-surface px-3">
+        <div className="mt-3 flex items-center gap-2 rounded-lg border border-line bg-surface-2 px-3 transition-colors duration-150 ease-out focus-within:border-brand focus-within:bg-surface">
           <Search size={16} className="text-ink-3" />
           <input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Caută în cămară" aria-label="Caută în cămară" className="h-11 min-w-0 flex-1 bg-transparent focus:outline-none" />
         </div>
@@ -229,13 +233,13 @@ function PantryScreen() {
             return (
               <section key={loc} className="mt-5">
                 <SectionTitle>{locName.get(loc) ?? "Alt loc"}</SectionTitle>
-                <ul className="divide-y divide-line overflow-hidden rounded-2xl border border-line bg-surface">
+                <ul className="divide-y divide-line overflow-hidden rounded-lg border border-line bg-surface">
                   {items.map((i) => (
-                    <li key={i.id} className={`flex items-center gap-2 py-1.5 pl-4 pr-2 ${ROW_TONE[i.quantity > 0 ? expiryState(i, today) : "ok"]}`}>
+                    <li key={i.id} className="flex items-center gap-2 py-1.5 pl-4 pr-2">
                       <button type="button" onClick={() => startEdit(i)} className="min-w-0 flex-1 py-1 text-left">
                         <span className={`block text-[15px] ${i.quantity <= 0 ? "text-ink-3 line-through" : ""}`}>{i.name}</span>
                         <span className="flex flex-wrap items-center gap-2 text-xs text-ink-2">
-                          <span className="tabular">{formatQuantity(i.quantity, i.unit)}</span>
+                          <span className="font-mono">{formatQuantity(i.quantity, i.unit)}</span>
                           {expiryBadge(i, today)}
                         </span>
                       </button>
@@ -301,7 +305,7 @@ function PantryScreen() {
             <Field label="Cantitate">
               <div className="flex gap-2">
                 <Input inputMode="decimal" value={draft.quantity} onChange={(e) => setDraft({ ...draft, quantity: e.target.value })} className="flex-1 tabular" aria-label="Cantitate" />
-                <select aria-label="Unitate" value={draft.unit} onChange={(e) => setDraft({ ...draft, unit: e.target.value as UnitCode })} className="h-11 w-32 rounded-xl border border-line bg-surface px-3">
+                <select aria-label="Unitate" value={draft.unit} onChange={(e) => setDraft({ ...draft, unit: e.target.value as UnitCode })} className="h-11 w-32 rounded-lg border border-line bg-surface px-3">
                   {SHOPPING_UNITS.map((u) => (
                     <option key={u} value={u}>
                       {unitLabel(u, 2)}

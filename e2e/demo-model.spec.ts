@@ -96,7 +96,7 @@ test("istoricul ca registru: magazinul pe rândul principal, lista dedesubt", as
 test("gospodăria model: cămară, listă, buget, plan", async ({ page }) => {
   await startModel(page, "/camara/");
   await expect(page.getByText("14 produse acasă")).toBeVisible();
-  await expect(page.getByText("expiră în 2 zile")).toBeVisible();
+  await expect(page.getByText("expiră în 2 zile", { exact: true })).toBeVisible();
   await expect(page.getByText("Un produs expiră curând")).toBeVisible();
 
   await page.goto("/cumparaturi/");
@@ -125,6 +125,16 @@ test("gospodăria model: cămară, listă, buget, plan", async ({ page }) => {
 
   await page.goto("/plan/");
   await expect(page.getByText("Sarmale în foi de varză murată")).toBeVisible();
+  // Sub 80% din ingrediente cu preț, nu apare suma, ci pentru câte ingrediente avem preț.
+  await expect(page.getByText(/· preț pentru 13 din 33 de ingrediente/)).toBeVisible();
+
+  await page.goto("/retete/");
+  const ardei = page.getByRole("link", { name: /^Ardei umpluți/ });
+  await expect(ardei).toContainText("preț pentru 6 din 10 ingrediente");
+  await expect(page.getByText(/\(parțial\)/)).toHaveCount(0);
+  await ardei.click();
+  await expect(page.getByText("Preț pentru 6 din 10 ingrediente")).toBeVisible();
+  await expect(page.getByText("pe porție")).toHaveCount(0);
 });
 
 for (const scheme of ["light", "dark"] as const) {
