@@ -8,7 +8,7 @@ import { isRecipeImageUrl } from "@/lib/domain/recipe-photos";
 import { pantryStock, planConsumption } from "@/lib/domain/pantry";
 import { addDays } from "@/lib/domain/dates";
 import { type AppCtx, UserError, w } from "./context";
-import { parse, zDate, zName, zNote, zQuantity, zUnit } from "./validation";
+import { parse, parsePatch, zDate, zName, zNote, zQuantity, zUnit } from "./validation";
 import { owned, productMap, visible } from "./queries";
 import { addNeeds } from "./shopping";
 
@@ -222,7 +222,7 @@ export async function addPantryItem(ctx: AppCtx, input: z.input<typeof pantryInp
 }
 
 export async function updatePantryItem(ctx: AppCtx, id: string, patch: Partial<z.input<typeof pantryInput>>) {
-  const v = parse(pantryInput.partial(), patch);
+  const v = parsePatch(pantryInput, patch);
   const clean = Object.fromEntries(Object.entries(v).filter(([, val]) => val !== undefined));
   await updateRow(ctx.db, "pantry_items", id, clean as Partial<PantryItem>, w(ctx));
 }
