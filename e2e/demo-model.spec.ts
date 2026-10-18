@@ -82,6 +82,17 @@ test("adăugarea rapidă pune produsele terminate în cămară sub titlul lor", 
   await expect(finished.getByRole("button", { name: /^Adaugă Unt/ })).toBeVisible();
 });
 
+test("istoricul ca registru: magazinul pe rândul principal, lista dedesubt", async ({ page }) => {
+  await startModel(page, "/cumparaturi/istoric/");
+  // Aceleași trei cumpărături, în aceeași ordine, ca la Cheltuieli recente pe Acasă.
+  const trips = page.locator("main li button");
+  await expect(trips.nth(0).locator("span").first()).toHaveText(/^Kaufland/);
+  await expect(trips.nth(1).locator("span").first()).toHaveText(/^Piață/);
+  await expect(trips.nth(2).locator("span").first()).toHaveText(/^Lidl/);
+  await trips.nth(0).click();
+  await expect(page.getByRole("dialog", { name: /^Kaufland/ })).toBeVisible();
+});
+
 test("gospodăria model: cămară, listă, buget, plan", async ({ page }) => {
   await startModel(page, "/camara/");
   await expect(page.getByText("14 produse acasă")).toBeVisible();

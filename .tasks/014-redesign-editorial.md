@@ -12,6 +12,7 @@ Cererea proprietarului din 18 oct. 2026 („Cămară — Editorial redesign”):
 - „(parțial)”: costul pe porție doar peste 80% acoperire; altfel „preț pentru X din Y ingrediente” (textul exact se aprobă în etapa 5).
 - Etapa 3 (chestionar, 18 oct. 2026): la Cheltuieli recente, magazinul pe rândul principal (mai multe: „Kaufland, Lidl”; fără magazin, sursa; altfel numele listei); rețetele fără poză au inițiala în serif pe kraft (inversează pictograma categoriei din 16 oct.); bugetul și următoarea listă într-un singur bloc-registru; „Expiră curând” ca etichete de borcan.
 - Etapa 4 (chestionar, 18 oct. 2026): la Adăugare rapidă, două grupuri cu titlu („S-a terminat în cămară”, „Cumperi des”), fără sufix pe butoane (subtitlul „Din cămară și din ce cumperi des” dispare); barele peste buget rămân pe tokenul `accent` (#A8553C), fără token nou pentru #C86D51; caseta „Înainte de cumpărături” de pe Buget duce la Cumpărături.
+- Etapa 6 (chestionar, 18 oct. 2026): în Istoric, pe rândul principal magazinul, ca la Cheltuieli recente (fără magazin, sursa; altfel numele listei), iar lista dedesubt, lângă dată, când există și nu e deja titlul; „cel mai bun”, „promoție”, „preț vechi” și „N fără preț” devin ștampile în mono, fără pastilă.
 - Tokenii își păstrează numele (`bg-bg`, `text-ink`, `bg-brand`...); se schimbă doar valorile.
 
 ## În afara scopului
@@ -26,7 +27,7 @@ Cererea proprietarului din 18 oct. 2026 („Cămară — Editorial redesign”):
 | 3 | Acasă (registru, rețete în serif, expiră curând, cheltuieli recente cu magazinul) | gata | `home-screen.tsx`, `recipe-visual.tsx`, `recipe-photo.tsx`, `product-search.tsx` |
 | 4 | Buget și liste (sume în mono, „des” grupat) | gata | `buget/page.tsx`, `charts.tsx`, `cumparaturi/page.tsx`, `cumparaturi/lista/page.tsx` |
 | 5 | Rețete, plan, cămară („(parțial)”) | de făcut | `retete/page.tsx`, `retete/reteta/page.tsx`, `plan/page.tsx`, `camara/page.tsx` |
-| 6 | Istoric și prețuri în stil registru | de făcut | `cumparaturi/istoric/page.tsx`, `buget/preturi/page.tsx` |
+| 6 | Istoric și prețuri în stil registru | gata | `cumparaturi/istoric/page.tsx`, `buget/preturi/page.tsx` |
 | 7 | Verificare finală (capturi 360 px și desktop, ambele moduri) | de făcut | `e2e/` |
 
 ## Rezumat pe etape
@@ -52,6 +53,11 @@ Cererea proprietarului din 18 oct. 2026 („Cămară — Editorial redesign”):
 - Cumpărături: numele listelor în serif; „Adaugă un bon fiscal” și „Istoricul cumpărăturilor” pe aceeași foaie.
 - Lista: prețurile în mono, totalul de jos în mono, colțuri mici; Adăugare rapidă pe grupuri.
 - e2e: grupurile de la adăugarea rapidă (inclusiv „S-a terminat în cămară”, după ce untul ajunge la zero în cămară) și legătura spre liste de pe Buget; ambele pică pe codul vechi.
+
+### Etapa 6 (18 oct. 2026)
+- Istoric: luna în serif cu totalul în mono; cumpărăturile pe o foaie cu filete punctate; magazinul pe rândul principal, data cu majusculă, „N produse” cu acord; suma în mono, „N fără preț” ca ștampilă; în fereastră, cantitățile, sumele și totalul în mono.
+- Prețuri: numele produsului în serif; datele și sumele în mono; ștampilele „cel mai bun” (verde), „promoție” (terracotta), „preț vechi” (gri); colțuri mici.
+- e2e: istoricul din gospodăria model are Kaufland, Piață, Lidl pe rândul principal și în titlul ferestrei (pică pe codul vechi, cu numele listei).
 
 ## Cum verific la final
 `npm test`, `npm run build`, `npm run test:e2e`; capturile la 360 px din `e2e/demo-model.spec.ts`.

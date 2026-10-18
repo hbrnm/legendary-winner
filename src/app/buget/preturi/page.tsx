@@ -9,7 +9,7 @@ import { useApp } from "@/components/app/app-provider";
 import { VariantPicker } from "@/components/shopping/variant-picker";
 import { ProductSearch } from "@/components/shopping/product-search";
 import { Button, IconButton } from "@/components/ui/button";
-import { Badge, EmptyState, SectionTitle, Spinner } from "@/components/ui/misc";
+import { EmptyState, SectionTitle, Spinner } from "@/components/ui/misc";
 import { Sheet } from "@/components/ui/sheet";
 import { LabeledInput, LabeledSelect, Segmented } from "@/components/ui/fields";
 import { owned, priceIndex, visible } from "@/lib/services/queries";
@@ -25,6 +25,9 @@ import { now } from "@/lib/clock";
 import type { PriceType, Product, ProductPrice, PurchaseSource, UnitCode } from "@/lib/domain/types";
 
 const TYPE_LABELS: Record<PriceType, string> = { platit: "plătit", observat: "văzut", promotie: "promoție", estimat: "estimat" };
+
+/** Etichetele ca ștampile: mono, majuscule, fără pastilă (decizia proprietarului, 18 oct. 2026). */
+const STAMP = "whitespace-nowrap font-mono text-[11px] font-medium uppercase tracking-wider";
 
 /** Prețul pe unitatea de referință a produsului (ex. lei/kg), dacă se poate converti. */
 function perUnit(p: ProductPrice, unit: UnitCode): number | null {
@@ -134,7 +137,7 @@ function PricesScreen() {
   return (
     <>
       <div className="mb-4 flex items-center gap-1">
-        <Link href="/buget/" aria-label="Înapoi la buget" className="-ml-2 inline-flex h-11 w-11 items-center justify-center rounded-xl text-ink-2 hover:bg-surface-2">
+        <Link href="/buget/" aria-label="Înapoi la buget" className="-ml-2 inline-flex h-11 w-11 items-center justify-center rounded-lg text-ink-2 transition-colors duration-150 ease-out hover:bg-surface-2">
           <ArrowLeft size={20} />
         </Link>
         <h1 className="text-2xl font-semibold tracking-tight">Prețuri</h1>
@@ -149,7 +152,7 @@ function PricesScreen() {
         <>
           <div className="mt-4 flex items-center justify-between gap-2">
             <div>
-              <h2 className="text-lg font-semibold">{product.name}</h2>
+              <h2 className="font-serif text-xl font-semibold leading-snug">{product.name}</h2>
               <p className="text-xs text-ink-2">Comparație pe {unitLabel(product.default_unit, 1)}</p>
             </div>
             <div className="flex gap-2">
@@ -171,7 +174,7 @@ function PricesScreen() {
               {view.brands.length > 0 && (
                 <>
                   <SectionTitle>{view.brands.every((r) => r.unit === "l") ? "Prețul pe litru, pe mărci" : "Prețul pe kg, pe mărci"}</SectionTitle>
-                  <ul className="divide-y divide-line overflow-hidden rounded-2xl border border-line bg-surface">
+                  <ul className="divide-y divide-line overflow-hidden rounded-lg border border-line bg-surface">
                     {view.brands.map((r) => {
                       const p = data.prices.find((x) => x.id === r.price_id)!;
                       return (
@@ -179,10 +182,10 @@ function PricesScreen() {
                           <div className="min-w-0 flex-1">
                             <p className="text-[15px]">{view.variantName(r.variant_id) ?? "Fără marcă anume"}</p>
                             <p className="text-xs text-ink-2">
-                              {formatShortDate(r.observed_on)} · {view.place(p)} {r.promo && <Badge tone="warn">promoție</Badge>} {r.stale && <Badge>preț vechi</Badge>}
+                              <span className="font-mono">{formatShortDate(r.observed_on)}</span> · {view.place(p)} {r.promo && <span className={`${STAMP} text-accent`}>promoție</span>} {r.stale && <span className={`${STAMP} text-ink-2`}>preț vechi</span>}
                             </p>
                           </div>
-                          <span className="font-medium tabular">
+                          <span className="font-mono font-medium">
                             {formatRon(r.per)}/{r.unit}
                           </span>
                         </li>
@@ -192,38 +195,41 @@ function PricesScreen() {
                 </>
               )}
               <SectionTitle>Cel mai recent preț, pe locuri</SectionTitle>
-              <ul className="divide-y divide-line overflow-hidden rounded-2xl border border-line bg-surface">
+              <ul className="divide-y divide-line overflow-hidden rounded-lg border border-line bg-surface">
                 {view.compare.map(({ p, unitPrice }, k) => (
                   <li key={p.id} className="flex items-center gap-3 px-4 py-3">
                     <div className="min-w-0 flex-1">
                       <p className="text-[15px]">
-                        {view.place(p)} {k === 0 && view.compare.length > 1 && unitPrice != null && <Badge tone="brand">cel mai bun</Badge>}
+                        {view.place(p)} {k === 0 && view.compare.length > 1 && unitPrice != null && <span className={`${STAMP} text-brand`}>cel mai bun</span>}
                       </p>
                       <p className="text-xs text-ink-2">
-                        {formatShortDate(p.observed_on)} · {TYPE_LABELS[p.price_type]} · {SOURCE_LABELS[p.source]}
+                        <span className="font-mono">{formatShortDate(p.observed_on)}</span> · {TYPE_LABELS[p.price_type]} · {SOURCE_LABELS[p.source]}
                       </p>
                     </div>
-                    <span className="text-right tabular">
-                      <span className="block font-medium">{unitPrice != null ? `${formatRon(unitPrice)}/${unitLabel(product.default_unit, 1)}` : formatRon(p.amount)}</span>
-                      {unitPrice == null && <span className="text-xs text-ink-2">pentru {p.quantity} {unitLabel(p.unit, p.quantity)}</span>}
+                    <span className="text-right">
+                      <span className="block font-mono font-medium">{unitPrice != null ? `${formatRon(unitPrice)}/${unitLabel(product.default_unit, 1)}` : formatRon(p.amount)}</span>
+                      {unitPrice == null && <span className="font-mono text-xs text-ink-2">pentru {p.quantity} {unitLabel(p.unit, p.quantity)}</span>}
                     </span>
                   </li>
                 ))}
               </ul>
               <SectionTitle>Istoric</SectionTitle>
-              <ul className="divide-y divide-line overflow-hidden rounded-2xl border border-line bg-surface">
+              <ul className="divide-y divide-line overflow-hidden rounded-lg border border-line bg-surface">
                 {view.history.map((p) => (
                   <li key={p.id} className="flex items-center gap-3 px-4 py-2.5">
                     <div className="min-w-0 flex-1 text-sm">
                       <p>
-                        {formatShortDate(p.observed_on)} · {view.place(p)}
+                        <span className="font-mono">{formatShortDate(p.observed_on)}</span> · {view.place(p)}
                         {view.variantName(p.variant_id) && ` · ${view.variantName(p.variant_id)}`}
                       </p>
                       <p className="text-xs text-ink-2">
-                        {formatRon(p.amount)} pentru {p.quantity} {unitLabel(p.unit, p.quantity)} · {TYPE_LABELS[p.price_type]}
+                        <span className="font-mono">
+                          {formatRon(p.amount)} pentru {p.quantity} {unitLabel(p.unit, p.quantity)}
+                        </span>{" "}
+                        · {TYPE_LABELS[p.price_type]}
                       </p>
                     </div>
-                    <span className="text-sm tabular">{perUnit(p, product.default_unit) != null ? formatRon(perUnit(p, product.default_unit)) : ""}</span>
+                    <span className="font-mono text-sm">{perUnit(p, product.default_unit) != null ? formatRon(perUnit(p, product.default_unit)) : ""}</span>
                     {!p.transaction_item_id && (
                       <IconButton label="Șterge prețul" onClick={() => run((ctx) => deletePrice(ctx, p.id))}>
                         <Trash2 size={16} />
@@ -243,19 +249,19 @@ function PricesScreen() {
               Caută un produs mai sus ca să-i notezi prețul. Prețurile plătite în magazin se salvează singure când finalizezi cumpărăturile.
             </EmptyState>
           ) : (
-            <ul className="divide-y divide-line overflow-hidden rounded-2xl border border-line bg-surface">
+            <ul className="divide-y divide-line overflow-hidden rounded-lg border border-line bg-surface">
               {view.recent.map((p) => {
                 const prod = data.products.get(p.product_id);
                 return (
                   <li key={p.id}>
-                    <button type="button" onClick={() => prod && setProduct(prod)} className="flex w-full items-center gap-3 px-4 py-2.5 text-left hover:bg-surface-2">
+                    <button type="button" onClick={() => prod && setProduct(prod)} className="flex w-full items-center gap-3 px-4 py-2.5 text-left transition-colors duration-150 ease-out hover:bg-surface-2 active:bg-surface-2">
                       <div className="min-w-0 flex-1 text-sm">
                         <p className="text-[15px]">{prod?.name ?? "Produs șters"}</p>
                         <p className="text-xs text-ink-2">
-                          {formatShortDate(p.observed_on)} · {view.place(p)}
+                          <span className="font-mono">{formatShortDate(p.observed_on)}</span> · {view.place(p)}
                         </p>
                       </div>
-                      <span className="text-sm tabular">
+                      <span className="shrink-0 font-mono text-sm">
                         {formatRon(p.amount)} / {p.quantity} {unitLabel(p.unit, p.quantity)}
                       </span>
                     </button>
