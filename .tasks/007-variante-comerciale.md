@@ -1,6 +1,6 @@
 # 007 — Variante comerciale (marcă, ambalaj, cod de bare)
 
-**Stare:** în lucru: etapele 1–4 gata; migrația e pe producție (18 oct. 2026); rămâne încercarea pe telefon.
+**Stare:** în așteptare (proprietarul: verificarea pe telefon, 18 oct. 2026). Etapele 1–4 și producția (migrația, integrarea) sunt gata.
 **Ramura:** câte una pe etapă, fiecare cu PR-ul ei din `main`.
 
 ## Scop

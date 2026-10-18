@@ -1,6 +1,6 @@
 # 009 — Importul rețetelor de pe site-uri și din texte
 
-**Stare:** în lucru; etapele 1–4 gata; etapa 5: migrația și funcția Edge sunt pe producție (17 oct. 2026), rămâne verificarea pe telefoane.
+**Stare:** în așteptare (proprietarul: verificarea pe telefoane, 18 oct. 2026). Etapele 1–4 gata; migrația și funcția Edge pe producție (funcția răspunde: POST 200 în jurnale, 17 oct.).
 **Ramura:** câte una pe etapă, fiecare cu PR-ul ei din `main`.
 
 ## Scop

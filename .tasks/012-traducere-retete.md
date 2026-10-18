@@ -1,6 +1,6 @@
 # 012 — Traducerea rețetelor importate în română
 
-**Stare:** în lucru: Gemini prin server (cu MyMemory de rezervă) în producție; cheia pusă de proprietar; rămâne încercarea pe telefon
+**Stare:** în așteptare (proprietarul: încercarea pe telefon, 18 oct. 2026). Gemini prin server, cu MyMemory de rezervă, în producție; cheia pusă de proprietar.
 **Ramura:** câte una pe etapă, fiecare cu PR-ul ei din `main`.
 
 ## Scop

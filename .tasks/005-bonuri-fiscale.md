@@ -1,6 +1,6 @@
 # 005 — Prețuri din bonurile fiscale (OCR pe telefon)
 
-**Stare:** în lucru: etapa 1 făcută (18 oct. 2026, 3 bonuri); decizia proprietarului: continuăm, cu încadrare și verificare. Etapele 2–4 gata în repo (18 oct. 2026); migrația etapei 3 e pe producție (rulată de proprietar, verificată); urmează verificarea pe telefoane (etapa 5).
+**Stare:** în așteptare (proprietarul: verificarea pe Android și iPhone, 18 oct. 2026). Etapele 1–4 și producția (migrația, integrarea) sunt gata.
 **Ramura:** câte una pe etapă, `claude/bonuri-<etapa>`, fiecare cu PR-ul ei din `main`.
 
 ## Scop
