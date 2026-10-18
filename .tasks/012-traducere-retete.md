@@ -1,6 +1,6 @@
 # 012 — Traducerea rețetelor importate în română
 
-**Stare:** în lucru: Gemini prin server (cu MyMemory de rezervă) în repo; rămân cheia, publicarea funcției și încercarea pe telefon
+**Stare:** în lucru: Gemini prin server (cu MyMemory de rezervă) în producție; cheia pusă de proprietar; rămâne încercarea pe telefon
 **Ramura:** câte una pe etapă, fiecare cu PR-ul ei din `main`.
 
 ## Scop
@@ -65,6 +65,10 @@ Deciziile proprietarului (17 oct. 2026, chestionar):
 - Readusă funcția Edge `translate-recipe` (din varianta DeepL, deja verificată: limita de cereri, mărimi, `checkTranslation`), cu `geminiTranslator`: `models/{model}:generateContent`, cheia în antetul `x-goog-api-key` (nu în adresă), JSON după schemă, `temperature` 0,2, instrucțiunile „traduce sensul, nu cuvânt cu cuvânt”, numerele și unitățile neschimbate, textul rețetei e date. Modelul implicit `gemini-2.5-flash`, schimbabil fără cod cu secretul `GEMINI_MODEL` (ID-urile gratuite diferă între surse). Secretul `GEMINI_API_KEY` îl pune proprietarul.
 - Aplicația: cu cont, `firstWorking(serverTranslator, myMemoryTranslator)`; fără cont sau în modul demonstrativ, doar MyMemory. Înainte de publicarea funcției (sau fără cheie) traducerea trece singură pe MyMemory, deci integrarea nu strică nimic.
 - Teste: `geminiTranslator` (3: cerere, model, erori 429/403/SAFETY/MAX_TOKENS), `serverTranslator`/`firstWorking` (2); `core.js` încercat cu Node. `npm test`: 468; E2E de import: 5.
+
+### Producția (18 oct. 2026)
+- Proprietarul: „Am pus cheia, publică funcția” (chestionar, 18 oct. 2026). `translate-recipe` era deja publicată (versiunea 1, `verify_jwt` pornit), cu `index.ts` și `core.js` identice cu cele din repo (`scripts/build-functions.test.ts`: `core.js` la zi), deci n-am republicat-o. Secretul `GEMINI_API_KEY` îl vede doar funcția; conectorul nu îl poate citi.
+- Jurnalele: `import-recipe` răspunde pe producție (POST 200, 17 oct.); `translate-recipe` n-a fost chemată încă. Prima traducere cu Gemini se vede la încercarea pe telefon; dacă cheia lipsește sau e greșită, aplicația trece singură pe MyMemory.
 
 ## Cum verific la final
 Pe telefon: import din link (cu cont) sau din text o rețetă în engleză → pe „Verifică rețeta” numele, descrierea și pașii sunt în română, cu °C și cm; ingredientele potrivite cu catalogul → salvez.
