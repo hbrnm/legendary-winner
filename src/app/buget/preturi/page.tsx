@@ -208,7 +208,7 @@ function PricesScreen() {
                     </div>
                     <span className="text-right">
                       <span className="block font-mono font-medium">{unitPrice != null ? `${formatRon(unitPrice)}/${unitLabel(product.default_unit, 1)}` : formatRon(p.amount)}</span>
-                      {unitPrice == null && <span className="font-mono text-xs text-ink-2">pentru {p.quantity} {unitLabel(p.unit, p.quantity)}</span>}
+                      {unitPrice == null && <span className="font-mono text-xs text-ink-2">pentru {p.quantity.toLocaleString("ro-RO")} {unitLabel(p.unit, p.quantity)}</span>}
                     </span>
                   </li>
                 ))}
@@ -224,7 +224,7 @@ function PricesScreen() {
                       </p>
                       <p className="text-xs text-ink-2">
                         <span className="font-mono">
-                          {formatRon(p.amount)} pentru {p.quantity} {unitLabel(p.unit, p.quantity)}
+                          {formatRon(p.amount)} pentru {p.quantity.toLocaleString("ro-RO")} {unitLabel(p.unit, p.quantity)}
                         </span>{" "}
                         · {TYPE_LABELS[p.price_type]}
                       </p>
@@ -262,7 +262,7 @@ function PricesScreen() {
                         </p>
                       </div>
                       <span className="shrink-0 font-mono text-sm">
-                        {formatRon(p.amount)} / {p.quantity} {unitLabel(p.unit, p.quantity)}
+                        {formatRon(p.amount)} / {p.quantity.toLocaleString("ro-RO")} {unitLabel(p.unit, p.quantity)}
                       </span>
                     </button>
                   </li>
