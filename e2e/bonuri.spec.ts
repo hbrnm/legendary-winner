@@ -52,3 +52,19 @@ test("bonul pe o listă: propune, confirmi, bifează cu prețul; al doilea bon �
   await page.waitForURL(/\/cumparaturi\/istoric\//);
   await expect(page.getByText(/7,61/).first()).toBeVisible();
 });
+
+test("cititorul adevărat: fotografia cu orientarea în EXIF (ca pe iPhone) se citește întoarsă corect", async ({ page }) => {
+  test.setTimeout(120_000);
+  // Bonul sintetic e stocat culcat, cu „rotește 90°” în EXIF, cum salvează camera telefonului.
+  await start(page);
+  await page.goto("/cumparaturi/bon/");
+  await page.getByTestId("bon-fisier").setInputFiles("e2e/fixtures/bon-exif-rotit.jpg");
+  const img = page.getByRole("img", { name: "Fotografia bonului" });
+  await expect(img).toBeVisible();
+  const box = (await img.boundingBox())!;
+  expect(box.width).toBeGreaterThan(box.height); // bonul sintetic e lat; stocat e înalt
+  await page.getByRole("button", { name: "Citește bonul" }).click();
+  await expect(page.getByRole("heading", { name: "Verifică bonul" })).toBeVisible({ timeout: 90_000 });
+  await expect(page.getByLabel("Magazinul")).toHaveValue("kaufland");
+  await expect(page.getByText(/pe bon: CEAPA GALBENA/)).toBeVisible();
+});

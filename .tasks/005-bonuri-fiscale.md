@@ -89,3 +89,9 @@ Pe un telefon real: fotografiez un bon de la Lidl cu 10 produse, confirm liniile
 
 ## Următorul pas
 Proprietarul, pe telefon (Android și iPhone), după integrare: un bon de la Lidl cu 10 produse, confirmat în sub 2 minute, a doua oară fără internet.
+
+### Reparație după încercarea pe iPhone (18 oct. 2026)
+- Proprietarul: pe iPhone bonul „se citește, dar se descifrează incorect”. Pe Chromium (calculator) citirea mergea.
+- Două cauze posibile, specifice Safari, reparate: (1) orientarea din EXIF: fotografia ajunge acum la cititor prin `<img>` desenat pe pânză, ca în fereastra de încadrare, nu prin `createImageBitmap(blob)`; (2) limita de pânză a Safari (4096 × 4096 pixeli în total): fotografiile de 24 MP și bonurile lungi (raport peste ~1:5 la 1800 px lățime) se micșorează sub prag (`fitArea`, `src/lib/domain/receipt-crop.ts`).
+- Teste: `receipt-crop.test.ts` (+3, `fitArea`), `e2e/bonuri.spec.ts` (+1: primul test cu cititorul adevărat, pe o fotografie sintetică stocată culcată, cu orientarea în EXIF). Pe iPhone nu se poate verifica de aici; dacă tot iese greșit, proprietarul trimite fotografia unui bon.
+

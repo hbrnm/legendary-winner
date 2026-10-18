@@ -1,4 +1,4 @@
-import { detectReceipt, sharpen, stretchContrast, type Crop } from "@/lib/domain/receipt-crop";
+import { detectReceipt, fitArea, sharpen, stretchContrast, type Crop } from "@/lib/domain/receipt-crop";
 
 // Citirea bonului pe telefon (.tasks/005, etapa 4): tesseract.js cu limba
 // română, din fișierele servite de aplicație (/ocr/<versiune>/, copiate la build
@@ -22,8 +22,24 @@ declare global {
   var __camaraOcrText: string | undefined;
 }
 
+/**
+ * Fotografia, întoarsă cum a fost făcută și sub limita de pânză a Safari.
+ * Trecem prin <img>, ca în fereastra de încadrare: pe iPhone, orientarea din
+ * EXIF se aplică sigur la desenarea imaginii, nu și la createImageBitmap(blob).
+ */
 export async function loadImage(file: Blob): Promise<ImageBitmap> {
-  return createImageBitmap(file, { imageOrientation: "from-image" });
+  const url = URL.createObjectURL(file);
+  try {
+    const img = new Image();
+    img.src = url;
+    await img.decode();
+    const { width, height } = fitArea(img.naturalWidth, img.naturalHeight);
+    const canvas = new OffscreenCanvas(width, height);
+    canvas.getContext("2d")!.drawImage(img, 0, 0, width, height);
+    return canvas.transferToImageBitmap();
+  } finally {
+    URL.revokeObjectURL(url);
+  }
 }
 
 /** Încadrarea propusă, dintr-o copie mică a fotografiei. */
@@ -48,8 +64,7 @@ function prepare(image: ImageBitmap, crop: Crop): OffscreenCanvas {
   const sy = Math.round(crop.y * image.height);
   const sw = Math.max(1, Math.round(crop.width * image.width));
   const sh = Math.max(1, Math.round(crop.height * image.height));
-  const w = READ_WIDTH;
-  const h = Math.max(1, Math.round((sh / sw) * w));
+  const { width: w, height: h } = fitArea(READ_WIDTH, Math.max(1, Math.round((sh / sw) * READ_WIDTH)));
   const canvas = new OffscreenCanvas(w, h);
   const ctx = canvas.getContext("2d")!;
   ctx.drawImage(image, sx, sy, sw, sh, 0, 0, w, h);

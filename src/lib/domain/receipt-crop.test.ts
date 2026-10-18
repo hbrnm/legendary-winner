@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { detectReceipt, FULL_CROP, sharpen, stretchContrast } from "./receipt-crop";
+import { detectReceipt, fitArea, FULL_CROP, MAX_CANVAS_AREA, sharpen, stretchContrast } from "./receipt-crop";
 
 /** O poză sintetică: fundal închis, bonul deschis în dreptunghiul dat (în pixeli). */
 function photo(w: number, h: number, rect: [number, number, number, number], paper = 220, background = 60): Uint8ClampedArray {
@@ -53,5 +53,23 @@ describe("accentuarea", () => {
     expect(s[8]).toBeLessThan(80);
     expect(s[9]).toBeGreaterThan(200);
     expect(s[0]).toBe(80);
+  });
+});
+
+describe("mărimea pânzei pe iPhone", () => {
+  it("lasă neatinse dimensiunile care încap", () => {
+    expect(fitArea(1800, 7000)).toEqual({ width: 1800, height: 7000 });
+  });
+
+  it("micșorează proporțional un bon lung la citire (1800 px lățime, raport 1:6)", () => {
+    const { width, height } = fitArea(1800, 10800);
+    expect(width * height).toBeLessThanOrEqual(MAX_CANVAS_AREA);
+    expect(height / width).toBeCloseTo(6, 2);
+  });
+
+  it("micșorează o fotografie de 24 MP de pe iPhone", () => {
+    const { width, height } = fitArea(5712, 4284);
+    expect(width * height).toBeLessThanOrEqual(MAX_CANVAS_AREA);
+    expect(width / height).toBeCloseTo(5712 / 4284, 2);
   });
 });
