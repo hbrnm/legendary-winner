@@ -3,7 +3,7 @@ import type { Budget, BudgetScope, PriceConfidence, PriceType, PurchaseSource } 
 import { insertRow, softDelete, updateRow } from "@/lib/db/write";
 import { newId } from "@/lib/db/ids";
 import { type AppCtx, w } from "./context";
-import { parse, zDate, zMoney, zName, zQuantity, zSource, zUnit } from "./validation";
+import { parse, parsePatch, zDate, zMoney, zName, zQuantity, zSource, zUnit } from "./validation";
 
 // Bugete și prețuri introduse de gospodărie.
 
@@ -32,7 +32,7 @@ export async function createBudget(ctx: AppCtx, input: z.input<typeof budgetInpu
 }
 
 export async function updateBudget(ctx: AppCtx, id: string, patch: Partial<z.input<typeof budgetInput>>) {
-  const v = parse(budgetInput.partial(), patch);
+  const v = parsePatch(budgetInput, patch);
   await updateRow(ctx.db, "budgets", id, Object.fromEntries(Object.entries(v).filter(([, x]) => x !== undefined)) as Partial<Budget>, w(ctx));
 }
 

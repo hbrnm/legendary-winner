@@ -4,7 +4,7 @@ import { insertRow, softDelete, updateRow } from "@/lib/db/write";
 import { newId } from "@/lib/db/ids";
 import { buildIndex, normalize, type SearchDoc, type SearchIndex } from "@/lib/domain/search";
 import { type AppCtx, UserError, w } from "./context";
-import { parse, zName, zUnit } from "./validation";
+import { parse, parsePatch, zName, zUnit } from "./validation";
 import { visible } from "./queries";
 
 // Produse proprii, magazine (piețe, producători) și indexul de căutare.
@@ -43,7 +43,7 @@ export async function createProduct(ctx: AppCtx, input: ProductInput, opts: { gl
 }
 
 export async function updateProduct(ctx: AppCtx, id: string, patch: Partial<ProductInput>) {
-  const v = parse(productInput.partial(), patch);
+  const v = parsePatch(productInput, patch);
   const { aliases, ...fields } = v;
   const clean = Object.fromEntries(Object.entries(fields).filter(([, x]) => x !== undefined)) as Partial<Product>;
   await updateRow(ctx.db, "products", id, clean, w(ctx));
@@ -76,7 +76,7 @@ export async function createRetailer(ctx: AppCtx, input: z.input<typeof retailer
 }
 
 export async function updateRetailer(ctx: AppCtx, id: string, patch: Partial<z.input<typeof retailerInput>>) {
-  const v = parse(retailerInput.partial(), patch);
+  const v = parsePatch(retailerInput, patch);
   await updateRow(ctx.db, "retailers", id, Object.fromEntries(Object.entries(v).filter(([, x]) => x !== undefined)), w(ctx));
 }
 
@@ -94,7 +94,7 @@ export async function createCategory(ctx: AppCtx, input: z.input<typeof category
 }
 
 export async function updateCategory(ctx: AppCtx, id: string, patch: Partial<z.input<typeof categoryInput>>) {
-  const v = parse(categoryInput.partial(), patch);
+  const v = parsePatch(categoryInput, patch);
   await updateRow(ctx.db, "product_categories", id, Object.fromEntries(Object.entries(v).filter(([, x]) => x !== undefined)), w(ctx));
 }
 

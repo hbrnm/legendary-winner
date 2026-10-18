@@ -8,7 +8,7 @@ import type { ShoppingNeed } from "@/lib/domain/quantities";
 import { sumMoney } from "@/lib/domain/money";
 import { localDateOf } from "@/lib/domain/dates";
 import { type AppCtx, UserError, w } from "./context";
-import { parse, zMoney, zName, zNote, zQuantity, zSource, zUnit } from "./validation";
+import { parse, parsePatch, zMoney, zName, zNote, zQuantity, zSource, zUnit } from "./validation";
 import { listItems, owned, productMap } from "./queries";
 
 const listInput = z.object({
@@ -31,7 +31,7 @@ export async function createList(ctx: AppCtx, input: z.input<typeof listInput>):
 }
 
 export async function updateList(ctx: AppCtx, id: string, patch: { name?: string; is_recurring?: boolean; default_retailer_id?: string | null }) {
-  const v = parse(listInput.partial(), patch);
+  const v = parsePatch(listInput, patch);
   await updateRow(ctx.db, "shopping_lists", id, v, w(ctx));
 }
 
@@ -150,7 +150,7 @@ export async function addItem(ctx: AppCtx, listId: string, input: ItemInput): Pr
 }
 
 export async function updateItem(ctx: AppCtx, id: string, patch: ItemInput) {
-  const v = parse(itemInput.partial(), patch);
+  const v = parsePatch(itemInput, patch);
   const clean = Object.fromEntries(Object.entries(v).filter(([, val]) => val !== undefined));
   if ("quantity" in clean && clean.quantity == null) clean.unit = null;
   await updateRow(ctx.db, "shopping_list_items", id, clean as Partial<ShoppingListItem>, w(ctx));
