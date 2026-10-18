@@ -1,6 +1,6 @@
 # 005 — Prețuri din bonurile fiscale (OCR pe telefon)
 
-**Stare:** în lucru: etapa 1 făcută (18 oct. 2026, 3 bonuri); decizia proprietarului: continuăm, cu încadrare și verificare. Etapele 2–3 gata în repo (18 oct. 2026); migrația etapei 3 așteaptă acordul proprietarului; urmează etapa 4.
+**Stare:** în lucru: etapa 1 făcută (18 oct. 2026, 3 bonuri); decizia proprietarului: continuăm, cu încadrare și verificare. Etapele 2–4 gata în repo (18 oct. 2026); migrația etapei 3 e aprobată, o rulează proprietarul în SQL Editor; urmează verificarea pe telefoane (etapa 5).
 **Ramura:** câte una pe etapă, `claude/bonuri-<etapa>`, fiecare cu PR-ul ei din `main`.
 
 ## Scop
@@ -28,8 +28,8 @@ Deciziile proprietarului (12 oct. 2026, chestionar):
 |---|---|---|---|
 | 1 | **Probă de calitate:** OCR pe 8–10 bonuri reale ale proprietarului (Lidl, Kaufland, Mega Image, Profi, Penny, piață, dacă există). Măsurăm câte linii (denumire + sumă) ies corect, pe telefon, și cât durează. Fără cod în `main`; raport în acest fișier. Dacă ies sub ~70% linii corecte, proprietarul decide din nou (chestionar). | gata (3 bonuri; raportul mai jos) | |
 | 2 | **Citirea textului** (`src/lib/domain/receipt.ts`, logică pură): text OCR → magazin propus, data, linii {denumire, cantitate, preț unitar, total}, totalul bonului și verificarea sumei. Teste pe textele anonimizate de la etapa 1. | gata | (vezi PR) |
-| 3 | **Potrivirea care învață:** migrația `receipt_aliases` (gospodărie, magazin, text normalizat → produs), RLS pe `household_id`, sincronizare, backup; propunerea potrivirii (întâi învățat, apoi căutarea din catalog). `npm run test:db`. | gata în repo; migrația pe producție: de aprobat | (vezi PR) |
-| 4 | **Ecranele:** „Adaugă bon” (fotografie/galerie, progres), „Verifică bonul” (fiecare linie: produs propus, sumă, „nu e produs”; magazin, dată, listă) și aplicarea: bifare + `actual_price` + linii noi pe lista aleasă, sau cumpărătură fără listă (`shopping_transactions` cu `list_id` null), prețuri `platit`. Textele noi: un singur chestionar. E2E cu text OCR simulat. | de făcut | |
+| 3 | **Potrivirea care învață:** migrația `receipt_aliases` (gospodărie, magazin, text normalizat → produs), RLS pe `household_id`, sincronizare, backup; propunerea potrivirii (întâi învățat, apoi căutarea din catalog). `npm run test:db`. | gata (PR #62); migrația aprobată, de rulat de proprietar | |
+| 4 | **Ecranele:** „Adaugă bon” (fotografie/galerie, progres), „Verifică bonul” (fiecare linie: produs propus, sumă, „nu e produs”; magazin, dată, listă) și aplicarea: bifare + `actual_price` + linii noi pe lista aleasă, sau cumpărătură fără listă (`shopping_transactions` cu `list_id` null), prețuri `platit`. Textele noi: un singur chestionar. E2E cu text OCR simulat. | gata | (vezi PR) |
 | 5 | **Offline și performanță:** fișierele OCR servite din `out/`, cache la prima folosire; telefon fără internet după prima folosire; test pe Android și iPhone reale. | de făcut | |
 | 6 | **Producția:** migrația cu acordul proprietarului, apoi integrarea; verificarea pe telefon. | de făcut | |
 
@@ -66,6 +66,17 @@ Deciziile proprietarului (12 oct. 2026, chestionar):
 - **Potrivirea** (`src/lib/domain/receipt-match.ts`, `src/lib/services/receipts.ts`): `receiptKey` (fără diacritice, majuscule, semne); `proposeMatch`: întâi ce a învățat gospodăria (același magazin, apoi oricare), apoi căutarea în catalog, încercând și fără câte un cuvânt (abrevieri și resturi OCR: „KLC”, „410G”). `learnReceiptAlias`: id determinist, deci același text învățat pe două telefoane e un singur rând; o confirmare nouă schimbă produsul.
 - **Teste:** `receipts.test.ts` (4: catalog pe textele reale, învățat, refuzuri, copia de siguranță). `npm test`: 515; `npm run test:e2e:cloud`: 2.
 
+### Etapa 4: ecranele (18 oct. 2026)
+- **Textele** aprobate de proprietar (chestionar, 18 oct. 2026, „Aprob toate”). Decizia: prima dată aplicația propune produsul din catalog, marcat „de verificat”; apoi propune ce ai confirmat.
+- **Intrări:** „Adaugă un bon fiscal” pe Cumpărături și „Adaugă bon” în meniul listei (cu lista aleasă).
+- **`/cumparaturi/bon/`:** fotografia (cameră sau galerie) → încadrarea (propusă automat de `detectReceipt`, corectată trăgând două colțuri; poza încape în 70% din ecran, colțurile de 44 px fără derulare orizontală) → citirea pe telefon (progres; „Pregătesc cititorul…” prima dată) → „Verifică bonul” (magazinul și data citite, „Unde pun produsele”, pe fiecare linie produsul propus, suma plătită după reducere, „de verificat”, „Nu e un produs”; suma produselor față de totalul de pe bon) → „Salvează bonul”.
+- **Aplicarea** (`applyReceipt`): cu listă, produsele nebifate se bifează cu prețul și cantitatea de pe bon, iar celelalte se adaugă bifate; „Gata” le înregistrează ca de obicei, o singură dată. Fără listă: cumpărătură în istoric (`list_id` null), cu prețuri `platit` la data bonului. Potrivirile confirmate se învață.
+- **OCR în browser** (`src/lib/ocr/read-receipt.ts`): tesseract.js 7.0.0 (Apache-2.0) cu `ron` (MIT), din fișierele copiate la build în `public/ocr/7.0.0/` (`scripts/copy-ocr.mjs`, 13 MB, nu sunt în repo). Pregătirea: decupare, gri, contrast întins 1–99%, accentuare 3×3, 1800 px lățime. Fotografia rămâne doar în memorie.
+- **Offline (începutul etapei 5):** service worker-ul nu le pune în cache la instalare, ci la prima citire, în cache-ul `ocr-fisiere`, păstrat între versiuni (calea are versiunea).
+- **Încercarea reală în Chromium** (fără text simulat, pe fotografiile proprietarului): Kaufland cu încadrarea trasă: 17 linii, 12 din 18 sume plătite exacte, ~10–13 s; East Trading cu încadrarea propusă: 3 linii, 2 exacte (prima „de verificat”), ~4 s; Lidl pe hârtie ștearsă: slab (5 linii, 2 exacte). Încadrarea propusă a nimerit la Lidl și East Trading; la Kaufland (masă de lemn deschisă) a ales lemnul, deci acolo omul trage colțurile.
+- **Parserul, întărit după încercarea reală:** suma stricată după „=” nu mai pierde rândul (rămâne cantitate × preț, de verificat); rândurile de plată și dată („N NUMERAR LEI”, „DATA … ORA”) opresc produsele; „REDULERE” e reducere; „100 BUC” fără virgulă rămâne necitit.
+- **Teste:** `receipt-crop.test.ts` (5), `read-receipt.test.ts` (1), `receipts.test.ts` (4 noi pentru aplicare), `receipt.test.ts` (+2), `e2e/bonuri.spec.ts` (text OCR simulat: bonul pe listă, al doilea bon propune ce a învățat, fără listă în istoric). `npm test`: 528; `npm run test:e2e`: 33.
+
 ## De ce are nevoie de la proprietar
 - **Pentru etapa 1:** 8–10 fotografii de bonuri reale, de la lanțuri diferite, puse într-un loc ales de el (nu în repo). Pot conține date personale (cardul de fidelitate, ultimele cifre ale cardului), care se șterg înainte de orice test comis.
 - **Pentru etapa 4:** aprobarea textelor noi.
@@ -75,4 +86,4 @@ Deciziile proprietarului (12 oct. 2026, chestionar):
 Pe un telefon real: fotografiez un bon de la Lidl cu 10 produse, confirm liniile în sub 2 minute, iar „Compară magazinele” arată Lidl cu prețurile de pe bon. Al doilea bon de la același magazin propune singur potrivirile învățate. Bugetul crește o singură dată.
 
 ## Următorul pas
-Acordul pentru migrația `receipt_aliases` pe producție; apoi etapa 4 (ecranele, cu chestionarul textelor).
+Proprietarul rulează migrația `receipt_aliases` în SQL Editor; apoi, pe telefon (Android și iPhone): un bon de la Lidl cu 10 produse, confirmat în sub 2 minute, a doua oară fără internet.
