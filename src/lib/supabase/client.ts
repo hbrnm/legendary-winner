@@ -37,3 +37,14 @@ export async function callImportRecipe(body: { url: string } | { image: string }
     body: JSON.stringify(body),
   });
 }
+
+/** Citirea bonului decupat (funcția Edge read-receipt, Gemini, .tasks/015), cu tokenul sesiunii. */
+export async function callReadReceipt(body: { image: { mimeType: "image/jpeg"; data: string } }): Promise<Response> {
+  const { data } = await supabase().auth.getSession();
+  return fetch(`${url}/functions/v1/read-receipt`, {
+    method: "POST",
+    headers: { authorization: `Bearer ${data.session?.access_token ?? ""}`, apikey: anonKey!, "content-type": "application/json" },
+    body: JSON.stringify(body),
+    signal: AbortSignal.timeout(45_000),
+  });
+}

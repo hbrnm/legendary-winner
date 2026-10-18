@@ -2,7 +2,8 @@ import { detectReceipt, fitArea, sharpen, stretchContrast, type Crop } from "@/l
 
 // Citirea bonului pe telefon (.tasks/005, etapa 4): tesseract.js cu limba
 // română, din fișierele servite de aplicație (/ocr/<versiune>/, copiate la build
-// de scripts/copy-ocr.mjs). Fotografia nu pleacă de pe telefon și nu se păstrează.
+// de scripts/copy-ocr.mjs). Pe această cale fotografia nu pleacă de pe telefon; cu
+// cont, bonul decupat se citește întâi pe server (mai jos, .tasks/015). Nu se păstrează.
 
 /** Versiunea tesseract.js din package.json; un test verifică potrivirea. */
 export const OCR_VERSION = "7.0.0";
@@ -13,8 +14,8 @@ const READ_WIDTH = 1800;
 export interface ReadProgress {
   /** 0–1 */
   progress: number;
-  /** „pregatire” (descărcarea fișierelor, prima dată), apoi „citire”. */
-  stage: "pregatire" | "citire";
+  /** „server” (citirea cu Gemini, fără procent); pe telefon „pregatire” (descărcarea fișierelor, prima dată), apoi „citire”. */
+  stage: "server" | "pregatire" | "citire";
 }
 
 /** Pentru testele end-to-end: un text OCR dat, fără motorul real. */
@@ -99,5 +100,56 @@ export async function readReceipt(image: ImageBitmap, crop: Crop, onProgress: (p
     return data.text;
   } finally {
     await worker.terminate();
+  }
+}
+
+// Citirea pe server (.tasks/015): cu cont și internet, bonul decupat merge la
+// funcția Edge `read-receipt` (Gemini), care nu păstrează nimic. Dacă nu merge,
+// citește telefonul, ca mai sus.
+
+/** Latura mare a bonului trimis la server: destul pentru Gemini, puțin de trimis. */
+const SERVER_MAX_SIDE = 2400;
+
+/** Cererea către funcția Edge `read-receipt`. */
+export type ReceiptCall = (body: { image: { mimeType: "image/jpeg"; data: string } }) => Promise<Response>;
+
+/** Octeții în base64, pe bucăți (un apel cu toți octeții depășește stiva la câțiva MB). */
+export function toBase64(bytes: Uint8Array): string {
+  let s = "";
+  for (let i = 0; i < bytes.length; i += 0x8000) s += String.fromCharCode(...bytes.subarray(i, i + 0x8000));
+  return btoa(s);
+}
+
+/** Bonul decupat, color, ca JPEG în base64 (latura mare cel mult 2400 px, fără mărire). */
+export async function receiptJpeg(image: ImageBitmap, crop: Crop): Promise<string> {
+  const sx = Math.round(crop.x * image.width);
+  const sy = Math.round(crop.y * image.height);
+  const sw = Math.max(1, Math.round(crop.width * image.width));
+  const sh = Math.max(1, Math.round(crop.height * image.height));
+  const k = Math.min(1, SERVER_MAX_SIDE / Math.max(sw, sh));
+  const { width, height } = fitArea(Math.max(1, Math.round(sw * k)), Math.max(1, Math.round(sh * k)));
+  const canvas = new OffscreenCanvas(width, height);
+  canvas.getContext("2d")!.drawImage(image, sx, sy, sw, sh, 0, 0, width, height);
+  const blob = await canvas.convertToBlob({ type: "image/jpeg", quality: 0.85 });
+  return toBase64(new Uint8Array(await blob.arrayBuffer()));
+}
+
+/** Citirea prin server: un răspuns fără text e o eroare. */
+export function serverReceiptReader(call: ReceiptCall): (jpeg: string) => Promise<string> {
+  return async (jpeg) => {
+    const res = await call({ image: { mimeType: "image/jpeg", data: jpeg } });
+    const body = (await res.json().catch(() => null)) as { text?: unknown } | null;
+    if (!res.ok || typeof body?.text !== "string" || !body.text.trim()) throw new Error(`read-receipt ${res.status}`);
+    return body.text;
+  };
+}
+
+/** Întâi serverul (când e), iar dacă nu merge (fără internet, limita, eroare), telefonul. `fallback` = serverul n-a mers. */
+export async function readWithFallback(server: (() => Promise<string>) | null, phone: () => Promise<string>): Promise<{ text: string; fallback: boolean }> {
+  if (!server) return { text: await phone(), fallback: false };
+  try {
+    return { text: await server(), fallback: false };
+  } catch {
+    return { text: await phone(), fallback: true };
   }
 }

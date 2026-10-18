@@ -4,6 +4,7 @@ import { Suspense, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { ArrowLeft, Camera, ImageIcon, Search } from "lucide-react";
+import { useApp } from "@/components/app/app-provider";
 import { AppShell } from "@/components/app/shell";
 import { useAction, useData } from "@/components/app/hooks";
 import { ProductSearch } from "@/components/shopping/product-search";
@@ -15,17 +16,19 @@ import { owned, visible } from "@/lib/services/queries";
 import { applyReceipt, proposeReceiptMatches } from "@/lib/services/receipts";
 import { parseReceipt, type ParsedReceipt } from "@/lib/domain/receipt";
 import { FULL_CROP, type Crop } from "@/lib/domain/receipt-crop";
-import { loadImage, proposeCrop, readReceipt, type ReadProgress } from "@/lib/ocr/read-receipt";
+import { loadImage, proposeCrop, readReceipt, readWithFallback, receiptJpeg, serverReceiptReader, type ReadProgress } from "@/lib/ocr/read-receipt";
+import { callReadReceipt } from "@/lib/supabase/client";
 import { formatRon, parseMoney, roundMoney, sumMoney } from "@/lib/domain/money";
 import { formatQuantity } from "@/lib/domain/units";
 import { toISODate } from "@/lib/domain/dates";
 import { now } from "@/lib/clock";
 import type { Product, UnitCode } from "@/lib/domain/types";
 
-// Bonul fiscal (.tasks/005, etapa 4): fotografia → încadrarea → citirea pe
-// telefon → „Verifică bonul” → aplicarea pe o listă sau ca o cumpărătură.
+// Bonul fiscal (.tasks/005, etapa 4): fotografia → încadrarea → citirea (cu cont
+// și internet pe server, .tasks/015; altfel pe telefon) → „Verifică bonul” →
+// aplicarea pe o listă sau ca o cumpărătură.
 
-type Step = { kind: "alege" } | { kind: "incadreaza"; image: ImageBitmap; url: string; crop: Crop } | { kind: "citeste"; progress: ReadProgress | null } | { kind: "verifica"; receipt: ParsedReceipt };
+type Step = { kind: "alege" } | { kind: "incadreaza"; image: ImageBitmap; url: string; crop: Crop } | { kind: "citeste"; progress: ReadProgress | null } | { kind: "verifica"; receipt: ParsedReceipt; fallback: boolean };
 
 interface Line {
   key: number;
@@ -104,6 +107,9 @@ function CropBox({ url, aspect, crop, onChange }: { url: string; aspect: number;
 function ReceiptScreen() {
   const router = useRouter();
   const listParam = useSearchParams().get("lista");
+  const { mode } = useApp();
+  // Cu cont, bonul decupat se citește pe server (Gemini); fără cont sau fără internet, pe telefon.
+  const serverWorks = mode === "cloud";
   const { run, busy } = useAction();
   const [step, setStep] = useState<Step>({ kind: "alege" });
   const [lines, setLines] = useState<Line[]>([]);
@@ -153,8 +159,20 @@ function ReceiptScreen() {
     reading.current = image;
     setStep({ kind: "citeste", progress: null });
     let text: string;
+    let fallback: boolean;
+    const server =
+      serverWorks && navigator.onLine
+        ? async () => {
+            setStep({ kind: "citeste", progress: { progress: 0, stage: "server" } });
+            return serverReceiptReader(callReadReceipt)(await receiptJpeg(image, crop));
+          }
+        : null;
     try {
-      text = await readReceipt(image, crop, (progress) => setStep({ kind: "citeste", progress }));
+      ({ text, fallback } = await readWithFallback(server, () => {
+        // După server, ecranul trece pe mesajele cititorului de pe telefon.
+        setStep({ kind: "citeste", progress: null });
+        return readReceipt(image, crop, (progress) => setStep({ kind: "citeste", progress }));
+      }));
     } catch {
       image.close();
       setStep({ kind: "alege" });
@@ -189,7 +207,7 @@ function ReceiptScreen() {
       );
       return true;
     });
-    if (ok) setStep({ kind: "verifica", receipt });
+    if (ok) setStep({ kind: "verifica", receipt, fallback });
     else setStep({ kind: "alege" });
   }
 
@@ -265,6 +283,7 @@ function ReceiptScreen() {
             Citește bonul
           </Button>
         </div>
+        {serverWorks && <p className="mt-3 text-sm text-ink-2">Cu internet, bonul decupat se citește pe server și nu se păstrează. Fără internet, îl citesc pe telefon.</p>}
       </>
     );
   }
@@ -276,8 +295,17 @@ function ReceiptScreen() {
         {header}
         <div className="flex flex-col items-center gap-3 py-10 text-center" role="status">
           <Spinner />
-          <p className="text-[15px]">{p?.stage === "citire" ? `Citesc bonul… ${Math.round(p.progress * 100)}%` : "Pregătesc cititorul…"}</p>
-          <p className="text-sm text-ink-2">Prima dată durează mai mult: se descarcă cititorul de bonuri.</p>
+          {p?.stage === "server" ? (
+            <>
+              <p className="text-[15px]">Citesc bonul…</p>
+              <p className="text-sm text-ink-2">Durează câteva secunde.</p>
+            </>
+          ) : (
+            <>
+              <p className="text-[15px]">{p?.stage === "citire" ? `Citesc bonul… ${Math.round(p.progress * 100)}%` : "Pregătesc cititorul…"}</p>
+              <p className="text-sm text-ink-2">Prima dată durează mai mult: se descarcă cititorul de bonuri.</p>
+            </>
+          )}
         </div>
       </>
     );
@@ -289,6 +317,7 @@ function ReceiptScreen() {
   return (
     <>
       {header}
+      {step.fallback && <p role="note" className="mb-3 rounded-md border border-dashed border-accent bg-surface px-3.5 py-2.5 text-sm text-ink">Nu am putut citi bonul pe server, așa că l-am citit pe telefon. Verifică liniile cu atenție.</p>}
       <p className="mb-4 text-[15px] text-ink-2">Am citit {lines.length === 1 ? "un produs" : `${lines.length} produse`}. Verifică fiecare linie: produsul, suma. Cele marcate „de verificat” pot fi citite greșit.</p>
 
       <div className="mb-4 grid grid-cols-2 gap-2">
