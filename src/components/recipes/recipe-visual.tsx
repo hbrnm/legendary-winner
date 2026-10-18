@@ -30,7 +30,7 @@ export const DIFFICULTY_LABELS = { usor: "Ușor", mediu: "Mediu", dificil: "Difi
 export type RecipeVisualSize = "sm" | "md" | "lg";
 
 /** Dimensiunile imaginii unei rețete, la fel pentru fotografia din catalog și cea a gospodăriei. */
-export const visualDims = (size: RecipeVisualSize) => (size === "lg" ? "h-44 w-full rounded-3xl" : size === "sm" ? "h-12 w-12 rounded-md" : "h-16 w-16 rounded-md");
+export const visualDims = (size: RecipeVisualSize) => (size === "lg" ? "h-44 w-full rounded-lg" : size === "sm" ? "h-12 w-12 rounded-md" : "h-16 w-16 rounded-md");
 
 export function RecipeVisual({ recipe, size = "md" }: { recipe: Pick<Recipe, "image_url">; size?: RecipeVisualSize }) {
   // O poză din catalog scoasă din listă nu se mai arată, chiar dacă baza de pe server o mai are (15 oct. 2026).

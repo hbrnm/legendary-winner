@@ -156,18 +156,18 @@ function ItemSheetForm({ item, estimate, categories, retailers, lists, focusPric
       >
         <Field label="Cantitate">
           <div className="flex items-center gap-2">
-            <button type="button" aria-label="Mai puțin" onClick={() => bump(-step)} className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-line bg-surface">
+            <button type="button" aria-label="Mai puțin" onClick={() => bump(-step)} className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-lg border border-line bg-surface">
               <Minus size={18} />
             </button>
             <Input inputMode="decimal" value={quantity} onChange={(e) => change({ quantity: e.target.value })} placeholder="—" className="min-w-0 flex-1 text-center tabular" aria-label="Cantitate" />
-            <button type="button" aria-label="Mai mult" onClick={() => bump(step)} className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-line bg-surface">
+            <button type="button" aria-label="Mai mult" onClick={() => bump(step)} className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-lg border border-line bg-surface">
               <Plus size={18} />
             </button>
             <select
               aria-label="Unitate"
               value={unit}
               onChange={(e) => change({ unit: e.target.value as UnitCode })}
-              className="h-11 w-28 shrink-0 rounded-xl border border-line bg-surface px-3 text-[15px]"
+              className="h-11 w-28 shrink-0 rounded-lg border border-line bg-surface px-3 text-[15px]"
             >
               <option value="">fără unitate</option>
               {SHOPPING_UNITS.map((u) => (
@@ -202,7 +202,7 @@ function ItemSheetForm({ item, estimate, categories, retailers, lists, focusPric
                 aria-label="Baza prețului la raft"
                 value={shelf.basis}
                 onChange={(e) => change({ basis: e.target.value as ShelfBasis })}
-                className="h-11 w-32 shrink-0 rounded-xl border border-line bg-surface px-3 text-[15px]"
+                className="h-11 w-32 shrink-0 rounded-lg border border-line bg-surface px-3 text-[15px]"
               >
                 {SHELF_BASES.map((b) => (
                   <option key={b.basis} value={b.basis}>

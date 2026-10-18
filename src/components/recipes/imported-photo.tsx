@@ -47,14 +47,14 @@ export function ImportedPhoto({ imageUrl, site, onChange }: { imageUrl: string; 
   if (state.kind === "loading") return <p className="mb-4 text-sm text-ink-3">Aduc fotografia…</p>;
   if (state.kind === "failed")
     return (
-      <p role="note" className="mb-4 rounded-xl bg-warn-soft px-3 py-2 text-sm text-ink">
+      <p role="note" className="mb-4 rounded-lg bg-warn-soft px-3 py-2 text-sm text-ink">
         {IMPORT_PHOTO_ERROR}
       </p>
     );
   return (
     <figure className="mb-4">
       {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img src={state.src} alt="" className="aspect-[4/3] w-full rounded-2xl object-cover" />
+      <img src={state.src} alt="" className="aspect-[4/3] w-full rounded-lg object-cover" />
       <figcaption className="mt-1 flex items-center justify-between gap-2 text-sm text-ink-2">
         <span className="min-w-0 truncate">Fotografia de pe {site}</span>
         <button
@@ -63,7 +63,7 @@ export function ImportedPhoto({ imageUrl, site, onChange }: { imageUrl: string; 
             setState({ kind: "removed" });
             onChange(null);
           }}
-          className="h-11 shrink-0 rounded-xl px-2 text-brand hover:bg-surface-2"
+          className="h-11 shrink-0 rounded-lg px-2 text-brand hover:bg-surface-2"
         >
           Scoate fotografia
         </button>

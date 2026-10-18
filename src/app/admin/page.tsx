@@ -167,7 +167,7 @@ function AdminScreen() {
       {tab === "produse" && (
         <div className="mt-4">
           <div className="flex gap-2">
-            <div className="flex min-w-0 flex-1 items-center gap-2 rounded-xl border border-line bg-surface px-3">
+            <div className="flex min-w-0 flex-1 items-center gap-2 rounded-lg border border-line bg-surface px-3">
               <Search size={16} className="shrink-0 text-ink-3" />
               <input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Caută după nume sau sinonim" aria-label="Caută produse" className="h-11 min-w-0 flex-1 bg-transparent focus:outline-none" />
             </div>
@@ -175,7 +175,7 @@ function AdminScreen() {
               Produs
             </Button>
           </div>
-          <ul className="mt-3 divide-y divide-line overflow-hidden rounded-2xl border border-line bg-surface">
+          <ul className="mt-3 divide-y divide-line overflow-hidden rounded-lg border border-line bg-surface">
             {products.map((p) => (
               <li key={p.id}>
                 <button type="button" onClick={() => editProduct(p)} className="flex w-full items-center gap-3 px-4 py-2.5 text-left hover:bg-surface-2">
@@ -200,7 +200,7 @@ function AdminScreen() {
           <Button icon={<Plus size={18} />} onClick={() => setCat({ name: "", icon: "tag", is_food: true, sort_order: (data.categories.length + 1) * 10 })}>
             Categorie
           </Button>
-          <ul className="mt-3 divide-y divide-line overflow-hidden rounded-2xl border border-line bg-surface">
+          <ul className="mt-3 divide-y divide-line overflow-hidden rounded-lg border border-line bg-surface">
             {data.categories.map((c) => (
               <li key={c.id}>
                 <button type="button" onClick={() => setCat(c)} className="flex w-full items-center gap-3 px-4 py-2.5 text-left hover:bg-surface-2">
@@ -216,10 +216,10 @@ function AdminScreen() {
 
       {tab === "retete" && (
         <div className="mt-4">
-          <Link href="/retete/editare/?global=1" className="inline-flex h-11 items-center gap-2 rounded-xl bg-brand px-4 font-medium text-brand-ink">
+          <Link href="/retete/editare/?global=1" className="inline-flex h-11 items-center gap-2 rounded-lg bg-brand px-4 font-medium text-brand-ink">
             <Plus size={18} /> Rețetă în catalogul comun
           </Link>
-          <ul className="mt-3 divide-y divide-line overflow-hidden rounded-2xl border border-line bg-surface">
+          <ul className="mt-3 divide-y divide-line overflow-hidden rounded-lg border border-line bg-surface">
             {data.recipes.map((r) => (
               <li key={r.id}>
                 <Link href={`/retete/editare/?id=${r.id}`} className="block px-4 py-2.5 hover:bg-surface-2">
@@ -236,7 +236,7 @@ function AdminScreen() {
           <Button icon={<Plus size={18} />} onClick={() => setRet({ name: "", kind: "supermarket" })}>
             Magazin
           </Button>
-          <ul className="mt-3 divide-y divide-line overflow-hidden rounded-2xl border border-line bg-surface">
+          <ul className="mt-3 divide-y divide-line overflow-hidden rounded-lg border border-line bg-surface">
             {data.retailers.map((r) => (
               <li key={r.id}>
                 <button type="button" onClick={() => setRet(r)} className="flex w-full items-center gap-3 px-4 py-2.5 text-left hover:bg-surface-2">
@@ -266,7 +266,7 @@ function AdminScreen() {
             className="text-sm"
           />
           <Field label="sau lipește conținutul">
-            <textarea value={importText} onChange={(e) => setImportText(e.target.value)} className="min-h-32 rounded-xl border border-line bg-surface p-3 font-mono text-xs" />
+            <textarea value={importText} onChange={(e) => setImportText(e.target.value)} className="min-h-32 rounded-lg border border-line bg-surface p-3 font-mono text-xs" />
           </Field>
           <Button variant="secondary" icon={<Upload size={18} />} disabled={!importText.trim()} onClick={() => setPreview(parseProductImport(importText, data.categories, data.products.map((p) => p.name)))}>
             Previzualizează
@@ -277,7 +277,7 @@ function AdminScreen() {
                 <strong>{preview.rows.length}</strong> produse noi · {preview.duplicates.length} existente (se sar) · {preview.errors.length} rânduri cu erori
               </p>
               {preview.errors.length > 0 && (
-                <ul className="rounded-xl bg-accent-soft p-3 text-accent">
+                <ul className="rounded-lg bg-accent-soft p-3 text-accent">
                   {preview.errors.slice(0, 20).map((e) => (
                     <li key={e.line}>
                       Rândul {e.line}: {e.message}
@@ -337,7 +337,7 @@ function AdminScreen() {
             <LabeledInput label="Cod EAN/GTIN" inputMode="numeric" value={draft.ean} onChange={(e) => setDraft({ ...draft, ean: e.target.value })} />
             {variantsEnabled && draft.id && (
               <Field label="Variante în catalogul comun">
-                <ul className="divide-y divide-line overflow-hidden rounded-2xl border border-line empty:hidden">
+                <ul className="divide-y divide-line overflow-hidden rounded-lg border border-line empty:hidden">
                   {variantsOf(data.variants, draft.id).map((v) => (
                     <li key={v.id} className="flex items-center gap-2 py-1 pl-3 pr-1 text-sm">
                       <span className="min-w-0 flex-1">{variantLabel(v, v.brand_id ? data.brands.get(v.brand_id) : null)}</span>

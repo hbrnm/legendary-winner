@@ -33,7 +33,7 @@ function InvitationScreen() {
     return (
       <Centered title="Ai fost invitat într-o gospodărie">
         Intră în cont sau fă-ți unul, apoi acceptă invitația.
-        <Link href={`/autentificare/?inapoi=${encodeURIComponent(`/invitatie/?token=${token}`)}`} className="mt-6 inline-flex h-11 items-center rounded-xl bg-brand px-5 font-medium text-brand-ink">
+        <Link href={`/autentificare/?inapoi=${encodeURIComponent(`/invitatie/?token=${token}`)}`} className="mt-6 inline-flex h-11 items-center rounded-lg bg-brand px-5 font-medium text-brand-ink">
           Continuă
         </Link>
       </Centered>
@@ -73,7 +73,7 @@ function InvitationScreen() {
 function Centered({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <main className="mx-auto flex min-h-dvh max-w-md flex-col items-center justify-center px-4 text-center">
-      <span className="mb-4 inline-flex h-14 w-14 items-center justify-center rounded-2xl bg-brand-soft text-brand">
+      <span className="mb-4 inline-flex h-14 w-14 items-center justify-center rounded-lg bg-brand-soft text-brand">
         <Users size={28} />
       </span>
       <h1 className="text-xl font-semibold">{title}</h1>

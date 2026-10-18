@@ -146,7 +146,7 @@ export function AppShell({ children, wide = false }: { children: ReactNode; wide
               </span>
               {app.household?.name ?? "Cămara"}
             </Link>
-            <span className="hidden text-sm text-ink-2 lg:block">{app.household?.name}</span>
+            <span className="hidden font-serif text-[17px] font-semibold tracking-tight lg:block">{app.household?.name}</span>
             <div className="flex items-center gap-1">
               <SyncIndicator />
               <Link href="/gospodarie/" aria-label="Gospodărie și setări" className="inline-flex h-11 w-11 items-center justify-center rounded-lg text-ink-2 transition-colors duration-150 ease-out hover:bg-surface-2 lg:hidden">
