@@ -1,0 +1,122 @@
+import { describe, expect, it } from "vitest";
+import { readFileSync } from "node:fs";
+import { parseReceipt } from "./receipt";
+
+// Textele OCR (tesseract.js 7, „ron”) ale bonurilor reale din proba de la
+// .tasks/005, etapa 1, anonimizate: fără ID unic, card, casier, serie.
+const fixture = (name: string) => readFileSync(new URL(`./__fixtures__/bon-${name}.txt`, import.meta.url), "utf8");
+
+describe("bon Kaufland (OCR real)", () => {
+  const r = parseReceipt(fixture("3-kaufland"));
+
+  it("magazinul, data și totalul", () => {
+    expect(r).toMatchObject({ chain: "kaufland", date: "2026-10-12", total: 110.67 });
+  });
+
+  it("sumele vin din cantitate × preț: 16 din 18 linii exact ca pe bon", () => {
+    // Sumele adevărate de pe bon, în ordine.
+    const truth = [3.49, 3.49, 3.49, 3.49, 5.67, 6.79, 3.55, 3.55, 2.79, 7.09, 12.36, 8.64, 8.64, 19.84, 2.32, 5.29, 15.27, 1.89];
+    expect(r.lines).toHaveLength(18);
+    expect(r.lines.filter((l, i) => l.amount === truth[i])).toHaveLength(16);
+    expect(r.lines[10]).toMatchObject({ name: "MOGYI POPC SARE", quantity: 4, unit: "buc", unit_price: 3.09, amount: 12.36 });
+    expect(r.lines[13]).toMatchObject({ name: "Dovleac Hokkaido", quantity: 1.986, unit: "kg", amount: 19.84, check: "sigur" });
+    expect(r.lines.filter((l) => l.check === "sigur").length).toBe(4);
+  });
+
+  it("nu inventează: ce nu s-a citit rămâne null și „de verificat”", () => {
+    const ceapa = r.lines[14];
+    expect(ceapa).toMatchObject({ quantity: 1.014, unit: "kg", unit_price: null, amount: null, check: "de_verificat" });
+    // Suma din dreapta nu se potrivește cu 3 × 5,08: linia nu e sigură.
+    expect(r.lines[16]).toMatchObject({ amount: 15.24, printed_amount: 15.27, check: "de_verificat" });
+    // O reducere necitită face linia „de verificat” și totalul neconfirmat.
+    expect(r.lines[0]).toMatchObject({ discount: null, check: "de_verificat" });
+    expect(r.total_matches).toBe(false);
+  });
+});
+
+describe("bon cu cântar, totul pe un rând (OCR real)", () => {
+  const r = parseReceipt(fixture("2-east-trading"));
+
+  it("cele 3 produse la kg, cu suma de după „=” și reducerea citită fără virgulă", () => {
+    expect(r).toMatchObject({ chain: null, store_name: "EAST TRADING HOUSE S.R.L", date: "2026-10-12", total: null });
+    expect(r.lines.map((l) => [l.quantity, l.unit, l.amount, l.discount])).toEqual([
+      [0.185, "kg", 12.77, 2.55],
+      [0.133, "kg", 9.92, 0],
+      [0.115, "kg", 9.09, 0],
+    ]);
+    expect(r.lines_total).toBe(29.23);
+    // „255” fără virgulă e o presupunere, iar la primele două cantitate × preț nu dă suma
+    // (0,133 × 64 ≠ 9,92: OCR-ul a greșit cântărirea). Doar 0,115 × 79 = 9,09 e sigur.
+    expect(r.lines.map((l) => l.check)).toEqual(["de_verificat", "de_verificat", "sigur"]);
+  });
+});
+
+describe("bon Lidl pe hârtie ștearsă (OCR real)", () => {
+  const r = parseReceipt(fixture("1-lidl"));
+
+  it("recunoaște magazinul, dar liniile rămân de verificat", () => {
+    expect(r.chain).toBe("lidl");
+    expect(r.lines.length).toBeGreaterThanOrEqual(10);
+    expect(r.lines.every((l) => l.check === "de_verificat")).toBe(true);
+    expect(r.lines[0]).toMatchObject({ name: "laurt In StII grecesc", amount: 11.19 });
+    // Cantitate necitită („LO0O BUC”): fără sumă, nu presupunem 1 bucată.
+    expect(r.lines[1]).toMatchObject({ quantity: null, unit_price: 14.99, amount: null });
+  });
+});
+
+describe("formate, pe text curat", () => {
+  it("totul pe un rând, cu cântărirea care se potrivește: sigur", () => {
+    const r = parseReceipt(`MIEZ DE NUCA 0.155 KG X 64.00= 9.92 B
+TOTAL LEI 9.92`);
+    expect(r.lines).toMatchObject([{ name: "MIEZ DE NUCA", quantity: 0.155, unit_price: 64, amount: 9.92, check: "sigur" }]);
+  });
+
+  it("totalul confirmă liniile; reducerile scad", () => {
+    const r = parseReceipt(`S.C. LIDL DISCOUNT S.R.L.
+1,000 BUC x 4,20
+Paine alba 4,20 B
+2,000 BUC x 7,49
+Lapte 1,5% 1L 14,98 B
+Reducere Lidl Plus
+DISCOUNT 2,00 B
+TOTAL 17,18
+DATA:13/10/2026`);
+    expect(r).toMatchObject({ chain: "lidl", date: "2026-10-13", total: 17.18, lines_total: 17.18, total_matches: true });
+    expect(r.lines.map((l) => [l.name, l.amount, l.discount, l.check])).toEqual([
+      ["Paine alba", 4.2, 0, "sigur"],
+      ["Lapte 1,5% 1L", 14.98, 2, "sigur"],
+    ]);
+  });
+
+  it("o singură sumă citită greșit se corectează din total", () => {
+    // 1 × 3,49 citit „3,19”, dar suma din dreapta (3,49) închide totalul.
+    const r = parseReceipt(`MEGA IMAGE SRL
+1,000 BUC x 3,19
+Fasole 3,49 C
+1,000 BUC x 2,00
+Sare 2,00 C
+TOTAL 5,49`);
+    expect(r.lines.map((l) => l.amount)).toEqual([3.49, 2]);
+    expect(r).toMatchObject({ chain: "mega", total_matches: true });
+  });
+
+  it("rânduri doar cu denumire și sumă; numele necitit rămâne gol și de verificat", () => {
+    const r = parseReceipt(`PROFI ROM FOOD SRL
+1,000 BUC x 5,00
+1,000 BUC x 2,50
+Ceapa verde 2,50 A
+Rosii cherry 9,99 A
+TOTAL 17,49`);
+    expect(r.lines.map((l) => [l.name, l.amount, l.check])).toEqual([
+      ["", 5, "de_verificat"],
+      ["Ceapa verde", 2.5, "sigur"],
+      ["Rosii cherry", 9.99, "sigur"],
+    ]);
+    expect(r.total_matches).toBe(true);
+  });
+
+  it("text gol sau fără bon", () => {
+    expect(parseReceipt("")).toMatchObject({ chain: null, store_name: null, date: null, lines: [], total: null, total_matches: false });
+    expect(parseReceipt("o poză cu o pisică").lines).toEqual([]);
+  });
+});
