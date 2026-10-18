@@ -1,4 +1,4 @@
-import { expect, test, type Page } from "@playwright/test";
+import { expect, test, type Page, type TestInfo } from "@playwright/test";
 import { FIXED_NOW } from "./helpers";
 
 // Modul demonstrativ pornește cu gospodăria model (fără `camara-demo-gol`).
@@ -34,6 +34,31 @@ async function short(page: Page) {
       })
       .map((el) => `„${(el.getAttribute("aria-label") ?? el.textContent ?? "").trim().slice(0, 30)}” ${Math.round(el.getBoundingClientRect().height)} px`),
   );
+}
+
+/** Paginile redesenate (inclusiv o listă și o rețetă): nimic în afara ecranului, butoane de 44 px, câte o captură. */
+async function checkScreens(page: Page, info: TestInfo, prefix: string) {
+  const screens: [string, string | (() => Promise<void>)][] = [
+    ...["/", "/cumparaturi/", "/cumparaturi/istoric/", "/retete/", "/plan/", "/buget/", "/buget/preturi/", "/camara/"].map((p): [string, string] => [p, p]),
+    ["/cumparaturi/lista/", async () => {
+      await page.goto("/cumparaturi/");
+      await page.getByText("Cumpărături săptămânale").click();
+    }],
+    ["/retete/reteta/", async () => {
+      await page.goto("/retete/");
+      await page.getByRole("link", { name: /^Ardei umpluți/ }).click();
+    }],
+  ];
+  for (const [path, open] of screens) {
+    if (typeof open === "string") await page.goto(open);
+    else await open();
+    await expect(page).toHaveURL(new RegExp(path.replace(/\//g, "\\/")));
+    await expect(page.locator("main")).toBeVisible();
+    await expect(page.getByRole("status").filter({ hasText: "Se încarcă" })).toHaveCount(0);
+    expect(await offscreen(page), path).toEqual([]);
+    expect(await short(page), path).toEqual([]);
+    await info.attach(`${prefix}${path.replace(/\//g, "-")}.png`, { body: await page.screenshot({ fullPage: true }), contentType: "image/png" });
+  }
 }
 
 /** Elementele al căror text trece pe mai multe rânduri. */
@@ -142,14 +167,7 @@ for (const scheme of ["light", "dark"] as const) {
     await page.emulateMedia({ colorScheme: scheme });
     await page.setViewportSize({ width: 360, height: 780 });
     await startModel(page);
-    for (const path of ["/", "/cumparaturi/", "/retete/", "/buget/", "/camara/", "/plan/"]) {
-      await page.goto(path);
-      await expect(page.locator("main")).toBeVisible();
-      await expect(page.getByRole("status").filter({ hasText: "Se încarcă" })).toHaveCount(0);
-      expect(await offscreen(page), path).toEqual([]);
-      expect(await short(page), path).toEqual([]);
-      await info.attach(`${scheme}${path.replace(/\//g, "-")}.png`, { body: await page.screenshot({ fullPage: true }), contentType: "image/png" });
-    }
+    await checkScreens(page, info, scheme);
 
     await page.goto("/buget/");
     for (const name of ["Prețuri și comparații", "Exportă luna", "Exportă tot"]) {
@@ -179,3 +197,18 @@ for (const scheme of ["light", "dark"] as const) {
     expect([avatar?.width, avatar?.height]).toEqual([64, 64]);
   });
 }
+
+for (const scheme of ["light", "dark"] as const) {
+  test(`pe desktop, în modul ${scheme === "light" ? "luminos" : "întunecat"}, nimic nu iese din ecran`, async ({ page }, info) => {
+    await page.emulateMedia({ colorScheme: scheme });
+    await page.setViewportSize({ width: 1280, height: 800 });
+    await startModel(page);
+    await checkScreens(page, info, `desktop-${scheme}`);
+  });
+}
+
+test("la Prețuri, cantitățile cu zecimale se scriu cu virgulă", async ({ page }) => {
+  await startModel(page, "/buget/preturi/");
+  await expect(page.getByText("16,80 RON / 0,5 kg")).toBeVisible();
+  await expect(page.getByText(/\d\.\d+ (kg|l)\b/)).toHaveCount(0);
+});

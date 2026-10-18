@@ -1,6 +1,6 @@
 # 014 — Redesign editorial (hârtie, verde de pădure, terracotta, serif)
 
-**Stare:** în lucru (18 oct. 2026). Etapele 1–6 gata (vezi PR-urile).
+**Stare:** în lucru (18 oct. 2026). Etapele 1–7 gata (vezi PR-urile).
 **Ramuri:** câte una pe etapă, din `main` (`claude/014-...`).
 
 ## Scop
@@ -14,6 +14,7 @@ Cererea proprietarului din 18 oct. 2026 („Cămară — Editorial redesign”):
 - Etapa 3 (chestionar, 18 oct. 2026): la Cheltuieli recente, magazinul pe rândul principal (mai multe: „Kaufland, Lidl”; fără magazin, sursa; altfel numele listei); rețetele fără poză au inițiala în serif pe kraft (inversează pictograma categoriei din 16 oct.); bugetul și următoarea listă într-un singur bloc-registru; „Expiră curând” ca etichete de borcan.
 - Etapa 4 (chestionar, 18 oct. 2026): la Adăugare rapidă, două grupuri cu titlu („S-a terminat în cămară”, „Cumperi des”), fără sufix pe butoane (subtitlul „Din cămară și din ce cumperi des” dispare); barele peste buget rămân pe tokenul `accent` (#A8553C), fără token nou pentru #C86D51; caseta „Înainte de cumpărături” de pe Buget duce la Cumpărături.
 - Etapa 6 (chestionar, 18 oct. 2026): în Istoric, pe rândul principal magazinul, ca la Cheltuieli recente (fără magazin, sursa; altfel numele listei), iar lista dedesubt, lângă dată, când există și nu e deja titlul; „cel mai bun”, „promoție”, „preț vechi” și „N fără preț” devin ștampile în mono, fără pastilă.
+- Etapa 7 (chestionar, 18 oct. 2026): colțurile mari rămase pe ecranele secundare se schimbă într-o etapă 8, separată; caseta de alergeni de pe pagina rețetei devine etichetă de borcan (chenar punctat terracotta, fără fundal galben); pe desktop, numele gospodăriei din antet în serif, ca pe telefon.
 - Tokenii își păstrează numele (`bg-bg`, `text-ink`, `bg-brand`...); se schimbă doar valorile.
 
 ## În afara scopului
@@ -29,7 +30,8 @@ Cererea proprietarului din 18 oct. 2026 („Cămară — Editorial redesign”):
 | 4 | Buget și liste (sume în mono, „des” grupat) | gata | `buget/page.tsx`, `charts.tsx`, `cumparaturi/page.tsx`, `cumparaturi/lista/page.tsx` |
 | 5 | Rețete, plan, cămară („(parțial)”) | gata | `retete/page.tsx`, `retete/reteta/page.tsx`, `plan/page.tsx`, `camara/page.tsx`, `recipes/recipe-cost.ts` |
 | 6 | Istoric și prețuri în stil registru | gata | `cumparaturi/istoric/page.tsx`, `buget/preturi/page.tsx` |
-| 7 | Verificare finală (capturi 360 px și desktop, ambele moduri) | de făcut | `e2e/` |
+| 7 | Verificare finală (capturi 360 px și desktop, ambele moduri) | gata | `e2e/demo-model.spec.ts`, `buget/preturi/page.tsx` |
+| 8 | Ecranele rămase (colțuri mici), alergenii ca etichetă de borcan, antetul de pe desktop în serif | de făcut | `gospodarie/`, `admin/`, `cumparaturi/bon/`, `retete/reteta/page.tsx`, `recipe-editor.tsx`, `imported-photo.tsx`, `recipe-visual.tsx`, `variant-picker.tsx`, `autentificare/`, `invitatie/`, `offline/`, `shell.tsx` |
 
 ## Rezumat pe etape
 ### Etapa 1 (18 oct. 2026)
@@ -67,8 +69,13 @@ Cererea proprietarului din 18 oct. 2026 („Cămară — Editorial redesign”):
 - Prețuri: numele produsului în serif; datele și sumele în mono; ștampilele „cel mai bun” (verde), „promoție” (terracotta), „preț vechi” (gri); colțuri mici.
 - e2e: istoricul din gospodăria model are Kaufland, Piață, Lidl pe rândul principal și în titlul ferestrei (pică pe codul vechi, cu numele listei).
 
+### Etapa 7 (18 oct. 2026)
+- Capturile din `e2e/demo-model.spec.ts` acoperă acum 10 ecrane (și Istoric, Prețuri, o listă, o rețetă), la 360 px și pe desktop (1280 px), în ambele moduri; pe fiecare: nimic în afara ecranului, butoane de cel puțin 44 px.
+- Găsit și reparat: la Prețuri, cantitățile cu zecimale apăreau cu punct („0.5 kg”); acum „0,5 kg” (test e2e, pică pe codul vechi).
+- Rămase pentru etapa 8: colțuri mari pe ecranele secundare, caseta galbenă de alergeni, numele gospodăriei pe desktop fără serif.
+
 ## Cum verific la final
 `npm test`, `npm run build`, `npm run test:e2e`; capturile la 360 px din `e2e/demo-model.spec.ts`.
 
 ## Următorul pas
-Etapa 7: verificarea finală (capturi la 360 px și desktop, ambele moduri).
+Etapa 8, într-o sesiune nouă: ecranele rămase, alergenii, antetul de pe desktop (vezi tabelul).
