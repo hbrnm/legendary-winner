@@ -106,6 +106,21 @@ describe("varianta pe listă, la cumpărare și la preț", () => {
     expect((await ctx.db.shopping_list_items.get(item))?.variant_id).toBeNull();
   });
 
+  it("varianta nouă pusă pe o linie mai veche pleacă spre server înaintea liniei cu ea", async () => {
+    const listId = await createList(ctx, { name: "Săptămâna" });
+    const item = await addItem(ctx, listId, { product_id: "piept-pui", quantity: 1, unit: "pachet" });
+    const v = await createVariant(ctx, sissi);
+    await updateItem(ctx, item, { variant_id: v, note: "cel feliat" });
+    const outbox = await ctx.db.outbox.orderBy("seq").toArray();
+    const variantAt = outbox.findIndex((e) => e.table === "product_variants" && e.row_id === v);
+    const itemEntries = outbox.filter((e) => e.row_id === item);
+    // Inserarea liniei rămâne fără variantă; varianta vine într-o modificare de după ea.
+    expect(itemEntries[0].payload).not.toHaveProperty("variant_id");
+    const withVariant = outbox.findIndex((e) => e.row_id === item && e.payload.variant_id === v);
+    expect(withVariant).toBeGreaterThan(variantAt);
+    expect(outbox[withVariant].payload).toMatchObject({ note: "cel feliat" });
+  });
+
   it("aceeași variantă se adună pe linie; altă variantă face linie nouă", async () => {
     const v = await createVariant(ctx, sissi);
     const listId = await createList(ctx, { name: "Săptămâna" });

@@ -1,4 +1,4 @@
-import Dexie, { type Table } from "dexie";
+import Dexie, { type DBCore, type Middleware, type Table } from "dexie";
 import type {
   Brand,
   Budget,
@@ -150,6 +150,29 @@ export interface MetaEntry {
   value: unknown;
 }
 
+// Zona Dexie de la încărcarea modulului: cea globală, în afara oricărei liveQuery.
+type Zone = { subscr?: unknown };
+const zones = Dexie.Promise as unknown as { PSD: Zone; usePSD: <R>(zone: Zone, fn: () => R) => R };
+const ROOT_ZONE = zones.PSD;
+
+/**
+ * Când un ecran se recitește (liveQuery) în timp ce altceva scrie (o acțiune,
+ * sincronizarea), Dexie poate „scurge” zona citirii peste un `await` nativ, iar
+ * scrierea e refuzată cu „Readwrite transaction in liveQuery context” (ex.
+ * „Finalizează” oprit la jumătate, sincronizarea blocată). Aplicația nu scrie
+ * niciodată din interiorul unei liveQuery, deci tranzacțiile de scriere se
+ * deschid mereu din zona globală.
+ */
+const writesOutsideLiveQuery: Middleware<DBCore> = {
+  stack: "dbcore",
+  name: "scrieri-in-afara-liveQuery",
+  create: (down) => ({
+    ...down,
+    transaction: (stores, mode, options) =>
+      mode === "readwrite" && zones.PSD.subscr ? zones.usePSD(ROOT_ZONE, () => down.transaction(stores, mode, options)) : down.transaction(stores, mode, options),
+  }),
+};
+
 export class CamaraDB extends Dexie {
   product_categories!: Table<ProductCategory, string>;
   brands!: Table<Brand, string>;
@@ -181,6 +204,7 @@ export class CamaraDB extends Dexie {
 
   constructor(name: string) {
     super(name);
+    this.use(writesOutsideLiveQuery);
     this.version(1).stores({
       product_categories: "&id, household_id",
       brands: "&id, household_id",

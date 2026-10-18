@@ -18,11 +18,22 @@ async function enqueue(db: CamaraDB, entry: Omit<OutboxEntry, "seq" | "attempts"
   // Comasăm cu intrarea neconfirmată a aceluiași rând: mai puține cereri și
   // ordinea logică păstrată (inserarea rămâne inserare).
   const pending = await db.outbox.where("[table+row_id]").equals([entry.table, entry.row_id]).last();
-  if (pending && pending.attempts === 0) {
+  if (pending && pending.attempts === 0 && !(await refersToNewer(db, entry.payload, pending.seq!))) {
     await db.outbox.update(pending.seq!, { payload: { ...pending.payload, ...entry.payload } });
     return;
   }
   await db.outbox.add({ ...entry, created_at: nowIso(), attempts: 0 });
+}
+
+/**
+ * Modificarea trimite la un rând creat după intrarea `seq` (ex. varianta nouă
+ * pusă pe o linie mai veche)? Atunci nu se comasează în ea: serverul ar primi
+ * linia înaintea variantei și ar refuza referința.
+ */
+async function refersToNewer(db: CamaraDB, payload: Record<string, unknown>, seq: number): Promise<boolean> {
+  const refs = new Set(Object.entries(payload).flatMap(([k, v]) => (k.endsWith("_id") && typeof v === "string" ? [v] : [])));
+  if (refs.size === 0) return false;
+  return (await db.outbox.where("seq").above(seq).filter((e) => refs.has(e.row_id)).count()) > 0;
 }
 
 export async function insertRow<T extends TableName>(db: CamaraDB, table: T, row: NewRow<T>, opts: WriteOptions): Promise<Row<T>> {

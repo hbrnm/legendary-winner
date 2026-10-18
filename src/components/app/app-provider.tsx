@@ -35,6 +35,8 @@ export interface AppState {
   sync: SyncStatus | null;
   /** Fotografiile gospodăriei: Storage și cache (null în modul demonstrativ); `enabled` după ce serverul are tabelul. */
   photos: { files: RemoteFiles | null; cache: PhotoCache | null; enabled: boolean };
+  /** Variantele comerciale: în modul demonstrativ mereu, pe producție după ce serverul are tabelul. */
+  variantsEnabled: boolean;
   switchHousehold: (id: string) => Promise<void>;
   refreshHouseholds: () => Promise<void>;
   syncNow: () => Promise<void>;
@@ -216,6 +218,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
   // Pe producție, butonul de fotografie apare abia după ce serverul are tabelul (migrația aplicată).
   const photosMissing = useLiveQuery(async () => (db ? ((await getMeta<boolean>(db, serverMissingKey("recipe_photos"))) ?? null) : null), [db]);
   const photos = useMemo(() => ({ ...photoStore, enabled: mode === "demo" || photosMissing === false }), [photoStore, mode, photosMissing]);
+  // La fel pentru variante: tabelul și coloanele variant_id vin în aceeași migrație.
+  const variantsMissing = useLiveQuery(async () => (db ? ((await getMeta<boolean>(db, serverMissingKey("product_variants"))) ?? null) : null), [db]);
+  const variantsEnabled = mode === "demo" || variantsMissing === false;
 
   const household = households.find((h) => h.id === activeId) ?? null;
 
@@ -271,6 +276,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     ctx,
     sync,
     photos,
+    variantsEnabled,
     switchHousehold,
     refreshHouseholds,
     syncNow: async () => {

@@ -2,17 +2,19 @@
 
 import { useMemo, useState } from "react";
 import Link from "next/link";
-import { Plus, Search, Upload } from "lucide-react";
+import { Plus, Search, Trash2, Upload } from "lucide-react";
 import { AppShell } from "@/components/app/shell";
 import { useApp } from "@/components/app/app-provider";
 import { useAction, useData } from "@/components/app/hooks";
-import { Button } from "@/components/ui/button";
+import { Button, IconButton } from "@/components/ui/button";
+import { VariantPicker } from "@/components/shopping/variant-picker";
 import { Badge, Card, EmptyState, PageHeader, Spinner } from "@/components/ui/misc";
 import { Sheet } from "@/components/ui/sheet";
 import { Field, LabeledInput, LabeledSelect, Segmented, Toggle } from "@/components/ui/fields";
 import { useToast } from "@/components/ui/toast";
 import { ALLERGEN_LABELS } from "@/components/recipes/recipe-visual";
-import { createCategory, createProduct, createRetailer, updateCategory, updateProduct, updateRetailer, deleteProduct } from "@/lib/services/catalog";
+import { createCategory, createProduct, createRetailer, createVariant, deleteVariant, updateCategory, updateProduct, updateRetailer, deleteProduct } from "@/lib/services/catalog";
+import { variantLabel, variantsOf } from "@/lib/domain/variants";
 import { visible } from "@/lib/services/queries";
 import { normalize } from "@/lib/domain/search";
 import { parseProductImport, type ImportResult } from "@/lib/domain/csv-import";
@@ -37,7 +39,7 @@ interface ProductDraft {
 }
 
 function AdminScreen() {
-  const { isAppAdmin, mode } = useApp();
+  const { isAppAdmin, mode, variantsEnabled } = useApp();
   const { run, busy } = useAction();
   const toast = useToast();
   const [tab, setTab] = useState<Tab>("produse");
@@ -49,12 +51,14 @@ function AdminScreen() {
   const [preview, setPreview] = useState<ImportResult | null>(null);
 
   const data = useData(async (ctx) => {
-    const [products, categories, aliases, recipes, retailers] = await Promise.all([
+    const [products, categories, aliases, recipes, retailers, variants, brands] = await Promise.all([
       ctx.db.products.toArray(),
       visible(ctx.db, "product_categories", ctx.householdId),
       ctx.db.product_aliases.toArray(),
       ctx.db.recipes.toArray(),
       ctx.db.retailers.toArray(),
+      ctx.db.product_variants.toArray(),
+      ctx.db.brands.toArray(),
     ]);
     const global = <T extends { household_id: string | null; deleted_at: string | null }>(xs: T[]) => xs.filter((x) => x.household_id === null && !x.deleted_at);
     const aliasMap = new Map<string, string[]>();
@@ -65,6 +69,8 @@ function AdminScreen() {
       aliasMap,
       recipes: global(recipes).sort((a, b) => a.name.localeCompare(b.name, "ro")),
       retailers: global(retailers).sort((a, b) => a.name.localeCompare(b.name, "ro")),
+      variants: global(variants),
+      brands: new Map(global(brands).map((b) => [b.id, b.name])),
     };
   });
 
@@ -329,6 +335,28 @@ function AdminScreen() {
             <LabeledInput label="Subcategorie" value={draft.subcategory} onChange={(e) => setDraft({ ...draft, subcategory: e.target.value })} maxLength={60} />
             <LabeledInput label="Sinonime (separate prin virgulă)" value={draft.aliases} onChange={(e) => setDraft({ ...draft, aliases: e.target.value })} />
             <LabeledInput label="Cod EAN/GTIN" inputMode="numeric" value={draft.ean} onChange={(e) => setDraft({ ...draft, ean: e.target.value })} />
+            {variantsEnabled && draft.id && (
+              <Field label="Variante în catalogul comun">
+                <ul className="divide-y divide-line overflow-hidden rounded-2xl border border-line empty:hidden">
+                  {variantsOf(data.variants, draft.id).map((v) => (
+                    <li key={v.id} className="flex items-center gap-2 py-1 pl-3 pr-1 text-sm">
+                      <span className="min-w-0 flex-1">{variantLabel(v, v.brand_id ? data.brands.get(v.brand_id) : null)}</span>
+                      <IconButton label="Scoate varianta" onClick={() => run((ctx) => deleteVariant(ctx, v.id))}>
+                        <Trash2 size={16} />
+                      </IconButton>
+                    </li>
+                  ))}
+                </ul>
+                <VariantPicker
+                  createOnly
+                  variants={[]}
+                  brands={data.brands}
+                  value={null}
+                  onChange={() => {}}
+                  onCreate={async (input) => (await run((ctx) => createVariant(ctx, { ...input, product_id: draft.id! }, { global: true }), "Am adăugat varianta.")) ?? null}
+                />
+              </Field>
+            )}
             <Toggle checked={draft.is_market_typical} onChange={(v) => setDraft({ ...draft, is_market_typical: v })} label="Se cumpără des la piață" />
             <Toggle checked={draft.is_traditional} onChange={(v) => setDraft({ ...draft, is_traditional: v })} label="Produs tradițional" />
             <Field label="Luni de sezon">

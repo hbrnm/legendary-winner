@@ -5,7 +5,8 @@ import { Minus, Plus, Trash2 } from "lucide-react";
 import { Sheet } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { Field, Input, LabeledSelect, Segmented, TextArea } from "@/components/ui/fields";
-import type { ProductCategory, PurchaseSource, Retailer, ShoppingList, ShoppingListItem, UnitCode } from "@/lib/domain/types";
+import type { ProductCategory, ProductVariant, PurchaseSource, Retailer, ShoppingList, ShoppingListItem, UnitCode } from "@/lib/domain/types";
+import { VariantPicker, type NewVariant } from "./variant-picker";
 import { SHOPPING_UNITS, unitLabel } from "@/lib/domain/units";
 import { formatRon, parseMoney } from "@/lib/domain/money";
 import { SOURCE_LABELS } from "@/lib/domain/budget";
@@ -20,6 +21,8 @@ export interface ItemSheetProps {
   retailers: Retailer[];
   lists: ShoppingList[];
   focusPrice?: boolean;
+  /** Variantele produsului liniei; lipsă = fără secțiunea „Marca și ambalajul”. */
+  variants?: { list: ProductVariant[]; brands: ReadonlyMap<string, string>; onCreate: (input: NewVariant) => Promise<string | null> };
   onClose: () => void;
   onSave: (patch: Partial<ShoppingListItem>) => void;
   onMove: (listId: string) => void;
@@ -64,7 +67,9 @@ export function ItemSheet(props: ItemSheetProps) {
   return <ItemSheetForm key={props.item.id} {...props} item={props.item} />;
 }
 
-function ItemSheetForm({ item, estimate, categories, retailers, lists, focusPrice, onClose, onSave, onMove, onDelete }: ItemSheetProps & { item: ShoppingListItem }) {
+function ItemSheetForm({ item, estimate, categories, retailers, lists, focusPrice, variants, onClose, onSave, onMove, onDelete }: ItemSheetProps & { item: ShoppingListItem }) {
+  // O variantă ștearsă între timp nu mai e de ales: linia trece pe „Fără marcă anume”.
+  const [variantId, setVariantId] = useState<string | null>(variants?.list.some((v) => v.id === item.variant_id) ? item.variant_id! : null);
   const [quantity, setQuantity] = useState(item.quantity == null ? "" : String(item.quantity).replace(".", ","));
   const [unit, setUnit] = useState<UnitCode | "">(item.unit ?? "");
   const [price, setPrice] = useState(item.actual_price == null ? "" : item.actual_price.toFixed(2).replace(".", ","));
@@ -122,6 +127,7 @@ function ItemSheetForm({ item, estimate, categories, retailers, lists, focusPric
       category_id: categoryId,
       priority,
       note: note.trim() || null,
+      ...(variants && item.product_id ? { variant_id: variantId } : {}),
     });
   }
 
@@ -172,6 +178,8 @@ function ItemSheetForm({ item, estimate, categories, retailers, lists, focusPric
             </select>
           </div>
         </Field>
+
+        {variants && item.product_id && <VariantPicker variants={variants.list} brands={variants.brands} value={variantId} onChange={setVariantId} onCreate={variants.onCreate} />}
 
         <Segmented<"total" | "raft">
           label="Felul prețului"
