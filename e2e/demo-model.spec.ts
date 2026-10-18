@@ -54,6 +54,21 @@ async function clipped(page: Page, selector: string) {
   return page.locator(selector).evaluateAll((els) => els.filter((el) => el.scrollWidth > el.clientWidth + 1).map((el) => el.textContent));
 }
 
+test("Acasă, în gospodăria model: magazinele la cheltuieli, eticheta de expirare, inițiala rețetei", async ({ page }) => {
+  await startModel(page);
+  // Cheltuieli recente: magazinul (sau piața) pe rândul principal, nu „Cumpărături” repetat.
+  const recent = page.locator("main a[href='/cumparaturi/istoric/']").filter({ hasText: /RON/ });
+  await expect(recent).toHaveCount(3);
+  await expect(recent.nth(0)).toContainText("Kaufland");
+  await expect(recent.nth(1)).toContainText("Piață");
+  await expect(recent.nth(2)).toContainText("Lidl");
+  // Expiră curând: termenul ca ștampilă lângă produs.
+  await expect(page.getByRole("listitem").filter({ hasText: "Iaurt natural" })).toContainText(/în 2 zile/i);
+  // Rețetele fără fotografie au inițiala în locul pictogramei.
+  const avatars = page.getByTestId("avatar-reteta");
+  for (const el of await avatars.all()) expect(await el.textContent()).toMatch(/^\p{Lu}$/u);
+});
+
 test("gospodăria model: cămară, listă, buget, plan", async ({ page }) => {
   await startModel(page, "/camara/");
   await expect(page.getByText("14 produse acasă")).toBeVisible();

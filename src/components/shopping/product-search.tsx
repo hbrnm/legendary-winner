@@ -58,7 +58,7 @@ export function ProductSearch({ onPick, placeholder = "Adaugă: ex. 2 kg roșii"
 
   return (
     <div className="relative">
-      <div className="flex items-center gap-2 rounded-2xl border border-line bg-surface px-3 shadow-card focus-within:border-brand focus-within:ring-2 focus-within:ring-brand/25">
+      <div className="flex items-center gap-2 rounded-lg border border-line bg-surface-2 px-3 transition-colors duration-150 ease-out focus-within:border-brand focus-within:bg-surface focus-within:ring-2 focus-within:ring-brand/25">
         <Search size={18} className="shrink-0 text-ink-3" aria-hidden />
         <input
           ref={inputRef}
@@ -94,7 +94,7 @@ export function ProductSearch({ onPick, placeholder = "Adaugă: ex. 2 kg roșii"
         />
       </div>
       {text.trim() && (
-        <ul id="rezultate-produse" role="listbox" className="absolute inset-x-0 top-full z-20 mt-1 overflow-hidden rounded-2xl border border-line bg-surface shadow-card">
+        <ul id="rezultate-produse" role="listbox" className="absolute inset-x-0 top-full z-20 mt-1 overflow-hidden rounded-lg border border-line bg-surface shadow-card">
           {options.map((p, i) => (
             <li key={p?.id ?? "_nou"} role="option" aria-selected={i === active}>
               <button

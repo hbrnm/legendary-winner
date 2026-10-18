@@ -50,13 +50,13 @@ export function useHouseholdPhoto(recipeId: string): { photo: RecipePhoto | null
 
 /**
  * Imaginea rețetei în liste și pe pagina ei: a gospodăriei, altfel cea din
- * catalog; altfel, în liste (`avatar`), pătratul cu pictograma categoriei.
+ * catalog; altfel, în liste (`avatar`), pătratul cu inițiala rețetei.
  */
-export function RecipeImage({ recipe, size = "md", avatar = false }: { recipe: Pick<Recipe, "id" | "image_url"> & Partial<Pick<Recipe, "categories">>; size?: RecipeVisualSize; avatar?: boolean }) {
+export function RecipeImage({ recipe, size = "md", avatar = false }: { recipe: Pick<Recipe, "id" | "image_url"> & Partial<Pick<Recipe, "name">>; size?: RecipeVisualSize; avatar?: boolean }) {
   const { src } = useHouseholdPhoto(recipe.id);
   // eslint-disable-next-line @next/next/no-img-element
   if (src) return <img src={src} alt="" className={`${visualDims(size)} shrink-0 object-cover`} />;
-  if (avatar && size !== "lg" && !hasRecipeVisual(recipe)) return <RecipeAvatar recipe={{ categories: recipe.categories ?? [] }} size={size} />;
+  if (avatar && size !== "lg" && !hasRecipeVisual(recipe)) return <RecipeAvatar recipe={{ name: recipe.name ?? "" }} size={size} />;
   return <RecipeVisual recipe={recipe} size={size} />;
 }
 
