@@ -6,43 +6,43 @@
    toate browserele, deci primește tokenii direct. */
 :root,
 ::backdrop {
-  --bg: #f7f5ef;
-  --surface: #ffffff;
-  --surface-2: #f0ede4;
-  --ink: #1e2420;
-  --ink-2: #5b635d;
-  --ink-3: #8a918b;
-  --line: #e3dfd4;
-  --brand: #2f6b47;
-  --brand-strong: #24543a;
-  --brand-ink: #ffffff;
-  --brand-soft: #e3efe6;
-  --accent: #b8452e;
-  --accent-soft: #f7e3dd;
-  --warn: #9a6512;
-  --warn-soft: #f8edd3;
+  --bg: #f6f4ee;
+  --surface: #fbfaf6;
+  --surface-2: #efece4;
+  --ink: #1c241e;
+  --ink-2: #565d55;
+  --ink-3: #767b70;
+  --line: #e2dec9;
+  --brand: #1e3f2b;
+  --brand-strong: #152e1f;
+  --brand-ink: #fbfaf6;
+  --brand-soft: #e2eadf;
+  --accent: #a8553c;
+  --accent-soft: #faefe9;
+  --warn: #855610;
+  --warn-soft: #f7eed8;
   --info: #2c5d8a;
   --info-soft: #e1ebf5;
-  --shadow: 0 1px 2px rgb(30 36 32 / 0.06), 0 2px 8px rgb(30 36 32 / 0.05);
+  --shadow: 0 1px 2px rgb(28 36 30 / 0.06);
   color-scheme: light;
 }
 
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="luminos"]),
   :root:not([data-theme="luminos"]) ::backdrop {
-    --bg: #121513;
-    --surface: #1a1e1b;
-    --surface-2: #232824;
-    --ink: #eceeea;
-    --ink-2: #a8b0aa;
-    --ink-3: #7b847d;
-    --line: #2e3430;
-    --brand: #7fc398;
-    --brand-strong: #96d1ab;
-    --brand-ink: #0f1a13;
-    --brand-soft: #1f3327;
-    --accent: #f08a70;
-    --accent-soft: #3a231d;
+    --bg: #16170f;
+    --surface: #1e1f16;
+    --surface-2: #27291e;
+    --ink: #eceadf;
+    --ink-2: #b3b3a3;
+    --ink-3: #8a8c7e;
+    --line: #35372a;
+    --brand: #93c29f;
+    --brand-strong: #a9d1b2;
+    --brand-ink: #10180f;
+    --brand-soft: #233223;
+    --accent: #e8957a;
+    --accent-soft: #3b2419;
     --warn: #e2b15b;
     --warn-soft: #3a2f1a;
     --info: #8db8e0;
@@ -54,19 +54,19 @@
 
 :root[data-theme="intunecat"],
 :root[data-theme="intunecat"] ::backdrop {
-  --bg: #121513;
-  --surface: #1a1e1b;
-  --surface-2: #232824;
-  --ink: #eceeea;
-  --ink-2: #a8b0aa;
-  --ink-3: #7b847d;
-  --line: #2e3430;
-  --brand: #7fc398;
-  --brand-strong: #96d1ab;
-  --brand-ink: #0f1a13;
-  --brand-soft: #1f3327;
-  --accent: #f08a70;
-  --accent-soft: #3a231d;
+  --bg: #16170f;
+  --surface: #1e1f16;
+  --surface-2: #27291e;
+  --ink: #eceadf;
+  --ink-2: #b3b3a3;
+  --ink-3: #8a8c7e;
+  --line: #35372a;
+  --brand: #93c29f;
+  --brand-strong: #a9d1b2;
+  --brand-ink: #10180f;
+  --brand-soft: #233223;
+  --accent: #e8957a;
+  --accent-soft: #3b2419;
   --warn: #e2b15b;
   --warn-soft: #3a2f1a;
   --info: #8db8e0;
@@ -94,7 +94,11 @@
   --color-info: var(--info);
   --color-info-soft: var(--info-soft);
   --shadow-card: var(--shadow);
-  --font-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  /* Fonturile vin din src/app/fonts.ts (fișiere locale, licență OFL); fiecare are
+     două subseturi: latin și latin-ext (ă, ș, ț), puse unul după altul. */
+  --font-sans: var(--font-dm-sans), var(--font-dm-sans-ext), ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+  --font-serif: var(--font-fraunces), var(--font-fraunces-ext), Georgia, "Times New Roman", serif;
+  --font-mono: var(--font-jetbrains-mono), var(--font-jetbrains-mono-ext), ui-monospace, "SF Mono", Menlo, Consolas, monospace;
 }
 
 html {
@@ -125,6 +129,12 @@ body {
   /* Cifrele (prețuri, cantități, date) se aliniază în coloane peste tot. */
   font-variant-numeric: tabular-nums;
   min-height: 100dvh;
+}
+
+/* Titlurile paginilor, în serif. */
+h1 {
+  font-family: var(--font-serif);
+  font-optical-sizing: auto;
 }
 
 .tabular {

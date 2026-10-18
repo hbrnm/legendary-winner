@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import type { ReactNode } from "react";
 import "./globals.css";
+import { fontVariables } from "./fonts";
 import { AppProvider } from "@/components/app/app-provider";
 import { ToastProvider } from "@/components/ui/toast";
 import { ServiceWorker } from "@/components/app/service-worker";
@@ -19,8 +20,8 @@ export const viewport: Viewport = {
   initialScale: 1,
   viewportFit: "cover",
   themeColor: [
-    { media: "(prefers-color-scheme: light)", color: "#f7f5ef" },
-    { media: "(prefers-color-scheme: dark)", color: "#121513" },
+    { media: "(prefers-color-scheme: light)", color: "#f6f4ee" },
+    { media: "(prefers-color-scheme: dark)", color: "#16170f" },
   ],
 };
 
@@ -29,7 +30,7 @@ const THEME_SCRIPT = `try{var t=localStorage.getItem("camara-tema");if(t==="lumi
 
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
-    <html lang="ro" suppressHydrationWarning>
+    <html lang="ro" className={fontVariables} suppressHydrationWarning>
       <head>
         <script dangerouslySetInnerHTML={{ __html: THEME_SCRIPT }} />
       </head>
