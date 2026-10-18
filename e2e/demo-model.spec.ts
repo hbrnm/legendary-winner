@@ -110,6 +110,12 @@ for (const scheme of ["light", "dark"] as const) {
     await page.getByText("Cumpărături săptămânale").click();
     await expect(page.getByRole("radiogroup", { name: "Grupare" })).toBeVisible();
     expect(await wrapped(page, "[aria-label='Grupare'] button")).toEqual([]);
+    // În fereastra produsului, selectoarele (inclusiv „Sursa”, cu 4 variante) nu ies din ecran.
+    await page.getByText("Mere").first().click();
+    const groups = page.getByRole("dialog").getByRole("radiogroup");
+    await expect(groups.first()).toBeVisible();
+    expect(await groups.evaluateAll((els) => els.filter((el) => el.scrollWidth > el.clientWidth + 1).map((el) => el.getAttribute("aria-label")))).toEqual([]);
+    await page.keyboard.press("Escape");
 
     await page.goto("/retete/");
     await expect(page.getByTestId("avatar-reteta").first()).toBeVisible();
