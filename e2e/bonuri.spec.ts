@@ -8,7 +8,7 @@ VDR.LAP.3,5%1L 5,29 C
 1,014 KG x 2,29
 CEAPA GALBENA KG 2,32 C
 TOTAL 7,61
-DATA:12/10/2026`;
+DATA:05/03/2026`;
 
 test("bonul pe o listă: propune, confirmi, bifează cu prețul; al doilea bon știe singur", async ({ page }) => {
   await page.addInitScript((text) => ((globalThis as { __camaraOcrText?: string }).__camaraOcrText = text), BON);
@@ -24,7 +24,7 @@ test("bonul pe o listă: propune, confirmi, bifează cu prețul; al doilea bon �
 
   await expect(page.getByRole("heading", { name: "Verifică bonul" })).toBeVisible();
   await expect(page.getByLabel("Magazinul")).toHaveValue("kaufland");
-  await expect(page.getByLabel("Data")).toHaveValue("2026-10-12");
+  await expect(page.getByLabel("Data")).toHaveValue("2026-03-05");
   await expect(page.getByText(/pe bon: CEAPA GALBENA/)).toBeVisible();
   await expect(page.getByText(/Ceapă galbenă/).first()).toBeVisible();
 
