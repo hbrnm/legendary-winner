@@ -49,7 +49,7 @@ export function Chip({ active, children, onClick }: { active?: boolean; children
       type="button"
       aria-pressed={active}
       onClick={onClick}
-      className={`inline-flex h-9 shrink-0 items-center gap-1.5 rounded-full border px-3.5 text-sm transition-colors ${active ? "border-brand bg-brand text-brand-ink" : "border-line bg-surface text-ink-2 hover:text-ink"}`}
+      className={`inline-flex h-11 shrink-0 items-center gap-1.5 rounded-full border px-3.5 text-sm transition duration-150 ease-out active:scale-[0.98] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand ${active ? "border-brand bg-brand text-brand-ink" : "border-line bg-surface text-ink-2 hover:text-ink"}`}
     >
       {children}
     </button>

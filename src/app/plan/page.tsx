@@ -158,7 +158,6 @@ function PlanScreen() {
                           setPicker({ date: d, slot });
                           setPickQuery("");
                         }}
-                        className="h-8 w-8"
                       >
                         <Plus size={16} />
                       </IconButton>
@@ -174,7 +173,7 @@ function PlanScreen() {
                             setMoveDate(m.date);
                             setMoveSlot(m.slot);
                           }}
-                          className="flex min-h-10 items-center gap-1.5 rounded-lg bg-surface px-2 py-1 text-left text-[13px] leading-tight shadow-card"
+                          className="flex min-h-11 items-center gap-1.5 rounded-lg border border-line bg-surface px-2 py-1 text-left text-[13px] leading-tight transition-colors duration-150 ease-out active:bg-surface-2"
                         >
                           <span className="min-w-0 flex-1">{r?.name ?? "Rețetă ștearsă"}</span>
                           <span className="shrink-0 text-[11px] text-ink-2 tabular">{m.servings} p.</span>

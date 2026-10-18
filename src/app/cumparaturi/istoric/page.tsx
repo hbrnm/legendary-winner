@@ -85,7 +85,7 @@ function HistoryScreen() {
                   <button type="button" onClick={() => setOpenId(t.tx.id)} className="block w-full text-left">
                     <Card className="flex items-center gap-3 p-4 hover:bg-surface-2">
                       <div className="min-w-0 flex-1">
-                        <p className="truncate font-medium">{t.listName}</p>
+                        <p className="line-clamp-2 font-medium leading-snug">{t.listName}</p>
                         <p className="text-sm text-ink-2">
                           {formatLongDate(localDateOf(t.tx.completed_at ?? t.tx.started_at))} · {t.items.length} produse
                           {t.places.length > 0 && ` · ${t.places.join(", ")}`}

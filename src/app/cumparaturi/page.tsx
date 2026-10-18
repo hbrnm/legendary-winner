@@ -124,7 +124,7 @@ function ListsScreen() {
               {archived.map(({ list, totals }) => (
                 <li key={list.id} className="flex items-center gap-2 px-4 py-2">
                   <Link href={`/cumparaturi/lista/?id=${list.id}`} className="min-w-0 flex-1 py-1">
-                    <span className="block truncate text-[15px]">{list.name}</span>
+                    <span className="line-clamp-2 text-[15px] leading-snug">{list.name}</span>
                     <span className="text-xs text-ink-2 tabular">{formatRon(totals.spent)} cheltuit</span>
                   </Link>
                   <Button variant="secondary" size="sm" onClick={() => run((ctx) => restoreList(ctx, list.id), "Lista e din nou activă.")}>
@@ -157,7 +157,7 @@ function ListsScreen() {
           <LabeledInput label="Numele listei" value={name} onChange={(e) => setName(e.target.value)} maxLength={80} placeholder="ex. Cumpărături săptămânale" autoFocus />
           <div className="flex flex-wrap gap-2">
             {SUGGESTED_NAMES.map((s) => (
-              <button key={s} type="button" onClick={() => setName(s)} className="h-9 rounded-full border border-line px-3 text-sm text-ink-2 hover:text-ink">
+              <button key={s} type="button" onClick={() => setName(s)} className="h-11 rounded-full border border-line px-3 text-sm text-ink-2 transition-colors duration-150 ease-out hover:text-ink active:bg-surface-2">
                 {s}
               </button>
             ))}

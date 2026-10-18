@@ -139,7 +139,7 @@ export function HomeScreen() {
             </p>
             {data.next ? (
               <>
-                <p className="mt-1 truncate text-lg font-semibold">{data.next.list.name}</p>
+                <p className="mt-1 line-clamp-2 text-lg font-semibold leading-snug">{data.next.list.name}</p>
                 <p className="text-sm text-ink-2 tabular">
                   {count(data.next.totals.item_count - data.next.totals.checked_count, "produs", "produse")} de luat
                   {data.next.totals.remaining_estimate > 0 && ` · ~${formatRon(data.next.totals.remaining_estimate)}`}
@@ -167,7 +167,7 @@ export function HomeScreen() {
                 {recipe && <RecipeImage recipe={recipe} size="sm" avatar />}
                 <span className="min-w-0 flex-1">
                   <span className="block text-xs text-ink-2">{SLOT_LABELS[meal.slot]}</span>
-                  <span className="block truncate font-medium">{recipe?.name ?? "Rețetă ștearsă"}</span>
+                  <span className="line-clamp-2 font-medium leading-snug">{recipe?.name ?? "Rețetă ștearsă"}</span>
                 </span>
                 <span className="text-xs text-ink-2">{meal.servings} porții</span>
               </Link>
@@ -203,7 +203,7 @@ export function HomeScreen() {
                 <Link href={`/retete/reteta/?id=${recipe.id}`} className="flex items-center gap-3 rounded-2xl border border-line bg-surface p-3 hover:bg-surface-2 sm:flex-col sm:items-start">
                   <RecipeImage recipe={recipe} size="sm" avatar />
                   <span className="min-w-0 flex-1">
-                    <span className="block truncate font-medium">{recipe.name}</span>
+                    <span className="line-clamp-2 font-medium leading-snug">{recipe.name}</span>
                     <span className="text-xs text-ink-2">{why}</span>
                   </span>
                 </Link>
@@ -220,7 +220,7 @@ export function HomeScreen() {
             {data.recent.map((t) => (
               <Link key={t.id} href="/cumparaturi/istoric/" className="flex items-center gap-3 px-4 py-3 hover:bg-surface-2">
                 <span className="min-w-0 flex-1">
-                  <span className="block truncate text-[15px]">{t.name}</span>
+                  <span className="line-clamp-2 text-[15px] leading-snug">{t.name}</span>
                   <span className="text-xs text-ink-2">
                     {capitalizeFirst(formatLongDate(t.date))} · {count(t.count, "produs", "produse")}
                   </span>

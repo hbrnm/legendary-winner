@@ -24,6 +24,18 @@ async function offscreen(page: Page) {
   });
 }
 
+/** Butoanele vizibile mai joase de 44 px (zona minimă de atins pe telefon). */
+async function short(page: Page) {
+  return page.locator("main button, header button").evaluateAll((els) =>
+    els
+      .filter((el) => {
+        const r = el.getBoundingClientRect();
+        return r.width > 0 && r.height > 0 && r.height < 44;
+      })
+      .map((el) => `„${(el.getAttribute("aria-label") ?? el.textContent ?? "").trim().slice(0, 30)}” ${Math.round(el.getBoundingClientRect().height)} px`),
+  );
+}
+
 /** Butoanele al căror text e tăiat. */
 async function clipped(page: Page, selector: string) {
   return page.locator(selector).evaluateAll((els) => els.filter((el) => el.scrollWidth > el.clientWidth + 1).map((el) => el.textContent));
@@ -66,6 +78,7 @@ for (const scheme of ["light", "dark"] as const) {
       await expect(page.locator("main")).toBeVisible();
       await expect(page.getByRole("status").filter({ hasText: "Se încarcă" })).toHaveCount(0);
       expect(await offscreen(page), path).toEqual([]);
+      expect(await short(page), path).toEqual([]);
       await info.attach(`${scheme}${path.replace(/\//g, "-")}.png`, { body: await page.screenshot({ fullPage: true }), contentType: "image/png" });
     }
 
