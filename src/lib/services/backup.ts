@@ -108,6 +108,7 @@ async function moveToHousehold(ctx: AppCtx, t: TableName, r: Row, ids: Map<strin
   else if (t === "shopping_transactions" && s("list_id")) id = await stableId("tura", s("list_id")!, String(row.list_cycle));
   else if (t === "shopping_transaction_items" && s("list_item_id")) id = await stableId("tura-produs", s("transaction_id")!, s("list_item_id")!);
   else if (t === "product_prices" && s("transaction_item_id")) id = await stableId("pret", s("transaction_item_id")!);
+  else if (t === "receipt_aliases" && s("receipt_text")) id = await stableId("bon-alias", ctx.householdId, s("retailer_id") ?? "", s("receipt_text")!);
   else id = await stableId("import", ctx.householdId, r.id);
   ids.set(r.id, id);
   return { ...row, id };

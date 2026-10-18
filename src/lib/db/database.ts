@@ -13,6 +13,7 @@ import type {
   ProductPrice,
   ProductRetailerMapping,
   ProductVariant,
+  ReceiptAlias,
   Recipe,
   RecipeIngredient,
   RecipePhoto,
@@ -45,6 +46,7 @@ export interface SyncedTables {
   shopping_transactions: ShoppingTransaction;
   shopping_transaction_items: ShoppingTransactionItem;
   product_prices: ProductPrice;
+  receipt_aliases: ReceiptAlias;
   favorite_recipes: FavoriteRecipe;
   meal_plan_items: MealPlanItem;
   pantry_items: PantryItem;
@@ -76,6 +78,7 @@ export const SYNCED_TABLES: TableName[] = [
   "shopping_transactions",
   "shopping_transaction_items",
   "product_prices",
+  "receipt_aliases",
   "favorite_recipes",
   "meal_plan_items",
   "pantry_items",
@@ -121,7 +124,7 @@ export interface SyncError {
  * Tabele adăugate după prima publicare: pot lipsi pe server până se aplică
  * migrația lor pe producție. Tragerea le sare atunci, fără eroare.
  */
-export const OPTIONAL_TABLES = new Set<TableName>(["recipe_photos", "product_variants"]);
+export const OPTIONAL_TABLES = new Set<TableName>(["recipe_photos", "product_variants", "receipt_aliases"]);
 
 /**
  * Fișierul unei fotografii a gospodăriei, ținut local până ajunge în
@@ -192,6 +195,7 @@ export class CamaraDB extends Dexie {
   shopping_transactions!: Table<ShoppingTransaction, string>;
   shopping_transaction_items!: Table<ShoppingTransactionItem, string>;
   product_prices!: Table<ProductPrice, string>;
+  receipt_aliases!: Table<ReceiptAlias, string>;
   favorite_recipes!: Table<FavoriteRecipe, string>;
   meal_plan_items!: Table<MealPlanItem, string>;
   pantry_items!: Table<PantryItem, string>;
@@ -239,6 +243,10 @@ export class CamaraDB extends Dexie {
     // Variantele comerciale (.tasks/007, etapa 3).
     this.version(3).stores({
       product_variants: "&id, household_id, product_id",
+    });
+    // Potrivirile învățate de pe bonuri (.tasks/005, etapa 3).
+    this.version(4).stores({
+      receipt_aliases: "&id, household_id",
     });
   }
 

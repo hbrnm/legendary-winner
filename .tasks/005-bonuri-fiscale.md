@@ -1,6 +1,6 @@
 # 005 — Prețuri din bonurile fiscale (OCR pe telefon)
 
-**Stare:** în lucru: etapa 1 făcută (18 oct. 2026, 3 bonuri); decizia proprietarului: continuăm, cu încadrare și verificare. Etapa 2 gata (18 oct. 2026); urmează etapa 3.
+**Stare:** în lucru: etapa 1 făcută (18 oct. 2026, 3 bonuri); decizia proprietarului: continuăm, cu încadrare și verificare. Etapele 2–3 gata în repo (18 oct. 2026); migrația etapei 3 așteaptă acordul proprietarului; urmează etapa 4.
 **Ramura:** câte una pe etapă, `claude/bonuri-<etapa>`, fiecare cu PR-ul ei din `main`.
 
 ## Scop
@@ -28,7 +28,7 @@ Deciziile proprietarului (12 oct. 2026, chestionar):
 |---|---|---|---|
 | 1 | **Probă de calitate:** OCR pe 8–10 bonuri reale ale proprietarului (Lidl, Kaufland, Mega Image, Profi, Penny, piață, dacă există). Măsurăm câte linii (denumire + sumă) ies corect, pe telefon, și cât durează. Fără cod în `main`; raport în acest fișier. Dacă ies sub ~70% linii corecte, proprietarul decide din nou (chestionar). | gata (3 bonuri; raportul mai jos) | |
 | 2 | **Citirea textului** (`src/lib/domain/receipt.ts`, logică pură): text OCR → magazin propus, data, linii {denumire, cantitate, preț unitar, total}, totalul bonului și verificarea sumei. Teste pe textele anonimizate de la etapa 1. | gata | (vezi PR) |
-| 3 | **Potrivirea care învață:** migrația `receipt_aliases` (gospodărie, magazin, text normalizat → produs), RLS pe `household_id`, sincronizare, backup; propunerea potrivirii (întâi învățat, apoi căutarea din catalog). `npm run test:db`. | de făcut | |
+| 3 | **Potrivirea care învață:** migrația `receipt_aliases` (gospodărie, magazin, text normalizat → produs), RLS pe `household_id`, sincronizare, backup; propunerea potrivirii (întâi învățat, apoi căutarea din catalog). `npm run test:db`. | gata în repo; migrația pe producție: de aprobat | (vezi PR) |
 | 4 | **Ecranele:** „Adaugă bon” (fotografie/galerie, progres), „Verifică bonul” (fiecare linie: produs propus, sumă, „nu e produs”; magazin, dată, listă) și aplicarea: bifare + `actual_price` + linii noi pe lista aleasă, sau cumpărătură fără listă (`shopping_transactions` cu `list_id` null), prețuri `platit`. Textele noi: un singur chestionar. E2E cu text OCR simulat. | de făcut | |
 | 5 | **Offline și performanță:** fișierele OCR servite din `out/`, cache la prima folosire; telefon fără internet după prima folosire; test pe Android și iPhone reale. | de făcut | |
 | 6 | **Producția:** migrația cu acordul proprietarului, apoi integrarea; verificarea pe telefon. | de făcut | |
@@ -60,6 +60,12 @@ Deciziile proprietarului (12 oct. 2026, chestionar):
 - **Teste:** `receipt.test.ts` (13). `npm test`: 511.
 - `verificare`: nimic blocant; reparate toate cele 5 observații (sigur fără confirmare, „Total” în nume, corecția din total marcată sigur, data, bucăți fracționare), plus numărul comenzii și ora scoase din fixture-uri.
 
+### Etapa 3: potrivirea care învață (18 oct. 2026)
+- **Migrația** `20261018000002_receipt_aliases.sql`: `receipt_aliases` (gospodărie, magazin sau null, textul liniei normalizat, produs), un singur produs pe gospodărie + magazin + text, RLS `is_member`, fără `DELETE`, în Realtime; `check_household_refs` pe produs și magazin. Pe server ajunge doar textul liniei confirmate, normalizat; fotografia și textul brut al bonului nu. `supabase/tests/receipt-aliases.test.ts` (4); `npm run test:db`: 59.
+- **Local:** Dexie versiunea 4; tabelul în `SYNCED_TABLES` și `OPTIONAL_TABLES` (până la migrație, tragerea îl sare); copia de siguranță îl ia, cu id determinist și în altă gospodărie.
+- **Potrivirea** (`src/lib/domain/receipt-match.ts`, `src/lib/services/receipts.ts`): `receiptKey` (fără diacritice, majuscule, semne); `proposeMatch`: întâi ce a învățat gospodăria (același magazin, apoi oricare), apoi căutarea în catalog, încercând și fără câte un cuvânt (abrevieri și resturi OCR: „KLC”, „410G”). `learnReceiptAlias`: id determinist, deci același text învățat pe două telefoane e un singur rând; o confirmare nouă schimbă produsul.
+- **Teste:** `receipts.test.ts` (4: catalog pe textele reale, învățat, refuzuri, copia de siguranță). `npm test`: 515; `npm run test:e2e:cloud`: 2.
+
 ## De ce are nevoie de la proprietar
 - **Pentru etapa 1:** 8–10 fotografii de bonuri reale, de la lanțuri diferite, puse într-un loc ales de el (nu în repo). Pot conține date personale (cardul de fidelitate, ultimele cifre ale cardului), care se șterg înainte de orice test comis.
 - **Pentru etapa 4:** aprobarea textelor noi.
@@ -69,4 +75,4 @@ Deciziile proprietarului (12 oct. 2026, chestionar):
 Pe un telefon real: fotografiez un bon de la Lidl cu 10 produse, confirm liniile în sub 2 minute, iar „Compară magazinele” arată Lidl cu prețurile de pe bon. Al doilea bon de la același magazin propune singur potrivirile învățate. Bugetul crește o singură dată.
 
 ## Următorul pas
-Etapa 3: migrația `receipt_aliases` și potrivirea care învață.
+Acordul pentru migrația `receipt_aliases` pe producție; apoi etapa 4 (ecranele, cu chestionarul textelor).

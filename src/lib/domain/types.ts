@@ -212,6 +212,15 @@ export interface ShoppingTransactionItem extends SyncedRow {
   variant_id?: string | null;
 }
 
+/** Ce a învățat gospodăria de pe bonuri: textul unei linii, la un magazin, înseamnă produsul (.tasks/005). */
+export interface ReceiptAlias extends SyncedRow {
+  /** null = bon de la un magazin necunoscut. */
+  retailer_id: string | null;
+  /** Textul de pe bon, normalizat cu `receiptKey`. */
+  receipt_text: string;
+  product_id: string;
+}
+
 export type Difficulty = "usor" | "mediu" | "dificil";
 
 export type RecipeCategoryId =
