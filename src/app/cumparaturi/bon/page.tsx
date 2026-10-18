@@ -74,6 +74,7 @@ function CropBox({ url, aspect, crop, onChange }: { url: string; aspect: number;
       }}
       onPointerMove={move}
       onPointerUp={() => (drag.current = null)}
+      onPointerCancel={() => (drag.current = null)}
     >
       <span className="h-5 w-5 rounded-full border-2 border-brand-ink bg-brand shadow-card" />
     </button>
@@ -123,9 +124,17 @@ function ReceiptScreen() {
     };
   });
 
-  // Fotografia rămâne doar în memorie; URL-ul ei se eliberează la plecare.
+  // Fotografia rămâne doar în memorie și se eliberează când nu mai e nevoie de ea.
   const url = step.kind === "incadreaza" ? step.url : null;
   useEffect(() => () => void (url && URL.revokeObjectURL(url)), [url]);
+  const image = step.kind === "incadreaza" ? step.image : null;
+  const reading = useRef<ImageBitmap | null>(null);
+  useEffect(
+    () => () => {
+      if (image && image !== reading.current) image.close();
+    },
+    [image],
+  );
 
   if (!data) return <Spinner />;
 
@@ -141,21 +150,26 @@ function ReceiptScreen() {
   }
 
   async function read(image: ImageBitmap, crop: Crop) {
+    reading.current = image;
     setStep({ kind: "citeste", progress: null });
     let text: string;
     try {
       text = await readReceipt(image, crop, (progress) => setStep({ kind: "citeste", progress }));
     } catch {
+      image.close();
       setStep({ kind: "alege" });
       setError("Nu am putut citi bonul. Verifică internetul (prima dată se descarcă cititorul) și încearcă din nou.");
       return;
     }
+    image.close();
+    reading.current = null;
     const receipt = parseReceipt(text);
     const ok = await run(async (ctx) => {
       const retailer = receipt.chain && data!.retailers.some((r) => r.id === receipt.chain) ? receipt.chain : null;
       const proposals = await proposeReceiptMatches(ctx, receipt.lines.map((l) => l.name), retailer);
       setRetailerId(retailer ?? "");
-      if (receipt.date) setDate(receipt.date);
+      // O dată din viitor e citită greșit: rămâne ziua de azi, de corectat dacă e nevoie.
+      if (receipt.date && receipt.date <= toISODate(now())) setDate(receipt.date);
       setLines(
         receipt.lines.map((l, i) => {
           const p = proposals[i];

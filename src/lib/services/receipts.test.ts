@@ -4,7 +4,7 @@ import { setClock } from "@/lib/clock";
 import { seedCatalog } from "./bootstrap";
 import type { AppCtx } from "./context";
 import { applyReceipt, learnReceiptAlias, proposeReceiptMatches } from "./receipts";
-import { addItem, createList, finalizeShopping } from "./shopping";
+import { addItem, createList, finalizeShopping, setChecked } from "./shopping";
 import { listItems, spendRecords } from "./queries";
 import { createProduct, deleteProduct } from "./catalog";
 import { exportHouseholdData, importHouseholdData } from "./backup";
@@ -99,6 +99,19 @@ describe("aplicarea bonului", () => {
     expect(prices.map((p) => [p.product_id, p.amount, p.observed_on, p.retailer_id])).toEqual(
       expect.arrayContaining([["ceapa-galbena", 2.32, "2026-10-12", "kaufland"], ["lapte-integral", 5.29, "2026-10-12", "kaufland"]]),
     );
+  });
+
+  it("un produs bifat deja în magazin primește prețul de pe bon, fără rând nou", async () => {
+    const listId = await createList(ctx, { name: "Săptămâna" });
+    const ceapa = await addItem(ctx, listId, { product_id: "ceapa-galbena", quantity: 1, unit: "kg" });
+    await setChecked(ctx, ceapa, true);
+    const r = await applyReceipt(ctx, { retailer_id: "kaufland", date: "2026-10-12", list_id: listId, lines: [lines[0]] });
+    expect(r).toMatchObject({ checked: 1, added: 0 });
+    const items = await listItems(ctx.db, listId);
+    expect(items).toHaveLength(1);
+    expect(items[0]).toMatchObject({ checked: true, actual_price: 2.32 });
+    await finalizeShopping(ctx, listId, { addToPantry: false });
+    expect((await spendRecords(ctx.db, "h1")).map((s) => s.amount)).toEqual([2.32]);
   });
 
   it("fără listă: o cumpărătură în istoric, cu prețurile plătite la data bonului", async () => {

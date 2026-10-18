@@ -72,8 +72,8 @@ export interface ReceiptApplyResult {
 
 /**
  * Aplică bonul confirmat de om (.tasks/005, etapa 4). Cu o listă: produsele
- * nebifate de pe ea se bifează cu prețul de pe bon, iar celelalte se adaugă
- * bifate; apoi „Termină cumpărăturile” le înregistrează ca acum, deci nimic nu
+ * de pe ea (întâi cele nebifate, apoi cele bifate deja în magazin) primesc
+ * prețul de pe bon și se bifează, iar celelalte se adaugă bifate; apoi „Termină cumpărăturile” le înregistrează ca acum, deci nimic nu
  * se numără de două ori. Fără listă: o cumpărătură în istoric, cu prețurile
  * plătite. Potrivirile confirmate se țin minte pentru bonul următor.
  */
@@ -91,7 +91,9 @@ export async function applyReceipt(ctx: AppCtx, input: ReceiptApplyInput): Promi
   if (v.list_id) {
     const list = await ctx.db.shopping_lists.get(v.list_id);
     if (!list || list.deleted_at || list.household_id !== ctx.householdId || list.archived_at) throw new UserError("Lista aleasă nu mai există.");
-    const open = (await listItems(ctx.db, v.list_id)).filter((i) => !i.checked);
+    // Nebifatele întâi; un produs bifat deja în magazin primește doar prețul, nu un rând nou
+    // (altfel „Gata” l-ar număra de două ori).
+    const open = (await listItems(ctx.db, v.list_id)).sort((a, b) => Number(a.checked) - Number(b.checked));
     for (const l of v.lines) {
       const paid = { checked: true, checked_at: purchasedAt, checked_by: ctx.userId, actual_price: l.amount, retailer_id: v.retailer_id, source };
       const qty = l.quantity != null && l.unit ? { quantity: l.quantity, unit: l.unit as UnitCode } : {};

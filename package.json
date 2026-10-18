@@ -3,7 +3,7 @@
   "version": "0.1.1",
   "private": true,
   "scripts": {
-    "dev": "next dev",
+    "dev": "node scripts/copy-ocr.mjs && next dev",
     "build": "node scripts/copy-ocr.mjs && next build && node scripts/build-sw.mjs",
     "start": "node scripts/serve-static.mjs",
     "lint": "eslint",
