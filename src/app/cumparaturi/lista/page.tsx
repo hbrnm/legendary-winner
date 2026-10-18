@@ -137,7 +137,7 @@ function ListScreen() {
   return (
     <>
       <div className="mb-3 flex items-center gap-1">
-        <Link href="/cumparaturi/" aria-label="Înapoi la liste" className="-ml-2 inline-flex h-11 w-11 items-center justify-center rounded-xl text-ink-2 hover:bg-surface-2">
+        <Link href="/cumparaturi/" aria-label="Înapoi la liste" className="-ml-2 inline-flex h-11 w-11 items-center justify-center rounded-lg text-ink-2 hover:bg-surface-2">
           <ArrowLeft size={20} />
         </Link>
         <div className="min-w-0 flex-1">
@@ -190,8 +190,8 @@ function ListScreen() {
         <div className="flex flex-col gap-5">
           {groups.map((g) => (
             <section key={g.key} aria-label={g.title}>
-              <h2 className="mb-1.5 px-1 text-[13px] font-semibold uppercase tracking-wide text-ink-2">{g.title}</h2>
-              <ul className="overflow-hidden rounded-2xl border border-line bg-surface">
+              <h2 className="mb-1.5 px-1 text-xs font-semibold uppercase tracking-wider text-ink-2">{g.title}</h2>
+              <ul className="overflow-hidden rounded-lg border border-line bg-surface">
                 {g.items.map((item) => {
                   const est = lineEstimate(item, data.prices, today);
                   const flag = estimateFlag(est);
@@ -226,17 +226,17 @@ function ListScreen() {
                         type="button"
                         onClick={() => setEditing({ id: item.id, focusPrice: true })}
                         aria-label={`Prețul pentru ${item.name}`}
-                        className="flex w-24 shrink-0 flex-col items-end justify-center pr-4 text-right tabular"
+                        className="flex w-24 shrink-0 flex-col items-end justify-center pr-4 text-right font-mono"
                       >
                         {item.actual_price != null ? (
-                          <span className="text-[15px] font-medium text-ink">{formatRon(item.actual_price)}</span>
+                          <span className="text-sm font-medium text-ink">{formatRon(item.actual_price)}</span>
                         ) : est.amount != null ? (
                           <>
-                            <span className="text-sm text-ink-2">~{formatRon(est.amount)}</span>
-                            {flag && <span className="text-[11px] leading-tight text-ink-3">{flag}</span>}
+                            <span className="text-[13px] text-ink-2">~{formatRon(est.amount)}</span>
+                            {flag && <span className="font-sans text-[11px] leading-tight text-ink-3">{flag}</span>}
                           </>
                         ) : (
-                          <span className="text-xs text-ink-3">{item.checked ? "+ preț" : "fără preț"}</span>
+                          <span className="font-sans text-xs text-ink-3">{item.checked ? "+ preț" : "fără preț"}</span>
                         )}
                       </button>
                     </li>
@@ -250,24 +250,32 @@ function ListScreen() {
 
       {!list.archived_at && data.suggestions.length > 0 && (
         <section aria-label="Adăugare rapidă" className="mt-6">
-          <h2 className="mb-1 px-1 text-[13px] font-semibold uppercase tracking-wide text-ink-2">Adăugare rapidă</h2>
-          <p className="mb-2 px-1 text-xs text-ink-2">Din cămară și din ce cumperi des</p>
-          <ul className="flex flex-wrap gap-2">
-            {data.suggestions.map((s) => (
-              <li key={s.product_id}>
-                <button
-                  type="button"
-                  onClick={() => run((ctx) => shop.addItem(ctx, id, { product_id: s.product_id }))}
-                  aria-label={`Adaugă ${s.name}`}
-                  className="inline-flex min-h-11 items-center gap-1.5 rounded-full border border-line bg-surface px-3.5 text-left text-sm text-ink hover:bg-surface-2"
-                >
-                  <Plus size={16} className="shrink-0 text-brand" />
-                  <span>{s.name}</span>
-                  <span className={`text-xs ${s.reason === "terminat" ? "text-warn" : "text-ink-3"}`}>{s.reason === "terminat" ? "s-a terminat" : "des"}</span>
-                </button>
-              </li>
-            ))}
-          </ul>
+          <h2 className="px-1 text-xs font-semibold uppercase tracking-wider text-ink-2">Adăugare rapidă</h2>
+          {/* Două grupuri cu titlu, în locul sufixului de pe fiecare buton (decizia proprietarului, 18 oct. 2026). */}
+          {QUICK_GROUPS.map(([reason, title]) => {
+            const items = data.suggestions.filter((s) => s.reason === reason);
+            if (items.length === 0) return null;
+            return (
+              <div key={reason} className="mt-3">
+                <h3 className={`mb-1.5 px-1 text-xs ${reason === "terminat" ? "text-warn" : "text-ink-2"}`}>{title}</h3>
+                <ul className="flex flex-wrap gap-2">
+                  {items.map((s) => (
+                    <li key={s.product_id}>
+                      <button
+                        type="button"
+                        onClick={() => run((ctx) => shop.addItem(ctx, id, { product_id: s.product_id }))}
+                        aria-label={`Adaugă ${s.name}`}
+                        className="inline-flex min-h-11 items-center gap-1.5 rounded-full border border-line bg-surface px-3.5 text-left text-sm text-ink transition duration-150 ease-out hover:bg-surface-2 active:scale-[0.98]"
+                      >
+                        <Plus size={16} className="shrink-0 text-brand" />
+                        <span>{s.name}</span>
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            );
+          })}
         </section>
       )}
 
@@ -279,7 +287,7 @@ function ListScreen() {
           <div className="mx-auto flex max-w-3xl items-center gap-3">
             <div className="min-w-0 flex-1 tabular">
               <div className="flex flex-wrap items-baseline gap-x-3">
-                <span className="text-lg font-semibold">{formatRon(totals.spent)}</span>
+                <span className="font-mono text-lg font-medium">{formatRon(totals.spent)}</span>
                 <span className="text-xs text-ink-2">cheltuit{totals.projected_total > totals.spent ? ` · estimat total ${formatRon(totals.projected_total)}` : ""}</span>
               </div>
               <div className="text-xs text-ink-2">
@@ -386,7 +394,7 @@ function ListScreen() {
                 setMenu(false);
                 void o.run();
               }}
-              className={`flex min-h-12 items-center gap-3 rounded-xl px-2 text-left text-[15px] hover:bg-surface-2 ${"danger" in o && o.danger ? "text-accent" : "text-ink"}`}
+              className={`flex min-h-12 items-center gap-3 rounded-lg px-2 text-left text-[15px] hover:bg-surface-2 ${"danger" in o && o.danger ? "text-accent" : "text-ink"}`}
             >
               <o.icon size={20} />
               {o.label}
@@ -463,7 +471,7 @@ function ListScreen() {
               Ai luat <strong>{totals.checked_count}</strong> {totals.checked_count === 1 ? "produs" : "produse"} și ai plătit <strong className="tabular">{formatRon(totals.spent)}</strong>.
             </p>
             {totals.checked_without_price_count > 0 && (
-              <p className="rounded-xl bg-warn-soft px-3 py-2 text-sm text-warn">
+              <p className="rounded-lg bg-warn-soft px-3 py-2 text-sm text-warn">
                 {totals.checked_without_price_count} {totals.checked_without_price_count === 1 ? "produs bifat nu are" : "produse bifate nu au"} preț. Le poți completa acum, ca bugetul să fie exact, sau mai târziu din istoric.
               </p>
             )}
@@ -486,6 +494,12 @@ function ListScreen() {
   );
 }
 
+/** Grupurile din „Adăugare rapidă”, în ordinea în care apar. */
+const QUICK_GROUPS = [
+  ["terminat", "S-a terminat în cămară"],
+  ["des", "Cumperi des"],
+] as const;
+
 export default function Page() {
   return (
     <AppShell>
@@ -505,7 +519,7 @@ function CompareStores({ items, prices, retailers, today }: { items: ShoppingLis
   return (
     <div className="flex flex-col gap-3">
       <p className="text-sm text-ink-2">Doar prețurile văzute sau plătite la fiecare magazin. Produsele fără preț acolo nu intră în total.</p>
-      <ul className="overflow-hidden rounded-2xl border border-line bg-surface">
+      <ul className="overflow-hidden rounded-lg border border-line bg-surface">
         {rows.map((r) => (
           <li key={r.retailer_id} className="flex min-h-14 flex-col justify-center border-b border-line px-4 py-2 last:border-b-0">
             <div className="flex items-baseline justify-between gap-3">

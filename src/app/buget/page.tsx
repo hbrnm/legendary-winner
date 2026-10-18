@@ -184,7 +184,7 @@ function BudgetScreen() {
             <Card key={s.budget.id} className="p-4">
               <div className="flex items-start justify-between gap-2">
                 <div className="min-w-0">
-                  <p className="font-medium">{s.budget.name}</p>
+                  <p className="font-serif text-lg font-semibold leading-snug">{s.budget.name}</p>
                   <p className="text-xs text-ink-2">
                     {scopeLabel(s.budget.scope, names)} · {s.budget.period === "lunar" ? formatMonth(s.period.from) : `${formatShortDate(s.period.from)} – ${formatShortDate(s.period.to)}`}
                   </p>
@@ -193,9 +193,9 @@ function BudgetScreen() {
                   <Pencil size={18} />
                 </IconButton>
               </div>
-              <div className="mt-3 flex items-baseline justify-between tabular">
-                <span className="text-2xl font-semibold">{formatRon(s.spent)}</span>
-                <span className="text-sm text-ink-2">din {formatRon(s.budget.amount)}</span>
+              <div className="mt-3 flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
+                <span className={`font-mono text-[26px] font-medium leading-none tracking-tight ${s.over ? "text-accent" : "text-ink"}`}>{formatRon(s.spent)}</span>
+                <span className="whitespace-nowrap font-mono text-sm text-ink-2">din {formatRon(s.budget.amount)}</span>
               </div>
               <div className="mt-2">
                 {s === mainStatus && data.openEstimate > 0 ? (
@@ -225,51 +225,55 @@ function BudgetScreen() {
       )}
 
       {data.openEstimate > 0 || data.openUnknown > 0 ? (
-        <Card className="mt-3 p-4">
-          <p className="text-sm text-ink-2">Înainte de cumpărături</p>
-          <p className="mt-1 text-[15px]">
-            {data.openEstimate > 0 ? (
-              <>
-                Listele deschise mai au de cumpărat produse de aproximativ <strong className="tabular">{formatRon(data.openEstimate)}</strong>
-                {data.openUnknown > 0 && <> și {count(data.openUnknown, "produs", "produse")} cu preț necunoscut</>}.
-              </>
-            ) : (
-              <>Listele deschise au {count(data.openUnknown, "produs", "produse")} fără preț cunoscut, deci nu pot estima cât vor costa. Prețurile apar după primele cumpărături.</>
-            )}
-            {mainStatus && data.openEstimate > 0 && (
-              <>
-                {" "}
-                {mainStatus.remaining - data.openEstimate >= 0 ? (
-                  <span className="text-brand">După ele, rămân {formatRon(mainStatus.remaining - data.openEstimate)} din buget.</span>
-                ) : (
-                  <span className="font-medium text-accent">Depășesc bugetul cu {formatRon(data.openEstimate - mainStatus.remaining)}.</span>
-                )}
-              </>
-            )}
-          </p>
-        </Card>
+        // Toată caseta duce la liste (decizia proprietarului, 18 oct. 2026).
+        <Link href="/cumparaturi/" className="mt-3 flex items-center gap-3 rounded-lg border border-line bg-surface p-4 transition-colors duration-150 ease-out hover:bg-surface-2 active:bg-surface-2">
+          <span className="min-w-0 flex-1">
+            <span className="block text-xs font-semibold uppercase tracking-wider text-ink-2">Înainte de cumpărături</span>
+            <span className="mt-1 block text-[15px]">
+              {data.openEstimate > 0 ? (
+                <>
+                  Listele deschise mai au de cumpărat produse de aproximativ <strong className="font-mono font-medium">{formatRon(data.openEstimate)}</strong>
+                  {data.openUnknown > 0 && <> și {count(data.openUnknown, "produs", "produse")} cu preț necunoscut</>}.
+                </>
+              ) : (
+                <>Listele deschise au {count(data.openUnknown, "produs", "produse")} fără preț cunoscut, deci nu pot estima cât vor costa. Prețurile apar după primele cumpărături.</>
+              )}
+              {mainStatus && data.openEstimate > 0 && (
+                <>
+                  {" "}
+                  {mainStatus.remaining - data.openEstimate >= 0 ? (
+                    <span className="text-brand">După ele, rămân {formatRon(mainStatus.remaining - data.openEstimate)} din buget.</span>
+                  ) : (
+                    <span className="font-medium text-accent">Depășesc bugetul cu {formatRon(data.openEstimate - mainStatus.remaining)}.</span>
+                  )}
+                </>
+              )}
+            </span>
+          </span>
+          <ChevronRight size={18} strokeWidth={1.75} className="shrink-0 text-ink-3" />
+        </Link>
       ) : null}
 
       <div className="mb-2 mt-8 flex items-center justify-between">
-        <IconButton label="Luna anterioară" onClick={() => setMonth(startOfMonth(addDays(month, -1)))} className="border border-line bg-surface">
+        <IconButton label="Luna anterioară" onClick={() => setMonth(startOfMonth(addDays(month, -1)))} className="border border-line bg-surface-2">
           <ChevronLeft size={20} />
         </IconButton>
-        <h2 className="text-lg font-semibold">{capitalizeFirst(formatMonth(month))}</h2>
-        <IconButton label="Luna următoare" disabled={isCurrentMonth} onClick={() => setMonth(startOfMonth(addDays(month, 32)))} className="border border-line bg-surface">
+        <h2 className="font-serif text-xl font-semibold">{capitalizeFirst(formatMonth(month))}</h2>
+        <IconButton label="Luna următoare" disabled={isCurrentMonth} onClick={() => setMonth(startOfMonth(addDays(month, 32)))} className="border border-line bg-surface-2">
           <ChevronRight size={20} />
         </IconButton>
       </div>
 
-      <div className="grid grid-cols-2 gap-2">
-        <Card className="p-3">
+      <Card className="grid grid-cols-2 divide-x divide-line">
+        <div className="p-3">
           <p className="text-xs text-ink-2">Cheltuit în lună</p>
-          <p className="text-xl font-semibold tabular">{formatRon(view.total)}</p>
-        </Card>
-        <Card className="p-3">
+          <p className="mt-0.5 font-mono text-xl font-medium">{formatRon(view.total)}</p>
+        </div>
+        <div className="p-3">
           <p className="text-xs text-ink-2">Media unei ieșiri la cumpărături</p>
-          <p className="text-xl font-semibold tabular">{view.avgTrip == null ? "—" : formatRon(view.avgTrip)}</p>
-        </Card>
-      </div>
+          <p className="mt-0.5 font-mono text-xl font-medium">{view.avgTrip == null ? "—" : formatRon(view.avgTrip)}</p>
+        </div>
+      </Card>
       {view.sources.length > 0 && (
         <p className="mt-2 text-sm text-ink-2 tabular">
           {view.sources.map((s) => `${s.source === "producator" ? "Producători" : SOURCE_LABELS[s.source]}: ${formatRon(s.amount)}`).join(" · ")}
@@ -310,7 +314,7 @@ function BudgetScreen() {
 
       {/* Fără flex-1 în coloană: butoanele își păstrează înălțimea de 44 px. */}
       <div className="mt-6 grid grid-cols-2 gap-2">
-        <Link href="/buget/preturi/" className="col-span-2 inline-flex h-11 w-full items-center justify-center gap-2 rounded-xl border border-line bg-surface font-medium hover:bg-surface-2">
+        <Link href="/buget/preturi/" className="col-span-2 inline-flex h-11 w-full items-center justify-center gap-2 rounded-lg border border-line bg-surface-2 font-medium transition duration-150 ease-out hover:border-ink-3 active:scale-[0.99]">
           <Tags size={18} /> Prețuri și comparații
         </Link>
         <Button variant="secondary" block className="px-2" icon={<Download size={18} />} onClick={() => exportCsv(false)} disabled={view.monthSpend.length === 0}>

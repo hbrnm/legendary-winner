@@ -1,6 +1,6 @@
 # 014 — Redesign editorial (hârtie, verde de pădure, terracotta, serif)
 
-**Stare:** în lucru (18 oct. 2026). Etapele 1–3 gata (vezi PR-urile).
+**Stare:** în lucru (18 oct. 2026). Etapele 1–4 gata (vezi PR-urile).
 **Ramuri:** câte una pe etapă, din `main` (`claude/014-...`).
 
 ## Scop
@@ -11,6 +11,7 @@ Cererea proprietarului din 18 oct. 2026 („Cămară — Editorial redesign”):
 - Terracotta: `#A8553C` pentru text (contrast ≥ 4,5 pe hârtie și pe foi); `#C86D51` doar pentru bare, fundaluri și text mare, când ajungem la ele.
 - „(parțial)”: costul pe porție doar peste 80% acoperire; altfel „preț pentru X din Y ingrediente” (textul exact se aprobă în etapa 5).
 - Etapa 3 (chestionar, 18 oct. 2026): la Cheltuieli recente, magazinul pe rândul principal (mai multe: „Kaufland, Lidl”; fără magazin, sursa; altfel numele listei); rețetele fără poză au inițiala în serif pe kraft (inversează pictograma categoriei din 16 oct.); bugetul și următoarea listă într-un singur bloc-registru; „Expiră curând” ca etichete de borcan.
+- Etapa 4 (chestionar, 18 oct. 2026): la Adăugare rapidă, două grupuri cu titlu („S-a terminat în cămară”, „Cumperi des”), fără sufix pe butoane (subtitlul „Din cămară și din ce cumperi des” dispare); barele peste buget rămân pe tokenul `accent` (#A8553C), fără token nou pentru #C86D51; caseta „Înainte de cumpărături” de pe Buget duce la Cumpărături.
 - Tokenii își păstrează numele (`bg-bg`, `text-ink`, `bg-brand`...); se schimbă doar valorile.
 
 ## În afara scopului
@@ -23,7 +24,7 @@ Cererea proprietarului din 18 oct. 2026 („Cămară — Editorial redesign”):
 | 1 | Tokeni și tipografie | gata | `globals.css`, `layout.tsx`, `manifest.ts`, `fonts.ts`, `fonts/`, `contrast.test.ts`, `e2e/fonts.spec.ts` |
 | 2 | Antet, bara de jos, primitive (fără blur, filete, colțuri mici, banda demonstrativă discretă) | gata | `shell.tsx`, `ui/misc.tsx`, `ui/button.tsx`, `ui/fields.tsx`, `ui/sheet.tsx`, `ui/toast.tsx`, `tokens.test.ts` |
 | 3 | Acasă (registru, rețete în serif, expiră curând, cheltuieli recente cu magazinul) | gata | `home-screen.tsx`, `recipe-visual.tsx`, `recipe-photo.tsx`, `product-search.tsx` |
-| 4 | Buget și liste (sume în mono, „des” grupat) | de făcut | `buget/page.tsx`, `charts.tsx`, `cumparaturi/page.tsx`, `cumparaturi/lista/page.tsx` |
+| 4 | Buget și liste (sume în mono, „des” grupat) | gata | `buget/page.tsx`, `charts.tsx`, `cumparaturi/page.tsx`, `cumparaturi/lista/page.tsx` |
 | 5 | Rețete, plan, cămară („(parțial)”) | de făcut | `retete/page.tsx`, `retete/reteta/page.tsx`, `plan/page.tsx`, `camara/page.tsx` |
 | 6 | Istoric și prețuri în stil registru | de făcut | `cumparaturi/istoric/page.tsx`, `buget/preturi/page.tsx` |
 | 7 | Verificare finală (capturi 360 px și desktop, ambele moduri) | de făcut | `e2e/` |
@@ -46,8 +47,14 @@ Cererea proprietarului din 18 oct. 2026 („Cămară — Editorial redesign”):
 - `RecipeAvatar`: inițiala în serif (ș → Ș) în locul pictogramei categoriei (se aplică și în plan și în lista de rețete); pictogramele categoriilor au fost scoase.
 - Teste: `recipe-visual.test.tsx` (inițiala), `e2e/demo-model.spec.ts` (magazinele la cheltuieli, eticheta de expirare, inițiala; pică pe codul vechi cu „Cumpărături” în loc de „Kaufland”).
 
+### Etapa 4 (18 oct. 2026)
+- Buget: numele bugetului în serif, cheltuitul și „din …” în mono (cheltuitul terracotta peste buget); „Înainte de cumpărături” e o legăre spre liste; luna în serif; „Cheltuit în lună” și „Media unei ieșiri” pe aceeași foaie, separate de filet, sumele în mono; în „Unde s-au dus banii”, sumele în mono; tooltip-ul graficului în mono.
+- Cumpărături: numele listelor în serif; „Adaugă un bon fiscal” și „Istoricul cumpărăturilor” pe aceeași foaie.
+- Lista: prețurile în mono, totalul de jos în mono, colțuri mici; Adăugare rapidă pe grupuri.
+- e2e: grupurile de la adăugarea rapidă (inclusiv „S-a terminat în cămară”, după ce untul ajunge la zero în cămară) și legătura spre liste de pe Buget; ambele pică pe codul vechi.
+
 ## Cum verific la final
 `npm test`, `npm run build`, `npm run test:e2e`; capturile la 360 px din `e2e/demo-model.spec.ts`.
 
 ## Următorul pas
-Etapa 4: buget și liste (inclusiv „des”).
+Etapa 5: rețete, plan, cămară (inclusiv „(parțial)”).
