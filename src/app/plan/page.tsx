@@ -13,13 +13,14 @@ import { LabeledInput, LabeledSelect, Toggle } from "@/components/ui/fields";
 import { useToast } from "@/components/ui/toast";
 import { SLOT_LABELS } from "@/components/recipes/recipe-visual";
 import { RecipeImage } from "@/components/recipes/recipe-photo";
+import { costAmount, partialCostLabel } from "@/components/recipes/recipe-cost";
 import { owned, priceIndex, visible } from "@/lib/services/queries";
 import { addMeal, copyWeek, duplicateMeal, generateListFromPlan, moveMeal, removeMeal, updateMealServings } from "@/lib/services/kitchen";
 import { createList } from "@/lib/services/shopping";
 import { addDays, formatLongDate, formatShortDate, formatWeekdayShort, startOfWeek, toISODate } from "@/lib/domain/dates";
 import { recipeCost } from "@/lib/domain/recipes";
 import { normalize } from "@/lib/domain/search";
-import { formatRon, sumMoney } from "@/lib/domain/money";
+import { sumMoney } from "@/lib/domain/money";
 import { now } from "@/lib/clock";
 import type { MealPlanItem, MealSlot } from "@/lib/domain/types";
 
@@ -66,7 +67,8 @@ function PlanScreen() {
         recipes: recipes.sort((a, b) => Number(favs.has(b.id)) - Number(favs.has(a.id)) || a.name.localeCompare(b.name, "ro")),
         favs,
         weekCost: sumMoney(costs.map((c) => c?.total ?? 0)),
-        weekCostComplete: costs.every((c) => c?.complete),
+        weekPriced: costs.reduce((n, c) => n + (c?.priced_count ?? 0), 0),
+        weekCostable: costs.reduce((n, c) => n + (c?.costable_count ?? 0), 0),
         lists: lists.filter((l) => !l.archived_at),
       };
     },
@@ -99,9 +101,18 @@ function PlanScreen() {
       <PageHeader
         title="Planul meselor"
         subtitle={
-          <span className="tabular">
-            Săptămâna {formatShortDate(week)} – {formatShortDate(addDays(week, 6))}
-            {data.meals.length > 0 && ` · cost estimat ${formatRon(data.weekCost)}${data.weekCostComplete ? "" : " (parțial)"}`}
+          <span>
+            Săptămâna <span className="font-mono text-sm">{formatShortDate(week)} – {formatShortDate(addDays(week, 6))}</span>
+            {/* Aceeași regulă ca la rețete: suma doar peste 80% din ingrediente cu preț (decizia proprietarului, 18 oct. 2026). */}
+            {data.weekPriced > 0 &&
+              (costAmount(data.weekCost, data.weekPriced, data.weekCostable) ? (
+                <>
+                  {" "}
+                  · cost estimat <span className="font-mono text-sm">{costAmount(data.weekCost, data.weekPriced, data.weekCostable)}</span>
+                </>
+              ) : (
+                ` · ${partialCostLabel(data.weekPriced, data.weekCostable)}`
+              ))}
           </span>
         }
       />
@@ -139,17 +150,17 @@ function PlanScreen() {
 
       <div className="mt-5 flex flex-col gap-3">
         {days.map((d) => (
-          <Card key={d} as="section" aria-label={formatLongDate(d)} className={`p-3 ${d === today ? "ring-2 ring-brand/40" : ""}`}>
+          <Card key={d} as="section" aria-label={formatLongDate(d)} className={`p-3 ${d === today ? "border-brand" : ""}`}>
             <h2 className="mb-2 flex items-baseline gap-2 px-1">
-              <span className="font-semibold capitalize">{formatWeekdayShort(d)}</span>
-              <span className="text-sm text-ink-2">{formatShortDate(d)}</span>
-              {d === today && <span className="text-xs font-medium text-brand">azi</span>}
+              <span className="font-serif text-lg font-semibold capitalize">{formatWeekdayShort(d)}</span>
+              <span className="font-mono text-xs text-ink-2">{formatShortDate(d)}</span>
+              {d === today && <span className="font-mono text-xs font-medium uppercase tracking-wider text-brand">azi</span>}
             </h2>
             <div className="grid grid-cols-2 gap-1.5">
               {SLOTS.map((slot) => {
                 const meals = data.meals.filter((m) => m.date === d && m.slot === slot);
                 return (
-                  <div key={slot} className="flex min-h-16 flex-col gap-1 rounded-xl bg-surface-2/60 p-1.5">
+                  <div key={slot} className="flex min-h-16 flex-col gap-1 rounded-md bg-surface-2 p-1.5">
                     <div className="flex items-center justify-between pl-1.5">
                       <span className="text-xs text-ink-2">{SLOT_LABELS[slot]}</span>
                       <IconButton
@@ -173,10 +184,10 @@ function PlanScreen() {
                             setMoveDate(m.date);
                             setMoveSlot(m.slot);
                           }}
-                          className="flex min-h-11 items-center gap-1.5 rounded-lg border border-line bg-surface px-2 py-1 text-left text-[13px] leading-tight transition-colors duration-150 ease-out active:bg-surface-2"
+                          className="flex min-h-11 items-center gap-1.5 rounded-md border border-line bg-surface px-2 py-1 text-left text-[13px] leading-tight transition-colors duration-150 ease-out active:bg-surface-2"
                         >
-                          <span className="min-w-0 flex-1">{r?.name ?? "Rețetă ștearsă"}</span>
-                          <span className="shrink-0 text-[11px] text-ink-2 tabular">{m.servings} p.</span>
+                          <span className="min-w-0 flex-1 font-serif text-sm font-medium">{r?.name ?? "Rețetă ștearsă"}</span>
+                          <span className="shrink-0 font-mono text-[11px] text-ink-2">{m.servings} p.</span>
                         </button>
                       );
                     })}
@@ -189,7 +200,7 @@ function PlanScreen() {
       </div>
 
       <Sheet open={Boolean(picker)} onClose={() => setPicker(null)} title={picker ? `${SLOT_LABELS[picker.slot]}, ${formatShortDate(picker.date)}` : ""}>
-        <div className="mb-3 flex items-center gap-2 rounded-xl border border-line px-3">
+        <div className="mb-3 flex items-center gap-2 rounded-lg border border-line bg-surface-2 px-3 transition-colors duration-150 ease-out focus-within:border-brand focus-within:bg-surface">
           <Search size={16} className="text-ink-3" />
           <input value={pickQuery} onChange={(e) => setPickQuery(e.target.value)} placeholder="Caută rețeta" aria-label="Caută rețeta" className="h-11 min-w-0 flex-1 bg-transparent focus:outline-none" autoFocus />
         </div>
@@ -203,14 +214,16 @@ function PlanScreen() {
                   setPicker(null);
                   await run((ctx) => addMeal(ctx, { date: p.date, slot: p.slot, recipe_id: r.id, servings: r.servings }));
                 }}
-                className="flex min-h-14 w-full items-center gap-3 rounded-xl px-2 text-left hover:bg-surface-2"
+                className="flex min-h-14 w-full items-center gap-3 rounded-md px-2 text-left transition-colors duration-150 ease-out hover:bg-surface-2 active:bg-surface-2"
               >
                 <RecipeImage recipe={r} size="sm" avatar />
-                <span className="flex-1">
+                <span className="flex-1 font-serif text-[17px] font-medium leading-snug">
                   {r.name}
                   {data.favs.has(r.id) && <span className="ml-1 text-xs text-accent">♥</span>}
                 </span>
-                <span className="text-xs text-ink-2">{r.servings} porții</span>
+                <span className="shrink-0 text-xs text-ink-2">
+                  <span className="font-mono">{r.servings}</span> porții
+                </span>
               </button>
             </li>
           ))}
@@ -263,7 +276,7 @@ function PlanScreen() {
               </Button>
             </div>
             <div className="flex gap-2">
-              <Link href={`/retete/reteta/?id=${editing.recipe_id}`} className="inline-flex h-11 flex-1 items-center justify-center rounded-xl border border-line font-medium">
+              <Link href={`/retete/reteta/?id=${editing.recipe_id}`} className="inline-flex h-11 flex-1 items-center justify-center rounded-lg border border-line font-medium transition-colors duration-150 ease-out hover:bg-surface-2">
                 Vezi rețeta
               </Link>
               <Button

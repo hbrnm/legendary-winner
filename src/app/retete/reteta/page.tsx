@@ -22,6 +22,8 @@ import { productUnitsOf, subtractStock } from "@/lib/domain/quantities";
 import { pantryStock } from "@/lib/domain/pantry";
 import { formatQuantity } from "@/lib/domain/units";
 import { formatRon } from "@/lib/domain/money";
+import { costAmount, costCoverage, partialCostLabel } from "@/components/recipes/recipe-cost";
+import { capitalizeFirst } from "@/lib/domain/text";
 import { formatShortDate, toISODate } from "@/lib/domain/dates";
 import { now } from "@/lib/clock";
 import type { MealSlot } from "@/lib/domain/types";
@@ -103,6 +105,8 @@ function RecipeScreen() {
   const lists = data.lists;
   const canEdit = r.household_id !== null || isAppAdmin;
   const missingNames = view.cost.missing_product_ids.map((p) => data.products.get(p)?.name ?? p);
+  const coverage = costCoverage(view.cost.priced_count, view.cost.costable_count);
+  const perServing = costAmount(view.cost.per_serving, view.cost.priced_count, view.cost.costable_count);
 
   async function addToList() {
     const res = await run(async (ctx) => {
@@ -124,7 +128,7 @@ function RecipeScreen() {
   return (
     <>
       <div className="mb-3 flex items-center justify-between gap-1">
-        <button type="button" onClick={() => router.back()} aria-label="Înapoi" className="-ml-2 inline-flex h-11 w-11 items-center justify-center rounded-xl text-ink-2 hover:bg-surface-2">
+        <button type="button" onClick={() => router.back()} aria-label="Înapoi" className="-ml-2 inline-flex h-11 w-11 items-center justify-center rounded-lg text-ink-2 transition-colors duration-150 ease-out hover:bg-surface-2">
           <ArrowLeft size={20} />
         </button>
         <div className="flex items-center">
@@ -133,7 +137,7 @@ function RecipeScreen() {
           </IconButton>
           {canEdit && (
             <>
-              <Link href={`/retete/editare/?id=${id}`} aria-label="Modifică rețeta" className="inline-flex h-11 w-11 items-center justify-center rounded-xl text-ink-2 hover:bg-surface-2">
+              <Link href={`/retete/editare/?id=${id}`} aria-label="Modifică rețeta" className="inline-flex h-11 w-11 items-center justify-center rounded-lg text-ink-2 transition-colors duration-150 ease-out hover:bg-surface-2">
                 <Pencil size={20} />
               </Link>
               <IconButton label="Șterge rețeta" onClick={() => setConfirmDelete(true)}>
@@ -155,28 +159,29 @@ function RecipeScreen() {
         <Badge>{r.cuisine === "romaneasca" ? "Bucătărie românească" : "Bucătărie internațională"}</Badge>
       </div>
 
-      <div className="mt-4 grid grid-cols-3 gap-2 text-center">
-        <Card className="p-3">
-          <Clock size={18} className="mx-auto text-ink-2" />
-          <p className="mt-1 text-sm font-medium">{totalMinutes(r)} min</p>
+      {/* Timpul, dificultatea și porțiile pe aceeași foaie, separate de filete. */}
+      <Card className="mt-4 grid grid-cols-3 divide-x divide-line text-center">
+        <div className="p-3">
+          <Clock size={18} strokeWidth={1.75} className="mx-auto text-ink-2" />
+          <p className="mt-1 font-mono text-sm font-medium">{totalMinutes(r)} min</p>
           <p className="text-xs text-ink-2">
-            {r.prep_minutes} pregătire · {r.cook_minutes} gătire
+            <span className="font-mono">{r.prep_minutes}</span> pregătire · <span className="font-mono">{r.cook_minutes}</span> gătire
           </p>
-        </Card>
-        <Card className="p-3">
-          <ChefHat size={18} className="mx-auto text-ink-2" />
+        </div>
+        <div className="p-3">
+          <ChefHat size={18} strokeWidth={1.75} className="mx-auto text-ink-2" />
           <p className="mt-1 text-sm font-medium">{DIFFICULTY_LABELS[r.difficulty]}</p>
           <p className="text-xs text-ink-2">dificultate</p>
-        </Card>
-        <Card className="p-3">
-          <Users size={18} className="mx-auto text-ink-2" />
+        </div>
+        <div className="p-3">
+          <Users size={18} strokeWidth={1.75} className="mx-auto text-ink-2" />
           <div className="mt-1 flex items-center justify-center gap-1">
             <button type="button" aria-label="Mai puține porții" onClick={() => setServings(Math.max(1, servings - 1))} className="group inline-flex h-11 w-8 items-center justify-center">
               <span className="inline-flex h-7 w-7 items-center justify-center rounded-full bg-surface-2 transition-colors duration-150 ease-out group-active:bg-line">
                 <Minus size={14} />
               </span>
             </button>
-            <span className="w-6 text-sm font-semibold tabular" aria-live="polite">
+            <span className="w-6 font-mono text-sm font-semibold" aria-live="polite">
               {servings}
             </span>
             <button type="button" aria-label="Mai multe porții" onClick={() => setServings(Math.min(50, servings + 1))} className="group inline-flex h-11 w-8 items-center justify-center">
@@ -186,18 +191,19 @@ function RecipeScreen() {
             </button>
           </div>
           <p className="text-xs text-ink-2">porții</p>
-        </Card>
-      </div>
-
-      <Card className="mt-3 p-4">
-        <div className="flex items-baseline justify-between">
-          <span className="text-sm text-ink-2">Cost estimat</span>
-          <span className="text-lg font-semibold tabular">{view.cost.priced_count ? formatRon(view.cost.total) : "—"}</span>
         </div>
-        {view.cost.priced_count > 0 && (
+      </Card>
+
+      {/* Suma apare doar peste 80% din ingrediente cu preț; altfel, pentru câte ingrediente e (decizia proprietarului, 18 oct. 2026). */}
+      <Card className="mt-3 p-4">
+        <div className="flex items-baseline justify-between gap-3">
+          <span className="text-sm text-ink-2">{coverage === "partial" ? capitalizeFirst(partialCostLabel(view.cost.priced_count, view.cost.costable_count)) : "Cost estimat"}</span>
+          <span className="shrink-0 font-mono text-lg font-medium">{coverage === "none" ? "—" : coverage === "partial" ? formatRon(view.cost.total) : costAmount(view.cost.total, view.cost.priced_count, view.cost.costable_count)}</span>
+        </div>
+        {perServing && (
           <div className="flex items-baseline justify-between text-sm">
             <span className="text-ink-2">pe porție</span>
-            <span className="tabular">{formatRon(view.cost.per_serving)}</span>
+            <span className="font-mono">{perServing}</span>
           </div>
         )}
         <p className="mt-2 text-xs text-ink-2">
@@ -212,7 +218,7 @@ function RecipeScreen() {
       </Card>
 
       {view.allergens.length > 0 && (
-        <p className="mt-3 rounded-xl bg-warn-soft px-3 py-2 text-sm text-warn">
+        <p className="mt-3 rounded-lg bg-warn-soft px-3 py-2 text-sm text-warn">
           Conține: {view.allergens.map((a) => ALLERGEN_LABELS[a]).join(", ")}. Verifică și eticheta produselor folosite.
         </p>
       )}
@@ -230,7 +236,7 @@ function RecipeScreen() {
       </div>
 
       <SectionTitle>Ingrediente</SectionTitle>
-      <ul className="divide-y divide-line overflow-hidden rounded-2xl border border-line bg-surface">
+      <ul className="divide-y divide-line overflow-hidden rounded-lg border border-line bg-surface">
         {view.scaled.map((i) => {
           const p = data.products.get(i.product_id);
           const have = view.available.has(i.product_id);
@@ -244,7 +250,7 @@ function RecipeScreen() {
                 {i.note && <span className="text-ink-2">, {i.note}</span>}
                 {i.optional && <span className="text-ink-2"> (opțional)</span>}
               </span>
-              <span className="shrink-0 text-sm text-ink-2 tabular">{i.quantity == null ? "după gust" : formatQuantity(i.quantity, i.unit)}</span>
+              <span className={`shrink-0 text-sm text-ink-2 ${i.quantity == null ? "" : "font-mono"}`}>{i.quantity == null ? "după gust" : formatQuantity(i.quantity, i.unit)}</span>
             </li>
           );
         })}
@@ -255,7 +261,7 @@ function RecipeScreen() {
       <ol className="flex flex-col gap-3">
         {data.steps.map((s, k) => (
           <li key={s.id} className="flex gap-3">
-            <span className="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-brand-soft text-sm font-semibold text-brand">{k + 1}</span>
+            <span className="w-7 shrink-0 text-right font-serif text-xl font-semibold leading-7 text-brand">{k + 1}.</span>
             <p className="pt-0.5 text-[15px] leading-relaxed">{s.text}</p>
           </li>
         ))}
