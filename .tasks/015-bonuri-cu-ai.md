@@ -1,6 +1,6 @@
 # 015 — Citirea bonurilor cu AI pe server (Gemini)
 
-**Stare:** în lucru (18 oct. 2026). Etapele 1–2 gata (PR-uri); urmează producția (etapa 3), cu acordul proprietarului.
+**Stare:** în așteptare (proprietarul: încercarea pe iPhone, 18 oct. 2026). Etapele 1–3 gata, în producție.
 **Ramuri:** câte una pe etapă, din `main` (`claude/015-...`).
 
 ## Scop
@@ -23,7 +23,7 @@ Decizia proprietarului (chestionar, 18 oct. 2026): **„Citire cu AI pe server�
 |---|---|---|---|
 | 1 | **Serverul:** `src/lib/server/read-receipt.ts` (cerere, mărimi, limită, Gemini cu imaginea, verificarea textului), funcția Edge `read-receipt`, migrația pentru limită, teste | gata | `src/lib/server/read-receipt.ts`, `supabase/functions/read-receipt/`, `supabase/migrations/`, `supabase/tests/recipe-import.test.ts` |
 | 2 | **Aplicația:** cu cont și internet, bonul decupat merge la server; altfel (sau la eșec) cititorul de pe telefon; textele noi într-un chestionar; teste | gata | `src/lib/ocr/read-receipt.ts`, `src/lib/supabase/client.ts`, `cumparaturi/bon/page.tsx` |
-| 3 | **Producția:** migrația și funcția (cu acordul proprietarului), integrarea, încercarea pe iPhone | de făcut | |
+| 3 | **Producția:** migrația și funcția (cu acordul proprietarului), integrarea, încercarea pe iPhone | gata; de încercat pe iPhone | |
 
 ## Rezumat pe etape
 ### Etapa 1: serverul (18 oct. 2026)
@@ -40,8 +40,15 @@ Decizia proprietarului (chestionar, 18 oct. 2026): **„Citire cu AI pe server�
 - Ca la traducere, până când funcția e pe producție, fiecare bon ar arăta atenționarea și s-ar citi pe telefon (ca acum): deci PR-ul se integrează odată cu etapa 3.
 - **Teste:** `read-receipt.test.ts` (+5: base64, serverul, rezerva); `e2e-cloud/bon.spec.ts` (funcția simulată: nota, citirea pe server, JPEG ≤ 2400 px; la 502, telefonul cu atenționarea). `npm test`: 553; `npm run test:e2e`: 42; `npm run test:e2e:cloud`: 3.
 
+### Etapa 3: producția (18 oct. 2026)
+- Acordul proprietarului (chestionar, 18 oct. 2026): „Da, toate acum”.
+- **Migrația** `receipt_read` aplicată prin conector, verificată: constrângerea are `import`, `translate`, `receipt`; `take_receipt_read_quota()` e `security definer`, cu `EXECUTE` doar pentru `authenticated` (și rolurile de sistem), fără `anon`. Versiunea din istoric aliniată cu repo-ul (`20261018000003`).
+- **Funcția** `read-receipt` publicată (versiunea 1, `verify_jwt` pornit), cu `index.ts` și `core.js` identice cu cele din repo. Folosește secretele existente `GEMINI_API_KEY` / `GEMINI_MODEL`.
+- **Integrate:** PR #77 (etapa 1) și #78 (etapa 2), cu CI verde.
+- Rămâne: prima citire reală cu Gemini se vede la încercarea pe iPhone (jurnalele funcției, doar motivul la eșec).
+
 ## Cum verific la final
 Pe iPhone, cu cont: un bon Kaufland și unul Lidl → „Verifică bonul” are aproape toate liniile cu sumele corecte; în modul avion, același bon se citește cu cititorul de pe telefon.
 
 ## Următorul pas
-Etapa 3: cu acordul proprietarului, migrația `20261018000003` și funcția `read-receipt` pe producție, apoi integrarea PR-urilor #77 și al etapei 2; încercarea pe iPhone.
+Proprietarul, pe iPhone, cu cont: un bon Kaufland și unul Lidl → „Verifică bonul” fără atenționarea de server; apoi în modul avion → citit pe telefon.
