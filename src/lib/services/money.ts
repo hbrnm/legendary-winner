@@ -3,6 +3,7 @@ import type { Budget, BudgetScope, PriceConfidence, PriceType, PurchaseSource } 
 import { insertRow, softDelete, updateRow } from "@/lib/db/write";
 import { newId } from "@/lib/db/ids";
 import { type AppCtx, w } from "./context";
+import { variantField } from "./catalog";
 import { parse, parsePatch, zDate, zMoney, zName, zQuantity, zSource, zUnit } from "./validation";
 
 // Bugete și prețuri introduse de gospodărie.
@@ -50,11 +51,13 @@ const priceInput = z.object({
   price_type: z.enum(["platit", "observat", "promotie", "estimat"]).default("observat"),
   confidence: z.enum(["ridicata", "medie", "scazuta"]).default("ridicata"),
   observed_on: zDate,
+  variant_id: z.string().nullable().default(null),
 });
 
 /** Un preț văzut sau plătit (ex. la piață: 8 lei/kg roșii de la producător). */
 export async function recordPrice(ctx: AppCtx, input: z.input<typeof priceInput>): Promise<string> {
   const v = parse(priceInput, input);
+  const variant = await variantField(ctx, v.variant_id, v.product_id);
   const id = newId();
   await insertRow(
     ctx.db,
@@ -73,6 +76,7 @@ export async function recordPrice(ctx: AppCtx, input: z.input<typeof priceInput>
       confidence: v.confidence as PriceConfidence,
       observed_on: v.observed_on,
       transaction_item_id: null,
+      ...variant,
     },
     w(ctx),
   );

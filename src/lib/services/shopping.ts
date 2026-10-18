@@ -10,6 +10,7 @@ import { localDateOf } from "@/lib/domain/dates";
 import { type AppCtx, UserError, w } from "./context";
 import { parse, parsePatch, zMoney, zName, zNote, zQuantity, zSource, zUnit } from "./validation";
 import { listItems, owned, productMap } from "./queries";
+import { variantField } from "./catalog";
 
 const listInput = z.object({
   name: zName(80, "Numele listei"),
@@ -84,6 +85,7 @@ const itemInput = z.object({
   priority: z.enum(["normala", "ridicata"]).optional(),
   note: zNote.nullable().optional(),
   origin: z.enum(["manual", "reteta", "plan", "recurent"]).optional(),
+  variant_id: z.string().nullable().optional(),
 });
 
 export type ItemInput = z.input<typeof itemInput>;
@@ -91,7 +93,7 @@ export type ItemInput = z.input<typeof itemInput>;
 /**
  * Adaugă un produs în listă. Dacă produsul din catalog e deja pe listă,
  * nebifat, cu unitate compatibilă, i se mărește cantitatea în loc să apară
- * de două ori.
+ * de două ori. Cu o variantă aleasă, se unește doar cu linia aceleiași variante.
  */
 export async function addItem(ctx: AppCtx, listId: string, input: ItemInput): Promise<string> {
   const v = parse(itemInput, input);
@@ -101,9 +103,10 @@ export async function addItem(ctx: AppCtx, listId: string, input: ItemInput): Pr
   if (v.product_id && !product) throw new UserError("Produsul nu există în catalog.");
   const name = v.name ?? product?.name;
   if (!name) throw new UserError("Scrie numele produsului.");
+  const variant = await variantField(ctx, v.variant_id, product?.id ?? null);
 
   if (product) {
-    const existing = await listItems(ctx.db, listId);
+    const existing = (await listItems(ctx.db, listId)).filter((i) => !variant.variant_id || i.variant_id === variant.variant_id);
     const quantity = v.quantity === undefined ? null : v.quantity;
     const unit = v.unit === undefined ? (quantity == null ? null : product.default_unit) : v.unit;
     const ops = planMerge(existing, [{ product_id: product.id, quantity, unit }]);
@@ -143,6 +146,7 @@ export async function addItem(ctx: AppCtx, listId: string, input: ItemInput): Pr
       checked_by: null,
       origin: (v.origin ?? "manual") as ItemOrigin,
       sort_order: items.length,
+      ...variant,
     },
     w(ctx),
   );
@@ -151,8 +155,20 @@ export async function addItem(ctx: AppCtx, listId: string, input: ItemInput): Pr
 
 export async function updateItem(ctx: AppCtx, id: string, patch: ItemInput) {
   const v = parsePatch(itemInput, patch);
-  const clean = Object.fromEntries(Object.entries(v).filter(([, val]) => val !== undefined));
+  const clean: Record<string, unknown> = Object.fromEntries(Object.entries(v).filter(([, val]) => val !== undefined));
   if ("quantity" in clean && clean.quantity == null) clean.unit = null;
+  if ("variant_id" in clean || "product_id" in clean) {
+    const item = await ctx.db.shopping_list_items.get(id);
+    if (!item) throw new UserError("Produsul nu mai există în listă.");
+    const productId = "product_id" in clean ? (clean.product_id as string | null) : item.product_id;
+    const variantId = "variant_id" in clean ? (clean.variant_id as string | null) : item.variant_id;
+    // Varianta e a produsului: la alt produs, varianta veche se scoate.
+    const keep = variantId && (await ctx.db.product_variants.get(variantId))?.product_id === productId;
+    if ("variant_id" in clean && clean.variant_id) Object.assign(clean, await variantField(ctx, variantId, productId));
+    else if (!keep && item.variant_id) clean.variant_id = null;
+    // O linie care n-a avut variantă nu trimite câmpul (server fără migrația variantelor).
+    else if (!item.variant_id) delete clean.variant_id;
+  }
   await updateRow(ctx.db, "shopping_list_items", id, clean as Partial<ShoppingListItem>, w(ctx));
 }
 
@@ -271,6 +287,7 @@ export async function finalizeShopping(ctx: AppCtx, listId: string, opts: { addT
         retailer_id: item.retailer_id,
         source: item.source,
         purchased_at: purchasedAt,
+        ...(item.variant_id ? { variant_id: item.variant_id } : {}),
       },
       w(ctx),
     );
@@ -293,6 +310,7 @@ export async function finalizeShopping(ctx: AppCtx, listId: string, opts: { addT
           confidence: item.quantity == null ? "medie" : "ridicata",
           observed_on: localDateOf(purchasedAt),
           transaction_item_id: txItemId,
+          ...(item.variant_id ? { variant_id: item.variant_id } : {}),
         },
         w(ctx),
       );
@@ -374,6 +392,7 @@ export async function setTransactionItemAmount(ctx: AppCtx, id: string, amount: 
       confidence: item.quantity == null ? "medie" : "ridicata",
       observed_on: localDateOf(item.purchased_at),
       transaction_item_id: id,
+      ...(item.variant_id ? { variant_id: item.variant_id } : {}),
     },
     w(ctx),
   );

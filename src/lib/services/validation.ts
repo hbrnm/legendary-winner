@@ -15,6 +15,7 @@ export const zQuantity = z.number().positive("Cantitatea trebuie să fie mai mar
 export const zMoney = z.number().min(0, "Suma nu poate fi negativă.").max(1_000_000, "Suma e prea mare.");
 export const zSource = z.enum(["supermarket", "piata", "producator", "alta"]);
 export const zDate = z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Data nu e validă.");
+export const zEan = z.string().regex(/^(\d{8}|\d{12,14})$/, "Codul de bare are 8, 12, 13 sau 14 cifre.");
 export const zNote = z.string().trim().max(500, "Observația poate avea cel mult 500 de caractere.");
 
 /** Validează și întoarce datele, sau aruncă o eroare cu primul mesaj, pe înțelesul utilizatorului. */

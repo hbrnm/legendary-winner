@@ -21,8 +21,12 @@ export async function productMap(db: CamaraDB, householdId: string): Promise<Map
 }
 
 export async function priceIndex(db: CamaraDB, householdId: string): Promise<PriceIndex> {
-  const [prices, products] = await Promise.all([owned(db, "product_prices", householdId), visible(db, "products", householdId)]);
-  return buildPriceIndex(prices, productUnitsOf(products));
+  const [prices, products, variants] = await Promise.all([
+    owned(db, "product_prices", householdId),
+    visible(db, "products", householdId),
+    visible(db, "product_variants", householdId),
+  ]);
+  return buildPriceIndex(prices, productUnitsOf(products), new Map(variants.map((v) => [v.id, v])));
 }
 
 export async function listItems(db: CamaraDB, listId: string): Promise<ShoppingListItem[]> {
@@ -62,6 +66,7 @@ export async function spendRecords(db: CamaraDB, householdId: string): Promise<S
         retailer_id: item.retailer_id,
         source: item.source,
         purchased_at: item.checked_at ?? item.updated_at,
+        variant_id: item.variant_id ?? null,
       });
     }
   }
