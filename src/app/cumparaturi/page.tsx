@@ -72,7 +72,7 @@ function ListsScreen() {
                 <Card className="flex items-center gap-3 p-4 transition-colors hover:bg-surface-2">
                   <div className="min-w-0 flex-1">
                     <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
-                      <span className="line-clamp-2 break-words text-[17px] font-medium leading-snug">{list.name}</span>
+                      <span className="line-clamp-2 break-words font-serif text-lg font-semibold leading-snug">{list.name}</span>
                       {list.is_recurring && (
                         <Badge tone="brand">
                           <Repeat size={12} /> recurentă
@@ -97,16 +97,18 @@ function ListsScreen() {
         </ul>
       )}
 
-      <Link href="/cumparaturi/bon/" className="mt-6 flex min-h-12 items-center gap-3 rounded-2xl border border-line bg-surface px-4 text-[15px] hover:bg-surface-2">
-        <Receipt size={20} className="text-ink-2" />
+      <Card className="mt-6 divide-y divide-line overflow-hidden">
+      <Link href="/cumparaturi/bon/" className="flex min-h-12 items-center gap-3 px-4 text-[15px] transition-colors duration-150 ease-out hover:bg-surface-2 active:bg-surface-2">
+        <Receipt size={20} strokeWidth={1.75} className="text-ink-2" />
         <span className="flex-1">Adaugă un bon fiscal</span>
         <ChevronRight size={18} className="text-ink-3" />
       </Link>
-      <Link href="/cumparaturi/istoric/" className="mt-2 flex min-h-12 items-center gap-3 rounded-2xl border border-line bg-surface px-4 text-[15px] hover:bg-surface-2">
-        <History size={20} className="text-ink-2" />
+      <Link href="/cumparaturi/istoric/" className="flex min-h-12 items-center gap-3 px-4 text-[15px] transition-colors duration-150 ease-out hover:bg-surface-2 active:bg-surface-2">
+        <History size={20} strokeWidth={1.75} className="text-ink-2" />
         <span className="flex-1">Istoricul cumpărăturilor</span>
-        <ChevronRight size={18} className="text-ink-3" />
+        <ChevronRight size={18} strokeWidth={1.75} className="text-ink-3" />
       </Link>
+      </Card>
 
       {archived.length > 0 && (
         <>
@@ -120,7 +122,7 @@ function ListsScreen() {
             Liste arhivate
           </SectionTitle>
           {showArchived && (
-            <ul className="flex flex-col divide-y divide-line overflow-hidden rounded-2xl border border-line bg-surface">
+            <ul className="flex flex-col divide-y divide-line overflow-hidden rounded-lg border border-line bg-surface">
               {archived.map(({ list, totals }) => (
                 <li key={list.id} className="flex items-center gap-2 px-4 py-2">
                   <Link href={`/cumparaturi/lista/?id=${list.id}`} className="min-w-0 flex-1 py-1">

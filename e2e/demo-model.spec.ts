@@ -69,6 +69,19 @@ test("Acasă, în gospodăria model: magazinele la cheltuieli, eticheta de expir
   for (const el of await avatars.all()) expect(await el.textContent()).toMatch(/^\p{Lu}$/u);
 });
 
+test("adăugarea rapidă pune produsele terminate în cămară sub titlul lor", async ({ page }) => {
+  await startModel(page, "/camara/");
+  await page.getByRole("button", { name: /^Scade Unt/ }).click();
+  // La zero, produsul trece la „terminate”, ascunse implicit.
+  await expect(page.getByRole("button", { name: /^Scade Unt/ })).toHaveCount(0);
+  await page.goto("/cumparaturi/");
+  await page.getByText("Cumpărături săptămânale").click();
+  const quick = page.getByRole("region", { name: "Adăugare rapidă" });
+  await expect(quick.getByRole("heading", { name: "S-a terminat în cămară" })).toBeVisible();
+  const finished = quick.locator("div").filter({ has: page.getByRole("heading", { name: "S-a terminat în cămară" }) });
+  await expect(finished.getByRole("button", { name: /^Adaugă Unt/ })).toBeVisible();
+});
+
 test("gospodăria model: cămară, listă, buget, plan", async ({ page }) => {
   await startModel(page, "/camara/");
   await expect(page.getByText("14 produse acasă")).toBeVisible();
@@ -81,6 +94,10 @@ test("gospodăria model: cămară, listă, buget, plan", async ({ page }) => {
   await expect(page.getByRole("heading", { name: "Cumpărături săptămânale" })).toBeVisible();
   const quick = page.getByRole("region", { name: "Adăugare rapidă" });
   await expect(quick).toBeVisible();
+  // Sugestiile stau sub titluri, fără „des” / „s-a terminat” lipit de fiecare produs
+  // (în gospodăria model nimic nu s-a terminat, deci apare doar grupul „Cumperi des”).
+  await expect(quick.getByRole("heading", { name: "Cumperi des" })).toBeVisible();
+  for (const text of await quick.getByRole("button").allTextContents()) expect(text).not.toMatch(/\bdes$|s-a terminat$/);
   const first = quick.getByRole("button").first();
   const name = ((await first.getAttribute("aria-label")) ?? "").replace(/^Adaugă /, "");
   await first.click();
@@ -91,6 +108,9 @@ test("gospodăria model: cămară, listă, buget, plan", async ({ page }) => {
   await expect(page.getByText("din 2.500,00 RON").or(page.getByText("din 2500,00 RON"))).toBeVisible();
   await expect(page.getByRole("progressbar", { name: /cheltuit și coșul de acum/ })).toBeVisible();
   await expect(page.getByText("Graficul se umple după primele cumpărături.")).toHaveCount(0);
+  // „Înainte de cumpărături” duce la liste.
+  await page.getByRole("link", { name: /Înainte de cumpărături/ }).click();
+  await expect(page).toHaveURL(/\/cumparaturi\/$/);
 
   await page.goto("/plan/");
   await expect(page.getByText("Sarmale în foi de varză murată")).toBeVisible();

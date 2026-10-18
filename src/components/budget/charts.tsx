@@ -63,7 +63,7 @@ export function ColumnChart({ bars, title, reference }: { bars: Bar[]; title: st
       </svg>
       {hover !== null && (
         <div
-          className="pointer-events-none absolute -top-2 rounded-lg bg-ink px-2 py-1 text-xs text-bg tabular shadow-card"
+          className="pointer-events-none absolute -top-2 rounded-md bg-ink px-2 py-1 font-mono text-xs text-bg shadow-card"
           style={{ left: `${((hover + 0.5) / bars.length) * 100}%`, transform: "translateX(-50%)" }}
         >
           {bars[hover].label}: {formatRon(bars[hover].value)}
@@ -98,7 +98,7 @@ function EmptyColumnChart({ bars, title }: { bars: Bar[]; title: string }) {
           );
         })}
       </svg>
-      <p className="absolute inset-x-0 top-1/3 mx-auto w-fit max-w-[85%] rounded-xl bg-surface px-3 py-2 text-center text-sm text-ink-2 shadow-card">Graficul se umple după primele cumpărături.</p>
+      <p className="absolute inset-x-0 top-1/3 mx-auto w-fit max-w-[85%] rounded-lg border border-line bg-surface px-3 py-2 text-center text-sm text-ink-2">Graficul se umple după primele cumpărături.</p>
     </figure>
   );
 }
@@ -116,8 +116,8 @@ export function BarList({ bars, total }: { bars: Bar[]; total: number }) {
         <li key={b.key} title={`${b.label}: ${formatRon(b.value)}`}>
           <div className="mb-1 flex items-baseline justify-between gap-2 text-sm">
             <span className="truncate text-ink">{b.label}</span>
-            <span className="shrink-0 tabular text-ink-2">
-              {formatRon(b.value)} <span className="text-xs">· {total > 0 ? Math.round((b.value / total) * 100) : 0}%</span>
+            <span className="shrink-0 font-mono text-xs text-ink-2">
+              {formatRon(b.value)} <span>· {total > 0 ? Math.round((b.value / total) * 100) : 0}%</span>
             </span>
           </div>
           <div className="h-2 rounded-full bg-surface-2">
