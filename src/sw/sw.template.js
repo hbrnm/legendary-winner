@@ -3,6 +3,8 @@
 const VERSION = "__VERSION__";
 const PRECACHE = __PRECACHE__;
 const CACHE = `camara-${VERSION}`;
+// Nu începe cu „camara-”, deci nu se șterge la activarea unei versiuni noi.
+const OCR_CACHE = "ocr-fisiere";
 
 self.addEventListener("install", (event) => {
   event.waitUntil(
@@ -44,6 +46,25 @@ self.addEventListener("fetch", (event) => {
   const url = new URL(req.url);
   // Doar resursele aplicației; cererile către Supabase merg direct la rețea.
   if (url.origin !== self.location.origin) return;
+
+  // Fișierele OCR (/ocr/<versiune>/, câțiva MB): nu intră în cache la instalare, ci la
+  // prima citire a unui bon, într-un cache separat, păstrat între versiunile aplicației
+  // (calea are versiunea tesseract.js). Apoi bonurile se citesc și fără internet.
+  if (url.pathname.startsWith("/ocr/")) {
+    event.respondWith(
+      caches.open(OCR_CACHE).then((c) =>
+        c.match(req).then(
+          (hit) =>
+            hit ||
+            fetch(req).then((res) => {
+              if (res.ok) c.put(req, res.clone());
+              return res;
+            }),
+        ),
+      ),
+    );
+    return;
+  }
 
   // Fișierele cu hash din nume nu se schimbă: din cache, apoi rețea. Fotografiile
   // catalogului (/retete/*.webp; /retete/ e și pagina rețetelor, deci după extensie)

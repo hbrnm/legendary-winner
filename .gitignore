@@ -48,3 +48,6 @@ next-env.d.ts
 # Supabase local (binare descărcate)
 /.local-supabase/
 /out-cloud/
+
+# fișierele OCR, copiate la build (scripts/copy-ocr.mjs)
+/public/ocr/
