@@ -12,6 +12,7 @@ import type {
   ProductCategory,
   ProductPrice,
   ProductRetailerMapping,
+  ProductVariant,
   Recipe,
   RecipeIngredient,
   RecipePhoto,
@@ -29,6 +30,7 @@ export interface SyncedTables {
   product_categories: ProductCategory;
   brands: Brand;
   products: Product;
+  product_variants: ProductVariant;
   product_aliases: ProductAlias;
   retailers: Retailer;
   product_retailer_mappings: ProductRetailerMapping;
@@ -60,6 +62,7 @@ export const SYNCED_TABLES: TableName[] = [
   "brands",
   "retailers",
   "products",
+  "product_variants",
   "product_aliases",
   "product_retailer_mappings",
   "pantry_locations",
@@ -85,6 +88,7 @@ export const CATALOG_TABLES = new Set<TableName>([
   "brands",
   "retailers",
   "products",
+  "product_variants",
   "product_aliases",
   "product_retailer_mappings",
   "pantry_locations",
@@ -117,7 +121,7 @@ export interface SyncError {
  * Tabele adăugate după prima publicare: pot lipsi pe server până se aplică
  * migrația lor pe producție. Tragerea le sare atunci, fără eroare.
  */
-export const OPTIONAL_TABLES = new Set<TableName>(["recipe_photos"]);
+export const OPTIONAL_TABLES = new Set<TableName>(["recipe_photos", "product_variants"]);
 
 /**
  * Fișierul unei fotografii a gospodăriei, ținut local până ajunge în
@@ -150,6 +154,7 @@ export class CamaraDB extends Dexie {
   product_categories!: Table<ProductCategory, string>;
   brands!: Table<Brand, string>;
   products!: Table<Product, string>;
+  product_variants!: Table<ProductVariant, string>;
   product_aliases!: Table<ProductAlias, string>;
   retailers!: Table<Retailer, string>;
   product_retailer_mappings!: Table<ProductRetailerMapping, string>;
@@ -206,6 +211,10 @@ export class CamaraDB extends Dexie {
       recipe_photos: "&id, household_id, recipe_id",
       photo_uploads: "&photo_id",
       photo_removals: "&storage_path",
+    });
+    // Variantele comerciale (.tasks/007, etapa 3).
+    this.version(3).stores({
+      product_variants: "&id, household_id, product_id",
     });
   }
 
