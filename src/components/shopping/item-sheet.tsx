@@ -68,7 +68,8 @@ export function ItemSheet(props: ItemSheetProps) {
 }
 
 function ItemSheetForm({ item, estimate, categories, retailers, lists, focusPrice, variants, onClose, onSave, onMove, onDelete }: ItemSheetProps & { item: ShoppingListItem }) {
-  const [variantId, setVariantId] = useState<string | null>(item.variant_id ?? null);
+  // O variantă ștearsă între timp nu mai e de ales: linia trece pe „Fără marcă anume”.
+  const [variantId, setVariantId] = useState<string | null>(variants?.list.some((v) => v.id === item.variant_id) ? item.variant_id! : null);
   const [quantity, setQuantity] = useState(item.quantity == null ? "" : String(item.quantity).replace(".", ","));
   const [unit, setUnit] = useState<UnitCode | "">(item.unit ?? "");
   const [price, setPrice] = useState(item.actual_price == null ? "" : item.actual_price.toFixed(2).replace(".", ","));

@@ -150,8 +150,12 @@ export function VariantPicker({
             value={ean}
             onChange={(e) => setEan(e.target.value)}
             maxLength={20}
-            error={error}
           />
+          {error && (
+            <p role="alert" className="text-sm text-accent">
+              {error}
+            </p>
+          )}
           <div className="flex gap-2">
             <Button
               variant="ghost"
@@ -162,7 +166,7 @@ export function VariantPicker({
             >
               Renunță
             </Button>
-            <Button block onClick={add} disabled={saving}>
+            <Button className="flex-1" onClick={add} disabled={saving}>
               Adaugă varianta
             </Button>
           </div>

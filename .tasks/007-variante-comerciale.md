@@ -1,6 +1,6 @@
 # 007 — Variante comerciale (marcă, ambalaj, cod de bare)
 
-**Stare:** în lucru: etapele 1–3 gata în repo (18 oct. 2026); urmează etapa 4 (ecranele).
+**Stare:** în lucru: etapele 1–4 gata în repo (18 oct. 2026); urmează etapa 5 (migrația pe producție, aprobată, și încercarea pe telefon).
 **Ramura:** câte una pe etapă, fiecare cu PR-ul ei din `main`.
 
 ## Scop
@@ -37,7 +37,7 @@ Deciziile proprietarului (12 oct. 2026, chestionar):
 | 1 | **Logica** (`src/lib/domain/variants.ts`, pură): tipul `ProductVariant`; prețul pe kg al unei variante; conversia pachet/bucată ↔ g prin `net_quantity`; estimarea care preferă prețurile variantei (în `pricing.ts`); comparația pe mărci. Teste cu date fixe. | gata | (vezi PR) |
 | 2 | **Baza de date:** migrația `product_variants` + `variant_id` pe cele 3 tabele, indexuri, RLS, `check_household_refs`, `touch_updated_at`, `keep_household_id`. Teste RLS în `supabase/tests/` (membru, alt membru, admin global, referință din altă gospodărie). `npm run test:db`. Documentația schemei. | gata (PR #57) | |
 | 3 | **Local și sincronizare:** versiune nouă Dexie, `product_variants` în `SYNCED_TABLES`, copia de siguranță (export/import), serviciile (adaugă/editează/șterge variantă; `variant_id` la linia din listă, la finalizare și la prețuri). Teste unitare și `e2e-cloud`. | gata (testul `e2e-cloud` trece la etapa 4: are nevoie de ecrane) | (vezi PR) |
-| 4 | **Ecranele:** în fișa produsului din listă, „Marca și ambalajul” (opțional) cu „Variantă nouă” (marcă, denumire, gramaj, cod de bare); în Buget → Prețuri, prețul pe kg pe mărci și alegerea variantei la un preț nou; adminul adaugă variante globale în `/admin`. Textele: un chestionar. E2E, capturi doar pentru ecranele noi. | de făcut | |
+| 4 | **Ecranele:** în fișa produsului din listă, „Marca și ambalajul” (opțional) cu „Variantă nouă” (marcă, denumire, gramaj, cod de bare); în Buget → Prețuri, prețul pe kg pe mărci și alegerea variantei la un preț nou; adminul adaugă variante globale în `/admin`. Textele: un chestionar. E2E, capturi doar pentru ecranele noi. | gata | (vezi PR) |
 | 5 | **Producția:** migrația cu acordul proprietarului, apoi integrarea; verificare pe telefon. | de făcut | |
 
 ## Rezumat pe etape
@@ -62,6 +62,18 @@ Deciziile proprietarului (12 oct. 2026, chestionar):
 - Teste: `src/lib/services/variants.test.ts` (9), inclusiv „Cum verific” cap-coadă în baza locală. `npm test`: 491.
 - `verificare`: reparat (blocant pentru producție): `updateItem` cu `variant_id: null` pe o linie fără variantă nu mai trimite câmpul.
 
+### Etapa 4 (18 oct. 2026)
+- **Textele** aprobate de proprietar (chestionar, 18 oct. 2026, „Aprob toate”), inclusiv mesajele din etapa 3.
+- `VariantPicker` (`src/components/shopping/variant-picker.tsx`): „Marca și ambalajul” (opțional), „Fără marcă anume”, „+ Variantă nouă” cu marca, numele de pe ambalaj, cantitatea netă (g/kg/ml/l) și codul de bare; în `/admin` doar „Variantă nouă”.
+- **Fișa produsului din listă:** alegerea variantei; rândul arată „1 pachet · Sissi, Șuncă de pui, 300 g”. O variantă ștearsă între timp trece pe „Fără marcă anume”.
+- **Buget → Prețuri:** „Prețul pe kg, pe mărci” (sau pe litru), doar când produsul are prețuri pe variante; la un preț nou se alege varianta (cu gramaj, propune „1 pachet”); istoricul arată varianta.
+- **`/admin`:** în fișa produsului, „Variante în catalogul comun”, cu „Variantă nouă” și „Scoate varianta”.
+- **Poarta:** `variantsEnabled` (ca la fotografii): pe producție, ecranele apar doar după ce serverul confirmă tabelul, deci PR-ul se poate integra și înainte de migrație.
+- **Defect găsit și reparat** (`src/lib/db/write.ts`, `writeTransaction`): la „Finalizează”, fiecare scriere repornea liveQuery-urile paginii, iar Dexie putea „scurge” zona lor peste un `await` nativ; scrierea următoare era refuzată („Readwrite transaction in liveQuery context”), iar finalizarea se oprea la jumătate. Se vedea doar când citirile paginii durau puțin mai mult (aici, după citirea mărcilor). Scrierile pornesc acum din zona globală când sunt prinse într-o zonă de liveQuery (și nu într-o tranzacție de-a noastră). Acoperit de `e2e/variante.spec.ts` (fără reparație, pică).
+- **Defect găsit și reparat separat** (PR #59): modificările parțiale resetau câmpurile netrimise (zod 4).
+- **Teste:** `e2e/variante.spec.ts` („Cum verific” cap-coadă). `npm run test:e2e`: 32 trec (la o rulare, „prețuri de la piață și comparație” a expirat după 1 min și a trecut la reluare). Testul `e2e-cloud` pentru variante: amânat, pentru că `variantsEnabled` cere confirmarea serverului și E2E cloud aplică migrațiile, deci ar merge; rămâne de scris la etapa 5.
+- `verificare`: nimic blocant; reparate: varianta ștearsă blocând salvarea, mesajul de eroare sub câmpul potrivit. Rămas, minor: dacă deschizi „+ Variantă nouă” și salvezi fără „Adaugă varianta”, linia rămâne cu varianta de dinainte.
+
 ## După prima versiune (decizii separate)
 - **Scanarea codului de bare** cu camera telefonului (bibliotecă nouă, teste pe Android și iPhone reale).
 - **Open Food Facts** după cod de bare: propune numele și gramajul, tu confirmi (licență ODbL, cu atribuire; cere acces la rețea).
@@ -75,4 +87,4 @@ Deciziile proprietarului (12 oct. 2026, chestionar):
 Pe telefon: adaugi „Sissi, Șuncă de pui, 300 g” la linia de șuncă din listă, plătești 21 lei, termini cumpărăturile. În Buget → Prețuri, la Șuncă presată, apare 70,00 lei/kg pentru Sissi. Data viitoare, linia cu aceeași variantă e estimată la 21 lei.
 
 ## Următorul pas
-Etapa 4: ecranele și chestionarul cu textele.
+Etapa 5: migrația pe producție (aprobată în chestionar, 18 oct. 2026), apoi încercarea pe telefon.
