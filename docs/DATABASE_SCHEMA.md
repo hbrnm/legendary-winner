@@ -8,6 +8,7 @@ Sursa de adevăr: [`supabase/migrations/20261011000001_schema.sql`](../supabase/
 - Ștergerea e logică (`deleted_at`); tabelele sincronizate nu au politici `DELETE`.
 - `household_id` nu se poate schimba după creare (`keep_household_id`).
 - Referințele între tabele trebuie să fie din aceeași gospodărie sau globale (`check_household_refs`).
+- `variant_id` (listă, cumpărătură, preț) e nulabil (null = produsul generic) și trebuie să fie o variantă a `product_id` de pe același rând (`check_variant_product`).
 
 ## Conturi și gospodării
 | Tabel | Câmpuri principale | Acces (RLS) |
@@ -29,6 +30,7 @@ Citire: rândurile globale + ale gospodăriilor proprii. Scriere: globale doar `
 | `brands` | `name` |
 | `products` | `name`, `category_id`, `subcategory`, `default_unit`, `brand_id`, `ean`, `season_months`, `is_traditional`, `is_market_typical`, `allergens`, `piece_grams` (g pe bucată, aproximativ, pentru buc ↔ kg; migrația `20261012000001`), `grams_per_ml` (densitate aproximativă, g/ml, pentru lingură ↔ g; migrația `20261012000002`) |
 | `product_aliases` | `product_id`, `alias` |
+| `product_variants` | `product_id`, `brand_id`, `name` (denumirea comercială), `net_quantity` + `net_unit` (conținutul net, g/kg/ml/l, ambele sau niciunul), `ean` (unic pe gospodărie/global); fără `DELETE` nici în drepturi; migrația `20261018000001` |
 | `retailers` | `name`, `kind`, `details` |
 | `product_retailer_mappings` | `product_id`, `retailer_id`, `retailer_product_name`, `ean` |
 | `pantry_locations` | `name`, `sort_order` |
@@ -43,10 +45,10 @@ Citesc și scriu doar membrii gospodăriei.
 | --- | --- |
 | `household_settings` | `pantry_on_purchase`, `week_starts_on` |
 | `shopping_lists` | `name`, `is_recurring`, `cycle`, `archived_at`, `default_retailer_id` |
-| `shopping_list_items` | `list_id`, `product_id`/`name`, `quantity`, `unit`, `category_id`, `estimated_price`, `actual_price`, `retailer_id`, `source`, `checked`, `checked_by`, `origin` |
+| `shopping_list_items` | `list_id`, `product_id`/`name`, `quantity`, `unit`, `category_id`, `estimated_price`, `actual_price`, `retailer_id`, `source`, `checked`, `checked_by`, `origin`, `variant_id` |
 | `shopping_transactions` | `list_id`, `list_cycle` (unic pe listă), `started_at`, `completed_at` |
-| `shopping_transaction_items` | `transaction_id`, `list_item_id`, `product_id`, `quantity`, `amount`, `retailer_id`, `purchased_at` |
-| `product_prices` | `product_id`, `retailer_id`, `source`, `amount`, `quantity`, `unit`, `price_type`, `confidence`, `observed_on` |
+| `shopping_transaction_items` | `transaction_id`, `list_item_id`, `product_id`, `quantity`, `amount`, `retailer_id`, `purchased_at`, `variant_id` |
+| `product_prices` | `product_id`, `retailer_id`, `source`, `amount`, `quantity`, `unit`, `price_type`, `confidence`, `observed_on`, `variant_id` |
 | `favorite_recipes` | `recipe_id` |
 | `recipe_photos` | `recipe_id` (globală sau a gospodăriei), `storage_path` (`{household_id}/{recipe_id}/{id}.webp` sau `.jpg`, legată de rând), `width`, `height` (1–1280), `created_by`; cel mult una activă pe gospodărie și rețetă |
 | `meal_plan_items` | `date`, `slot`, `recipe_id`, `servings`, `note` |
@@ -57,7 +59,7 @@ Citesc și scriu doar membrii gospodăriei.
 Bucketul privat `recipe-photos` (max. 1 MB pe fișier, `image/webp` și `image/jpeg`) ține fișierele din `recipe_photos`. Politicile pe `storage.objects` lasă doar membrii gospodăriei din primul segment al căii să citească, să încarce, să înlocuiască și să șteargă (`is_member(photo_household(name))`; o cale fără gospodărie e refuzată). Niciun URL public.
 
 ## Realtime
-Publicația `supabase_realtime` include listele, tranzacțiile, prețurile, planul, cămara, bugetele, favoritele, setările, produsele, rețetele și fotografiile rețetelor.
+Publicația `supabase_realtime` include listele, tranzacțiile, prețurile, planul, cămara, bugetele, favoritele, setările, produsele, variantele lor, rețetele și fotografiile rețetelor.
 
 ## Catalogul inițial
 `supabase/seed.sql` e generat din `src/data` cu `npm run seed:sql`. Testul `src/data/catalog.test.ts` verifică dacă e la zi.
