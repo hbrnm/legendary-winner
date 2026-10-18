@@ -122,6 +122,8 @@ body {
   background: var(--bg);
   color: var(--ink);
   font-family: var(--font-sans);
+  /* Cifrele (prețuri, cantități, date) se aliniază în coloane peste tot. */
+  font-variant-numeric: tabular-nums;
   min-height: 100dvh;
 }
 

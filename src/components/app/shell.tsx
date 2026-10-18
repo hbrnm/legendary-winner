@@ -55,7 +55,7 @@ function SyncIndicator() {
       onClick={() => void syncNow()}
       title={`${label}. Apasă pentru a sincroniza acum.`}
       aria-label={`${label}. Sincronizează acum`}
-      className={`inline-flex h-9 items-center gap-1.5 rounded-full px-3 text-xs font-medium ${state === "offline" ? "bg-warn-soft text-warn" : state === "eroare" ? "bg-accent-soft text-accent" : "bg-surface-2 text-ink-2"}`}
+      className={`inline-flex h-11 items-center gap-1.5 rounded-full px-3 text-xs font-medium ${state === "offline" ? "bg-warn-soft text-warn" : state === "eroare" ? "bg-accent-soft text-accent" : "bg-surface-2 text-ink-2"}`}
     >
       <Icon size={14} className={state === "sincronizare" ? "animate-spin" : ""} />
       <span className="hidden sm:inline">{label}</span>

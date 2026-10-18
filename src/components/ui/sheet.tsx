@@ -59,7 +59,7 @@ export function Sheet({ open, onClose, title, children, footer }: { open: boolea
         <div className="flex max-h-[inherit] flex-col">
           <div className="flex items-center justify-between gap-2 border-b border-line px-4 py-3">
             <h2 className="text-lg font-semibold">{title}</h2>
-            <button type="button" onClick={onClose} aria-label="Închide" className="inline-flex h-10 w-10 items-center justify-center rounded-xl text-ink-2 hover:bg-surface-2">
+            <button type="button" onClick={onClose} aria-label="Închide" className="inline-flex h-11 w-11 items-center justify-center rounded-xl text-ink-2 transition-colors duration-150 ease-out hover:bg-surface-2 focus-visible:outline-2 focus-visible:outline-brand">
               <X size={20} />
             </button>
           </div>

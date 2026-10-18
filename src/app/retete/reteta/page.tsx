@@ -171,14 +171,18 @@ function RecipeScreen() {
         <Card className="p-3">
           <Users size={18} className="mx-auto text-ink-2" />
           <div className="mt-1 flex items-center justify-center gap-1">
-            <button type="button" aria-label="Mai puține porții" onClick={() => setServings(Math.max(1, servings - 1))} className="inline-flex h-7 w-7 items-center justify-center rounded-full bg-surface-2">
-              <Minus size={14} />
+            <button type="button" aria-label="Mai puține porții" onClick={() => setServings(Math.max(1, servings - 1))} className="group inline-flex h-11 w-8 items-center justify-center">
+              <span className="inline-flex h-7 w-7 items-center justify-center rounded-full bg-surface-2 transition-colors duration-150 ease-out group-active:bg-line">
+                <Minus size={14} />
+              </span>
             </button>
             <span className="w-6 text-sm font-semibold tabular" aria-live="polite">
               {servings}
             </span>
-            <button type="button" aria-label="Mai multe porții" onClick={() => setServings(Math.min(50, servings + 1))} className="inline-flex h-7 w-7 items-center justify-center rounded-full bg-surface-2">
-              <Plus size={14} />
+            <button type="button" aria-label="Mai multe porții" onClick={() => setServings(Math.min(50, servings + 1))} className="group inline-flex h-11 w-8 items-center justify-center">
+              <span className="inline-flex h-7 w-7 items-center justify-center rounded-full bg-surface-2 transition-colors duration-150 ease-out group-active:bg-line">
+                <Plus size={14} />
+              </span>
             </button>
           </div>
           <p className="text-xs text-ink-2">porții</p>

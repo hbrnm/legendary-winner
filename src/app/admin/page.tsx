@@ -364,7 +364,7 @@ function AdminScreen() {
                 {MONTHS.map((m, k) => {
                   const on = draft.season_months.includes(k + 1);
                   return (
-                    <button key={m} type="button" aria-pressed={on} onClick={() => setDraft({ ...draft, season_months: on ? draft.season_months.filter((x) => x !== k + 1) : [...draft.season_months, k + 1].sort((a, b) => a - b) })} className={`h-9 w-11 rounded-lg border text-sm ${on ? "border-brand bg-brand text-brand-ink" : "border-line"}`}>
+                    <button key={m} type="button" aria-pressed={on} onClick={() => setDraft({ ...draft, season_months: on ? draft.season_months.filter((x) => x !== k + 1) : [...draft.season_months, k + 1].sort((a, b) => a - b) })} className={`h-11 w-11 rounded-lg border text-sm ${on ? "border-brand bg-brand text-brand-ink" : "border-line"}`}>
                       {m}
                     </button>
                   );
@@ -376,7 +376,7 @@ function AdminScreen() {
                 {(Object.keys(ALLERGEN_LABELS) as Allergen[]).map((a) => {
                   const on = draft.allergens.includes(a);
                   return (
-                    <button key={a} type="button" aria-pressed={on} onClick={() => setDraft({ ...draft, allergens: on ? draft.allergens.filter((x) => x !== a) : [...draft.allergens, a] })} className={`h-9 rounded-lg border px-2.5 text-sm ${on ? "border-warn bg-warn-soft text-warn" : "border-line"}`}>
+                    <button key={a} type="button" aria-pressed={on} onClick={() => setDraft({ ...draft, allergens: on ? draft.allergens.filter((x) => x !== a) : [...draft.allergens, a] })} className={`h-11 rounded-lg border px-2.5 text-sm ${on ? "border-warn bg-warn-soft text-warn" : "border-line"}`}>
                       {ALLERGEN_LABELS[a]}
                     </button>
                   );
