@@ -5,14 +5,17 @@ import Link from "next/link";
 import { ArrowLeft, Plus, Tags, Trash2 } from "lucide-react";
 import { AppShell } from "@/components/app/shell";
 import { useAction, useData } from "@/components/app/hooks";
+import { useApp } from "@/components/app/app-provider";
+import { VariantPicker } from "@/components/shopping/variant-picker";
 import { ProductSearch } from "@/components/shopping/product-search";
 import { Button, IconButton } from "@/components/ui/button";
 import { Badge, EmptyState, SectionTitle, Spinner } from "@/components/ui/misc";
 import { Sheet } from "@/components/ui/sheet";
 import { LabeledInput, LabeledSelect, Segmented } from "@/components/ui/fields";
-import { owned, visible } from "@/lib/services/queries";
+import { owned, priceIndex, visible } from "@/lib/services/queries";
 import { deletePrice, recordPrice } from "@/lib/services/money";
-import { createRetailer } from "@/lib/services/catalog";
+import { createRetailer, createVariant } from "@/lib/services/catalog";
+import { compareVariants, variantLabel, variantsOf } from "@/lib/domain/variants";
 import { UserError } from "@/lib/services/context";
 import { formatRon, parseMoney } from "@/lib/domain/money";
 import { canConvert, convert, SHOPPING_UNITS, unitLabel } from "@/lib/domain/units";
@@ -32,6 +35,8 @@ function perUnit(p: ProductPrice, unit: UnitCode): number | null {
 
 function PricesScreen() {
   const { run, busy } = useAction();
+  const { variantsEnabled } = useApp();
+  const [variantId, setVariantId] = useState<string | null>(null);
   const [product, setProduct] = useState<Product | null>(null);
   const [adding, setAdding] = useState(false);
   const [amount, setAmount] = useState("");
@@ -45,17 +50,36 @@ function PricesScreen() {
   const [error, setError] = useState<string | null>(null);
 
   const data = useData(async (ctx) => {
-    const [prices, retailers, products] = await Promise.all([owned(ctx.db, "product_prices", ctx.householdId), visible(ctx.db, "retailers", ctx.householdId), visible(ctx.db, "products", ctx.householdId)]);
-    return { prices, retailers: retailers.sort((a, b) => a.name.localeCompare(b.name, "ro")), products: new Map(products.map((p) => [p.id, p])) };
+    const [prices, retailers, products, variants, brands, index] = await Promise.all([
+      owned(ctx.db, "product_prices", ctx.householdId),
+      visible(ctx.db, "retailers", ctx.householdId),
+      visible(ctx.db, "products", ctx.householdId),
+      visible(ctx.db, "product_variants", ctx.householdId),
+      visible(ctx.db, "brands", ctx.householdId),
+      priceIndex(ctx.db, ctx.householdId),
+    ]);
+    return {
+      prices,
+      retailers: retailers.sort((a, b) => a.name.localeCompare(b.name, "ro")),
+      products: new Map(products.map((p) => [p.id, p])),
+      variants,
+      brands: new Map(brands.map((b) => [b.id, b.name])),
+      index,
+    };
   });
 
   const view = useMemo(() => {
     if (!data) return null;
     const retailerName = new Map(data.retailers.map((r) => [r.id, r.name]));
     const place = (p: ProductPrice) => (p.retailer_id ? (retailerName.get(p.retailer_id) ?? "—") : SOURCE_LABELS[p.source]);
+    const variantById = new Map(data.variants.map((v) => [v.id, v]));
+    const variantName = (id: string | null | undefined) => {
+      const v = id ? variantById.get(id) : undefined;
+      return v ? variantLabel(v, v.brand_id ? data.brands.get(v.brand_id) : null) : null;
+    };
     if (!product) {
       const recent = [...data.prices].sort((a, b) => b.observed_on.localeCompare(a.observed_on) || b.updated_at.localeCompare(a.updated_at)).slice(0, 25);
-      return { place, recent, history: [], compare: [] };
+      return { place, variantName, recent, history: [], compare: [], brands: [], productVariants: [] };
     }
     const history = data.prices.filter((p) => p.product_id === product.id).sort((a, b) => b.observed_on.localeCompare(a.observed_on));
     const latestByPlace = new Map<string, ProductPrice>();
@@ -66,8 +90,11 @@ function PricesScreen() {
     const compare = [...latestByPlace.values()]
       .map((p) => ({ p, unitPrice: perUnit(p, product.default_unit) }))
       .sort((a, b) => (a.unitPrice ?? Infinity) - (b.unitPrice ?? Infinity));
-    return { place, recent: [], history, compare };
-  }, [data, product]);
+    // Prețul pe kg pe mărci, doar când produsul are prețuri pe variante.
+    const byBrand = compareVariants(data.index, product.id, toISODate(now()));
+    const brandsRows = variantsEnabled && byBrand.some((r) => r.variant_id) ? byBrand : [];
+    return { place, variantName, recent: [], history, compare, brands: brandsRows, productVariants: variantsOf(data.variants, product.id) };
+  }, [data, product, variantsEnabled]);
 
   if (!data || !view) return <Spinner />;
 
@@ -81,6 +108,7 @@ function PricesScreen() {
     setRetailerId("");
     setType("observat");
     setDate(toISODate(now()));
+    setVariantId(null);
   }
 
   async function save() {
@@ -95,7 +123,7 @@ function PricesScreen() {
         if (!newPlace.trim()) throw new UserError("Scrie numele pieței sau al producătorului.");
         rid = await createRetailer(ctx, { name: newPlace, kind: source === "producator" ? "producator" : source === "piata" ? "piata" : "alta" });
       }
-      await recordPrice(ctx, { product_id: product.id, amount: a, quantity: q, unit, source, retailer_id: rid, price_type: type, observed_on: date });
+      await recordPrice(ctx, { product_id: product.id, amount: a, quantity: q, unit, source, retailer_id: rid, price_type: type, observed_on: date, variant_id: variantsEnabled ? variantId : null });
       return true;
     }, "Prețul a fost salvat.");
     if (ok) setAdding(false);
@@ -140,6 +168,29 @@ function PricesScreen() {
             </EmptyState>
           ) : (
             <>
+              {view.brands.length > 0 && (
+                <>
+                  <SectionTitle>{view.brands.every((r) => r.unit === "l") ? "Prețul pe litru, pe mărci" : "Prețul pe kg, pe mărci"}</SectionTitle>
+                  <ul className="divide-y divide-line overflow-hidden rounded-2xl border border-line bg-surface">
+                    {view.brands.map((r) => {
+                      const p = data.prices.find((x) => x.id === r.price_id)!;
+                      return (
+                        <li key={r.variant_id ?? "_"} className="flex items-center gap-3 px-4 py-3">
+                          <div className="min-w-0 flex-1">
+                            <p className="text-[15px]">{view.variantName(r.variant_id) ?? "Fără marcă anume"}</p>
+                            <p className="text-xs text-ink-2">
+                              {formatShortDate(r.observed_on)} · {view.place(p)} {r.promo && <Badge tone="warn">promoție</Badge>} {r.stale && <Badge>preț vechi</Badge>}
+                            </p>
+                          </div>
+                          <span className="font-medium tabular">
+                            {formatRon(r.per)}/{r.unit}
+                          </span>
+                        </li>
+                      );
+                    })}
+                  </ul>
+                </>
+              )}
               <SectionTitle>Cel mai recent preț, pe locuri</SectionTitle>
               <ul className="divide-y divide-line overflow-hidden rounded-2xl border border-line bg-surface">
                 {view.compare.map(({ p, unitPrice }, k) => (
@@ -166,6 +217,7 @@ function PricesScreen() {
                     <div className="min-w-0 flex-1 text-sm">
                       <p>
                         {formatShortDate(p.observed_on)} · {view.place(p)}
+                        {view.variantName(p.variant_id) && ` · ${view.variantName(p.variant_id)}`}
                       </p>
                       <p className="text-xs text-ink-2">
                         {formatRon(p.amount)} pentru {p.quantity} {unitLabel(p.unit, p.quantity)} · {TYPE_LABELS[p.price_type]}
@@ -217,6 +269,22 @@ function PricesScreen() {
 
       <Sheet open={adding} onClose={() => setAdding(false)} title={`Preț pentru ${product?.name ?? ""}`} footer={<Button block onClick={save} disabled={busy}>Salvează prețul</Button>}>
         <div className="flex flex-col gap-4">
+          {variantsEnabled && product && (
+            <VariantPicker
+              variants={view.productVariants}
+              brands={data.brands}
+              value={variantId}
+              onChange={(id) => {
+                setVariantId(id);
+                // Cu gramajul cunoscut, prețul e de obicei pe un pachet.
+                if (id && data.variants.find((v) => v.id === id)?.net_quantity) {
+                  setQuantity("1");
+                  setUnit("pachet");
+                }
+              }}
+              onCreate={async (input) => (await run((ctx) => createVariant(ctx, { ...input, product_id: product.id }), "Am adăugat varianta.")) ?? null}
+            />
+          )}
           <div className="grid grid-cols-[1fr_1fr_7rem] gap-2">
             <LabeledInput label="Prețul (lei)" inputMode="decimal" value={amount} onChange={(e) => setAmount(e.target.value)} placeholder="8,50" autoFocus error={error} />
             <LabeledInput label="pentru" inputMode="decimal" value={quantity} onChange={(e) => setQuantity(e.target.value)} />

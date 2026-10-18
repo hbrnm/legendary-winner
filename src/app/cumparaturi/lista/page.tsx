@@ -6,6 +6,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { Archive, ArrowLeft, Check, Copy, MoreHorizontal, Pencil, Plus, Repeat, Scale, Store, Trash2, LayoutList } from "lucide-react";
 import { AppShell } from "@/components/app/shell";
 import { useAction, useData } from "@/components/app/hooks";
+import { useApp } from "@/components/app/app-provider";
 import { ProductSearch, type PickedProduct } from "@/components/shopping/product-search";
 import { ItemSheet } from "@/components/shopping/item-sheet";
 import { Button, IconButton } from "@/components/ui/button";
@@ -15,6 +16,8 @@ import { LabeledInput, Segmented, Toggle } from "@/components/ui/fields";
 import { useToast } from "@/components/ui/toast";
 import { listItems, owned, priceIndex, spendRecords, visible } from "@/lib/services/queries";
 import * as shop from "@/lib/services/shopping";
+import { createVariant } from "@/lib/services/catalog";
+import { variantLabel, variantsOf } from "@/lib/domain/variants";
 import { compareRetailers, estimateFlag, groupByCategory, lineEstimate, listTotals, quickSuggestions } from "@/lib/domain/shopping";
 import { budgetStatus, SOURCE_LABELS } from "@/lib/domain/budget";
 import { formatQuantity } from "@/lib/domain/units";
@@ -29,6 +32,7 @@ function ListScreen() {
   const router = useRouter();
   const toast = useToast();
   const { run } = useAction();
+  const { variantsEnabled } = useApp();
   const [groupBy, setGroupBy] = useState<"raioane" | "magazine">("raioane");
   const [editing, setEditing] = useState<{ id: string; focusPrice: boolean } | null>(null);
   const [menu, setMenu] = useState(false);
@@ -44,7 +48,7 @@ function ListScreen() {
     async (ctx) => {
       const list = await ctx.db.shopping_lists.get(id);
       if (!list || list.deleted_at || list.household_id !== ctx.householdId) return { list: null } as const;
-      const [items, categories, retailers, prices, lists, budgets, spend, settings, pantry] = await Promise.all([
+      const [items, categories, retailers, prices, lists, budgets, spend, settings, pantry, variants, brands] = await Promise.all([
         listItems(ctx.db, id),
         visible(ctx.db, "product_categories", ctx.householdId),
         visible(ctx.db, "retailers", ctx.householdId),
@@ -54,6 +58,8 @@ function ListScreen() {
         spendRecords(ctx.db, ctx.householdId),
         ctx.db.household_settings.get(ctx.householdId),
         owned(ctx.db, "pantry_items", ctx.householdId),
+        visible(ctx.db, "product_variants", ctx.householdId),
+        visible(ctx.db, "brands", ctx.householdId),
       ]);
       const mainBudget = budgets.find((b) => b.active && b.period === "lunar" && (b.scope.kind === "total" || b.scope.kind === "alimente")) ?? budgets.find((b) => b.active && b.scope.kind === "total");
       const catMap = new Map(categories.map((c) => [c.id, c]));
@@ -67,6 +73,9 @@ function ListScreen() {
         otherLists: lists.filter((l) => l.id !== id && !l.archived_at),
         budget,
         pantrySetting: settings?.pantry_on_purchase ?? "intreaba",
+        variants,
+        variantById: new Map(variants.map((v) => [v.id, v])),
+        brands: new Map(brands.map((b) => [b.id, b.name])),
         suggestions: quickSuggestions({
           listProductIds: items.flatMap((i) => (i.product_id ? [i.product_id] : [])),
           pantry,
@@ -110,6 +119,10 @@ function ListScreen() {
   }
   const list = data.list;
   const editingItem = editing ? (data.items.find((i) => i.id === editing.id) ?? null) : null;
+  const variantText = (item: ShoppingListItem) => {
+    const v = item.variant_id ? data.variantById.get(item.variant_id) : undefined;
+    return v && !v.deleted_at ? variantLabel(v, v.brand_id ? data.brands.get(v.brand_id) : null) : null;
+  };
 
   async function onPick({ product, parsed }: PickedProduct) {
     await run((ctx) => shop.addItem(ctx, id, { product_id: product?.id ?? null, name: product ? undefined : parsed.text, quantity: parsed.quantity, unit: parsed.unit }));
@@ -206,7 +219,7 @@ function ListScreen() {
                           )}
                         </span>
                         <span className="mt-0.5 truncate text-xs text-ink-2">
-                          {[formatQuantity(item.quantity, item.unit), item.note, item.source !== "supermarket" ? SOURCE_LABELS[item.source] : null].filter(Boolean).join(" · ")}
+                          {[formatQuantity(item.quantity, item.unit), variantText(item), item.note, item.source !== "supermarket" ? SOURCE_LABELS[item.source] : null].filter(Boolean).join(" · ")}
                         </span>
                       </button>
                       <button
@@ -303,6 +316,15 @@ function ListScreen() {
         retailers={data.retailers}
         lists={data.otherLists}
         focusPrice={editing?.focusPrice}
+        variants={
+          variantsEnabled && editingItem?.product_id
+            ? {
+                list: variantsOf(data.variants, editingItem.product_id),
+                brands: data.brands,
+                onCreate: async (input) => (await run((ctx) => createVariant(ctx, { ...input, product_id: editingItem.product_id! }), "Am adăugat varianta.")) ?? null,
+              }
+            : undefined
+        }
         onClose={() => setEditing(null)}
         onSave={async (patch) => {
           const item = editingItem!;
