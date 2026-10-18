@@ -3,7 +3,7 @@
 import { forwardRef, useId, type InputHTMLAttributes, type ReactNode, type SelectHTMLAttributes, type TextareaHTMLAttributes } from "react";
 
 const FIELD =
-  "w-full rounded-xl border border-line bg-surface px-3.5 text-base text-ink placeholder:text-ink-3 focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/25 disabled:opacity-60";
+  "w-full rounded-lg border border-line bg-surface px-3.5 text-base text-ink placeholder:text-ink-3 focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/25 disabled:opacity-60";
 
 export function Field({ label, hint, error, children, htmlFor }: { label: string; hint?: string; error?: string | null; children: ReactNode; htmlFor?: string }) {
   return (
@@ -63,7 +63,7 @@ export function LabeledSelect({ label, hint, children, ...rest }: SelectHTMLAttr
 /** Butoane de tip „segment” (ex. Lunar / Săptămânal). */
 export function Segmented<T extends string>({ value, options, onChange, label }: { value: T; options: { value: T; label: string }[]; onChange: (v: T) => void; label: string }) {
   return (
-    <div role="radiogroup" aria-label={label} className="flex rounded-xl bg-surface-2 p-1">
+    <div role="radiogroup" aria-label={label} className="flex rounded-lg bg-surface-2 p-1">
       {options.map((o) => (
         <button
           key={o.value}
@@ -71,7 +71,7 @@ export function Segmented<T extends string>({ value, options, onChange, label }:
           role="radio"
           aria-checked={value === o.value}
           onClick={() => onChange(o.value)}
-          className={`h-11 min-w-0 flex-1 rounded-lg px-1.5 text-sm font-medium leading-tight transition-colors duration-150 ease-out focus-visible:outline-2 focus-visible:outline-brand ${value === o.value ? "bg-surface text-ink shadow-card" : "text-ink-2 hover:text-ink"}`}
+          className={`h-11 min-w-0 flex-1 rounded-md px-1.5 text-sm font-medium leading-tight transition-colors duration-150 ease-out focus-visible:outline-2 focus-visible:outline-brand ${value === o.value ? "bg-surface text-ink shadow-card" : "text-ink-2 hover:text-ink"}`}
         >
           {o.label}
         </button>

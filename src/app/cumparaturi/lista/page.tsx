@@ -160,7 +160,7 @@ function ListScreen() {
       </div>
 
       {!list.archived_at && (
-        <div className="sticky top-14 z-20 -mx-4 bg-bg/95 px-4 pb-3 pt-1 backdrop-blur">
+        <div className="sticky top-14 z-20 -mx-4 bg-bg px-4 pb-3 pt-1">
           <ProductSearch onPick={onPick} />
         </div>
       )}
@@ -275,7 +275,7 @@ function ListScreen() {
       {totals && totals.item_count > 0 && <div aria-hidden className="h-24 lg:h-16" />}
 
       {totals && totals.item_count > 0 && (
-        <div className="pb-safe fixed inset-x-0 bottom-16 z-30 border-t border-line bg-surface/95 px-4 py-3 backdrop-blur lg:bottom-0 lg:left-60">
+        <div className="pb-safe fixed inset-x-0 bottom-16 z-30 border-t border-line bg-surface px-4 py-3 lg:bottom-0 lg:left-60">
           <div className="mx-auto flex max-w-3xl items-center gap-3">
             <div className="min-w-0 flex-1 tabular">
               <div className="flex flex-wrap items-baseline gap-x-3">

@@ -4,7 +4,7 @@ import type { ReactNode } from "react";
 
 export function Card({ children, className = "", as: Tag = "div", ...rest }: { children: ReactNode; className?: string; as?: "div" | "section" | "article" | "li"; "aria-label"?: string }) {
   return (
-    <Tag className={`rounded-2xl border border-line bg-surface shadow-card ${className}`} {...rest}>
+    <Tag className={`rounded-lg border border-line bg-surface ${className}`} {...rest}>
       {children}
     </Tag>
   );
@@ -12,8 +12,9 @@ export function Card({ children, className = "", as: Tag = "div", ...rest }: { c
 
 export function SectionTitle({ children, action }: { children: ReactNode; action?: ReactNode }) {
   return (
-    <div className="mb-2 mt-6 flex items-center justify-between gap-2 first:mt-0">
-      <h2 className="text-[13px] font-semibold uppercase tracking-wide text-ink-2">{children}</h2>
+    <div className="mb-2 mt-7 flex items-center gap-3 first:mt-0">
+      <h2 className="shrink-0 text-xs font-semibold uppercase tracking-wider text-ink-2">{children}</h2>
+      <span aria-hidden className="h-px flex-1 bg-line" />
       {action}
     </div>
   );
@@ -21,9 +22,9 @@ export function SectionTitle({ children, action }: { children: ReactNode; action
 
 export function EmptyState({ icon, title, children, action }: { icon?: ReactNode; title: string; children?: ReactNode; action?: ReactNode }) {
   return (
-    <div className="flex flex-col items-center gap-2 rounded-2xl border border-dashed border-line px-6 py-10 text-center">
+    <div className="flex flex-col items-center gap-2 rounded-lg border border-dashed border-line px-6 py-10 text-center">
       {icon && <div className="mb-1 text-ink-3">{icon}</div>}
-      <p className="font-medium text-ink">{title}</p>
+      <p className="font-serif text-lg font-semibold text-ink">{title}</p>
       {children && <div className="max-w-sm text-sm text-ink-2">{children}</div>}
       {action && <div className="mt-3">{action}</div>}
     </div>
@@ -106,7 +107,7 @@ export function PageHeader({ title, subtitle, action }: { title: string; subtitl
   return (
     <header className="mb-4 flex items-start justify-between gap-3">
       <div className="min-w-0">
-        <h1 className="text-2xl font-semibold tracking-tight text-ink">{title}</h1>
+        <h1 className="text-[28px] font-semibold leading-tight tracking-tight text-ink">{title}</h1>
         {subtitle && <p className="mt-0.5 text-sm text-ink-2">{subtitle}</p>}
       </div>
       {action}
