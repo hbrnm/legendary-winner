@@ -113,3 +113,17 @@ export function sharpen(gray: Uint8ClampedArray, width: number, height: number):
   }
   return out;
 }
+
+/**
+ * Safari pe iPhone nu desenează pânze mai mari de 4096 × 4096 pixeli în total:
+ * pânza iese goală sau ciuntită și cititorul vede altceva decât bonul.
+ * Ținem orice pânză sub prag (cu o margine).
+ */
+export const MAX_CANVAS_AREA = 16_000_000;
+
+/** Dimensiunile w × h micșorate proporțional, cât să încapă în `maxArea` pixeli. */
+export function fitArea(width: number, height: number, maxArea = MAX_CANVAS_AREA): { width: number; height: number } {
+  if (width * height <= maxArea) return { width, height };
+  const k = Math.sqrt(maxArea / (width * height));
+  return { width: Math.max(1, Math.floor(width * k)), height: Math.max(1, Math.floor(height * k)) };
+}
