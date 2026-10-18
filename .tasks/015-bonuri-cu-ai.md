@@ -1,6 +1,6 @@
 # 015 — Citirea bonurilor cu AI pe server (Gemini)
 
-**Stare:** în lucru (18 oct. 2026). Etapa 1 gata (PR); urmează etapa 2, într-o sesiune nouă.
+**Stare:** în lucru (18 oct. 2026). Etapele 1–2 gata (PR-uri); urmează producția (etapa 3), cu acordul proprietarului.
 **Ramuri:** câte una pe etapă, din `main` (`claude/015-...`).
 
 ## Scop
@@ -22,7 +22,7 @@ Decizia proprietarului (chestionar, 18 oct. 2026): **„Citire cu AI pe server�
 | # | Etapa | Stare | Fișiere |
 |---|---|---|---|
 | 1 | **Serverul:** `src/lib/server/read-receipt.ts` (cerere, mărimi, limită, Gemini cu imaginea, verificarea textului), funcția Edge `read-receipt`, migrația pentru limită, teste | gata | `src/lib/server/read-receipt.ts`, `supabase/functions/read-receipt/`, `supabase/migrations/`, `supabase/tests/recipe-import.test.ts` |
-| 2 | **Aplicația:** cu cont și internet, bonul decupat merge la server; altfel (sau la eșec) cititorul de pe telefon; textele noi într-un chestionar; teste | de făcut | `src/lib/ocr/read-receipt.ts`, `src/lib/supabase/client.ts`, `cumparaturi/bon/page.tsx` |
+| 2 | **Aplicația:** cu cont și internet, bonul decupat merge la server; altfel (sau la eșec) cititorul de pe telefon; textele noi într-un chestionar; teste | gata | `src/lib/ocr/read-receipt.ts`, `src/lib/supabase/client.ts`, `cumparaturi/bon/page.tsx` |
 | 3 | **Producția:** migrația și funcția (cu acordul proprietarului), integrarea, încercarea pe iPhone | de făcut | |
 
 ## Rezumat pe etape
@@ -34,8 +34,14 @@ Decizia proprietarului (chestionar, 18 oct. 2026): **„Citire cu AI pe server�
 - **Ordinea:** PR-ul etapei 1 nu schimbă nimic în aplicație; se poate integra oricând. Migrația și funcția ajung pe producție la etapa 3, cu acordul proprietarului.
 
 
+### Etapa 2: aplicația (18 oct. 2026)
+- **Textele** (chestionar, 18 oct. 2026, variantele recomandate): sub „Citește bonul”, doar cu cont, „Cu internet, bonul decupat se citește pe server și nu se păstrează. Fără internet, îl citesc pe telefon.”; în timpul citirii pe server „Citesc bonul…” și „Durează câteva secunde.”; pe „Verifică bonul”, când serverul n-a mers: „Nu am putut citi bonul pe server, așa că l-am citit pe telefon. Verifică liniile cu atenție.”
+- **Cum merge** (`src/lib/ocr/read-receipt.ts`): `receiptJpeg` (bonul decupat, color, latura mare cel mult 2400 px, fără mărire, sub limita de pânză, JPEG 0,85), `serverReceiptReader` (răspuns fără text = eroare), `readWithFallback` (întâi serverul, la orice eroare telefonul, cu `fallback`). `callReadReceipt` (`src/lib/supabase/client.ts`, 45 s). Pe ecran: serverul doar cu cont (`mode === "cloud"`) și `navigator.onLine`; textul trece prin același `parseReceipt`.
+- Ca la traducere, până când funcția e pe producție, fiecare bon ar arăta atenționarea și s-ar citi pe telefon (ca acum): deci PR-ul se integrează odată cu etapa 3.
+- **Teste:** `read-receipt.test.ts` (+5: base64, serverul, rezerva); `e2e-cloud/bon.spec.ts` (funcția simulată: nota, citirea pe server, JPEG ≤ 2400 px; la 502, telefonul cu atenționarea). `npm test`: 553; `npm run test:e2e`: 42; `npm run test:e2e:cloud`: 3.
+
 ## Cum verific la final
 Pe iPhone, cu cont: un bon Kaufland și unul Lidl → „Verifică bonul” are aproape toate liniile cu sumele corecte; în modul avion, același bon se citește cu cititorul de pe telefon.
 
 ## Următorul pas
-Etapa 2, într-o sesiune nouă: aplicația trimite bonul decupat la `read-receipt` (cu cont și internet), altfel cititorul de pe telefon; textele noi într-un chestionar.
+Etapa 3: cu acordul proprietarului, migrația `20261018000003` și funcția `read-receipt` pe producție, apoi integrarea PR-urilor #77 și al etapei 2; încercarea pe iPhone.
