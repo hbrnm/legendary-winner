@@ -98,3 +98,18 @@ export function stretchContrast(gray: Uint8ClampedArray): void {
   if (hi - lo < 16) return;
   for (let i = 0; i < gray.length; i++) gray[i] = Math.max(0, Math.min(255, Math.round(((gray[i] - lo) * 255) / (hi - lo))));
 }
+
+/**
+ * Accentuează marginile literelor (nucleul 3×3 „unsharp”: centrul ×5, vecinii
+ * ×−1). În probă, fără el sumele de pe bon ieșeau mai des greșit.
+ */
+export function sharpen(gray: Uint8ClampedArray, width: number, height: number): Uint8ClampedArray {
+  const out = new Uint8ClampedArray(gray);
+  for (let y = 1; y < height - 1; y++) {
+    for (let x = 1; x < width - 1; x++) {
+      const i = y * width + x;
+      out[i] = 5 * gray[i] - gray[i - 1] - gray[i + 1] - gray[i - width] - gray[i + width];
+    }
+  }
+  return out;
+}

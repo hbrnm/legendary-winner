@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { detectReceipt, FULL_CROP, stretchContrast } from "./receipt-crop";
+import { detectReceipt, FULL_CROP, sharpen, stretchContrast } from "./receipt-crop";
 
 /** O poză sintetică: fundal închis, bonul deschis în dreptunghiul dat (în pixeli). */
 function photo(w: number, h: number, rect: [number, number, number, number], paper = 220, background = 60): Uint8ClampedArray {
@@ -41,5 +41,17 @@ describe("contrastul", () => {
     const g = new Uint8ClampedArray(100).fill(120);
     stretchContrast(g);
     expect([...new Set(g)]).toEqual([120]);
+  });
+});
+
+describe("accentuarea", () => {
+  it("o margine devine mai tranșantă; zonele uniforme rămân la fel", () => {
+    // 6×3: stânga gri închis (80), dreapta deschis (200).
+    const g = new Uint8ClampedArray([80, 80, 80, 200, 200, 200, 80, 80, 80, 200, 200, 200, 80, 80, 80, 200, 200, 200]);
+    const s = sharpen(g, 6, 3);
+    expect(s[7]).toBe(80);
+    expect(s[8]).toBeLessThan(80);
+    expect(s[9]).toBeGreaterThan(200);
+    expect(s[0]).toBe(80);
   });
 });

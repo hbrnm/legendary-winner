@@ -1,4 +1,4 @@
-import { detectReceipt, stretchContrast, type Crop } from "@/lib/domain/receipt-crop";
+import { detectReceipt, sharpen, stretchContrast, type Crop } from "@/lib/domain/receipt-crop";
 
 // Citirea bonului pe telefon (.tasks/005, etapa 4): tesseract.js cu limba
 // română, din fișierele servite de aplicație (/ocr/<versiune>/, copiate la build
@@ -42,7 +42,7 @@ function toGray(rgba: Uint8ClampedArray): Uint8ClampedArray {
   return g;
 }
 
-/** Bonul decupat, în gri, cu contrastul întins, la lățimea de citire. */
+/** Bonul decupat, în gri, cu contrastul întins și accentuat, la lățimea de citire. */
 function prepare(image: ImageBitmap, crop: Crop): OffscreenCanvas {
   const sx = Math.round(crop.x * image.width);
   const sy = Math.round(crop.y * image.height);
@@ -54,8 +54,9 @@ function prepare(image: ImageBitmap, crop: Crop): OffscreenCanvas {
   const ctx = canvas.getContext("2d")!;
   ctx.drawImage(image, sx, sy, sw, sh, 0, 0, w, h);
   const data = ctx.getImageData(0, 0, w, h);
-  const gray = toGray(data.data);
-  stretchContrast(gray);
+  const flat = toGray(data.data);
+  stretchContrast(flat);
+  const gray = sharpen(flat, w, h);
   for (let i = 0; i < gray.length; i++) data.data.set([gray[i], gray[i], gray[i], 255], i * 4);
   ctx.putImageData(data, 0, 0);
   return canvas;
