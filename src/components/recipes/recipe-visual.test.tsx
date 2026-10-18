@@ -1,8 +1,7 @@
 // @vitest-environment jsdom
 import { describe, expect, it, vi } from "vitest";
 import { render } from "@testing-library/react";
-import { RecipeAvatar, RecipePhotoCredit, RecipeVisual, hasRecipeVisual, recipeCategoryIcon } from "./recipe-visual";
-import { CookingPot, Fish, Soup } from "lucide-react";
+import { RecipeAvatar, RecipePhotoCredit, RecipeVisual, hasRecipeVisual, recipeInitial } from "./recipe-visual";
 
 vi.mock("@/data/recipe-photos", async (load) => {
   const real = await load<typeof import("@/data/recipe-photos")>();
@@ -68,20 +67,20 @@ describe("RecipePhotoCredit", () => {
 });
 
 describe("RecipeAvatar", () => {
-  it("în liste, rețeta fără fotografie are un pătrat uniform de 64 px, cu pictograma categoriei", () => {
-    const { getByTestId } = render(<RecipeAvatar recipe={{ categories: ["pranz", "peste"] }} />);
+  it("în liste, rețeta fără fotografie are un pătrat uniform de 64 px, cu inițiala în serif pe kraft", () => {
+    const { getByTestId } = render(<RecipeAvatar recipe={{ name: "Sarmale în foi de varză" }} />);
     const el = getByTestId("avatar-reteta");
     expect(el.className).toContain("h-16 w-16");
-    expect(el.className).toContain("bg-brand-soft");
+    expect(el.className).toContain("bg-surface-2");
     expect(el.className).toContain("border-line");
-    expect(el.className).toContain("rounded-xl");
-    expect(el.querySelector("svg")).not.toBeNull();
+    expect(el.className).toContain("font-serif");
+    expect(el.textContent).toBe("S");
   });
 
-  it("alege pictograma după categorie, cu o oală pentru restul", () => {
-    expect(recipeCategoryIcon(["supe_ciorbe", "peste"])).toBe(Soup);
-    expect(recipeCategoryIcon(["cina", "peste"])).toBe(Fish);
-    expect(recipeCategoryIcon(["cina"])).toBe(CookingPot);
+  it("inițiala are majusculă românească, fără spațiile de la început", () => {
+    expect(recipeInitial("  ștrudel cu mere")).toBe("Ș");
+    expect(recipeInitial("țelină coaptă")).toBe("Ț");
+    expect(recipeInitial("")).toBe("?");
   });
 
   it("știe când rețeta are o fotografie de arătat", () => {
