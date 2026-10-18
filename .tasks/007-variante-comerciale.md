@@ -1,6 +1,6 @@
 # 007 — Variante comerciale (marcă, ambalaj, cod de bare)
 
-**Stare:** planul e gata; urmează etapa 1, într-o sesiune nouă.
+**Stare:** în lucru: etapa 1 gata (18 oct. 2026); urmează etapa 2.
 **Ramura:** câte una pe etapă, fiecare cu PR-ul ei din `main`.
 
 ## Scop
@@ -34,11 +34,20 @@ Deciziile proprietarului (12 oct. 2026, chestionar):
 ## Etape
 | # | Etapa | Stare | Commit |
 |---|---|---|---|
-| 1 | **Logica** (`src/lib/domain/variants.ts`, pură): tipul `ProductVariant`; prețul pe kg al unei variante; conversia pachet/bucată ↔ g prin `net_quantity`; estimarea care preferă prețurile variantei (în `pricing.ts`); comparația pe mărci. Teste cu date fixe. | de făcut | |
+| 1 | **Logica** (`src/lib/domain/variants.ts`, pură): tipul `ProductVariant`; prețul pe kg al unei variante; conversia pachet/bucată ↔ g prin `net_quantity`; estimarea care preferă prețurile variantei (în `pricing.ts`); comparația pe mărci. Teste cu date fixe. | gata | (vezi PR) |
 | 2 | **Baza de date:** migrația `product_variants` + `variant_id` pe cele 3 tabele, indexuri, RLS, `check_household_refs`, `touch_updated_at`, `keep_household_id`. Teste RLS în `supabase/tests/` (membru, alt membru, admin global, referință din altă gospodărie). `npm run test:db`. Documentația schemei. | de făcut | |
 | 3 | **Local și sincronizare:** versiune nouă Dexie, `product_variants` în `SYNCED_TABLES`, copia de siguranță (export/import), serviciile (adaugă/editează/șterge variantă; `variant_id` la linia din listă, la finalizare și la prețuri). Teste unitare și `e2e-cloud`. | de făcut | |
 | 4 | **Ecranele:** în fișa produsului din listă, „Marca și ambalajul” (opțional) cu „Variantă nouă” (marcă, denumire, gramaj, cod de bare); în Buget → Prețuri, prețul pe kg pe mărci și alegerea variantei la un preț nou; adminul adaugă variante globale în `/admin`. Textele: un chestionar. E2E, capturi doar pentru ecranele noi. | de făcut | |
 | 5 | **Producția:** migrația cu acordul proprietarului, apoi integrarea; verificare pe telefon. | de făcut | |
+
+## Rezumat pe etape
+### Etapa 1 (18 oct. 2026)
+- **Tipuri** (`types.ts`): `ProductVariant` (`product_id`, `brand_id`, `name`, `net_quantity`, `net_unit`, `ean`); `variant_id` opțional pe `ProductPrice`, `ShoppingListItem`, `ShoppingTransactionItem` (lipsă = produsul generic, deci rândurile vechi rămân valide).
+- **Conversia** `convertWithVariant` (`units.ts`): unitățile de ambalaj (`PACKAGE_UNITS`: buc, pachet, borcan, sticlă, cutie, conservă, pungă, plic, caserolă) se transformă prin conținutul net (g, kg, ml, l). Fără gramaj, sau aceeași unitate fără variantă cerută, rămâne conversia de acum (1 pachet = 1 pachet). Variantele șterse nu dau gramajul.
+- **Estimarea** (`pricing.ts`): `buildPriceIndex(prețuri, factori, variante)`; `PriceOptions.variant_id`: prețurile variantei au întâietate, apoi toate prețurile produsului, în ordinea de acum (magazin, sursă, promoție, vechime). Presupunere: „apoi ale produsului generic” = toate prețurile produsului (și ale altor mărci), ca la o linie fără variantă. `UnitPrice.variant_id` spune de unde e prețul. `lineEstimate` și `compareRetailers` trimit varianta liniei.
+- **Mărcile** (`variants.ts`): `basePrice` (lei/kg sau lei/l; lichidele pe litru), `compareVariants` (cel mai recent preț obișnuit al fiecărei variante, promoția doar dacă nu e altul; prețurile fără variantă ca rând „generic”; cel mai ieftin primul; din orice magazin), `variantLabel` („Sissi, Șuncă de pui, 300 g”), `variantsOf`.
+- **Teste:** `variants.test.ts` (14), inclusiv exemplul din „Cum verific”: 21 lei / pachet de 300 g → 70 lei/kg, iar linia cu varianta e estimată la 21 lei. `npm test`: 482 trec; `npm run build` reușit.
+- `verificare`: nimic blocant; reparate: 1 buc rămâne 1 buc la produsele cu greutate pe bucată, variantele șterse ignorate.
 
 ## După prima versiune (decizii separate)
 - **Scanarea codului de bare** cu camera telefonului (bibliotecă nouă, teste pe Android și iPhone reale).
@@ -53,4 +62,4 @@ Deciziile proprietarului (12 oct. 2026, chestionar):
 Pe telefon: adaugi „Sissi, Șuncă de pui, 300 g” la linia de șuncă din listă, plătești 21 lei, termini cumpărăturile. În Buget → Prețuri, la Șuncă presată, apare 70,00 lei/kg pentru Sissi. Data viitoare, linia cu aceeași variantă e estimată la 21 lei.
 
 ## Următorul pas
-Etapa 1, într-o sesiune nouă.
+Etapa 2: migrația `product_variants` și testele RLS.

@@ -1,5 +1,5 @@
-import type { ISODate, ProductPrice, PurchaseSource, UnitCode } from "./types";
-import { convert, convertForProduct, type ProductUnits } from "./units";
+import type { ISODate, ProductPrice, ProductVariant, PurchaseSource, UnitCode } from "./types";
+import { convert, convertWithVariant, type ProductUnits } from "./units";
 import { roundMoney } from "./money";
 import { daysBetween } from "./dates";
 
@@ -38,6 +38,8 @@ export interface UnitPrice {
   promo: boolean;
   /** Mai vechi de STALE_AFTER_DAYS față de `today`. */
   stale: boolean;
+  /** Varianta comercială a prețului; null = produsul generic. */
+  variant_id: string | null;
 }
 
 export interface PriceOptions {
@@ -47,19 +49,32 @@ export interface PriceOptions {
   today?: ISODate | null;
   /** Doar prețurile din magazinul contextului, oricare le-ar fi sursa (comparația pe magazine). */
   retailer_only?: boolean;
+  /** Varianta liniei: prețurile ei au întâietate, apoi oricare ale produsului. */
+  variant_id?: string | null;
 }
 
-/** Prețurile pe produs; opțional, factorii de conversie, ca prețul pe kg să acopere și bucățile sau lingurile. */
-export type PriceIndex = Map<string, ProductPrice[]> & { product_units?: ReadonlyMap<string, ProductUnits> };
+/**
+ * Prețurile pe produs; opțional, factorii de conversie, ca prețul pe kg să
+ * acopere și bucățile sau lingurile, și variantele, pentru ambalaje.
+ */
+export type PriceIndex = Map<string, ProductPrice[]> & {
+  product_units?: ReadonlyMap<string, ProductUnits>;
+  variants?: ReadonlyMap<string, ProductVariant>;
+};
 
 /**
  * Grupează prețurile pe produs, cele mai noi primele. Prețurile șterse și
  * cele cu cantitate zero se ignoră. Nu există prețuri implicite: un produs
  * fără preț introdus de gospodărie rămâne fără preț.
  */
-export function buildPriceIndex(prices: ProductPrice[], productUnits?: ReadonlyMap<string, ProductUnits>): PriceIndex {
+export function buildPriceIndex(
+  prices: ProductPrice[],
+  productUnits?: ReadonlyMap<string, ProductUnits>,
+  variants?: ReadonlyMap<string, ProductVariant>,
+): PriceIndex {
   const index: PriceIndex = new Map();
   if (productUnits) index.product_units = productUnits;
+  if (variants) index.variants = variants;
   for (const p of prices) {
     if (p.deleted_at || p.quantity <= 0 || p.amount < 0) continue;
     const list = index.get(p.product_id) ?? [];
@@ -85,22 +100,27 @@ function matchOf(p: ProductPrice, ctx: PriceContext | null | undefined, retailer
  * `unit` lipsește). Ordinea: preț obișnuit din același magazin, preț
  * obișnuit din aceeași sursă, apoi promoțiile în aceeași ordine; în fiecare
  * treaptă, cel mai recent. Prețurile din alte surse nu se folosesc pentru o
- * linie de listă (piața nu estimează un coș de supermarket). Fără preț
- * potrivit, rezultatul e null: nu se inventează nimic.
+ * linie de listă (piața nu estimează un coș de supermarket). Cu
+ * `variant_id`, prețurile variantei trec înaintea tuturor celorlalte, în
+ * aceeași ordine. Fără preț potrivit, rezultatul e null: nu se inventează nimic.
  */
 export function latestUnitPrice(index: PriceIndex, productId: string, unit?: UnitCode | null, opts: PriceOptions = {}): UnitPrice | null {
   const list = index.get(productId);
   if (!list) return null;
-  const rank = (m: PriceMatch, promo: boolean) => (promo ? 2 : 0) + (m === "alt_magazin" ? 1 : 0);
+  const wanted = opts.variant_id ?? null;
+  const rank = (m: PriceMatch, promo: boolean, otherVariant: boolean) => (otherVariant ? 4 : 0) + (promo ? 2 : 0) + (m === "alt_magazin" ? 1 : 0);
   let best: { p: ProductPrice; match: PriceMatch; qty: number; target: UnitCode; rank: number } | null = null;
   const pg = index.product_units?.get(productId);
+  const variantOf = (id: string | null | undefined) => (id ? index.variants?.get(id) ?? null : null);
   for (const p of list) {
     const target = unit ?? p.unit;
-    const qty = convertForProduct(p.quantity, p.unit, target, pg);
+    const qty = unit
+      ? convertWithVariant(p.quantity, p.unit, target, { units: pg, from_variant: variantOf(p.variant_id), to_variant: variantOf(wanted) })
+      : p.quantity;
     if (qty == null || qty <= 0) continue;
     const match = matchOf(p, opts.context, opts.retailer_only);
     if (!match) continue;
-    const r = rank(match, p.price_type === "promotie");
+    const r = rank(match, p.price_type === "promotie", wanted != null && (p.variant_id ?? null) !== wanted);
     // Lista e deja sortată de la cel mai nou, deci la rang egal îl păstrăm pe primul.
     if (!best || r < best.rank) best = { p, match, qty, target, rank: r };
   }
@@ -117,6 +137,7 @@ export function latestUnitPrice(index: PriceIndex, productId: string, unit?: Uni
     match: best.match,
     promo: p.price_type === "promotie",
     stale: opts.today ? daysBetween(p.observed_on, opts.today) > STALE_AFTER_DAYS : false,
+    variant_id: p.variant_id ?? null,
   };
 }
 
