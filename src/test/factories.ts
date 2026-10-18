@@ -3,6 +3,7 @@ import type {
   PantryItem,
   ProductCategory,
   ProductPrice,
+  ProductVariant,
   Recipe,
   RecipeIngredient,
   ShoppingListItem,
@@ -30,6 +31,10 @@ export function price(over: Partial<ProductPrice> & Pick<ProductPrice, "product_
     transaction_item_id: null,
     ...over,
   };
+}
+
+export function variant(over: Partial<ProductVariant> & Pick<ProductVariant, "id" | "product_id" | "name">): ProductVariant {
+  return { ...base(), brand_id: null, net_quantity: null, net_unit: null, ean: null, ...over };
 }
 
 export function listItem(over: Partial<ShoppingListItem> = {}): ShoppingListItem {

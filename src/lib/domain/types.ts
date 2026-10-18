@@ -96,6 +96,21 @@ export interface Brand extends SyncedRow {
   name: string;
 }
 
+/**
+ * Varianta comercială a unui produs generic: marca, denumirea de pe ambalaj,
+ * gramajul și codul de bare („Sissi, Șuncă de pui, 300 g”). Câmpurile
+ * necunoscute rămân null; nu se completează nimic din oficiu.
+ */
+export interface ProductVariant extends SyncedRow {
+  product_id: string;
+  brand_id: string | null;
+  name: string;
+  /** Conținutul net al unui ambalaj, în g, kg, ml sau l; null = necunoscut. */
+  net_quantity: number | null;
+  net_unit: UnitCode | null;
+  ean: string | null;
+}
+
 export type RetailerKind = "supermarket" | "hipermarket" | "discount" | "cash_carry" | "proximitate" | "piata" | "producator" | "alta";
 
 export interface Retailer extends SyncedRow {
@@ -130,6 +145,8 @@ export interface ProductPrice extends SyncedRow {
   observed_on: ISODate;
   /** Linia de tranzacție din care a provenit prețul, dacă e cazul. */
   transaction_item_id: string | null;
+  /** Varianta comercială; lipsă sau null = produsul generic. */
+  variant_id?: string | null;
 }
 
 export type Priority = "normala" | "ridicata";
@@ -166,6 +183,8 @@ export interface ShoppingListItem extends SyncedRow {
   checked_by: string | null;
   origin: ItemOrigin;
   sort_order: number;
+  /** Varianta comercială aleasă (opțional); lipsă sau null = produsul generic. */
+  variant_id?: string | null;
 }
 
 export interface ShoppingTransaction extends SyncedRow {
@@ -189,6 +208,8 @@ export interface ShoppingTransactionItem extends SyncedRow {
   retailer_id: string | null;
   source: PurchaseSource;
   purchased_at: ISODateTime;
+  /** Varianta comercială cumpărată; lipsă sau null = produsul generic. */
+  variant_id?: string | null;
 }
 
 export type Difficulty = "usor" | "mediu" | "dificil";

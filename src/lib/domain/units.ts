@@ -1,4 +1,4 @@
-import type { UnitCode } from "./types";
+import type { ProductVariant, UnitCode } from "./types";
 
 type Dimension = "masa" | "volum" | "bucata" | UnitCode;
 
@@ -94,6 +94,47 @@ export function convertForProduct(quantity: number, from: UnitCode, to: UnitCode
   if (to === "buc" && pg && pg > 0) return grams / pg;
   if (dimTo === "volum" && gml && gml > 0) return convert(grams / gml, "ml", to);
   return null;
+}
+
+/** Unitățile în care se scrie conținutul net al unui ambalaj. */
+export const NET_UNITS: UnitCode[] = ["g", "kg", "ml", "l"];
+
+/** Unitățile care înseamnă „un ambalaj” al variantei: 1 pachet de șuncă Sissi = 300 g. */
+export const PACKAGE_UNITS: UnitCode[] = ["buc", "pachet", "borcan", "sticla", "cutie", "conserva", "punga", "plic", "caserola"];
+
+function netOf(variant: ProductVariant | null | undefined, unit: UnitCode): { quantity: number; unit: UnitCode } | null {
+  if (!variant || variant.deleted_at || !PACKAGE_UNITS.includes(unit)) return null;
+  const { net_quantity: q, net_unit: u } = variant;
+  return q != null && q > 0 && u && NET_UNITS.includes(u) ? { quantity: q, unit: u } : null;
+}
+
+/**
+ * Ca `convertForProduct`, plus ambalajul variantelor: un pachet de 300 g
+ * înseamnă 300 g (2 pachete Sissi → 600 g; 600 g → 2 pachete). `from_variant`
+ * e varianta cantității date, `to_variant` a unității cerute. Fără conținut
+ * net cunoscut, rămâne conversia de acum (1 pachet = 1 pachet).
+ */
+export function convertWithVariant(
+  quantity: number,
+  from: UnitCode,
+  to: UnitCode,
+  opts: { units?: ProductUnits | null; from_variant?: ProductVariant | null; to_variant?: ProductVariant | null } = {},
+): number | null {
+  const fromNet = netOf(opts.from_variant, from);
+  const toNet = netOf(opts.to_variant, to);
+  // Aceeași unitate, fără variantă cerută: 1 pachet rămâne 1 pachet, ca înainte.
+  if (from === to && !toNet) return quantity;
+  let out: number | null = null;
+  if (fromNet || toNet) {
+    const q = fromNet ? quantity * fromNet.quantity : quantity;
+    const u = fromNet ? fromNet.unit : from;
+    if (!toNet) out = convertForProduct(q, u, to, opts.units);
+    else {
+      const inNet = convertForProduct(q, u, toNet.unit, opts.units);
+      out = inNet == null ? null : inNet / toNet.quantity;
+    }
+  }
+  return out ?? convertForProduct(quantity, from, to, opts.units);
 }
 
 /** Unitatea în care se adună cantitățile unei dimensiuni (kg/l pentru masă și volum). */

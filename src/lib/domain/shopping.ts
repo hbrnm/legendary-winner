@@ -19,7 +19,7 @@ export interface LineEstimate {
 export function lineEstimate(item: ShoppingListItem, prices: PriceIndex, today: ISODate | null = null): LineEstimate {
   if (item.estimated_price != null) return { amount: item.estimated_price, kind: "manual" };
   if (item.product_id) {
-    const c = estimateCost(prices, item.product_id, item.quantity ?? 1, item.unit, { context: { retailer_id: item.retailer_id, source: item.source }, today });
+    const c = estimateCost(prices, item.product_id, item.quantity ?? 1, item.unit, { context: { retailer_id: item.retailer_id, source: item.source }, variant_id: item.variant_id, today });
     if (c) return { amount: c.cost, kind: "calculat", price: c.price };
   }
   return { amount: null, kind: "necunoscut" };
@@ -62,7 +62,7 @@ export function compareRetailers(items: ShoppingListItem[], prices: PriceIndex, 
     let stale = 0;
     for (const i of todo) {
       if (!i.product_id) continue;
-      const c = estimateCost(prices, i.product_id, i.quantity ?? 1, i.unit, { context: { retailer_id, source: i.source }, retailer_only: true, today });
+      const c = estimateCost(prices, i.product_id, i.quantity ?? 1, i.unit, { context: { retailer_id, source: i.source }, retailer_only: true, variant_id: i.variant_id, today });
       if (!c) continue;
       costs.push(c.cost);
       if (c.price.promo) promo++;
