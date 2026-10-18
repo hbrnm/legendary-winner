@@ -4,6 +4,7 @@ import { setClock } from "@/lib/clock";
 import { seedCatalog } from "./bootstrap";
 import type { AppCtx } from "./context";
 import { learnReceiptAlias, proposeReceiptMatches } from "./receipts";
+import { createProduct, deleteProduct } from "./catalog";
 import { exportHouseholdData, importHouseholdData } from "./backup";
 import { owned } from "./queries";
 import { receiptKey } from "@/lib/domain/receipt-match";
@@ -43,6 +44,17 @@ describe("potrivirea liniilor de pe bon", () => {
     expect(rows).toHaveLength(1);
     expect(rows[0].receipt_text).toBe(receiptKey("VDR.LAP.3,5%1L"));
     expect((await ctx.db.outbox.toArray()).some((e) => e.table === "receipt_aliases")).toBe(true);
+  });
+
+  it("nu propune un produs șters; la alt magazin, cea mai recentă confirmare", async () => {
+    const own = await createProduct(ctx, { name: "Zacusca bunicii", category_id: "conserve", default_unit: "borcan" });
+    await learnReceiptAlias(ctx, { retailer_id: "lidl", receipt_text: "ZACUSCA VINETE", product_id: own });
+    await deleteProduct(ctx, own);
+    expect((await proposeReceiptMatches(ctx, ["ZACUSCA VINETE"], "lidl"))[0]?.source).not.toBe("invatat");
+    await learnReceiptAlias(ctx, { retailer_id: "lidl", receipt_text: "PAINE NEAGRA", product_id: "lapte-integral" });
+    setClock("2026-10-18T10:00:00.000Z");
+    await learnReceiptAlias(ctx, { retailer_id: "kaufland", receipt_text: "PAINE NEAGRA", product_id: "lapte-semidegresat" });
+    expect((await proposeReceiptMatches(ctx, ["PAINE NEAGRA"], "penny"))[0]?.product_id).toBe("lapte-semidegresat");
   });
 
   it("refuză textul gol și produsul inexistent", async () => {

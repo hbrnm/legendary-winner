@@ -10,6 +10,7 @@ export interface ReceiptAliasLike {
   receipt_text: string;
   product_id: string;
   deleted_at: string | null;
+  updated_at: string;
 }
 
 export interface MatchProposal {
@@ -20,7 +21,7 @@ export interface MatchProposal {
 
 /** Cheia unui text de pe bon: fără diacritice, majuscule și semne („LAPTE ZUZU 1.5% 1L” → „lapte zuzu 1 5 1l”). */
 export function receiptKey(text: string): string {
-  return normalize(text).slice(0, 120);
+  return normalize(text).slice(0, 120).trim();
 }
 
 /** Cuvintele care pot fi căutate: cel puțin 3 litere (fără „klc”, „410g”, „n.”). */
@@ -28,10 +29,14 @@ function words(key: string): string[] {
   return key.split(" ").filter((w) => /^[a-z]{3,}$/.test(w));
 }
 
-export function proposeMatch(text: string, retailerId: string | null, aliases: ReceiptAliasLike[], index: SearchIndex): MatchProposal | null {
+/** `products`: id-urile produselor care încă există (o potrivire spre un produs șters nu se propune). */
+export function proposeMatch(text: string, retailerId: string | null, aliases: ReceiptAliasLike[], index: SearchIndex, products?: ReadonlySet<string>): MatchProposal | null {
   const key = receiptKey(text);
   if (!key) return null;
-  const learned = aliases.filter((a) => !a.deleted_at && a.receipt_text === key);
+  // Cea mai recentă confirmare întâi, ca alegerea să nu depindă de ordinea din baza locală.
+  const learned = aliases
+    .filter((a) => !a.deleted_at && a.receipt_text === key && (!products || products.has(a.product_id)))
+    .sort((a, b) => b.updated_at.localeCompare(a.updated_at));
   // Același text la același magazin, apoi la oricare (același produs, alt lanț).
   const own = learned.find((a) => a.retailer_id === retailerId) ?? learned.find((a) => a.retailer_id === null) ?? learned[0];
   if (own) return { product_id: own.product_id, source: "invatat" };

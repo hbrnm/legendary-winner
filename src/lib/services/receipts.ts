@@ -2,7 +2,7 @@ import { upsertRow } from "@/lib/db/write";
 import { stableId } from "@/lib/db/ids";
 import { receiptKey, proposeMatch, type MatchProposal } from "@/lib/domain/receipt-match";
 import { type AppCtx, UserError, w } from "./context";
-import { owned } from "./queries";
+import { owned, visible } from "./queries";
 import { productSearchIndex } from "./catalog";
 
 // Bonurile fiscale (.tasks/005): potrivirea care învață din confirmări.
@@ -28,6 +28,7 @@ export async function learnReceiptAlias(ctx: AppCtx, input: { retailer_id: strin
 
 /** Propunerile pentru liniile unui bon, în ordine (null = fără propunere). */
 export async function proposeReceiptMatches(ctx: AppCtx, names: string[], retailerId: string | null): Promise<(MatchProposal | null)[]> {
-  const [aliases, index] = await Promise.all([owned(ctx.db, "receipt_aliases", ctx.householdId), productSearchIndex(ctx)]);
-  return names.map((n) => (n ? proposeMatch(n, retailerId, aliases, index) : null));
+  const [aliases, index, products] = await Promise.all([owned(ctx.db, "receipt_aliases", ctx.householdId), productSearchIndex(ctx), visible(ctx.db, "products", ctx.householdId)]);
+  const alive = new Set(products.map((p) => p.id));
+  return names.map((n) => (n ? proposeMatch(n, retailerId, aliases, index, alive) : null));
 }
