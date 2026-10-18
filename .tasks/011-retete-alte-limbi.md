@@ -1,6 +1,6 @@
 # 011 — Rețete din alte limbi, cu unități metrice
 
-**Stare:** gata (17 oct. 2026), etapele 1–3; rămâne doar încercarea pe telefon (mai jos)
+**Stare:** în așteptare (proprietarul: încercarea pe telefon, 18 oct. 2026). Etapele 1–3 gata.
 **Ramura:** câte una pe etapă, fiecare cu PR-ul ei din `main`.
 
 ## Scop

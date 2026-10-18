@@ -1,6 +1,6 @@
 # 013 — Fotografia rețetei importate din link
 
-**Stare:** gata pe producție (17 oct. 2026); rămâne încercarea pe telefon
+**Stare:** în așteptare (proprietarul: încercarea pe telefon, 18 oct. 2026). Gata pe producție.
 **Ramura:** câte una pe etapă, fiecare cu PR-ul ei din `main`.
 
 ## Scop
