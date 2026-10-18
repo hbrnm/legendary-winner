@@ -1,6 +1,6 @@
 # 007 — Variante comerciale (marcă, ambalaj, cod de bare)
 
-**Stare:** în lucru: etapele 1–4 gata în repo (18 oct. 2026); urmează etapa 5 (migrația pe producție, aprobată, și încercarea pe telefon).
+**Stare:** în lucru: etapele 1–4 gata; migrația e pe producție (18 oct. 2026); rămâne încercarea pe telefon.
 **Ramura:** câte una pe etapă, fiecare cu PR-ul ei din `main`.
 
 ## Scop
@@ -38,7 +38,7 @@ Deciziile proprietarului (12 oct. 2026, chestionar):
 | 2 | **Baza de date:** migrația `product_variants` + `variant_id` pe cele 3 tabele, indexuri, RLS, `check_household_refs`, `touch_updated_at`, `keep_household_id`. Teste RLS în `supabase/tests/` (membru, alt membru, admin global, referință din altă gospodărie). `npm run test:db`. Documentația schemei. | gata (PR #57) | |
 | 3 | **Local și sincronizare:** versiune nouă Dexie, `product_variants` în `SYNCED_TABLES`, copia de siguranță (export/import), serviciile (adaugă/editează/șterge variantă; `variant_id` la linia din listă, la finalizare și la prețuri). Teste unitare și `e2e-cloud`. | gata (testul `e2e-cloud` a venit cu etapa 4: are nevoie de ecrane) | (vezi PR) |
 | 4 | **Ecranele:** în fișa produsului din listă, „Marca și ambalajul” (opțional) cu „Variantă nouă” (marcă, denumire, gramaj, cod de bare); în Buget → Prețuri, prețul pe kg pe mărci și alegerea variantei la un preț nou; adminul adaugă variante globale în `/admin`. Textele: un chestionar. E2E, capturi doar pentru ecranele noi. | gata | (vezi PR) |
-| 5 | **Producția:** migrația cu acordul proprietarului, apoi integrarea; verificare pe telefon. | de făcut | |
+| 5 | **Producția:** migrația cu acordul proprietarului, apoi integrarea; verificare pe telefon. | migrația și integrarea gata; de verificat pe telefon | |
 
 ## Rezumat pe etape
 ### Etapa 1 (18 oct. 2026)
@@ -76,6 +76,11 @@ Deciziile proprietarului (12 oct. 2026, chestionar):
 - **Teste:** `e2e/variante.spec.ts` („Cum verific” cap-coadă). `npm run test:e2e`: 32 trec (la o rulare, „prețuri de la piață și comparație” a expirat după 1 min și a trecut la reluare). 
 - `verificare`: nimic blocant; reparate: varianta ștearsă blocând salvarea, mesajul de eroare sub câmpul potrivit. Rămas, minor: dacă deschizi „+ Variantă nouă” și salvezi fără „Adaugă varianta”, linia rămâne cu varianta de dinainte.
 
+### Etapa 5 (18 oct. 2026)
+- Acordul proprietarului (chestionar, 18 oct. 2026: „Aplic-o eu prin conector”). Prin conector, `apply_migration` a expirat după 60 s fără să schimbe nimic (verificat: nici tabel, nici coloane, nici istoric, nicio cerere rămasă). A rulat-o proprietarul în SQL Editor, cu rândul din istoric.
+- Verificat prin conector: `variant_id` pe cele 3 tabele; `product_variants` cu RLS și politicile „citire” / „adăugare” / „modificare”; fără drepturi pentru `anon` și fără `DELETE`; triggerele `check_refs`, `keep_household_id`, `touch_updated_at` și `check_variant` pe cele 3 tabele; în Realtime; `check_variant_product()` neapelabilă de `authenticated`; istoricul identic cu `supabase/migrations/`. Avertismentele de securitate: doar cele vechi, cunoscute.
+- **Datele afectate de defectul din PR #59** (numărate, doar citire, cu acordul proprietarului): 0 linii din listă, cumpărături sau cămară rămase fără produs având nume din catalog; 0 produse din cămară fără expirare după o modificare; 0 sinonime globale șterse. Nu e nimic de reparat.
+
 ## După prima versiune (decizii separate)
 - **Scanarea codului de bare** cu camera telefonului (bibliotecă nouă, teste pe Android și iPhone reale).
 - **Open Food Facts** după cod de bare: propune numele și gramajul, tu confirmi (licență ODbL, cu atribuire; cere acces la rețea).
@@ -89,4 +94,4 @@ Deciziile proprietarului (12 oct. 2026, chestionar):
 Pe telefon: adaugi „Sissi, Șuncă de pui, 300 g” la linia de șuncă din listă, plătești 21 lei, termini cumpărăturile. În Buget → Prețuri, la Șuncă presată, apare 70,00 lei/kg pentru Sissi. Data viitoare, linia cu aceeași variantă e estimată la 21 lei.
 
 ## Următorul pas
-Etapa 5: migrația pe producție (aprobată în chestionar, 18 oct. 2026), apoi încercarea pe telefon.
+Proprietarul, pe telefon: „Cum verific la final” (Sissi 300 g la 21 lei → 70,00 lei/kg în Buget → Prețuri; data viitoare, linia e estimată la 21 lei).
