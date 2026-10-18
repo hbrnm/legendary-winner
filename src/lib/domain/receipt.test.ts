@@ -159,3 +159,36 @@ describe("lanțurile", () => {
     }
   });
 });
+
+describe("sfârșitul produselor fără TOTAL citit", () => {
+  it("plata, restul și data nu devin produse; „100 BUC” fără virgulă rămâne necitit", () => {
+    const r = parseReceipt(`EAST TRADING HOUSE S.R.L.
+MIEZ DE NUCA 0.155 KG X 64.00= 9.92 B
+100 BUC x 8,49
+Seminte de dovleac 8,49 B
+TOTAL LE 9.3
+NUMERAR LEI 29.23
+DATA: 12-10-2026 ORA: 19:57:42`);
+    expect(r.lines.map((l) => l.name)).toEqual(["MIEZ DE NUCA", "Seminte de dovleac"]);
+    expect(r.lines[1]).toMatchObject({ quantity: null, amount: 8.49, check: "de_verificat" });
+    expect(r.total).toBeNull();
+  });
+});
+
+describe("OCR din browser, pe bonul cu cântar", () => {
+  it("o sumă stricată după „=” nu pierde rândul; „N NUMERAR” și „REDULERE” se recunosc", () => {
+    const r = parseReceipt(`EAST TRADING HOUSE S.R.L
+, MIEZ DOVLEAC CRUD 0.185 KG X 69.00= 12.7? B
+7 REDULERE 20% -2.55 B
+n MEL UE SPART 1/4 0.155 KG X 64.00= 9.92 B
+CHINBIR CU SCORTISOARA 0.115 KG X 79.00= 9.09 A
+N NUMERAR LEI 29.23
+TOTAL TURA = cl |.58`);
+    expect(r.lines.map((l) => [l.amount, l.discount, l.check])).toEqual([
+      [12.77, 2.55, "de_verificat"],
+      [9.92, 0, "sigur"],
+      [9.09, 0, "sigur"],
+    ]);
+    expect(r.lines_total).toBe(29.23);
+  });
+});

@@ -3,7 +3,7 @@
 import { Suspense, useMemo, useState } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { Archive, ArrowLeft, Check, Copy, MoreHorizontal, Pencil, Plus, Repeat, Scale, Store, Trash2, LayoutList } from "lucide-react";
+import { Archive, ArrowLeft, Check, Copy, MoreHorizontal, Pencil, Plus, Receipt, Repeat, Scale, Store, Trash2, LayoutList } from "lucide-react";
 import { AppShell } from "@/components/app/shell";
 import { useAction, useData } from "@/components/app/hooks";
 import { useApp } from "@/components/app/app-provider";
@@ -365,6 +365,7 @@ function ListScreen() {
             },
             { icon: Scale, label: "Compară magazinele", run: () => setComparing(true) },
             { icon: Repeat, label: list.is_recurring ? "Nu mai e recurentă" : "Fă-o recurentă (se refolosește săptămânal)", run: () => run((ctx) => shop.updateList(ctx, id, { is_recurring: !list.is_recurring })) },
+            ...(list.archived_at ? [] : [{ icon: Receipt, label: "Adaugă bon", run: () => router.push(`/cumparaturi/bon/?lista=${id}`) }]),
             {
               icon: Copy,
               label: "Duplică lista",

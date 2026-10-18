@@ -63,12 +63,14 @@ const MONEY = /(\d{1,5})[.,:;](\d{2})/g;
 /** „1,000 BUC x 3,49”: cantitatea (oricât de stricată), unitatea, prețul unitar. */
 const QTY_LINE = /^(.*?)\b(BUC|BUE|BIC|BC|KG|K6)\b\s*\.?\s*[xX×]+[\s,.]*(\S+)/;
 /** „MIEZ DOVLEAC CRUD 0.185 KG X 69.00= 12.77 B”: totul pe un rând. */
-const ONE_LINE = /^(.*?[A-Za-z].*?)\s+(\d+[.,]\d{3})\s*(KG|BUC)\s*[XxA×]\s*(\d+[.,]\d{2})\s*=\s*(\d+[.,]\d{2})/;
-const DISCOUNT = /^\W*(D[I1]SC\w*|B?ESC[I1]UN\w*|REDUCERE\b|RED[UI]CERE)/i;
+const ONE_LINE = /^(.*?[A-Za-z].*?)\s+(\d+[.,]\d{3})\s*(KG|BUC)\s*[XxA×Ș]\s*(\d+[.,-]\d{2})(?:\s*=\s*(\d+[.,]\d{2})(?![\d?]))?/;
+const DISCOUNT = /^\W*(?:\w\s+)?(D[I1]SC\w*|B?ESC[I1]UN\w*|RED\w{0,3}[CL]ERE\b)/i;
 /** Rânduri de promoție fără sumă: „3 la preț de 2”, „Reducere Lidl Plus”. */
 const PROMO_LABEL = /(\bla\s+pre[tţț]\s+de\b|\bLidl\s+P|\bREDUCERE\s+\d+\s*%|\bRe\w{3,6}e\s+Lidl)/i;
 /** Sfârșitul produselor: „TOTAL” sau „SUBTOTAL” la începutul rândului (nu „Iaurt Total 0%”). */
 const END = /^\W*(SUB)?TOTAL\b/i;
+/** Rândurile de după produse, dacă TOTAL s-a citit greșit: plata, restul, TVA, data. */
+const FOOTER = /\b(NUMERAR|CASH|REST|TVA|PLATA|BON\s+FISCAL)\b|^\W*(CARD|DATA)\b|\bORA\s*[:\d]/i;
 
 function money(s: string): number | null {
   const all = [...s.matchAll(MONEY)];
@@ -84,9 +86,12 @@ function quantity(raw: string, unit: ReceiptUnit): number | null {
   }
   // La bucată, cantitatea e întreagă: „1,000”, „4,000”, „1,00”, „1:00”, „1000”.
   // „1,500 BUC” nu e o cantitate de bucăți: n-o rotunjim, rămâne necitită.
-  const m = /^(\d+)(?:[.,:](\d{0,3}))?$/.exec(s);
-  if (!m || (m[2] && /[1-9]/.test(m[2]))) return null;
-  const n = /^\d000$/.test(s) ? Number(s[0]) : Number(m[1]);
+  const m = /^(\d+)(?:([.,:])(\d{0,3}))?$/.exec(s);
+  if (!m || (m[3] && /[1-9]/.test(m[3]))) return null;
+  if (/^\d000$/.test(s)) return Number(s[0]);
+  // Fără virgulă, „100” e de obicei „1,00” citit greșit: nu ghicim.
+  const n = Number(m[1]);
+  if (!m[2] && n >= 10) return null;
   return n > 0 ? n : null;
 }
 
@@ -162,18 +167,25 @@ export function parseReceipt(text: string): ParsedReceipt {
     }
     // După produse se mai caută doar totalul (după „SUBTOTAL”).
     if (ended) continue;
+    if (started && FOOTER.test(row)) {
+      flush("", null);
+      ended = true;
+      continue;
+    }
     const one = ONE_LINE.exec(row);
     if (one) {
       flush("", null);
       started = true;
       const unit: ReceiptUnit = one[3].toUpperCase() === "KG" ? "kg" : "buc";
-      const printed = Number(one[5].replace(",", "."));
-      // Aici suma de după „=” e de obicei cea bună (în probă, prețul pe kg era cel greșit).
+      const printed = one[5] ? Number(one[5].replace(",", ".")) : null;
       const q = quantity(one[2], unit);
-      const price = Number(one[4].replace(",", "."));
-      push({ name: cleanName(one[1]), quantity: q, unit, unit_price: price, printed_amount: printed, amount: printed });
-      // Cantitate × preț nu dă suma: ceva e citit greșit, linia rămâne de verificat.
-      if (q == null || roundMoney(q * price) !== printed) drafts[drafts.length - 1].guessed = true;
+      const price = Number(one[4].replace(/[,-]/, "."));
+      const computed = q == null ? null : roundMoney(q * price);
+      // Aici suma de după „=” e de obicei cea bună (în probă, prețul pe kg era cel greșit);
+      // dacă ea nu s-a citit, rămâne cantitate × preț.
+      push({ name: cleanName(one[1]), quantity: q, unit, unit_price: price, printed_amount: printed, amount: printed ?? computed });
+      // Cantitate × preț nu dă suma (sau suma lipsește): ceva e citit greșit, linia rămâne de verificat.
+      if (computed == null || computed !== printed) drafts[drafts.length - 1].guessed = true;
       continue;
     }
     const qty = QTY_LINE.exec(row);

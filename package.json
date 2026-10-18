@@ -3,8 +3,8 @@
   "version": "0.1.1",
   "private": true,
   "scripts": {
-    "dev": "next dev",
-    "build": "next build && node scripts/build-sw.mjs",
+    "dev": "node scripts/copy-ocr.mjs && next dev",
+    "build": "node scripts/copy-ocr.mjs && next build && node scripts/build-sw.mjs",
     "start": "node scripts/serve-static.mjs",
     "lint": "eslint",
     "typecheck": "tsc --noEmit",
@@ -17,12 +17,14 @@
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.117.3",
+    "@tesseract.js-data/ron": "1.0.0",
     "dexie": "^4.4.6",
     "dexie-react-hooks": "^4.4.0",
     "lucide-react": "^1.55.0",
     "next": "16.4.0",
     "react": "19.3.0",
     "react-dom": "19.3.0",
+    "tesseract.js": "7.0.0",
     "zod": "^4.6.5"
   },
   "devDependencies": {

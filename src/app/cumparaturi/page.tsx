@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { ChevronRight, History, Plus, Repeat, ShoppingBasket } from "lucide-react";
+import { ChevronRight, History, Plus, Receipt, Repeat, ShoppingBasket } from "lucide-react";
 import { AppShell } from "@/components/app/shell";
 import { useAction, useData } from "@/components/app/hooks";
 import { Button } from "@/components/ui/button";
@@ -97,7 +97,12 @@ function ListsScreen() {
         </ul>
       )}
 
-      <Link href="/cumparaturi/istoric/" className="mt-6 flex min-h-12 items-center gap-3 rounded-2xl border border-line bg-surface px-4 text-[15px] hover:bg-surface-2">
+      <Link href="/cumparaturi/bon/" className="mt-6 flex min-h-12 items-center gap-3 rounded-2xl border border-line bg-surface px-4 text-[15px] hover:bg-surface-2">
+        <Receipt size={20} className="text-ink-2" />
+        <span className="flex-1">Adaugă un bon fiscal</span>
+        <ChevronRight size={18} className="text-ink-3" />
+      </Link>
+      <Link href="/cumparaturi/istoric/" className="mt-2 flex min-h-12 items-center gap-3 rounded-2xl border border-line bg-surface px-4 text-[15px] hover:bg-surface-2">
         <History size={20} className="text-ink-2" />
         <span className="flex-1">Istoricul cumpărăturilor</span>
         <ChevronRight size={18} className="text-ink-3" />
