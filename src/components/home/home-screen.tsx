@@ -221,11 +221,11 @@ export function HomeScreen() {
               <Link key={t.id} href="/cumparaturi/istoric/" className="flex items-center gap-3 px-4 py-3 hover:bg-surface-2">
                 <span className="min-w-0 flex-1">
                   <span className="line-clamp-2 text-[15px] leading-snug">{t.name}</span>
-                  <span className="text-xs text-ink-2">
-                    {capitalizeFirst(formatLongDate(t.date))} · {count(t.count, "produs", "produse")}
+                  <span className="block text-xs leading-snug text-ink-2">
+                    {capitalizeFirst(formatLongDate(t.date))} · <span className="whitespace-nowrap">{count(t.count, "produs", "produse")}</span>
                   </span>
                 </span>
-                <span className="font-medium tabular">{formatRon(t.total)}</span>
+                <span className="shrink-0 font-medium tabular">{formatRon(t.total)}</span>
                 <ChevronRight size={16} className="text-ink-3" />
               </Link>
             ))}

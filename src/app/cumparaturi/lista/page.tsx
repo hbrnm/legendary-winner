@@ -165,8 +165,8 @@ function ListScreen() {
         </div>
       )}
 
-      <div className="mb-3 flex items-center gap-2">
-        <div className="flex-1">
+      <div className="mb-3 flex flex-wrap items-center gap-2">
+        <div className="min-w-64 flex-1">
           <Segmented
             label="Grupare"
             value={groupBy}
@@ -177,7 +177,7 @@ function ListScreen() {
             ]}
           />
         </div>
-        <Button variant={hideChecked ? "primary" : "secondary"} size="sm" onClick={() => setHideChecked((v) => !v)} aria-pressed={hideChecked}>
+        <Button variant={hideChecked ? "primary" : "secondary"} size="sm" className="grow" onClick={() => setHideChecked((v) => !v)} aria-pressed={hideChecked}>
           {hideChecked ? "Arată tot" : "Ascunde luate"}
         </Button>
       </div>

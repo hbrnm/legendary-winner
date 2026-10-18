@@ -36,6 +36,19 @@ async function short(page: Page) {
   );
 }
 
+/** Elementele al căror text trece pe mai multe rânduri. */
+async function wrapped(page: Page, selector: string) {
+  return page.locator(selector).evaluateAll((els) =>
+    els
+      .filter((el) => {
+        const range = document.createRange();
+        range.selectNodeContents(el);
+        return new Set([...range.getClientRects()].map((r) => Math.round(r.top))).size > 1;
+      })
+      .map((el) => el.textContent),
+  );
+}
+
 /** Butoanele al căror text e tăiat. */
 async function clipped(page: Page, selector: string) {
   return page.locator(selector).evaluateAll((els) => els.filter((el) => el.scrollWidth > el.clientWidth + 1).map((el) => el.textContent));
@@ -92,6 +105,11 @@ for (const scheme of ["light", "dark"] as const) {
     const filters = page.getByRole("group", { name: "Unde caut" }).getByRole("button");
     await expect(filters).toHaveText(["Toate", "Frigider", "Congelator", "Cămară"]);
     expect(await clipped(page, "[aria-label='Unde caut'] button")).toEqual([]);
+
+    await page.goto("/cumparaturi/");
+    await page.getByText("Cumpărături săptămânale").click();
+    await expect(page.getByRole("radiogroup", { name: "Grupare" })).toBeVisible();
+    expect(await wrapped(page, "[aria-label='Grupare'] button")).toEqual([]);
 
     await page.goto("/retete/");
     await expect(page.getByTestId("avatar-reteta").first()).toBeVisible();
