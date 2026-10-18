@@ -14,6 +14,8 @@ const eslintConfig = defineConfig([
     "next-env.d.ts",
     // Build-ul pentru E2E cloud și binarele Supabase local.
     "out-cloud/**",
+    // Fișierele OCR copiate la build (scripts/copy-ocr.mjs).
+    "public/ocr/**",
     ".local-supabase/**",
     // Codul funcțiilor Edge, generat de scripts/build-functions.mjs.
     "supabase/functions/*/core.js",
