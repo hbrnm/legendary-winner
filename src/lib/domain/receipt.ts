@@ -10,7 +10,8 @@ import { roundMoney, sumMoney } from "./money";
 // („3,49C”, „1,898”). Deci suma liniei se calculează din cantitate × preț, iar
 // suma tipărită doar o verifică.
 
-export type ReceiptChain = "lidl" | "kaufland" | "mega" | "profi" | "penny" | "carrefour" | "auchan" | "cora" | "selgros" | "metro";
+/** Lanțurile recunoscute, cu id-ul magazinului din catalog (`src/data/retailers.ts`). */
+export type ReceiptChain = "lidl" | "kaufland" | "mega-image" | "profi" | "penny" | "carrefour" | "auchan" | "selgros" | "metro" | "la-doi-pasi" | "annabella" | "diana";
 export type ReceiptUnit = "buc" | "kg";
 
 export interface ReceiptLine {
@@ -46,14 +47,16 @@ export interface ParsedReceipt {
 const CHAINS: [RegExp, ReceiptChain][] = [
   [/\bLIDL\b/i, "lidl"],
   [/\bKAUFLAND\b/i, "kaufland"],
-  [/\bMEGA\s*IMAGE\b/i, "mega"],
+  [/\bMEGA\s*IMAGE\b/i, "mega-image"],
   [/\bPROFI\b/i, "profi"],
   [/\bPENNY\b/i, "penny"],
   [/\bCARREFOUR\b/i, "carrefour"],
   [/\bAUCHAN\b/i, "auchan"],
-  [/\bCORA\b/i, "cora"],
   [/\bSELGROS\b/i, "selgros"],
   [/\bMETRO\b/i, "metro"],
+  [/\bLA\s*DOI\s*PA[SȘ]I\b/i, "la-doi-pasi"],
+  [/\bANNABELLA\b/i, "annabella"],
+  [/\bDIANA\b/i, "diana"],
 ];
 
 const MONEY = /(\d{1,5})[.,:;](\d{2})/g;
@@ -64,7 +67,8 @@ const ONE_LINE = /^(.*?[A-Za-z].*?)\s+(\d+[.,]\d{3})\s*(KG|BUC)\s*[XxA×]\s*(\d+
 const DISCOUNT = /^\W*(D[I1]SC\w*|B?ESC[I1]UN\w*|REDUCERE\b|RED[UI]CERE)/i;
 /** Rânduri de promoție fără sumă: „3 la preț de 2”, „Reducere Lidl Plus”. */
 const PROMO_LABEL = /(\bla\s+pre[tţț]\s+de\b|\bLidl\s+P|\bREDUCERE\s+\d+\s*%|\bRe\w{3,6}e\s+Lidl)/i;
-const END = /\b(SUB)?TOTAL\b/i;
+/** Sfârșitul produselor: „TOTAL” sau „SUBTOTAL” la începutul rândului (nu „Iaurt Total 0%”). */
+const END = /^\W*(SUB)?TOTAL\b/i;
 
 function money(s: string): number | null {
   const all = [...s.matchAll(MONEY)];
@@ -79,8 +83,9 @@ function quantity(raw: string, unit: ReceiptUnit): number | null {
     return m ? Number(`${m[1]}.${m[2]}`) : null;
   }
   // La bucată, cantitatea e întreagă: „1,000”, „4,000”, „1,00”, „1:00”, „1000”.
-  const m = /^(\d+)(?:[.,:]\d{0,3})?$/.exec(s);
-  if (!m) return null;
+  // „1,500 BUC” nu e o cantitate de bucăți: n-o rotunjim, rămâne necitită.
+  const m = /^(\d+)(?:[.,:](\d{0,3}))?$/.exec(s);
+  if (!m || (m[2] && /[1-9]/.test(m[2]))) return null;
   const n = /^\d000$/.test(s) ? Number(s[0]) : Number(m[1]);
   return n > 0 ? n : null;
 }
@@ -95,7 +100,8 @@ function cleanName(s: string): string {
   const tokens = s.split(/\s+/).filter(Boolean);
   const junk = (t: string) =>
     // sumă sau cifre (cu litera TVA lipită: „3,49C”, „35C”), bucăți fără litere, litere răzlețe
-    /^-?\d[\d.,:;]*[A-D]?\W*$/.test(t) || !/[A-Za-zĂÂÎȘȚăâîșț]/.test(t) || /^[A-Za-z]{1,2}\W*$/.test(t);
+    // (un procent ține de nume: „Total 0%”)
+    /^-?\d[\d.,:;]*[A-D]?[^\w%]*$/.test(t) || (!/[A-Za-zĂÂÎȘȚăâîșț%]/.test(t)) || /^[A-Za-z]{1,2}\W*$/.test(t);
   while (tokens.length > 1 && junk(tokens[tokens.length - 1])) tokens.pop();
   return tokens
     .join(" ")
@@ -109,12 +115,16 @@ function chainOf(header: string[]): ReceiptChain | null {
   return null;
 }
 
+/** Data bonului: întâi cea de după „DATA”, altfel prima dată validă din text. */
 function dateOf(text: string): ISODate | null {
-  const m = /(\d{2})[/.-](\d{2})[/.-](20\d{2})/.exec(text);
-  if (!m) return null;
-  const [d, mo, y] = [Number(m[1]), Number(m[2]), Number(m[3])];
-  if (mo < 1 || mo > 12 || d < 1 || d > 31) return null;
-  return `${y}-${String(mo).padStart(2, "0")}-${String(d).padStart(2, "0")}`;
+  const date = /(\d{2})[/.-](\d{2})[/.-](20\d{2})/;
+  for (const m of [new RegExp(`DATA\\W{0,3}${date.source}`, "i").exec(text), ...text.matchAll(new RegExp(date.source, "g"))]) {
+    if (!m) continue;
+    const [d, mo, y] = [Number(m[1]), Number(m[2]), Number(m[3])];
+    const check = new Date(Date.UTC(y, mo - 1, d));
+    if (check.getUTCMonth() === mo - 1 && check.getUTCDate() === d) return `${y}-${String(mo).padStart(2, "0")}-${String(d).padStart(2, "0")}`;
+  }
+  return null;
 }
 
 interface Draft extends ReceiptLine {
@@ -131,6 +141,7 @@ export function parseReceipt(text: string): ParsedReceipt {
   let pending: { quantity: number | null; unit: ReceiptUnit; unit_price: number | null } | null = null;
   let total: number | null = null;
   let started = false;
+  let ended = false;
 
   const push = (d: Omit<Draft, "check" | "discount" | "amount"> & { amount?: number | null }) => {
     const computed = d.quantity != null && d.unit_price != null ? roundMoney(d.quantity * d.unit_price) : null;
@@ -146,9 +157,11 @@ export function parseReceipt(text: string): ParsedReceipt {
     if (END.test(row) && !/\bTVA\b|\bTUR\b/i.test(row)) {
       flush("", null);
       if (/^\W*TOTAL\b/i.test(row) && total == null) total = money(row);
-      if (started) break;
+      if (started) ended = true;
       continue;
     }
+    // După produse se mai caută doar totalul (după „SUBTOTAL”).
+    if (ended) continue;
     const one = ONE_LINE.exec(row);
     if (one) {
       flush("", null);
@@ -197,7 +210,8 @@ export function parseReceipt(text: string): ParsedReceipt {
   flush("", null);
 
   for (const d of drafts) {
-    const confirmed = d.amount != null && d.printed_amount != null && Math.abs(d.amount - d.printed_amount) < 0.005;
+    // Confirmare = două cifre independente care se potrivesc: cantitate × preț și suma tipărită.
+    const confirmed = d.amount != null && d.printed_amount != null && d.quantity != null && d.unit_price != null && Math.abs(d.amount - d.printed_amount) < 0.005;
     d.check = confirmed && d.name !== "" && d.discount != null && !d.guessed ? "sigur" : "de_verificat";
   }
   // O singură linie greșită: dacă cealaltă sumă a ei închide exact totalul, o luăm pe aceea.
@@ -205,7 +219,8 @@ export function parseReceipt(text: string): ParsedReceipt {
   if (total != null && Math.abs(sumOf() - total) >= 0.005) {
     const gap = roundMoney(total - sumOf());
     const fix = drafts.find((d) => d.amount != null && d.printed_amount != null && Math.abs(roundMoney(d.printed_amount - d.amount) - gap) < 0.005);
-    if (fix) fix.amount = fix.printed_amount;
+    // E o alegere, nu o confirmare: linia rămâne de verificat.
+    if (fix) Object.assign(fix, { amount: fix.printed_amount, guessed: true });
   }
   const lines_total = sumOf();
   const total_matches = total != null && drafts.length > 0 && drafts.every((d) => d.amount != null && d.discount != null) && Math.abs(lines_total - total) < 0.005;

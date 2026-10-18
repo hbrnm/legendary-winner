@@ -18,7 +18,7 @@ describe("bon Kaufland (OCR real)", () => {
     const truth = [3.49, 3.49, 3.49, 3.49, 5.67, 6.79, 3.55, 3.55, 2.79, 7.09, 12.36, 8.64, 8.64, 19.84, 2.32, 5.29, 15.27, 1.89];
     expect(r.lines).toHaveLength(18);
     expect(r.lines.filter((l, i) => l.amount === truth[i])).toHaveLength(16);
-    expect(r.lines[10]).toMatchObject({ name: "MOGYI POPC SARE", quantity: 4, unit: "buc", unit_price: 3.09, amount: 12.36 });
+    expect(r.lines[10]).toMatchObject({ name: "MOGYI POPC SARE 80%", quantity: 4, unit: "buc", unit_price: 3.09, amount: 12.36 });
     expect(r.lines[13]).toMatchObject({ name: "Dovleac Hokkaido", quantity: 1.986, unit: "kg", amount: 19.84, check: "sigur" });
     expect(r.lines.filter((l) => l.check === "sigur").length).toBe(4);
   });
@@ -97,7 +97,7 @@ Fasole 3,49 C
 Sare 2,00 C
 TOTAL 5,49`);
     expect(r.lines.map((l) => l.amount)).toEqual([3.49, 2]);
-    expect(r).toMatchObject({ chain: "mega", total_matches: true });
+    expect(r).toMatchObject({ chain: "mega-image", total_matches: true });
   });
 
   it("rânduri doar cu denumire și sumă; numele necitit rămâne gol și de verificat", () => {
@@ -115,8 +115,47 @@ TOTAL 17,49`);
     expect(r.total_matches).toBe(true);
   });
 
+  it("„Total 0%” din nume nu oprește citirea; după SUBTOTAL se ia TOTAL", () => {
+    const r = parseReceipt(`PENNY MARKET SRL
+1,000 BUC x 4,50
+Iaurt Total 0% 4,50 A
+SUBTOTAL 4,50
+TOTAL 4,50
+DATA: 31/02/2026 14/10/2026`);
+    expect(r).toMatchObject({ chain: "penny", total: 4.5, total_matches: true, date: "2026-10-14" });
+    expect(r.lines.map((l) => l.name)).toEqual(["Iaurt Total 0%"]);
+  });
+
+  it("fără confirmare nu e sigur: rând fără cantitate, bucăți fracționare, sumă aleasă după total", () => {
+    const fara = parseReceipt(`PROFI SRL
+1,000 BUC x 1,00
+Paine 1,00 A
+Rosii cherry 9,99 A`);
+    expect(fara.lines.map((l) => l.check)).toEqual(["sigur", "de_verificat"]);
+    const frac = parseReceipt(`PROFI SRL
+1,500 BUC x 2,00
+Ceapa 3,00 A`);
+    expect(frac.lines[0]).toMatchObject({ quantity: null, amount: 3, check: "de_verificat" });
+    const ales = parseReceipt(`MEGA IMAGE SRL
+1,000 BUC x 3,19
+Fasole 3,49 C
+TOTAL 3,49`);
+    expect(ales.lines[0]).toMatchObject({ amount: 3.49, check: "de_verificat" });
+  });
+
   it("text gol sau fără bon", () => {
     expect(parseReceipt("")).toMatchObject({ chain: null, store_name: null, date: null, lines: [], total: null, total_matches: false });
     expect(parseReceipt("o poză cu o pisică").lines).toEqual([]);
+  });
+});
+
+describe("lanțurile", () => {
+  it("sunt id-urile magazinelor din catalog", async () => {
+    const { RETAILER_SEEDS } = await import("@/data/retailers");
+    const ids = new Set(RETAILER_SEEDS.map((r) => r.id));
+    for (const head of ["S.C. LIDL DISCOUNT", "KAUFLAND ROMANIA", "MEGA IMAGE SRL", "PROFI ROM FOOD", "PENNY MARKET", "CARREFOUR ROMANIA", "AUCHAN ROMANIA", "SELGROS CASH", "METRO CASH", "LA DOI PASI", "ANNABELLA SRL", "DIANA SRL"]) {
+      const chain = parseReceipt(head).chain;
+      expect(chain && ids.has(chain), head).toBe(true);
+    }
   });
 });
