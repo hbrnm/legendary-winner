@@ -1,6 +1,6 @@
 # 007 — Variante comerciale (marcă, ambalaj, cod de bare)
 
-**Stare:** în lucru: etapa 1 gata (18 oct. 2026); urmează etapa 2.
+**Stare:** în lucru: etapele 1–3 gata în repo (18 oct. 2026); urmează etapa 4 (ecranele).
 **Ramura:** câte una pe etapă, fiecare cu PR-ul ei din `main`.
 
 ## Scop
@@ -35,8 +35,8 @@ Deciziile proprietarului (12 oct. 2026, chestionar):
 | # | Etapa | Stare | Commit |
 |---|---|---|---|
 | 1 | **Logica** (`src/lib/domain/variants.ts`, pură): tipul `ProductVariant`; prețul pe kg al unei variante; conversia pachet/bucată ↔ g prin `net_quantity`; estimarea care preferă prețurile variantei (în `pricing.ts`); comparația pe mărci. Teste cu date fixe. | gata | (vezi PR) |
-| 2 | **Baza de date:** migrația `product_variants` + `variant_id` pe cele 3 tabele, indexuri, RLS, `check_household_refs`, `touch_updated_at`, `keep_household_id`. Teste RLS în `supabase/tests/` (membru, alt membru, admin global, referință din altă gospodărie). `npm run test:db`. Documentația schemei. | de făcut | |
-| 3 | **Local și sincronizare:** versiune nouă Dexie, `product_variants` în `SYNCED_TABLES`, copia de siguranță (export/import), serviciile (adaugă/editează/șterge variantă; `variant_id` la linia din listă, la finalizare și la prețuri). Teste unitare și `e2e-cloud`. | de făcut | |
+| 2 | **Baza de date:** migrația `product_variants` + `variant_id` pe cele 3 tabele, indexuri, RLS, `check_household_refs`, `touch_updated_at`, `keep_household_id`. Teste RLS în `supabase/tests/` (membru, alt membru, admin global, referință din altă gospodărie). `npm run test:db`. Documentația schemei. | gata (PR #57) | |
+| 3 | **Local și sincronizare:** versiune nouă Dexie, `product_variants` în `SYNCED_TABLES`, copia de siguranță (export/import), serviciile (adaugă/editează/șterge variantă; `variant_id` la linia din listă, la finalizare și la prețuri). Teste unitare și `e2e-cloud`. | gata (testul `e2e-cloud` trece la etapa 4: are nevoie de ecrane) | (vezi PR) |
 | 4 | **Ecranele:** în fișa produsului din listă, „Marca și ambalajul” (opțional) cu „Variantă nouă” (marcă, denumire, gramaj, cod de bare); în Buget → Prețuri, prețul pe kg pe mărci și alegerea variantei la un preț nou; adminul adaugă variante globale în `/admin`. Textele: un chestionar. E2E, capturi doar pentru ecranele noi. | de făcut | |
 | 5 | **Producția:** migrația cu acordul proprietarului, apoi integrarea; verificare pe telefon. | de făcut | |
 
@@ -48,6 +48,19 @@ Deciziile proprietarului (12 oct. 2026, chestionar):
 - **Mărcile** (`variants.ts`): `basePrice` (lei/kg sau lei/l; lichidele pe litru), `compareVariants` (cel mai recent preț obișnuit al fiecărei variante, promoția doar dacă nu e altul; prețurile fără variantă ca rând „generic”; cel mai ieftin primul; din orice magazin), `variantLabel` („Sissi, Șuncă de pui, 300 g”), `variantsOf`.
 - **Teste:** `variants.test.ts` (14), inclusiv exemplul din „Cum verific”: 21 lei / pachet de 300 g → 70 lei/kg, iar linia cu varianta e estimată la 21 lei. `npm test`: 482 trec; `npm run build` reușit.
 - `verificare`: nimic blocant; reparate: 1 buc rămâne 1 buc la produsele cu greutate pe bucată, variantele șterse ignorate.
+
+### Etapa 2 (18 oct. 2026)
+- Migrația `20261018000001_product_variants.sql`: tabelul `product_variants` (conținutul net: ambele sau niciunul, doar g/kg/ml/l; `ean` unic pe gospodărie/global), triggerele obișnuite, RLS ca la catalog, fără `DELETE` nici ca drept, în Realtime; `variant_id` pe cele 3 tabele, în `check_household_refs`; `check_variant_product` cere ca varianta să fie a produsului de pe rând.
+- `supabase/tests/product-variants.test.ts` (8). `npm run test:db`: 55 trec. `DATABASE_SCHEMA.md` la zi. **Producția nu e atinsă.**
+
+### Etapa 3 (18 oct. 2026)
+- Dexie versiunea 3 (`product_variants: "&id, household_id, product_id"`); tabelul în `SYNCED_TABLES` (după `products`), `CATALOG_TABLES` și `OPTIONAL_TABLES` (tragerea îl sare până e migrația pe server). `net_quantity` vine numeric. Copia de siguranță le ia singură (legăturile `*_id` se mută în altă gospodărie).
+- Servicii (`catalog.ts`): `createVariant` (marca după nume, refolosită sau adăugată; varianta globală doar la produs global; cod de bare unic), `updateVariant`, `deleteVariant`, `variantField` (varianta trebuie să fie a produsului).
+- `variant_id` în `addItem` (se unește doar cu linia aceleiași variante), `updateItem` (la alt produs, varianta se scoate), `finalizeShopping`, `setTransactionItemAmount`, `recordPrice`; `priceIndex` cu variante.
+- **Ordinea pentru producție:** rândurile fără variantă nu trimit deloc `variant_id`, deci etapa 3 se poate integra înainte de migrație. Ecranele (etapa 4) se integrează doar după migrația pe producție (etapa 5).
+- Mesajele noi din servicii (de aprobat la etapa 4, în același chestionar): „Scrie și cantitatea, și unitatea ambalajului (de exemplu 300 g).”, „Codul de bare e deja la altă variantă.”, „Produsul nu e în catalogul comun.”, „Varianta nu mai există.”, „Varianta aleasă nu mai există la acest produs.”, „Marca poate avea cel mult 80 de caractere.”, „Numele de pe ambalaj nu poate fi gol.”
+- Teste: `src/lib/services/variants.test.ts` (9), inclusiv „Cum verific” cap-coadă în baza locală. `npm test`: 491.
+- `verificare`: reparat (blocant pentru producție): `updateItem` cu `variant_id: null` pe o linie fără variantă nu mai trimite câmpul.
 
 ## După prima versiune (decizii separate)
 - **Scanarea codului de bare** cu camera telefonului (bibliotecă nouă, teste pe Android și iPhone reale).
@@ -62,4 +75,4 @@ Deciziile proprietarului (12 oct. 2026, chestionar):
 Pe telefon: adaugi „Sissi, Șuncă de pui, 300 g” la linia de șuncă din listă, plătești 21 lei, termini cumpărăturile. În Buget → Prețuri, la Șuncă presată, apare 70,00 lei/kg pentru Sissi. Data viitoare, linia cu aceeași variantă e estimată la 21 lei.
 
 ## Următorul pas
-Etapa 2: migrația `product_variants` și testele RLS.
+Etapa 4: ecranele și chestionarul cu textele.
