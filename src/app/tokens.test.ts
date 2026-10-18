@@ -13,6 +13,7 @@ const PALETTE = "white|black|gray|slate|zinc|neutral|stone|red|orange|amber|yell
 const FORBIDDEN = [
   { what: "culoare Tailwind standard", re: new RegExp(`\\b(?:[a-z-]+:)*(?:text|bg|border|ring|from|to|via|fill|stroke|outline|decoration|divide|shadow|accent|caret|placeholder)-(?:${PALETTE})(?:-\\d{2,3})?(?:\\/\\d+)?\\b`) },
   { what: "umbră Tailwind standard", re: /(?<![-\w])shadow(?:-(?:sm|md|lg|xl|2xl|inner))?(?=["'\s`])/ },
+  { what: "sticlă mată (blur), în afara direcției vizuale", re: /\bbackdrop-blur/ },
   { what: "culoare scrisă direct", re: /#[0-9a-fA-F]{3,8}\b|\brgba?\(|\bhsla?\(|-\[#/ },
 ];
 

@@ -33,7 +33,7 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(function Button
     <button
       ref={ref}
       type={type}
-      className={`inline-flex shrink-0 items-center justify-center rounded-xl font-medium transition duration-150 ease-out active:scale-[0.99] disabled:pointer-events-none disabled:opacity-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand ${VARIANTS[variant]} ${SIZES[size]} ${block ? "w-full" : ""} ${className}`}
+      className={`inline-flex shrink-0 items-center justify-center rounded-lg font-medium transition duration-150 ease-out active:scale-[0.99] disabled:pointer-events-none disabled:opacity-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand ${VARIANTS[variant]} ${SIZES[size]} ${block ? "w-full" : ""} ${className}`}
       {...rest}
     >
       {icon}
@@ -48,7 +48,7 @@ export function IconButton({ label, className = "", children, ...rest }: ButtonH
       type="button"
       aria-label={label}
       title={label}
-      className={`inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-xl text-ink-2 transition duration-150 ease-out hover:bg-surface-2 hover:text-ink active:scale-[0.97] active:bg-surface-2 focus-visible:outline-2 focus-visible:outline-brand disabled:opacity-40 ${className}`}
+      className={`inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-lg text-ink-2 transition duration-150 ease-out hover:bg-surface-2 hover:text-ink active:scale-[0.97] active:bg-surface-2 focus-visible:outline-2 focus-visible:outline-brand disabled:opacity-40 ${className}`}
       {...rest}
     >
       {children}

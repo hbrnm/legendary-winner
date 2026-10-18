@@ -1,6 +1,6 @@
 # 014 — Redesign editorial (hârtie, verde de pădure, terracotta, serif)
 
-**Stare:** în lucru (18 oct. 2026). Etapa 1 gata (vezi PR).
+**Stare:** în lucru (18 oct. 2026). Etapele 1–2 gata (vezi PR-urile).
 **Ramuri:** câte una pe etapă, din `main` (`claude/014-...`).
 
 ## Scop
@@ -20,7 +20,7 @@ Cererea proprietarului din 18 oct. 2026 („Cămară — Editorial redesign”):
 | # | Etapa | Stare | Fișiere |
 |---|---|---|---|
 | 1 | Tokeni și tipografie | gata | `globals.css`, `layout.tsx`, `manifest.ts`, `fonts.ts`, `fonts/`, `contrast.test.ts`, `e2e/fonts.spec.ts` |
-| 2 | Antet, bara de jos, primitive (fără blur, filete, colțuri mici, banda demonstrativă discretă) | de făcut | `shell.tsx`, `ui/misc.tsx`, `ui/button.tsx`, `ui/sheet.tsx` |
+| 2 | Antet, bara de jos, primitive (fără blur, filete, colțuri mici, banda demonstrativă discretă) | gata | `shell.tsx`, `ui/misc.tsx`, `ui/button.tsx`, `ui/fields.tsx`, `ui/sheet.tsx`, `ui/toast.tsx`, `tokens.test.ts` |
 | 3 | Acasă (registru, rețete în serif, expiră curând, cheltuieli recente cu magazinul) | de făcut | `home-screen.tsx`, `recipe-visual.tsx` |
 | 4 | Buget și liste (sume în mono, „des” grupat) | de făcut | `buget/page.tsx`, `charts.tsx`, `cumparaturi/page.tsx`, `cumparaturi/lista/page.tsx` |
 | 5 | Rețete, plan, cămară („(parțial)”) | de făcut | `retete/page.tsx`, `retete/reteta/page.tsx`, `plan/page.tsx`, `camara/page.tsx` |
@@ -33,8 +33,15 @@ Cererea proprietarului din 18 oct. 2026 („Cămară — Editorial redesign”):
 - Fonturile se încarcă local (aprox. 180 KB în total, subseturi latin + latin-ext, care se descarcă doar la nevoie); interfața în DM Sans, titlurile `h1` în Fraunces; `font-serif` și `font-mono` sunt gata pentru etapele următoare.
 - Teste noi: `src/app/contrast.test.ts` (contrastul perechilor de tokeni în ambele moduri; pe paleta veche picau 5 perechi), `e2e/fonts.spec.ts` (fonturile, inclusiv subsetul pentru ă, ș, ț, se încarcă).
 
+### Etapa 2 (18 oct. 2026)
+- Antetul și bara de jos: fundal plin, filet de 1 px, fără blur; numele gospodăriei în serif; fila activă cu o linie verde de 2 px sus (fără pastilă); pictogramele au grosime 1,75 (2 la fila activă). Pe desktop, bara laterală marchează pagina cu o linie verde în stânga.
+- Banda „Mod demonstrativ”: același text, fără fundal albastru, cu filet punctat dedesubt și „Mod demonstrativ” ca ștampilă (majuscule, cerneală).
+- Primitivele: `Card` fără umbră, cu colțuri de 8 px; `SectionTitle` cu filet până la acțiune; `PageHeader` și titlurile ferestrelor în serif; butoane, câmpuri, ferestre și notificări cu colțuri mici; fundalul ferestrelor fără blur.
+- `tokens.test.ts` interzice `backdrop-blur` (prindea 5 locuri).
+- Colțurile mari scrise direct în ecrane (`rounded-2xl` pe Acasă, căutarea de produse) rămân pentru etapele 3–6.
+
 ## Cum verific la final
 `npm test`, `npm run build`, `npm run test:e2e`; capturile la 360 px din `e2e/demo-model.spec.ts`.
 
 ## Următorul pas
-Etapa 2: antetul, bara de jos și primitivele.
+Etapa 3: Acasă.

@@ -53,13 +53,13 @@ export function Sheet({ open, onClose, title, children, footer }: { open: boolea
       }}
       aria-label={title}
       style={keyboardStyle}
-      className="m-0 mt-auto max-h-[92dvh] w-full max-w-none rounded-t-3xl border border-line bg-surface p-0 text-ink shadow-card backdrop:bg-bg/70 backdrop:backdrop-blur-sm sm:m-auto sm:max-w-lg sm:rounded-3xl"
+      className="m-0 mt-auto max-h-[92dvh] w-full max-w-none rounded-t-xl border border-line bg-surface p-0 text-ink shadow-card backdrop:bg-ink/40 sm:m-auto sm:max-w-lg sm:rounded-xl"
     >
       {open && (
         <div className="flex max-h-[inherit] flex-col">
           <div className="flex items-center justify-between gap-2 border-b border-line px-4 py-3">
-            <h2 className="text-lg font-semibold">{title}</h2>
-            <button type="button" onClick={onClose} aria-label="Închide" className="inline-flex h-11 w-11 items-center justify-center rounded-xl text-ink-2 transition-colors duration-150 ease-out hover:bg-surface-2 focus-visible:outline-2 focus-visible:outline-brand">
+            <h2 className="font-serif text-xl font-semibold">{title}</h2>
+            <button type="button" onClick={onClose} aria-label="Închide" className="inline-flex h-11 w-11 items-center justify-center rounded-lg text-ink-2 transition-colors duration-150 ease-out hover:bg-surface-2 focus-visible:outline-2 focus-visible:outline-brand">
               <X size={20} />
             </button>
           </div>
@@ -94,7 +94,7 @@ export function ConfirmSheet({
       title={title}
       footer={
         <div className="flex gap-2">
-          <button type="button" onClick={onClose} className="h-11 flex-1 rounded-xl border border-line bg-surface font-medium">
+          <button type="button" onClick={onClose} className="h-11 flex-1 rounded-lg border border-line bg-surface-2 font-medium">
             Renunță
           </button>
           <button
@@ -103,7 +103,7 @@ export function ConfirmSheet({
               onConfirm();
               onClose();
             }}
-            className="h-11 flex-1 rounded-xl bg-accent font-medium text-brand-ink"
+            className="h-11 flex-1 rounded-lg bg-accent font-medium text-brand-ink"
           >
             {confirmLabel}
           </button>
