@@ -4,6 +4,10 @@ import { buildCatalog } from "./catalog";
 import { CATEGORY_SEEDS } from "./categories";
 import { PRODUCT_SEEDS } from "./products";
 import { RECIPE_SEEDS } from "./recipes";
+import { USOARE_MIC_DEJUN_GUSTARI } from "./recipes/usoare-mic-dejun-gustari";
+import { USOARE_SUPE_LEGUME } from "./recipes/usoare-supe-legume";
+import { USOARE_CARNE_PESTE } from "./recipes/usoare-carne-peste";
+import { USOARE_PASTE_DESERTURI } from "./recipes/usoare-paste-deserturi";
 import { isUnitCode } from "@/lib/domain/units";
 import { normalize } from "@/lib/domain/search";
 import { seedSql } from "../../scripts/generate-seed-sql";
@@ -51,8 +55,10 @@ describe("catalogul de produse", () => {
 describe("catalogul de rețete", () => {
   const products = new Set(PRODUCT_SEEDS.map((p) => p.id));
 
-  it("are cel puțin 80 de rețete, cu id-uri unice", () => {
-    expect(RECIPE_SEEDS.length).toBeGreaterThanOrEqual(80);
+  it("are cel puțin 185 de rețete, cu id-uri și denumiri unice", () => {
+    expect(RECIPE_SEEDS.length).toBeGreaterThanOrEqual(185);
+    const names = RECIPE_SEEDS.map((r) => normalize(r.name));
+    expect(names.filter((n, i) => names.indexOf(n) !== i)).toEqual([]);
     const ids = RECIPE_SEEDS.map((r) => r.id);
     expect(new Set(ids).size).toBe(ids.length);
     expect(ids.filter((id) => !ID.test(id))).toEqual([]);
@@ -95,6 +101,12 @@ describe("catalogul de rețete", () => {
       expect(RECIPE_SEEDS.some((r) => r.id === id), id).toBe(true);
     }
     expect(RECIPE_SEEDS.filter((r) => r.cuisine === "internationala").length).toBeGreaterThanOrEqual(10);
+  });
+
+  it("are 100 de rețete noi ușoare sau medii (al doilea set)", () => {
+    const set = [...USOARE_MIC_DEJUN_GUSTARI, ...USOARE_SUPE_LEGUME, ...USOARE_CARNE_PESTE, ...USOARE_PASTE_DESERTURI];
+    expect(set).toHaveLength(100);
+    expect(set.filter((r) => r.difficulty === "dificil").map((r) => r.id)).toEqual([]);
   });
 
   it("nu conține valori nutriționale sau prețuri inventate", () => {
