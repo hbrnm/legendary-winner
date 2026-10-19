@@ -57,7 +57,8 @@ async function checkScreens(page: Page, info: TestInfo, prefix: string) {
     await expect(page.getByRole("status").filter({ hasText: "Se încarcă" })).toHaveCount(0);
     expect(await offscreen(page), path).toEqual([]);
     expect(await short(page), path).toEqual([]);
-    await info.attach(`${prefix}${path.replace(/\//g, "-")}.png`, { body: await page.screenshot({ fullPage: true }), contentType: "image/png" });
+    // Captura doar a ecranului vizibil: verificările de mai sus acoperă toată pagina, iar lista de rețete e foarte lungă.
+    await info.attach(`${prefix}${path.replace(/\//g, "-")}.png`, { body: await page.screenshot(), contentType: "image/png" });
   }
 }
 

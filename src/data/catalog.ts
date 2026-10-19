@@ -20,7 +20,7 @@ import { RECIPE_PHOTOS, recipePhotoUrl } from "./recipe-photos";
  * sincronizare, clientul cere de la server doar ce e mai nou de atât.
  * Se schimbă când se modifică datele din src/data.
  */
-export const CATALOG_VERSION = "2026-10-16T09:00:00.000Z";
+export const CATALOG_VERSION = "2026-10-19T09:00:00.000Z";
 
 const meta = { household_id: null, created_at: CATALOG_VERSION, updated_at: CATALOG_VERSION, deleted_at: null };
 

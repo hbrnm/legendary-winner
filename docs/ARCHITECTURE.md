@@ -16,7 +16,7 @@
 | `src/lib/db` | baza locală (`database.ts`), id-uri (`ids.ts`), scrieri (`write.ts`) |
 | `src/lib/sync` | motorul de sincronizare și adaptoarele (`supabase-remote.ts`, `fake-remote.ts` pentru teste) |
 | `src/lib/services` | operațiile aplicației (liste, finalizare, rețete, plan, cămară, buget, prețuri, gospodărie, copie de siguranță) |
-| `src/data` | catalogul inițial: 471 de produse, 86 de rețete, 20 de categorii, 13 magazine |
+| `src/data` | catalogul inițial: 471 de produse, 186 de rețete, 20 de categorii, 13 magazine |
 | `supabase/` | migrația, `seed.sql` generat, testele RLS |
 
 ## Scrierea și sincronizarea
