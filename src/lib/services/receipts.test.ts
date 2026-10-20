@@ -27,6 +27,24 @@ beforeEach(async () => {
 afterEach(() => setClock(null));
 
 describe("potrivirea liniilor de pe bon", () => {
+  it("bonul Lidl citit de Gemini: nu propune după un cuvânt secundar (20 oct. 2026)", async () => {
+    const names = ["Iaurt in stil grecesc", "Bomboane cu lapte", "Inghetata vanilie", "Sacosa maiou", "Ecotaxa/Cost DEEE", "Unt de arahide", "Seminte de dovleac natur", "Ciocolata neagra 85%", "Cuvertura de cacao", "Cheescake caramel sarat", "Bautura portocale"];
+    const got = (await proposeReceiptMatches(ctx, names, "lidl")).map((m) => m?.product_id ?? null);
+    expect(Object.fromEntries(names.map((n, i) => [n, got[i]]))).toEqual({
+      "Iaurt in stil grecesc": "iaurt-grecesc",
+      "Bomboane cu lapte": null,
+      "Inghetata vanilie": "inghetata",
+      "Sacosa maiou": null,
+      "Ecotaxa/Cost DEEE": null,
+      "Unt de arahide": null,
+      "Seminte de dovleac natur": "seminte-dovleac",
+      "Ciocolata neagra 85%": "ciocolata-neagra",
+      "Cuvertura de cacao": null,
+      "Cheescake caramel sarat": null,
+      "Bautura portocale": "bautura-carbogazoasa",
+    });
+  });
+
   it("prima dată propune din catalog, chiar cu abrevieri și resturi OCR", async () => {
     const [ceapa, dovleac, nimic] = await proposeReceiptMatches(ctx, ["CEAPA GALBENA KG", "Dovleac Hokkaido", "XQZW 410G"], "kaufland");
     expect(ceapa).toEqual({ product_id: "ceapa-galbena", source: "catalog" });

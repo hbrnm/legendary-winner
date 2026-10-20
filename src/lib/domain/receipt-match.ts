@@ -42,10 +42,14 @@ export function proposeMatch(text: string, retailerId: string | null, aliases: R
   if (own) return { product_id: own.product_id, source: "invatat" };
 
   // Căutarea cere ca fiecare cuvânt să se potrivească: pe bon sunt abrevieri și
-  // resturi OCR, deci încercăm întâi tot textul, apoi fără câte un cuvânt.
+  // resturi OCR, deci încercăm întâi tot textul, apoi fără câte un cuvânt. Nu se
+  // scoate cuvântul care spune ce e produsul: primul și cel de după „de”/„cu”
+  // („Bomboane cu lapte” nu e lapte, „Unt de arahide” nu e unt, 20 oct. 2026).
   const ws = words(key);
   if (ws.length === 0) return null;
-  const tries = [ws.join(" "), ...ws.map((_, i) => ws.filter((__, j) => j !== i).join(" ")).filter(Boolean)];
+  const tokens = key.split(" ");
+  const kept = new Set([ws[0], ...tokens.filter((_, i) => tokens[i - 1] === "de" || tokens[i - 1] === "cu")]);
+  const tries = [ws.join(" "), ...ws.map((w, i) => (kept.has(w) ? "" : ws.filter((__, j) => j !== i).join(" "))).filter(Boolean)];
   for (const q of tries) {
     const hit = search(index, q, 1)[0];
     if (hit) return { product_id: hit.doc.id, source: "catalog" };
