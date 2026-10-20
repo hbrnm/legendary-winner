@@ -22,12 +22,12 @@ export function useAction() {
   const toast = useToast();
   const [busy, setBusy] = useState(false);
   const run = useCallback(
-    async <T,>(fn: (ctx: AppCtx) => Promise<T>, success?: string): Promise<T | undefined> => {
+    async <T,>(fn: (ctx: AppCtx) => Promise<T>, success?: string | ((r: T) => string)): Promise<T | undefined> => {
       if (!ctx) return undefined;
       setBusy(true);
       try {
         const r = await fn(ctx);
-        if (success) toast(success);
+        if (success) toast(typeof success === "function" ? success(r) : success);
         return r;
       } catch (e) {
         if (e instanceof UserError) toast(e.message, { tone: "error" });

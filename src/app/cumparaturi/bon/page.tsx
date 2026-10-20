@@ -41,6 +41,8 @@ interface Line {
   key: number;
   keep: boolean;
   receipt_text: string;
+  /** Numele produsului nou din catalog, când linia nu are produs (de la început, cel de pe bon). */
+  name: string;
   product: Product | null;
   learned: boolean;
   quantity: number | null;
@@ -206,6 +208,7 @@ function ReceiptScreen() {
             key: i,
             keep: true,
             receipt_text: l.name,
+            name: l.name,
             product: p ? (data!.products.get(p.product_id) ?? null) : null,
             learned: p?.source === "invatat",
             quantity: l.quantity,
@@ -232,7 +235,7 @@ function ReceiptScreen() {
     const bad = kept.find((l) => parseMoney(l.amount) == null);
     if (kept.length === 0) return setError(typed ? "Păstrează cel puțin un produs." : "Păstrează cel puțin un produs de pe bon.");
     if (bad) return setError(`Scrie suma pentru „${bad.product?.name ?? bad.receipt_text}”, de exemplu 12,50.`);
-    const nameless = kept.find((l) => !l.product && !l.receipt_text.trim());
+    const nameless = kept.find((l) => !l.product && !l.name.trim());
     if (nameless) return setError(typed ? "Un produs nu are nume. Alege-l din catalog sau scoate-l." : "Un produs nu are nume. Alege-l din catalog sau scoate-l de pe bon.");
     const r = await run(
       (ctx) =>
@@ -240,9 +243,13 @@ function ReceiptScreen() {
           retailer_id: retailerId || null,
           date,
           list_id: listId || null,
-          lines: kept.map((l) => ({ product_id: l.product?.id ?? null, name: l.product?.name ?? l.receipt_text, receipt_text: l.receipt_text, quantity: l.quantity, unit: l.unit, amount: parseMoney(l.amount)! })),
+          lines: kept.map((l) => ({ product_id: l.product?.id ?? null, name: l.product?.name ?? l.name.trim(), receipt_text: l.receipt_text, quantity: l.quantity, unit: l.unit, amount: parseMoney(l.amount)! })),
         }),
-      typed ? "Am pus cumpărăturile." : "Am pus bonul.",
+      (res) => {
+        const done = typed ? "Am pus cumpărăturile." : "Am pus bonul.";
+        if (res.created === 0) return done;
+        return `${done} Am adăugat ${res.created === 1 ? "un produs nou" : `${res.created} produse noi`} în catalog.`;
+      },
     );
     if (r) router.push(listId ? `/cumparaturi/lista/?id=${listId}` : "/cumparaturi/istoric/");
   }
@@ -391,20 +398,21 @@ function ReceiptScreen() {
           <li key={l.key} className={`flex flex-col gap-2 px-4 py-3 ${l.keep ? "" : "opacity-60"}`}>
             <div className="flex items-start gap-2">
               <div className="min-w-0 flex-1">
-                <p className="text-[15px] font-medium">{l.product?.name ?? (l.receipt_text || "Produs necitit")}</p>
+                <p className="text-[15px] font-medium">{l.product?.name ?? (l.name || l.receipt_text || "Produs necitit")}</p>
                 <p className="truncate text-xs text-ink-2">
                   {typed ? "ai scris" : "pe bon"}: {l.receipt_text || "—"}
                   {l.quantity != null && l.unit ? ` · ${formatQuantity(l.quantity, l.unit)}` : ""}
                 </p>
               </div>
-              {l.keep && l.unsure && <Badge tone="warn">de verificat</Badge>}
+              {l.keep && !l.product ? <Badge tone="info">produs nou</Badge> : l.keep && l.unsure && <Badge tone="warn">de verificat</Badge>}
             </div>
+            {l.keep && !l.product && <LabeledInput label="Numele în catalog" value={l.name} onChange={(e) => update(l.key, { name: e.target.value })} />}
             {l.keep && (
               <div className="flex items-center gap-2">
                 <Button size="sm" variant="secondary" icon={<Search size={16} />} onClick={() => setPicking(l.key)}>
                   {l.product ? "Alt produs" : "Alege produsul"}
                 </Button>
-                <Input inputMode="decimal" value={l.amount} onChange={(e) => update(l.key, { amount: e.target.value, unsure: false })} placeholder="0,00" className="w-24 text-right tabular" aria-label={`Suma pentru ${l.product?.name ?? l.receipt_text}`} />
+                <Input inputMode="decimal" value={l.amount} onChange={(e) => update(l.key, { amount: e.target.value, unsure: false })} placeholder="0,00" className="w-24 text-right tabular" aria-label={`Suma pentru ${l.product?.name ?? l.name}`} />
                 <span className="text-sm text-ink-2">lei</span>
               </div>
             )}

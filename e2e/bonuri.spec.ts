@@ -78,10 +78,10 @@ test("fără bon: scrii cumpărăturile, le verifici, intră în istoric", async
   await page.getByRole("button", { name: "Continuă" }).click();
   await expect(page.getByRole("alert").filter({ hasText: "Scrie" })).toHaveText("Scrie cel puțin un produs, de exemplu „pâine 5,50”.");
 
-  await page.getByLabel("Scrie cumpărăturile").fill("ceapă galbenă 1 kg 2,32, lapte integral 2 buc 10,58");
+  await page.getByLabel("Scrie cumpărăturile").fill("ceapă galbenă 1 kg 2,32, lapte integral 2 buc 10,58, unt de arahide 24,99");
   await page.getByRole("button", { name: "Continuă" }).click();
   await expect(page.getByRole("heading", { name: "Verifică produsele" })).toBeVisible();
-  await expect(page.getByText("Am găsit 2 produse.", { exact: false })).toBeVisible();
+  await expect(page.getByText("Am găsit 3 produse.", { exact: false })).toBeVisible();
   await expect(page.getByLabel("Suma pentru Ceapă galbenă")).toHaveValue("2,32");
   await expect(page.getByText(/ai scris: lapte integral · 2 buc/)).toBeVisible();
 
@@ -90,7 +90,13 @@ test("fără bon: scrii cumpărăturile, le verifici, intră în istoric", async
   await expect(page.getByLabel("Scrie cumpărăturile")).toHaveValue(/lapte integral 2 buc 10,58/);
   await page.getByRole("button", { name: "Continuă" }).click();
 
+  // Ce nu e în catalog devine produs nou, cu numele pe care îl corectez.
+  const unt = page.getByRole("listitem").filter({ hasText: "ai scris: unt de arahide" });
+  await expect(unt.getByText("produs nou")).toBeVisible();
+  await unt.getByLabel("Numele în catalog").fill("Unt de arahide");
+
   await page.getByRole("button", { name: "Salvează", exact: true }).click();
+  await expect(page.getByText("Am pus cumpărăturile. Am adăugat un produs nou în catalog.")).toBeVisible();
   await page.waitForURL(/\/cumparaturi\/istoric\//);
-  await expect(page.getByText(/12,90/).first()).toBeVisible();
+  await expect(page.getByText(/37,89/).first()).toBeVisible();
 });
