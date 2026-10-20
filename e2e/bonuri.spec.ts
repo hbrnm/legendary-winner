@@ -68,3 +68,29 @@ test("cititorul adevărat: fotografia cu orientarea în EXIF (ca pe iPhone) se c
   await expect(page.getByLabel("Magazinul")).toHaveValue("kaufland");
   await expect(page.getByText(/pe bon: CEAPA GALBENA/)).toBeVisible();
 });
+
+test("fără bon: scrii cumpărăturile, le verifici, intră în istoric", async ({ page }) => {
+  await start(page);
+  await page.goto("/cumparaturi/bon/");
+  await page.getByRole("button", { name: "Scrie sau dictează" }).click();
+  await expect(page.getByRole("heading", { name: "Scrie cumpărăturile" })).toBeVisible();
+
+  await page.getByRole("button", { name: "Continuă" }).click();
+  await expect(page.getByRole("alert").filter({ hasText: "Scrie" })).toHaveText("Scrie cel puțin un produs, de exemplu „pâine 5,50”.");
+
+  await page.getByLabel("Scrie cumpărăturile").fill("ceapă galbenă 1 kg 2,32, lapte integral 2 buc 10,58");
+  await page.getByRole("button", { name: "Continuă" }).click();
+  await expect(page.getByRole("heading", { name: "Verifică produsele" })).toBeVisible();
+  await expect(page.getByText("Am găsit 2 produse.", { exact: false })).toBeVisible();
+  await expect(page.getByLabel("Suma pentru Ceapă galbenă")).toHaveValue("2,32");
+  await expect(page.getByText(/ai scris: lapte integral · 2 buc/)).toBeVisible();
+
+  // „Înapoi” păstrează textul scris.
+  await page.getByRole("button", { name: "Înapoi" }).click();
+  await expect(page.getByLabel("Scrie cumpărăturile")).toHaveValue(/lapte integral 2 buc 10,58/);
+  await page.getByRole("button", { name: "Continuă" }).click();
+
+  await page.getByRole("button", { name: "Salvează", exact: true }).click();
+  await page.waitForURL(/\/cumparaturi\/istoric\//);
+  await expect(page.getByText(/12,90/).first()).toBeVisible();
+});
