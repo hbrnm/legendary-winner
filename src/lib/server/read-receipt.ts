@@ -95,6 +95,15 @@ export const GEMINI_DEFAULT_MODEL = "gemini-2.5-flash";
  * `x-goog-api-key` (nu în adresă). Orice răspuns fără text (limită, blocare,
  * eroare) e o eroare; aplicația trece atunci pe cititorul de pe telefon.
  */
+/**
+ * „Fără gândire” pentru model: seria 2.5 o oprește cu `thinkingBudget: 0`; din
+ * seria 3 se cere cu `thinkingLevel` (cu bugetul vechi, 3.8 Flash gândea peste
+ * 40 s la un bon, 20 oct. 2026).
+ */
+export function noThinking(model: string): { thinkingBudget: 0 } | { thinkingLevel: "minimal" } {
+  return /^gemini-[12]\./.test(model) ? { thinkingBudget: 0 } : { thinkingLevel: "minimal" };
+}
+
 export function geminiReceiptReader(fetchFn: typeof fetch, apiKey: string, model = GEMINI_DEFAULT_MODEL): ReceiptDeps["read"] {
   return async (image) => {
     const res = await fetchFn(`https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent`, {
@@ -104,7 +113,7 @@ export function geminiReceiptReader(fetchFn: typeof fetch, apiKey: string, model
         systemInstruction: { parts: [{ text: RECEIPT_INSTRUCTIONS }] },
         contents: [{ role: "user", parts: [{ inlineData: { mimeType: image.mimeType, data: image.data } }] }],
         // Transcrierea nu are nevoie de „gândire”: mai repede și fără să consume tokenii unui bon lung.
-        generationConfig: { responseMimeType: "text/plain", temperature: 0, maxOutputTokens: 8192, thinkingConfig: { thinkingBudget: 0 } },
+        generationConfig: { responseMimeType: "text/plain", temperature: 0, maxOutputTokens: 8192, thinkingConfig: noThinking(model) },
       }),
       signal: AbortSignal.timeout(40_000),
     });

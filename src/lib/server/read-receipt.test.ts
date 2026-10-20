@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import { GEMINI_DEFAULT_MODEL, RECEIPT_LIMITS, checkReceiptText, geminiReceiptReader, handleReceiptRequest, quotaViaRest, readReceiptImage, type ReceiptDeps, type ReceiptImage } from "./read-receipt";
+import { GEMINI_DEFAULT_MODEL, RECEIPT_LIMITS, checkReceiptText, geminiReceiptReader, handleReceiptRequest, noThinking, quotaViaRest, readReceiptImage, type ReceiptDeps, type ReceiptImage } from "./read-receipt";
 
 // Funcția Edge read-receipt, fără rețea: Gemini și limita de cereri sunt simulate.
 
@@ -104,6 +104,15 @@ describe("geminiReceiptReader", () => {
     const fetchFn = vi.fn(async () => answer(TEXT));
     await geminiReceiptReader(fetchFn as unknown as typeof fetch, "k", "gemini-alt-model")(image);
     expect((fetchFn.mock.calls[0] as unknown as [string])[0]).toContain("/models/gemini-alt-model:generateContent");
+  });
+
+  it("fără gândire: bugetul 0 pentru seria 2, nivelul minim pentru seria 3", async () => {
+    expect(noThinking("gemini-2.5-flash")).toEqual({ thinkingBudget: 0 });
+    expect(noThinking("gemini-3.8-flash")).toEqual({ thinkingLevel: "minimal" });
+    const fetchFn = vi.fn(async () => answer(TEXT));
+    await geminiReceiptReader(fetchFn as unknown as typeof fetch, "k", "gemini-3.8-flash")(image);
+    const body = JSON.parse(String((fetchFn.mock.calls[0] as unknown as [string, RequestInit])[1].body));
+    expect(body.generationConfig.thinkingConfig).toEqual({ thinkingLevel: "minimal" });
   });
 
   it("limita gratuită (429), cheia greșită, blocarea sau textul tăiat sunt erori", async () => {
