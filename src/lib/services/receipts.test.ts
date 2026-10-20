@@ -104,11 +104,14 @@ describe("aplicarea bonului", () => {
     const ceapa = await addItem(ctx, listId, { product_id: "ceapa-galbena", quantity: 1, unit: "kg" });
     await addItem(ctx, listId, { product_id: "rosii", quantity: 1, unit: "kg" });
     const r = await applyReceipt(ctx, { retailer_id: "kaufland", date: "2026-10-12", list_id: listId, lines });
-    expect(r).toEqual({ checked: 1, added: 2, transaction_id: null });
+    expect(r).toEqual({ checked: 1, added: 2, transaction_id: null, created: 1 });
     const items = await listItems(ctx.db, listId);
     expect(items.find((i) => i.id === ceapa)).toMatchObject({ checked: true, actual_price: 2.32, quantity: 1.014, retailer_id: "kaufland" });
     expect(items.find((i) => i.product_id === "rosii")?.checked).toBe(false);
-    expect(items.find((i) => i.name === "Pungă hârtie")).toMatchObject({ checked: true, actual_price: 1.89, product_id: null });
+    const punga = items.find((i) => i.name === "Pungă hârtie");
+    expect(punga).toMatchObject({ checked: true, actual_price: 1.89 });
+    // Linia fără produs a devenit produs nou al gospodăriei, cu numele de pe bon.
+    expect(await ctx.db.products.get(punga!.product_id!)).toMatchObject({ name: "Pungă hârtie", household_id: "h1", category_id: "diverse", default_unit: "buc" });
 
     await finalizeShopping(ctx, listId, { addToPantry: false });
     const spent = (await spendRecords(ctx.db, "h1")).filter((s) => s.amount != null);
@@ -140,7 +143,7 @@ describe("aplicarea bonului", () => {
     const items = await owned(ctx.db, "shopping_transaction_items", "h1");
     expect(items).toHaveLength(3);
     const prices = await owned(ctx.db, "product_prices", "h1");
-    expect(prices).toHaveLength(2);
+    expect(prices).toHaveLength(3);
     expect(prices.every((p) => p.price_type === "platit" && p.observed_on === "2026-10-12" && p.source === "supermarket")).toBe(true);
     expect((await spendRecords(ctx.db, "h1")).length).toBe(3);
   });
@@ -149,15 +152,31 @@ describe("aplicarea bonului", () => {
     await applyReceipt(ctx, { retailer_id: "kaufland", date: "2026-10-12", list_id: null, lines });
     const [lapte, punga] = await proposeReceiptMatches(ctx, ["VDR.LAP.3,5%1L", "PUNGA HARTIE"], "kaufland");
     expect(lapte).toEqual({ product_id: "lapte-integral", source: "invatat" });
-    // Linia fără produs („nu e din catalog”) nu se învață.
-    expect(punga?.source).not.toBe("invatat");
-    expect(await owned(ctx.db, "receipt_aliases", "h1")).toHaveLength(2);
+    // Linia fără produs a devenit produs nou: bonul următor îl recunoaște.
+    expect(punga?.source).toBe("invatat");
+    expect(await owned(ctx.db, "receipt_aliases", "h1")).toHaveLength(3);
+  });
+
+  it("produsele noi: același nume e un singur produs, iar un nume din catalog nu se dublează", async () => {
+    const extra = [
+      { product_id: null, name: "Unt de arahide", receipt_text: "Unt de arahide", quantity: 1, unit: "buc" as const, amount: 24.99 },
+      { product_id: null, name: "unt de ARAHIDE", receipt_text: "Unt de arahide", quantity: 1, unit: "buc" as const, amount: 24.99 },
+      { product_id: null, name: "Ceapă galbenă", receipt_text: "CEAPA GALB", quantity: 1, unit: "kg" as const, amount: 2.5 },
+    ];
+    const r = await applyReceipt(ctx, { retailer_id: "lidl", date: "2026-10-13", list_id: null, lines: extra });
+    expect(r.created).toBe(1);
+    const own = (await owned(ctx.db, "products", "h1")).filter((p) => !p.deleted_at);
+    expect(own.map((p) => p.name)).toEqual(["Unt de arahide"]);
+    const items = await owned(ctx.db, "shopping_transaction_items", "h1");
+    expect(items.find((i) => i.amount === 2.5)?.product_id).toBe("ceapa-galbena");
   });
 
   it("refuză bonul gol, lista și magazinul inexistente, produsul șters", async () => {
     await expect(applyReceipt(ctx, { retailer_id: null, date: "2026-10-12", list_id: null, lines: [] })).rejects.toThrow(/cel puțin un produs/);
     await expect(applyReceipt(ctx, { retailer_id: "nu-exista", date: "2026-10-12", list_id: null, lines })).rejects.toThrow(/Magazinul/);
     await expect(applyReceipt(ctx, { retailer_id: null, date: "2026-10-12", list_id: "nu-exista", lines })).rejects.toThrow(/Lista/);
+    // Bonul refuzat nu lasă în urmă produsul nou al liniei fără produs.
+    expect(await owned(ctx.db, "products", "h1")).toHaveLength(0);
     await expect(applyReceipt(ctx, { retailer_id: null, date: "2026-10-12", list_id: null, lines: [{ ...lines[0], product_id: "nu-exista" }] })).rejects.toThrow(/nu mai există în catalog/);
   });
 });

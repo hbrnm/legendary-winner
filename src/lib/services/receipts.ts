@@ -4,11 +4,12 @@ import { insertRow, updateRow, upsertRow } from "@/lib/db/write";
 import { newId, stableId } from "@/lib/db/ids";
 import { localDateOf } from "@/lib/domain/dates";
 import { receiptKey, proposeMatch, type MatchProposal } from "@/lib/domain/receipt-match";
+import { normalize } from "@/lib/domain/search";
 import { type AppCtx, UserError, w } from "./context";
 import { listItems, owned, visible } from "./queries";
 import { parse, zDate, zMoney, zName, zQuantity, zUnit } from "./validation";
 import { addItem } from "./shopping";
-import { productSearchIndex } from "./catalog";
+import { createProduct, productSearchIndex } from "./catalog";
 
 // Bonurile fiscale (.tasks/005): potrivirea care învață din confirmări.
 
@@ -68,6 +69,8 @@ export interface ReceiptApplyResult {
   added: number;
   /** Cumpărătura din istoric, când bonul nu merge pe o listă. */
   transaction_id: string | null;
+  /** Produse noi în catalogul gospodăriei, din liniile fără produs. */
+  created: number;
 }
 
 /**
@@ -75,7 +78,10 @@ export interface ReceiptApplyResult {
  * de pe ea (întâi cele nebifate, apoi cele bifate deja în magazin) primesc
  * prețul de pe bon și se bifează, iar celelalte se adaugă bifate; apoi „Termină cumpărăturile” le înregistrează ca acum, deci nimic nu
  * se numără de două ori. Fără listă: o cumpărătură în istoric, cu prețurile
- * plătite. Potrivirile confirmate se țin minte pentru bonul următor.
+ * plătite. Potrivirile confirmate se țin minte pentru bonul următor. O linie
+ * fără produs devine produs nou al gospodăriei, cu numele de pe bon, în
+ * „Diverse” (decizia proprietarului, 20 oct. 2026), deci prețul ei intră în
+ * istoricul de prețuri și bonul următor o recunoaște.
  */
 export async function applyReceipt(ctx: AppCtx, input: ReceiptApplyInput): Promise<ReceiptApplyResult> {
   const v = parse(applyInput, input);
@@ -87,10 +93,26 @@ export async function applyReceipt(ctx: AppCtx, input: ReceiptApplyInput): Promi
   const products = new Map((await visible(ctx.db, "products", ctx.householdId)).map((p) => [p.id, p]));
   for (const l of v.lines) if (l.product_id && !products.has(l.product_id)) throw new UserError("Un produs ales nu mai există în catalog. Alege-l din nou.");
 
-  const result: ReceiptApplyResult = { checked: 0, added: 0, transaction_id: null };
+  // Lista se verifică înainte de produsele noi, ca un bon refuzat să nu lase produse în catalog.
+  const list = v.list_id ? await ctx.db.shopping_lists.get(v.list_id) : undefined;
+  if (v.list_id && (!list || list.deleted_at || list.household_id !== ctx.householdId || list.archived_at)) throw new UserError("Lista aleasă nu mai există.");
+
+  const result: ReceiptApplyResult = { checked: 0, added: 0, transaction_id: null, created: 0 };
+  // Același nume (de pe acest bon sau din catalog) e același produs, nu o dublură.
+  const byName = new Map([...products.values()].map((p) => [normalize(p.name), p]));
+  for (const l of v.lines) {
+    if (l.product_id) continue;
+    let product = byName.get(normalize(l.name));
+    if (!product) {
+      const id = await createProduct(ctx, { name: l.name, category_id: "diverse", default_unit: (l.unit as UnitCode | null) ?? "buc" });
+      product = (await ctx.db.products.get(id))!;
+      products.set(id, product);
+      byName.set(normalize(product.name), product);
+      result.created++;
+    }
+    l.product_id = product.id;
+  }
   if (v.list_id) {
-    const list = await ctx.db.shopping_lists.get(v.list_id);
-    if (!list || list.deleted_at || list.household_id !== ctx.householdId || list.archived_at) throw new UserError("Lista aleasă nu mai există.");
     // Nebifatele întâi; un produs bifat deja în magazin primește doar prețul, nu un rând nou
     // (altfel „Gata” l-ar număra de două ori).
     const open = (await listItems(ctx.db, v.list_id)).sort((a, b) => Number(a.checked) - Number(b.checked));
