@@ -122,7 +122,8 @@ export function geminiReceiptReader(fetchFn: typeof fetch, apiKey: string, model
         // Transcrierea nu are nevoie de „gândire”: mai repede și fără să consume tokenii unui bon lung.
         generationConfig: { responseMimeType: "text/plain", temperature: 0, maxOutputTokens: 8192, thinkingConfig: noThinking(model) },
       }),
-      signal: AbortSignal.timeout(40_000),
+      // Gemini 3 răspunde la un bon între ~10 și peste 40 s (20 oct. 2026); funcția Edge are voie 150 s.
+      signal: AbortSignal.timeout(90_000),
     });
     if (!res.ok) throw new Error(`Gemini ${res.status}${await googleReason(res)}`);
     const body = (await res.json()) as { candidates?: { finishReason?: string; content?: { parts?: { text?: unknown }[] } }[] };
