@@ -3,7 +3,7 @@
 import { Suspense, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { ArrowLeft, Camera, ImageIcon, Search } from "lucide-react";
+import { ArrowLeft, Camera, ImageIcon, Mic, Search } from "lucide-react";
 import { useApp } from "@/components/app/app-provider";
 import { AppShell } from "@/components/app/shell";
 import { useAction, useData } from "@/components/app/hooks";
@@ -11,10 +11,11 @@ import { ProductSearch } from "@/components/shopping/product-search";
 import { Button } from "@/components/ui/button";
 import { Badge, Spinner } from "@/components/ui/misc";
 import { Sheet } from "@/components/ui/sheet";
-import { Input, LabeledInput, LabeledSelect } from "@/components/ui/fields";
+import { Input, LabeledInput, LabeledSelect, TextArea } from "@/components/ui/fields";
 import { owned, visible } from "@/lib/services/queries";
 import { applyReceipt, proposeReceiptMatches } from "@/lib/services/receipts";
 import { parseReceipt, type ParsedReceipt } from "@/lib/domain/receipt";
+import { parseTypedPurchases } from "@/lib/domain/typed-purchases";
 import { FULL_CROP, type Crop } from "@/lib/domain/receipt-crop";
 import { loadImage, proposeCrop, readReceipt, readWithFallback, receiptJpeg, serverReceiptReader, type ReadProgress } from "@/lib/ocr/read-receipt";
 import { callReadReceipt } from "@/lib/supabase/client";
@@ -26,9 +27,15 @@ import type { Product, UnitCode } from "@/lib/domain/types";
 
 // Bonul fiscal (.tasks/005, etapa 4): fotografia → încadrarea → citirea (cu cont
 // și internet pe server, .tasks/015; altfel pe telefon) → „Verifică bonul” →
-// aplicarea pe o listă sau ca o cumpărătură.
+// aplicarea pe o listă sau ca o cumpărătură. Fără bon, cumpărăturile scrise sau
+// dictate trec prin aceeași verificare.
 
-type Step = { kind: "alege" } | { kind: "incadreaza"; image: ImageBitmap; url: string; crop: Crop } | { kind: "citeste"; progress: ReadProgress | null } | { kind: "verifica"; receipt: ParsedReceipt; fallback: boolean };
+type Step =
+  | { kind: "alege" }
+  | { kind: "scrie"; text: string }
+  | { kind: "incadreaza"; image: ImageBitmap; url: string; crop: Crop }
+  | { kind: "citeste"; progress: ReadProgress | null }
+  | { kind: "verifica"; receipt: ParsedReceipt; fallback: boolean; /** Textul scris, când produsele nu vin de pe un bon. */ typed: string | null };
 
 interface Line {
   key: number;
@@ -181,7 +188,10 @@ function ReceiptScreen() {
     }
     image.close();
     reading.current = null;
-    const receipt = parseReceipt(text);
+    await review(parseReceipt(text), fallback, null);
+  }
+
+  async function review(receipt: ParsedReceipt, fallback: boolean, typed: string | null) {
     const ok = await run(async (ctx) => {
       const retailer = receipt.chain && data!.retailers.some((r) => r.id === receipt.chain) ? receipt.chain : null;
       const proposals = await proposeReceiptMatches(ctx, receipt.lines.map((l) => l.name), retailer);
@@ -207,8 +217,8 @@ function ReceiptScreen() {
       );
       return true;
     });
-    if (ok) setStep({ kind: "verifica", receipt, fallback });
-    else setStep({ kind: "alege" });
+    if (ok) setStep({ kind: "verifica", receipt, fallback, typed });
+    else setStep(typed != null ? { kind: "scrie", text: typed } : { kind: "alege" });
   }
 
   function update(key: number, patch: Partial<Line>) {
@@ -217,12 +227,13 @@ function ReceiptScreen() {
 
   async function save() {
     setError(null);
+    const typed = step.kind === "verifica" && step.typed != null;
     const kept = lines.filter((l) => l.keep);
     const bad = kept.find((l) => parseMoney(l.amount) == null);
-    if (kept.length === 0) return setError("Păstrează cel puțin un produs de pe bon.");
+    if (kept.length === 0) return setError(typed ? "Păstrează cel puțin un produs." : "Păstrează cel puțin un produs de pe bon.");
     if (bad) return setError(`Scrie suma pentru „${bad.product?.name ?? bad.receipt_text}”, de exemplu 12,50.`);
     const nameless = kept.find((l) => !l.product && !l.receipt_text.trim());
-    if (nameless) return setError("Un produs nu are nume. Alege-l din catalog sau scoate-l de pe bon.");
+    if (nameless) return setError(typed ? "Un produs nu are nume. Alege-l din catalog sau scoate-l." : "Un produs nu are nume. Alege-l din catalog sau scoate-l de pe bon.");
     const r = await run(
       (ctx) =>
         applyReceipt(ctx, {
@@ -231,7 +242,7 @@ function ReceiptScreen() {
           list_id: listId || null,
           lines: kept.map((l) => ({ product_id: l.product?.id ?? null, name: l.product?.name ?? l.receipt_text, receipt_text: l.receipt_text, quantity: l.quantity, unit: l.unit, amount: parseMoney(l.amount)! })),
         }),
-      "Am pus bonul.",
+      typed ? "Am pus cumpărăturile." : "Am pus bonul.",
     );
     if (r) router.push(listId ? `/cumparaturi/lista/?id=${listId}` : "/cumparaturi/istoric/");
   }
@@ -241,7 +252,7 @@ function ReceiptScreen() {
       <Link href="/cumparaturi/" aria-label="Înapoi la cumpărături" className="-ml-2 inline-flex h-11 w-11 items-center justify-center rounded-lg text-ink-2 hover:bg-surface-2">
         <ArrowLeft size={20} />
       </Link>
-      <h1 className="text-2xl font-semibold tracking-tight">{step.kind === "verifica" ? "Verifică bonul" : "Adaugă bon"}</h1>
+      <h1 className="text-2xl font-semibold tracking-tight">{step.kind === "verifica" ? (step.typed != null ? "Verifică produsele" : "Verifică bonul") : step.kind === "scrie" ? "Scrie cumpărăturile" : "Adaugă bon"}</h1>
     </div>
   );
 
@@ -257,6 +268,9 @@ function ReceiptScreen() {
           <Button block variant="secondary" icon={<ImageIcon size={18} />} onClick={() => gallery.current?.click()}>
             Alege din galerie
           </Button>
+          <Button block variant="secondary" icon={<Mic size={18} />} onClick={() => setStep({ kind: "scrie", text: "" })}>
+            Scrie sau dictează
+          </Button>
         </div>
         <input ref={camera} type="file" accept="image/*" capture="environment" className="hidden" data-testid="bon-camera" onChange={(e) => void pick(e.target.files?.[0])} />
         <input ref={gallery} type="file" accept="image/*" className="hidden" data-testid="bon-fisier" onChange={(e) => void pick(e.target.files?.[0])} />
@@ -265,6 +279,35 @@ function ReceiptScreen() {
             {error}
           </p>
         )}
+      </>
+    );
+  }
+
+  if (step.kind === "scrie") {
+    const go = () => {
+      const receipt = parseTypedPurchases(step.text);
+      if (receipt.lines.length === 0) return setError("Scrie cel puțin un produs, de exemplu „pâine 5,50”.");
+      setError(null);
+      void review(receipt, false, step.text);
+    };
+    return (
+      <>
+        {header}
+        <p className="mb-3 text-[15px] text-ink-2">Scrie ce ai cumpărat, sau apasă microfonul de pe tastatură și spune. Câte un produs pe rând sau despărțite prin virgulă: produsul, cât ai luat (dacă vrei) și suma.</p>
+        <TextArea autoFocus rows={8} aria-label="Scrie cumpărăturile" placeholder={"lapte 2 buc 13,98\npâine 5,50\nroșii 1,2 kg 14,30"} value={step.text} onChange={(e) => setStep({ kind: "scrie", text: e.target.value })} />
+        {error && (
+          <p role="alert" className="mt-4 text-sm text-accent">
+            {error}
+          </p>
+        )}
+        <div className="mt-4 flex gap-2">
+          <Button variant="ghost" onClick={() => (setError(null), setStep({ kind: "alege" }))}>
+            Înapoi
+          </Button>
+          <Button className="flex-1" onClick={go} disabled={busy}>
+            Continuă
+          </Button>
+        </div>
       </>
     );
   }
@@ -314,11 +357,14 @@ function ReceiptScreen() {
   const kept = lines.filter((l) => l.keep);
   const sum = sumMoney(kept.map((l) => parseMoney(l.amount) ?? 0));
   const total = step.receipt.total;
+  const typed = step.typed != null;
   return (
     <>
       {header}
       {step.fallback && <p role="note" className="mb-3 rounded-md border border-dashed border-accent bg-surface px-3.5 py-2.5 text-sm text-ink">Nu am putut citi bonul pe server, așa că l-am citit pe telefon. Verifică liniile cu atenție.</p>}
-      <p className="mb-4 text-[15px] text-ink-2">Am citit {lines.length === 1 ? "un produs" : `${lines.length} produse`}. Verifică fiecare linie: produsul, suma. Cele marcate „de verificat” pot fi citite greșit.</p>
+      <p className="mb-4 text-[15px] text-ink-2">
+        {typed ? "Am găsit" : "Am citit"} {lines.length === 1 ? "un produs" : `${lines.length} produse`}. Verifică fiecare linie: produsul, suma.{typed ? "" : " Cele marcate „de verificat” pot fi citite greșit."}
+      </p>
 
       <div className="mb-4 grid grid-cols-2 gap-2">
         <LabeledSelect label="Magazinul" value={retailerId} onChange={(e) => setRetailerId(e.target.value)}>
@@ -347,7 +393,7 @@ function ReceiptScreen() {
               <div className="min-w-0 flex-1">
                 <p className="text-[15px] font-medium">{l.product?.name ?? (l.receipt_text || "Produs necitit")}</p>
                 <p className="truncate text-xs text-ink-2">
-                  pe bon: {l.receipt_text || "—"}
+                  {typed ? "ai scris" : "pe bon"}: {l.receipt_text || "—"}
                   {l.quantity != null && l.unit ? ` · ${formatQuantity(l.quantity, l.unit)}` : ""}
                 </p>
               </div>
@@ -364,7 +410,7 @@ function ReceiptScreen() {
             )}
             <label className="flex min-h-11 items-center gap-2 text-sm text-ink-2">
               <input type="checkbox" className="h-5 w-5" checked={!l.keep} onChange={(e) => update(l.key, { keep: !e.target.checked })} />
-              Nu e un produs (reducere, garanție, citit greșit)
+              {typed ? "Nu e un produs (scris greșit)" : "Nu e un produs (reducere, garanție, citit greșit)"}
             </label>
           </li>
         ))}
@@ -390,11 +436,11 @@ function ReceiptScreen() {
         </p>
       )}
       <div className="mt-4 flex gap-2">
-        <Button variant="ghost" onClick={() => setStep({ kind: "alege" })}>
-          Alt bon
+        <Button variant="ghost" onClick={() => setStep(step.typed != null ? { kind: "scrie", text: step.typed } : { kind: "alege" })}>
+          {typed ? "Înapoi" : "Alt bon"}
         </Button>
         <Button className="flex-1" onClick={save} disabled={busy}>
-          Salvează bonul
+          {typed ? "Salvează" : "Salvează bonul"}
         </Button>
       </div>
 
