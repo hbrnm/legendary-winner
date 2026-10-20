@@ -45,6 +45,7 @@ export async function callReadReceipt(body: { image: { mimeType: "image/jpeg"; d
     method: "POST",
     headers: { authorization: `Bearer ${data.session?.access_token ?? ""}`, apikey: anonKey!, "content-type": "application/json" },
     body: JSON.stringify(body),
-    signal: AbortSignal.timeout(45_000),
+    // Puțin peste limita funcției (90 s), ca telefonul să primească răspunsul ei.
+    signal: AbortSignal.timeout(100_000),
   });
 }
