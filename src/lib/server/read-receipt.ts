@@ -95,13 +95,20 @@ export const GEMINI_DEFAULT_MODEL = "gemini-2.5-flash";
  * `x-goog-api-key` (nu în adresă). Orice răspuns fără text (limită, blocare,
  * eroare) e o eroare; aplicația trece atunci pe cititorul de pe telefon.
  */
+/** Motivul scris de Google la o cerere refuzată (fără imagine sau text de bon), scurt, pentru jurnal. */
+async function googleReason(res: Response): Promise<string> {
+  const body = (await res.json().catch(() => null)) as { error?: { message?: unknown } } | null;
+  const message = body?.error?.message;
+  return typeof message === "string" ? `: ${message.replace(/\s+/g, " ").slice(0, 300)}` : "";
+}
+
 /**
  * „Fără gândire” pentru model: seria 2.5 o oprește cu `thinkingBudget: 0`; din
  * seria 3 se cere cu `thinkingLevel` (cu bugetul vechi, 3.8 Flash gândea peste
- * 40 s la un bon, 20 oct. 2026).
+ * 40 s la un bon, iar „minimal” a primit 400; „low” îl au toate modelele 3, 20 oct. 2026).
  */
-export function noThinking(model: string): { thinkingBudget: 0 } | { thinkingLevel: "minimal" } {
-  return /^gemini-[12]\./.test(model) ? { thinkingBudget: 0 } : { thinkingLevel: "minimal" };
+export function noThinking(model: string): { thinkingBudget: 0 } | { thinkingLevel: "low" } {
+  return /^gemini-[12]\./.test(model) ? { thinkingBudget: 0 } : { thinkingLevel: "low" };
 }
 
 export function geminiReceiptReader(fetchFn: typeof fetch, apiKey: string, model = GEMINI_DEFAULT_MODEL): ReceiptDeps["read"] {
@@ -117,7 +124,7 @@ export function geminiReceiptReader(fetchFn: typeof fetch, apiKey: string, model
       }),
       signal: AbortSignal.timeout(40_000),
     });
-    if (!res.ok) throw new Error(`Gemini ${res.status}`);
+    if (!res.ok) throw new Error(`Gemini ${res.status}${await googleReason(res)}`);
     const body = (await res.json()) as { candidates?: { finishReason?: string; content?: { parts?: { text?: unknown }[] } }[] };
     const candidate = body.candidates?.[0];
     const text = candidate?.content?.parts?.map((p) => (typeof p.text === "string" ? p.text : "")).join("");

@@ -108,17 +108,19 @@ describe("geminiReceiptReader", () => {
 
   it("fără gândire: bugetul 0 pentru seria 2, nivelul minim pentru seria 3", async () => {
     expect(noThinking("gemini-2.5-flash")).toEqual({ thinkingBudget: 0 });
-    expect(noThinking("gemini-3.8-flash")).toEqual({ thinkingLevel: "minimal" });
+    expect(noThinking("gemini-3.8-flash")).toEqual({ thinkingLevel: "low" });
     const fetchFn = vi.fn(async () => answer(TEXT));
     await geminiReceiptReader(fetchFn as unknown as typeof fetch, "k", "gemini-3.8-flash")(image);
     const body = JSON.parse(String((fetchFn.mock.calls[0] as unknown as [string, RequestInit])[1].body));
-    expect(body.generationConfig.thinkingConfig).toEqual({ thinkingLevel: "minimal" });
+    expect(body.generationConfig.thinkingConfig).toEqual({ thinkingLevel: "low" });
   });
 
   it("limita gratuită (429), cheia greșită, blocarea sau textul tăiat sunt erori", async () => {
     const r = (res: Response) => geminiReceiptReader((async () => res) as unknown as typeof fetch, "k")(image);
     await expect(r(new Response("{}", { status: 429 }))).rejects.toThrow("429");
     await expect(r(new Response("{}", { status: 403 }))).rejects.toThrow("403");
+    // Motivul scris de Google intră în jurnal, ca să se vadă ce n-a acceptat.
+    await expect(r(new Response(JSON.stringify({ error: { message: "Invalid value at 'generation_config.thinking_config'" } }), { status: 400 }))).rejects.toThrow("Gemini 400: Invalid value at 'generation_config.thinking_config'");
     await expect(r(answer("", "SAFETY"))).rejects.toThrow("SAFETY");
     await expect(r(answer("KAUFLAND\n1,000 BUC", "MAX_TOKENS"))).rejects.toThrow("MAX_TOKENS");
     await expect(r(new Response(JSON.stringify({ candidates: [] })))).rejects.toThrow();
