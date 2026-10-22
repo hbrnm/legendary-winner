@@ -24,7 +24,8 @@ export async function callTranslateRecipe(body: { recipe: { name: string; descri
     method: "POST",
     headers: { authorization: `Bearer ${data.session?.access_token ?? ""}`, apikey: anonKey!, "content-type": "application/json" },
     body: JSON.stringify(body),
-    signal: AbortSignal.timeout(30_000),
+    // Puțin peste limita funcției (60 s), ca telefonul să primească răspunsul ei.
+    signal: AbortSignal.timeout(70_000),
   });
 }
 

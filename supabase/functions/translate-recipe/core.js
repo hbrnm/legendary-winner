@@ -138,6 +138,16 @@ function quotaViaRest(fetchFn, supabaseUrl, anonKey, rpc = "take_recipe_import_q
   };
 }
 
+// src/lib/server/gemini.ts
+async function googleReason(res) {
+  const body = await res.json().catch(() => null);
+  const message = body?.error?.message;
+  return typeof message === "string" ? `: ${message.replace(/\s+/g, " ").slice(0, 300)}` : "";
+}
+function noThinking(model) {
+  return /^gemini-[12]\./.test(model) ? { thinkingBudget: 0 } : { thinkingLevel: "low" };
+}
+
 // src/lib/server/translate-recipe.ts
 var TRANSLATE_LIMITS = { maxName: 120, maxDescription: 1e3, maxStep: 1500, maxSteps: 60, maxChars: 2e4, maxBody: 1e5 };
 var STATUS = {
@@ -211,11 +221,12 @@ function geminiTranslator(fetchFn, apiKey, model = GEMINI_DEFAULT_MODEL) {
       body: JSON.stringify({
         systemInstruction: { parts: [{ text: TRANSLATION_INSTRUCTIONS }] },
         contents: [{ role: "user", parts: [{ text: JSON.stringify(recipe) }] }],
-        generationConfig: { responseMimeType: "application/json", responseSchema: TRANSLATION_SCHEMA, temperature: 0.2 }
+        // Traducerea nu are nevoie de „gândire”: la seria 3 fără ea depășea limita (ca bonul, 20 oct. 2026).
+        generationConfig: { responseMimeType: "application/json", responseSchema: TRANSLATION_SCHEMA, temperature: 0.2, thinkingConfig: noThinking(model) }
       }),
-      signal: AbortSignal.timeout(25e3)
+      signal: AbortSignal.timeout(6e4)
     });
-    if (!res.ok) throw new Error(`Gemini ${res.status}`);
+    if (!res.ok) throw new Error(`Gemini ${res.status}${await googleReason(res)}`);
     const body = await res.json();
     const candidate = body.candidates?.[0];
     const text = candidate?.content?.parts?.map((p) => typeof p.text === "string" ? p.text : "").join("");
