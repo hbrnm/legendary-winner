@@ -51,6 +51,9 @@ test("bonul pe o listă: propune, confirmi, bifează cu prețul; al doilea bon �
   await page.getByRole("button", { name: "Salvează bonul" }).click();
   await page.waitForURL(/\/cumparaturi\/istoric\//);
   await expect(page.getByText(/7,61/).first()).toBeVisible();
+  // În istoric, linia are numele de pe bon, cu produsul din catalog dedesubt (.tasks/016).
+  await page.getByRole("button", { name: /7,61/ }).first().click();
+  await expect(page.getByRole("listitem").filter({ hasText: "VDR.LAP.3,5%1L" })).toContainText("Lapte integral ·");
 });
 
 test("cititorul adevărat: fotografia cu orientarea în EXIF (ca pe iPhone) se citește întoarsă corect", async ({ page }) => {

@@ -185,6 +185,8 @@ export interface ShoppingListItem extends SyncedRow {
   sort_order: number;
   /** Varianta comercială aleasă (opțional); lipsă sau null = produsul generic. */
   variant_id?: string | null;
+  /** Numele tipărit pe bon (.tasks/016); lipsă sau null = linia nu vine de pe un bon. */
+  receipt_name?: string | null;
 }
 
 export interface ShoppingTransaction extends SyncedRow {
@@ -210,6 +212,8 @@ export interface ShoppingTransactionItem extends SyncedRow {
   purchased_at: ISODateTime;
   /** Varianta comercială cumpărată; lipsă sau null = produsul generic. */
   variant_id?: string | null;
+  /** Numele tipărit pe bon (.tasks/016); `name` și `product_id` rămân ale produsului generic. */
+  receipt_name?: string | null;
 }
 
 /** Ce a învățat gospodăria de pe bonuri: textul unei linii, la un magazin, înseamnă produsul (.tasks/005). */

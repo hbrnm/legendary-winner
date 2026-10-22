@@ -45,7 +45,7 @@ function HistoryScreen() {
     const retailerName = new Map(retailers.map((r) => [r.id, r.name]));
     const trips: Trip[] = txs
       .map((tx) => {
-        const its = items.filter((i) => i.transaction_id === tx.id).sort((a, b) => a.name.localeCompare(b.name, "ro"));
+        const its = items.filter((i) => i.transaction_id === tx.id).sort((a, b) => (a.receipt_name || a.name).localeCompare(b.receipt_name || b.name, "ro"));
         const places = [...new Set(its.map((i) => (i.retailer_id ? (retailerName.get(i.retailer_id) ?? "") : i.source !== "supermarket" ? SOURCE_LABELS[i.source] : "")).filter(Boolean))];
         const name = tx.list_id ? (listName.get(tx.list_id) ?? "Listă ștearsă") : "Cumpărături";
         const title = places.join(", ") || name;
@@ -131,14 +131,18 @@ function HistoryScreen() {
               {open.items.map((i) => (
                 <li key={i.id} className="flex items-center gap-3 py-2">
                   <div className="min-w-0 flex-1">
-                    <p className="text-[15px]">{i.name}</p>
-                    <p className="font-mono text-xs text-ink-2">{formatQuantity(i.quantity, i.unit)}</p>
+                    {/* Numele de pe bon sus, produsul din catalog dedesubt (.tasks/016). */}
+                    <p className="text-[15px]">{i.receipt_name || i.name}</p>
+                    <p className="text-xs text-ink-2">
+                      {i.receipt_name && `${i.name} · `}
+                      <span className="font-mono">{formatQuantity(i.quantity, i.unit)}</span>
+                    </p>
                   </div>
                   {/* Input are w-full: lățimea fixă stă pe container, ca numele să aibă loc. */}
                   <div className="w-28 shrink-0">
                     <Input
                       inputMode="decimal"
-                      aria-label={`Suma pentru ${i.name}`}
+                      aria-label={`Suma pentru ${i.receipt_name || i.name}`}
                       className="text-right font-mono"
                       placeholder="lei"
                       value={drafts[i.id] ?? (i.amount == null ? "" : i.amount.toFixed(2).replace(".", ","))}
