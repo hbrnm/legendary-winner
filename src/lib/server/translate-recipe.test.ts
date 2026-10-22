@@ -115,10 +115,22 @@ describe("geminiTranslator", () => {
     expect((fetchFn.mock.calls[0] as unknown as [string])[0]).toContain("/models/gemini-alt-model:generateContent");
   });
 
+  it("fără gândire, după seria modelului: bugetul 0 pentru seria 2, nivelul „low” pentru seria 3", async () => {
+    const body = async (model: string) => {
+      const fetchFn = vi.fn(async () => answer(JSON.stringify(romanian)));
+      await geminiTranslator(fetchFn as unknown as typeof fetch, "k", model)(recipe);
+      return JSON.parse(String((fetchFn.mock.calls[0] as unknown as [string, RequestInit])[1].body));
+    };
+    expect((await body("gemini-2.5-flash")).generationConfig.thinkingConfig).toEqual({ thinkingBudget: 0 });
+    expect((await body("gemini-3.5-flash-lite")).generationConfig.thinkingConfig).toEqual({ thinkingLevel: "low" });
+  });
+
   it("limita gratuită (429), cheia greșită, blocarea sau textul tăiat sunt erori", async () => {
     const t = (r: Response) => geminiTranslator((async () => r) as unknown as typeof fetch, "k")(recipe);
     await expect(t(new Response("{}", { status: 429 }))).rejects.toThrow("429");
     await expect(t(new Response("{}", { status: 403 }))).rejects.toThrow("403");
+    // Motivul scris de Google intră în jurnal.
+    await expect(t(new Response(JSON.stringify({ error: { message: "models/x is not found" } }), { status: 404 }))).rejects.toThrow("Gemini 404: models/x is not found");
     await expect(t(answer("", "SAFETY"))).rejects.toThrow("SAFETY");
     await expect(t(answer('{"name":"Ch', "MAX_TOKENS"))).rejects.toThrow("MAX_TOKENS");
     await expect(t(new Response(JSON.stringify({ candidates: [] })))).rejects.toThrow();

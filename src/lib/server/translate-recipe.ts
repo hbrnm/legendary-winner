@@ -6,6 +6,7 @@
 // supabase/functions/translate-recipe/core.js. Nu păstrează nimic.
 
 import { quotaViaRest } from "./import-recipe";
+import { googleReason, noThinking } from "./gemini";
 
 export { quotaViaRest };
 
@@ -133,11 +134,12 @@ export function geminiTranslator(fetchFn: typeof fetch, apiKey: string, model = 
       body: JSON.stringify({
         systemInstruction: { parts: [{ text: TRANSLATION_INSTRUCTIONS }] },
         contents: [{ role: "user", parts: [{ text: JSON.stringify(recipe) }] }],
-        generationConfig: { responseMimeType: "application/json", responseSchema: TRANSLATION_SCHEMA, temperature: 0.2 },
+        // Traducerea nu are nevoie de „gândire”: la seria 3 fără ea depășea limita (ca bonul, 20 oct. 2026).
+        generationConfig: { responseMimeType: "application/json", responseSchema: TRANSLATION_SCHEMA, temperature: 0.2, thinkingConfig: noThinking(model) },
       }),
-      signal: AbortSignal.timeout(25_000),
+      signal: AbortSignal.timeout(60_000),
     });
-    if (!res.ok) throw new Error(`Gemini ${res.status}`);
+    if (!res.ok) throw new Error(`Gemini ${res.status}${await googleReason(res)}`);
     const body = (await res.json()) as { candidates?: { finishReason?: string; content?: { parts?: { text?: unknown }[] } }[] };
     const candidate = body.candidates?.[0];
     const text = candidate?.content?.parts?.map((p) => (typeof p.text === "string" ? p.text : "")).join("");

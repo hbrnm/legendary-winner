@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { readFileSync } from "node:fs";
 import { parseReceipt } from "./receipt";
+import { roundMoney } from "./money";
 
 // Textele OCR (tesseract.js 7, „ron”) ale bonurilor reale din proba de la
 // .tasks/005, etapa 1, anonimizate: fără ID unic, card, casier, serie.
@@ -61,6 +62,31 @@ describe("bon Lidl pe hârtie ștearsă (OCR real)", () => {
     expect(r.lines[0]).toMatchObject({ name: "laurt In StII grecesc", amount: 11.19 });
     // Cantitate necitită („LO0O BUC”): fără sumă, nu presupunem 1 bucată.
     expect(r.lines[1]).toMatchObject({ quantity: null, unit_price: 14.99, amount: null });
+  });
+});
+
+describe("același bon Lidl, citit de Gemini (text transcris de mână după fotografie, 20 oct. 2026)", () => {
+  const r = parseReceipt(fixture("4-lidl-gemini"));
+
+  it("magazinul, data, totalul; toate liniile sigure și egale cu totalul", () => {
+    expect(r).toMatchObject({ chain: "lidl", date: "2026-10-13", total: 112.22, lines_total: 112.22, total_matches: true });
+    expect(r.lines.every((l) => l.check === "sigur")).toBe(true);
+  });
+
+  it("cele 11 produse, cu suma plătită după reducerile Lidl Plus", () => {
+    expect(r.lines.map((l) => [l.name, roundMoney((l.amount ?? 0) - (l.discount ?? 0))])).toEqual([
+      ["Iaurt in stil grecesc", 11.19],
+      ["Bomboane cu lapte", 14.99],
+      ["Inghetata vanilie", 14.99],
+      ["Sacosa maiou", 0.81],
+      ["Ecotaxa/Cost DEEE", 0.18],
+      ["Unt de arahide", 24.99],
+      ["Seminte de dovleac natur", 0],
+      ["Ciocolata neagra 85%", 12.49],
+      ["Cuvertura de cacao", 12.99],
+      ["Cheescake caramel sarat", 12.99],
+      ["Bautura portocale", 6.6],
+    ]);
   });
 });
 

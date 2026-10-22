@@ -7,8 +7,9 @@
 // supabase/functions/read-receipt/core.js. Nu păstrează nimic: nici imaginea, nici textul.
 
 import { quotaViaRest } from "./import-recipe";
+import { googleReason, noThinking } from "./gemini";
 
-export { quotaViaRest };
+export { noThinking, quotaViaRest };
 
 export type ReceiptErrorCode = "bad_request" | "unauthorized" | "rate_limited" | "too_large" | "failed";
 
@@ -95,22 +96,6 @@ export const GEMINI_DEFAULT_MODEL = "gemini-2.5-flash";
  * `x-goog-api-key` (nu în adresă). Orice răspuns fără text (limită, blocare,
  * eroare) e o eroare; aplicația trece atunci pe cititorul de pe telefon.
  */
-/** Motivul scris de Google la o cerere refuzată (fără imagine sau text de bon), scurt, pentru jurnal. */
-async function googleReason(res: Response): Promise<string> {
-  const body = (await res.json().catch(() => null)) as { error?: { message?: unknown } } | null;
-  const message = body?.error?.message;
-  return typeof message === "string" ? `: ${message.replace(/\s+/g, " ").slice(0, 300)}` : "";
-}
-
-/**
- * „Fără gândire” pentru model: seria 2.5 o oprește cu `thinkingBudget: 0`; din
- * seria 3 se cere cu `thinkingLevel` (cu bugetul vechi, 3.8 Flash gândea peste
- * 40 s la un bon, iar „minimal” a primit 400; „low” îl au toate modelele 3, 20 oct. 2026).
- */
-export function noThinking(model: string): { thinkingBudget: 0 } | { thinkingLevel: "low" } {
-  return /^gemini-[12]\./.test(model) ? { thinkingBudget: 0 } : { thinkingLevel: "low" };
-}
-
 export function geminiReceiptReader(fetchFn: typeof fetch, apiKey: string, model = GEMINI_DEFAULT_MODEL): ReceiptDeps["read"] {
   return async (image) => {
     const res = await fetchFn(`https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent`, {
