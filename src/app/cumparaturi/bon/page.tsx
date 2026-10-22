@@ -167,7 +167,7 @@ function ReceiptScreen() {
   async function read(image: ImageBitmap, crop: Crop) {
     reading.current = image;
     setStep({ kind: "citeste", progress: null });
-    let text: string;
+    let receipt: ParsedReceipt;
     let fallback: boolean;
     const server =
       serverWorks && navigator.onLine
@@ -177,10 +177,10 @@ function ReceiptScreen() {
           }
         : null;
     try {
-      ({ text, fallback } = await readWithFallback(server, () => {
+      ({ result: receipt, fallback } = await readWithFallback(server, async () => {
         // După server, ecranul trece pe mesajele cititorului de pe telefon.
         setStep({ kind: "citeste", progress: null });
-        return readReceipt(image, crop, (progress) => setStep({ kind: "citeste", progress }));
+        return parseReceipt(await readReceipt(image, crop, (progress) => setStep({ kind: "citeste", progress })));
       }));
     } catch {
       image.close();
@@ -190,7 +190,7 @@ function ReceiptScreen() {
     }
     image.close();
     reading.current = null;
-    await review(parseReceipt(text), fallback, null);
+    await review(receipt, fallback, null);
   }
 
   async function review(receipt: ParsedReceipt, fallback: boolean, typed: string | null) {

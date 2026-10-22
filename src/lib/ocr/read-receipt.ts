@@ -1,4 +1,6 @@
 import { detectReceipt, fitArea, sharpen, stretchContrast, type Crop } from "@/lib/domain/receipt-crop";
+import { parseReceipt, type ParsedReceipt } from "@/lib/domain/receipt";
+import { readReceiptJson, receiptFromJson } from "@/lib/domain/receipt-json";
 
 // Citirea bonului pe telefon (.tasks/005, etapa 4): tesseract.js cu limba
 // română, din fișierele servite de aplicație (/ocr/<versiune>/, copiate la build
@@ -134,22 +136,28 @@ export async function receiptJpeg(image: ImageBitmap, crop: Crop): Promise<strin
   return toBase64(new Uint8Array(await blob.arrayBuffer()));
 }
 
-/** Citirea prin server: un răspuns fără text e o eroare. */
-export function serverReceiptReader(call: ReceiptCall): (jpeg: string) => Promise<string> {
+/**
+ * Citirea prin server: bonul citit ca JSON (`receipt`). Răspunsul vechi, cu textul
+ * transcris (`text`), trece încă prin `parseReceipt`, cât timp funcția de pe
+ * server nu e la zi. Un răspuns fără bon e o eroare.
+ */
+export function serverReceiptReader(call: ReceiptCall): (jpeg: string) => Promise<ParsedReceipt> {
   return async (jpeg) => {
     const res = await call({ image: { mimeType: "image/jpeg", data: jpeg } });
-    const body = (await res.json().catch(() => null)) as { text?: unknown } | null;
-    if (!res.ok || typeof body?.text !== "string" || !body.text.trim()) throw new Error(`read-receipt ${res.status}`);
-    return body.text;
+    const body = (await res.json().catch(() => null)) as { receipt?: unknown; text?: unknown } | null;
+    const json = res.ok ? readReceiptJson(body?.receipt) : null;
+    if (json && !json.error && json.lines.length > 0) return receiptFromJson(json);
+    if (res.ok && typeof body?.text === "string" && body.text.trim()) return parseReceipt(body.text);
+    throw new Error(`read-receipt ${res.status}`);
   };
 }
 
 /** Întâi serverul (când e), iar dacă nu merge (fără internet, limita, eroare), telefonul. `fallback` = serverul n-a mers. */
-export async function readWithFallback(server: (() => Promise<string>) | null, phone: () => Promise<string>): Promise<{ text: string; fallback: boolean }> {
-  if (!server) return { text: await phone(), fallback: false };
+export async function readWithFallback<T>(server: (() => Promise<T>) | null, phone: () => Promise<T>): Promise<{ result: T; fallback: boolean }> {
+  if (!server) return { result: await phone(), fallback: false };
   try {
-    return { text: await server(), fallback: false };
+    return { result: await server(), fallback: false };
   } catch {
-    return { text: await phone(), fallback: true };
+    return { result: await phone(), fallback: true };
   }
 }
