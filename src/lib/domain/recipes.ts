@@ -135,3 +135,18 @@ export function recipesUsingProducts(recipes: Recipe[], allIngredients: RecipeIn
   }
   return out.sort((a, b) => b.uses.length - a.uses.length || a.recipe.name.localeCompare(b.recipe.name, "ro"));
 }
+
+export type SuggestedMeal = "mic_dejun" | "pranz" | "cina";
+
+/** Masa după ora din zi (.tasks/016, chestionar 22 oct. 2026): 05–10 mic dejun, 11–16 prânz, 17–04 cină. */
+export function mealForHour(hour: number): SuggestedMeal {
+  if (hour >= 5 && hour < 11) return "mic_dejun";
+  if (hour >= 11 && hour < 17) return "pranz";
+  return "cina";
+}
+
+/** Rețetele potrivite mesei; dacă nu e niciuna, toate (sugestiile nu rămân goale). */
+export function recipesForMeal<R extends Pick<Recipe, "categories">>(recipes: R[], meal: SuggestedMeal): R[] {
+  const fit = recipes.filter((r) => r.categories.includes(meal));
+  return fit.length ? fit : recipes;
+}
