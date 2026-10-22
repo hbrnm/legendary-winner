@@ -88,3 +88,15 @@ export interface RetailerSeed {
   name: string;
   kind: RetailerKind;
 }
+
+export interface NutritionSeed {
+  /** Sursa: CIQUAL (ANSES) sau USDA FoodData Central SR Legacy. */
+  src: "ciqual" | "usda";
+  /** alim_code (CIQUAL) sau fdc_id (USDA). */
+  code: number;
+  /** La 100 g. */
+  kcal: number;
+  protein_g: number;
+  carbs_g: number;
+  fat_g: number;
+}

@@ -1,13 +1,13 @@
 # 016 — Bonul cu numele lui, categorii, cămara din bon, sugestii după oră, nutriție
 
-**Stare:** în lucru (1a, 1b gata și în producție; etapa 2: PR #94, migrația aplicată pe producție; etapa 3: PR deschis; urmează etapa 4, nutriția)
+**Stare:** în așteptare (etapele 1–3 integrate; etapa 4: tabelul de nutriție aprobat; urmează calculul și ecranul, într-o sesiune nouă)
 **Ramuri:** câte una pe etapă, din `main` (`claude/016-...`).
 
 ## Scop
 Lista proprietarului (22 oct. 2026), cu deciziile din chestionar (variantele recomandate):
 1. **Numele de pe bon:** bonul se salvează cu denumirea de pe bon, chiar dacă linia e legată de un produs generic din catalog. Istoricul, cămara și prețurile arată numele de pe bon; legătura cu produsul generic rămâne (rețete, cămară, compararea prețurilor). Fiecare magazin își păstrează numele lui.
 2. **Categorii:** produsele noi de pe bon nu mai merg toate la „Diverse”. Gemini propune categoria (din cele 20 fixe); fără internet, aplicația o propune după cuvinte; omul o poate schimba pe „Verifică bonul”. Un ecran pentru mutarea produselor deja ajunse la „Diverse”.
-3. **Nutriție:** calculată din ingrediente; fiecare produs din catalog primește valorile la 100 g din USDA FoodData Central (domeniu public); pe rețetă: kcal, proteine, glucide, grăsimi pe porție, „aproximativ”. Când un ingredient nu se poate calcula, se spune ce lipsește. Tabelul se aprobă de proprietar înainte de producție.
+3. **Nutriție:** calculată din ingrediente; fiecare produs din catalog primește valorile la 100 g din CIQUAL (ANSES, Franța, licență liberă; decizia din 22 oct. 2026, în locul USDA); pe rețetă: kcal, proteine, glucide, grăsimi pe porție, „aproximativ”. Când un ingredient nu se poate calcula, se spune ce lipsește. Tabelul se aprobă de proprietar înainte de producție.
 4. **Sugestii după oră:** 05:00–10:59 mic dejun, 11:00–16:59 prânz, 17:00–04:59 cină. În interval rămâne regula de azi: întâi ce poți găti cu cămara.
 5. **Cămara din bon:** bonul salvat fără listă pune alimentele în cămară după setarea gospodăriei (`pantry_on_purchase`), ca „Gata” pe listă. Produsele intrate din cumpărături se șterg singure (logic) după o durată pe categorie; cele adăugate de mână nu se ating. Durata se poate schimba pe produsul din cămară.
 
@@ -32,7 +32,7 @@ Lista proprietarului (22 oct. 2026), cu deciziile din chestionar (variantele rec
 | 1 | **Numele de pe bon + categorii:** migrație `receipt_name text null` pe `shopping_list_items` și `shopping_transaction_items`; `applyReceipt` și `finalizeShopping` scriu/copiază numele de pe bon, exact cum vine de la citire; lista recurentă îl golește la „Gata”; Istoric, cămară, Prețuri îl arată, cu generic dedesubt. Categoria: `category` în `RECEIPT_SCHEMA` (enum cu id-urile din `categories.ts`), `guessCategory(name)` în `src/lib/domain` (cuvinte → categorie, pentru Tesseract/„Scrie sau dictează”), selector pe „Verifică bonul” la produsele noi; produsul nou se creează în categoria aleasă. Ecran „Diverse”: produsele gospodăriei din „Diverse” cu selector; schimbarea mută și liniile din istoric ale produsului. Textele într-un chestionar. Funcția `read-receipt` pe producție doar cu acordul proprietarului. | de făcut | `receipts.ts`, `shopping.ts`, `read-receipt.ts`, `receipt-json.ts`, `cumparaturi/bon/page.tsx`, `cumparaturi/istoric/page.tsx`, `supabase/migrations/`, `supabase/functions/read-receipt/` |
 | 2 | **Cămara din bon + consum automat** (PR #94): migrație `auto_consume_on date null` pe `pantry_items`; `CONSUME_DAYS` pe categorii (tabelul de mai jos, în `src/data`); `finalizeShopping` și `applyReceipt` (fără listă, după `pantry_on_purchase`; „întreabă” = bifă pe „Verifică bonul”) îl completează; `sweepConsumed(today)` la deschiderea aplicației șterge logic ce a trecut (idempotent pe mai multe telefoane); editarea cantității sau a datei în cămară îl poate schimba/goli. Teste cu data fixată. | de făcut | `shopping.ts`, `receipts.ts`, `pantry.ts`, `kitchen.ts`, `camara/`, `supabase/migrations/` |
 | 3 | **Sugestii după oră** (PR deschis): `mealSlotForHour(h)` în `src/lib/domain`, filtrul pe `categories` al rețetei în `home-screen.tsx`; titlul secțiunii după interval. Ora din `Date` locală, injectată în test. | de făcut | `recipes.ts`, `home-screen.tsx`, `e2e/` |
-| 4 | **Nutriție:** migrație `nutrition_per_100g jsonb null` + `nutrition_source text null` pe `products`; tabelul USDA → produsele din catalog (agent, cu codul FDC al fiecărui rând; ce nu are corespondent rămâne `null`); `recipeNutrition(recipe, ingredients, products)` (grame prin `convertForProduct`, pe porție, plus lista ingredientelor necalculate); ecranul rețetei: valorile „aproximativ” și sursa. Aprobarea tabelului de proprietar înainte de producție. Probabil două sesiuni (tabelul, apoi calculul + ecranul). | de făcut | `src/data/products/`, `recipes.ts`, `retete/reteta/page.tsx`, `supabase/migrations/`, `supabase/seed.sql` |
+| 4 | **Nutriție:** migrație `nutrition_per_100g jsonb null` + `nutrition_source text null` pe `products`; tabelul CIQUAL → produsele din catalog (agent, cu codul CIQUAL al fiecărui rând; ce nu are corespondent rămâne `null`, „DE COMPLETAT”); `recipeNutrition(recipe, ingredients, products)` (grame prin `convertForProduct`, pe porție, plus lista ingredientelor necalculate); ecranul rețetei: valorile „aproximativ” și sursa. Aprobarea tabelului de proprietar înainte de producție. Probabil două sesiuni (tabelul, apoi calculul + ecranul). | de făcut | `src/data/products/`, `recipes.ts`, `retete/reteta/page.tsx`, `supabase/migrations/`, `supabase/seed.sql` |
 
 ### Durate până la „consumat” (aprobate 22 oct. 2026, pe categorii)
 | Zile | Categorii |
@@ -50,7 +50,7 @@ Lista proprietarului (22 oct. 2026), cu deciziile din chestionar (variantele rec
 ## Întrebări deschise (le pun la etapa respectivă)
 - Etapa 1: textele noi (selectorul de categorie, ecranul „Diverse”, eticheta numelui de pe bon).
 - Etapa 2: textul notificării „Am scos din cămară N produse probabil consumate” (cu „Anulează”?).
-- Etapa 4: cum arată valorile când lipsesc ingrediente (parțial cu avertisment sau deloc).
+- ~~Etapa 4: cum arată valorile când lipsesc ingrediente~~ — parțial, cu avertisment (chestionar, 22 oct. 2026): valorile din ce se poate calcula, „aproximativ”, plus „Fără: …”; „după gust” și opționalele nu contează ca lipsă (textele exacte, în chestionarul etapei).
 
 ## Rezumat pe etape
 ### Etapa 1a: numele de pe bon (22 oct. 2026)
@@ -81,8 +81,16 @@ Lista proprietarului (22 oct. 2026), cu deciziile din chestionar (variantele rec
 - **După `verificare`:** cu sub trei rețete rapide pentru masa curentă, sugestiile se aleg din toate rețetele mesei (secțiunea nu rămâne goală).
 - **Teste:** `recipes.test.ts` (+2), `e2e/retete-camara.spec.ts` (la 09:00, „Pentru micul dejun” cu trei rețete). `npm test`: 603; `npm run test:e2e`: 44 (gospodăria model, 50/50 la repetare); `npm run build` reușit.
 
+### Etapa 4: nutriția — sursa (22 oct. 2026)
+- **Sursa** (chestionar, 22 oct. 2026): proprietarul vrea surse cât mai apropiate de România. USDA = medii pentru alimentele din SUA (apropiate la alimentele de bază, departe la cele prelucrate: pâine, telemea, mezeluri). Nu există o bază românească publică, descărcabilă, cu licență liberă (tabelele românești sunt în cărți, cu drepturi de autor). Ales: **CIQUAL** (ANSES, Franța, licență liberă, ~3.000 de alimente europene); ce nu are corespondent rămâne „DE COMPLETAT”. Dacă proprietarul aduce un tabel românesc cu drept de folosire, are prioritate.
+- **Rețeaua:** proprietarul a deschis domeniile CIQUAL și USDA (22 oct. 2026) și a cerut ambele surse: CIQUAL întâi, USDA unde CIQUAL nu are alimentul sau nu are toate cele patru valori.
+- **Tabelul** (`src/data/nutrition.ts`, `NutritionSeed` în `seed-types.ts`): CIQUAL 2025 (`Table Ciqual 2025_ENG_2025_11_03.xlsx`) și USDA SR Legacy (2018-04, CSV). Agenții (4 loturi) au ales doar codul fiecărui produs, așa cum se cumpără; valorile le-a luat un script direct din fișiere (numele din sursă verificat pe cod). Glucidele asimilabile (USDA: minus fibre), „urme”/„< x” = 0. La 12 produse CIQUAL nu avea energia sau o valoare: alt rând complet (CIQUAL) sau USDA. Rezultat: 385 din 424 cu valori (358 CIQUAL, 27 USDA; 104 „aproape”, cu numele alimentului din sursă în comentariu), 39 DE COMPLETAT (7 nealimentare din „copii”).
+- **Limită cunoscută:** valorile sunt pentru partea care se mănâncă; la carnea cu os (pulpe, pui întreg, ciolan) calculul iese puțin mai mare.
+- **Pagina de aprobare:** https://claude.ai/artifact/BXfPdd8qXHMwcQbXWv8Wv6 (privată). **Aprobat așa de proprietar** (chestionar, 22 oct. 2026), cu rândurile „aproape”.
+- **Test:** `catalog.test.ts` (+1: doar produse alimentare din catalog, valori plauzibile).
+
 ## Cum verific la final
 Pe telefon, cu cont: un bon Lidl fără listă → Istoric arată „LAPTE ZUZU 1,5% 1L” (legat de „Lapte”), produsele noi au categoriile propuse, alimentele sunt în cămară; data mutată peste 8 zile (test) → lactatele au dispărut, uleiul nu. Dimineața, prima pagină arată rețete de mic dejun. O rețetă din catalog arată kcal/porție „aproximativ”.
 
 ## Următorul pas
-Integrarea etapelor 2 și 3 după CI verde. Proprietarul: un bon pe telefon → Istoric cu numele de pe bon, produsele noi cu categoria propusă, alimentele în cămară; dimineața, prima pagină cu rețete de mic dejun. Apoi etapa 4 (nutriția: întâi tabelul USDA, de aprobat), într-o sesiune nouă.
+Într-o sesiune nouă, restul etapei 4: migrația `nutrition_per_100g` + `nutrition_source` pe `products`, catalogul și seed-ul, `recipeNutrition`, ecranul rețetei (parțial, cu „Fără: …”; textele într-un chestionar).
