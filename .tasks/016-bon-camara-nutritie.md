@@ -1,6 +1,6 @@
 # 016 — Bonul cu numele lui, categorii, cămara din bon, sugestii după oră, nutriție
 
-**Stare:** în așteptare (etapele 1–3 integrate; etapa 4: tabelul de nutriție `src/data/nutrition.ts` gata, așteaptă aprobarea proprietarului)
+**Stare:** în așteptare (etapele 1–3 integrate; etapa 4: tabelul de nutriție aprobat; urmează calculul și ecranul, într-o sesiune nouă)
 **Ramuri:** câte una pe etapă, din `main` (`claude/016-...`).
 
 ## Scop
@@ -86,11 +86,11 @@ Lista proprietarului (22 oct. 2026), cu deciziile din chestionar (variantele rec
 - **Rețeaua:** proprietarul a deschis domeniile CIQUAL și USDA (22 oct. 2026) și a cerut ambele surse: CIQUAL întâi, USDA unde CIQUAL nu are alimentul sau nu are toate cele patru valori.
 - **Tabelul** (`src/data/nutrition.ts`, `NutritionSeed` în `seed-types.ts`): CIQUAL 2025 (`Table Ciqual 2025_ENG_2025_11_03.xlsx`) și USDA SR Legacy (2018-04, CSV). Agenții (4 loturi) au ales doar codul fiecărui produs, așa cum se cumpără; valorile le-a luat un script direct din fișiere (numele din sursă verificat pe cod). Glucidele asimilabile (USDA: minus fibre), „urme”/„< x” = 0. La 12 produse CIQUAL nu avea energia sau o valoare: alt rând complet (CIQUAL) sau USDA. Rezultat: 385 din 424 cu valori (358 CIQUAL, 27 USDA; 104 „aproape”, cu numele alimentului din sursă în comentariu), 39 DE COMPLETAT (7 nealimentare din „copii”).
 - **Limită cunoscută:** valorile sunt pentru partea care se mănâncă; la carnea cu os (pulpe, pui întreg, ciolan) calculul iese puțin mai mare.
-- **Pagina de aprobare:** https://claude.ai/artifact/BXfPdd8qXHMwcQbXWv8Wv6 (privată).
+- **Pagina de aprobare:** https://claude.ai/artifact/BXfPdd8qXHMwcQbXWv8Wv6 (privată). **Aprobat așa de proprietar** (chestionar, 22 oct. 2026), cu rândurile „aproape”.
 - **Test:** `catalog.test.ts` (+1: doar produse alimentare din catalog, valori plauzibile).
 
 ## Cum verific la final
 Pe telefon, cu cont: un bon Lidl fără listă → Istoric arată „LAPTE ZUZU 1,5% 1L” (legat de „Lapte”), produsele noi au categoriile propuse, alimentele sunt în cămară; data mutată peste 8 zile (test) → lactatele au dispărut, uleiul nu. Dimineața, prima pagină arată rețete de mic dejun. O rețetă din catalog arată kcal/porție „aproximativ”.
 
 ## Următorul pas
-Aprobarea tabelului de proprietar; apoi, într-o sesiune nouă, restul etapei 4: migrația `nutrition_per_100g` + `nutrition_source` pe `products`, catalogul și seed-ul, `recipeNutrition`, ecranul rețetei (parțial, cu „Fără: …”; textele într-un chestionar).
+Într-o sesiune nouă, restul etapei 4: migrația `nutrition_per_100g` + `nutrition_source` pe `products`, catalogul și seed-ul, `recipeNutrition`, ecranul rețetei (parțial, cu „Fără: …”; textele într-un chestionar).
