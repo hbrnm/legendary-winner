@@ -100,3 +100,10 @@ test("prețuri de la piață și comparație", async ({ page }) => {
   await expect(rows.nth(1)).toContainText("Lidl");
   await expect(rows.nth(1)).toContainText("~24,00 RON");
 });
+
+test("prima pagină: dimineața, rețete pentru micul dejun (.tasks/016)", async ({ page }) => {
+  await start(page); // 09:00
+  const section = page.getByRole("region", { name: "Pentru micul dejun" });
+  await expect(section).toBeVisible();
+  await expect(section.getByRole("link")).toHaveCount(3);
+});

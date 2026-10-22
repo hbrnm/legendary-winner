@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { recipeAllergens, recipeCost, recipeNeeds, whatCanICook } from "./recipes";
+import { mealForHour, recipeAllergens, recipeCost, recipeNeeds, recipesForMeal, whatCanICook } from "./recipes";
 import { buildPriceIndex } from "./pricing";
 import { ingredient, price, recipe } from "@/test/factories";
 import type { Product } from "./types";
@@ -83,5 +83,18 @@ describe("ce pot găti cu ce am", () => {
 
   it("nu propune rețete fără niciun ingredient disponibil", () => {
     expect(whatCanICook([supa], all, [{ product_id: "oua", quantity: 6, unit: "buc" }])).toEqual([]);
+  });
+});
+
+describe("sugestiile după ora din zi (.tasks/016)", () => {
+  it("05–10 mic dejun, 11–16 prânz, 17–04 cină", () => {
+    expect([0, 4, 5, 10, 11, 16, 17, 23].map(mealForHour)).toEqual(["cina", "cina", "mic_dejun", "mic_dejun", "pranz", "pranz", "cina", "cina"]);
+  });
+
+  it("doar rețetele mesei; fără niciuna, toate", () => {
+    const omleta = recipe({ id: "omleta", categories: ["mic_dejun", "rapide"] });
+    const ciorba = recipe({ id: "ciorba", categories: ["pranz", "supe_ciorbe"] });
+    expect(recipesForMeal([omleta, ciorba], "mic_dejun").map((r) => r.id)).toEqual(["omleta"]);
+    expect(recipesForMeal([omleta, ciorba], "cina").map((r) => r.id)).toEqual(["omleta", "ciorba"]);
   });
 });

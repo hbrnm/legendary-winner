@@ -14,7 +14,7 @@ import { addItem, createList } from "@/lib/services/shopping";
 import { SOURCE_LABELS, budgetStatus } from "@/lib/domain/budget";
 import { listTotals } from "@/lib/domain/shopping";
 import { expiringSoon, pantryStock } from "@/lib/domain/pantry";
-import { totalMinutes, whatCanICook } from "@/lib/domain/recipes";
+import { mealForHour, recipesForMeal, totalMinutes, whatCanICook, type SuggestedMeal } from "@/lib/domain/recipes";
 import { daysBetween, formatLongDate, localDateOf, toISODate } from "@/lib/domain/dates";
 import { formatRon, sumMoney } from "@/lib/domain/money";
 import { now } from "@/lib/clock";
@@ -22,6 +22,9 @@ import { capitalizeFirst, count } from "@/lib/domain/text";
 import type { MealSlot } from "@/lib/domain/types";
 
 const SLOT_ORDER: MealSlot[] = ["mic_dejun", "pranz", "cina", "gustare"];
+
+/** Titlul sugestiilor după masa din acest moment (.tasks/016). */
+const MEAL_TITLES: Record<SuggestedMeal, string> = { mic_dejun: "Pentru micul dejun", pranz: "Pentru prânz", cina: "Pentru cină" };
 
 function greeting(): string {
   const h = now().getHours();
@@ -35,6 +38,7 @@ export function HomeScreen() {
   const { run } = useAction();
   const toast = useToast();
   const today = toISODate(now());
+  const meal = mealForHour(now().getHours());
 
   const data = useData(async (ctx) => {
     const [lists, prices, budgets, spend, categories, meals, recipes, ingredients, pantry, txs, retailers] = await Promise.all([
@@ -62,9 +66,11 @@ export function HomeScreen() {
       .filter((m) => m.date === today)
       .sort((a, b) => SLOT_ORDER.indexOf(a.slot) - SLOT_ORDER.indexOf(b.slot))
       .map((m) => ({ meal: m, recipe: recipeMap.get(m.recipe_id) }));
-    const cook = whatCanICook(recipes, ingredients, pantryStock(pantry), 0.6, prices.product_units).slice(0, 3);
+    // Rețetele mesei din acest moment: dimineața mic dejun, apoi prânz, seara cină.
+    const forMeal = recipesForMeal(recipes, meal);
+    const cook = whatCanICook(forMeal, ingredients, pantryStock(pantry), 0.6, prices.product_units).slice(0, 3);
     // Fără cămară completată: trei rețete rapide, altele în fiecare zi.
-    const quick = recipes.filter((r) => totalMinutes(r) <= 30).sort((a, b) => a.id.localeCompare(b.id));
+    const quick = forMeal.filter((r) => totalMinutes(r) <= 30).sort((a, b) => a.id.localeCompare(b.id));
     const start = quick.length ? Number(today.replace(/-/g, "")) % quick.length : 0;
     const suggestions = cook.length
       ? cook.map((c) => ({ recipe: c.recipe, why: c.missing.length ? `${c.missing.length === 1 ? "lipsește 1 ingredient" : `lipsesc ${c.missing.length} ingrediente`}` : "ai tot ce trebuie" }))
@@ -89,7 +95,7 @@ export function HomeScreen() {
       suggestions,
       recent,
     };
-  });
+  }, [meal]);
 
   if (!data) return <Spinner />;
 
@@ -202,8 +208,8 @@ export function HomeScreen() {
 
       {data.suggestions.length > 0 && (
         <>
-          <SectionTitle action={<Link href="/retete/" className="text-sm font-medium text-brand">Toate rețetele</Link>}>Rețete sugerate</SectionTitle>
-          <Card as="section" aria-label="Rețete sugerate" className="divide-y divide-line overflow-hidden">
+          <SectionTitle action={<Link href="/retete/" className="text-sm font-medium text-brand">Toate rețetele</Link>}>{MEAL_TITLES[meal]}</SectionTitle>
+          <Card as="section" aria-label={MEAL_TITLES[meal]} className="divide-y divide-line overflow-hidden">
             {data.suggestions.map(({ recipe, why }) => (
               <Link key={recipe.id} href={`/retete/reteta/?id=${recipe.id}`} className={`flex items-center gap-3 px-3 py-3 ${ROW}`}>
                 <RecipeImage recipe={recipe} size="sm" avatar />
