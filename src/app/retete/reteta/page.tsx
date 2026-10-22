@@ -263,7 +263,7 @@ function RecipeScreen() {
       <SectionTitle>Valori nutriționale</SectionTitle>
       {view.nutrition.per_serving ? (
         // Parțial, cu ce lipsește (decizia proprietarului, 22 oct. 2026).
-        <Card className="p-4" aria-label="Valori nutriționale">
+        <Card as="section" className="p-4" aria-label="Valori nutriționale">
           <p className="text-sm text-ink-2">Pe porție, aproximativ</p>
           <p className="mt-1 font-mono text-lg font-medium">{view.nutrition.per_serving.kcal} kcal</p>
           <dl className="mt-2 flex flex-col gap-1 text-sm">
@@ -280,8 +280,10 @@ function RecipeScreen() {
               </div>
             ))}
           </dl>
-          {view.nutrition.missing_product_ids.length > 0 && (
-            <p className="mt-2 text-xs text-ink-2">Fără: {view.nutrition.missing_product_ids.map((p) => data.products.get(p)?.name ?? p).join(", ")}.</p>
+          {view.nutrition.missing.length > 0 && (
+            <p className="mt-2 text-xs text-ink-2">
+              Fără: {view.nutrition.missing.map((m) => `${data.products.get(m.product_id)?.name ?? m.product_id}${m.frying ? " (pentru prăjit)" : ""}`).join(", ")}.
+            </p>
           )}
           <p className="mt-2 text-xs text-ink-3">Din CIQUAL (Franța) și USDA (SUA), pentru ingredientele crude.</p>
         </Card>

@@ -6,7 +6,8 @@ import type { NutritionSeed } from "./seed-types";
 // apropiat sau îi lipsesc valori, USDA FoodData Central SR Legacy (2018-04, domeniu
 // public). `code` e alim_code (CIQUAL) sau fdc_id (USDA). Glucidele sunt cele
 // asimilabile, ca pe etichetele din UE (la USDA: glucide minus fibre); „urme” și
-// „< x” din CIQUAL sunt 0. „aproape:” = cel mai apropiat aliment din sursă.
+// „< x” din CIQUAL sunt 0. „aproape:” = cel mai apropiat aliment din sursă;
+// `medie` = media altor rânduri din tabel, fără cod propriu.
 // Produsele fără rând nu au corespondent: DE COMPLETAT (rămân null).
 export const NUTRITION_SEEDS: Record<string, NutritionSeed> = {
   "rosii": { src: "ciqual", code: 20385, kcal: 19.2, protein_g: 0.6, carbs_g: 3.69, fat_g: 0 }, // Tomato, raw (average)
@@ -119,6 +120,7 @@ export const NUTRITION_SEEDS: Record<string, NutritionSeed> = {
   "pipote-pui": { src: "ciqual", code: 40700, kcal: 99.1, protein_g: 16.8, carbs_g: 0, fat_g: 3.53 }, // Gizzard, chicken, raw
   "carne-tocata-porc": { src: "usda", code: 168372, kcal: 218, protein_g: 17.99, carbs_g: 0.44, fat_g: 16 }, // aproape: Pork, ground, 84% lean / 16% fat, raw
   "carne-tocata-vita": { src: "ciqual", code: 6254, kcal: 215, protein_g: 20.2, carbs_g: 0.47, fat_g: 14.8 }, // aproape: Beef, minced steak, 15% fat, raw
+  "carne-tocata-porc-vita": { src: "medie", kcal: 216.5, protein_g: 19.095, carbs_g: 0.455, fat_g: 15.4 }, // aproape: media 1:1 a rândurilor carne-tocata-porc și carne-tocata-vita (decizia proprietarului, 22 oct. 2026)
   "carne-tocata-pui": { src: "usda", code: 171116, kcal: 143, protein_g: 17.44, carbs_g: 0.04, fat_g: 8.1 }, // Chicken, ground, raw
   "cotlet-porc": { src: "ciqual", code: 28100, kcal: 164, protein_g: 19.8, carbs_g: 0.38, fat_g: 9.3 }, // Pork, chop, raw
   "ceafa-porc": { src: "ciqual", code: 28001, kcal: 178, protein_g: 18.9, carbs_g: 0.38, fat_g: 11.2 }, // aproape: Pork, shoulder, raw
@@ -398,7 +400,7 @@ export const NUTRITION_SEEDS: Record<string, NutritionSeed> = {
 
 // DE COMPLETAT (fără corespondent în CIQUAL sau USDA, ori nealimentare):
 // usturoi-verde, patrunjel-radacina, loboda, leustean, telina-frunze, catina
-// leurda, carne-tocata-porc-vita, sorici, oase-pentru-supa, halloumi, pastrama
+// leurda, sorici, oase-pentru-supa, halloumi, pastrama
 // pastrama-oaie, salam-biscuit, rulada, piftie, blat-pizza, esenta-rom
 // frisca-praf, zacusca, muraturi-asortate, gogonele, pasta-ardei, lutenita
 // delikat, bors, leustean-uscat, amestec-mexican, placinta-congelata, rahat

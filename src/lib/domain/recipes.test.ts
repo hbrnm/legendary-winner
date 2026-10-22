@@ -113,7 +113,7 @@ describe("valorile nutriționale ale rețetei (.tasks/016, etapa 4)", () => {
     const n = recipeNutrition(r, ings, of);
     // 500 g pui = 550 kcal, 115 g proteine; 2 cepe = 300 g = 108 kcal, 3 g proteine, 21 g glucide; la 4 porții
     expect(n.per_serving).toEqual({ kcal: 165, protein_g: 30, carbs_g: 5, fat_g: 2 });
-    expect(n.missing_product_ids).toEqual([]);
+    expect(n.missing).toEqual([]);
   });
 
   it("transformă lingura (densitate) și cățelul în grame", () => {
@@ -132,12 +132,24 @@ describe("valorile nutriționale ale rețetei (.tasks/016, etapa 4)", () => {
       ingredient({ recipe_id: "r3", product_id: "bors", quantity: 1, unit: "l" }),
     ], of);
     expect(n.per_serving).toEqual({ kcal: 220, protein_g: 46, carbs_g: 0, fat_g: 3 });
-    expect(n.missing_product_ids).toEqual(["patrunjel", "bors"]);
+    expect(n.missing).toEqual([
+      { product_id: "patrunjel", frying: false },
+      { product_id: "bors", frying: false },
+    ]);
   });
 
   it("fără niciun ingredient calculabil nu are valori", () => {
     const n = recipeNutrition(recipe({ id: "r4", servings: 2 }), [ingredient({ recipe_id: "r4", product_id: "bors", quantity: 1, unit: "l" })], of);
     expect(n.per_serving).toBeNull();
-    expect(n.missing_product_ids).toEqual(["bors"]);
+    expect(n.missing).toEqual([{ product_id: "bors", frying: false }]);
+  });
+
+  it("uleiul pentru prăjit nu se socotește și apare la ce lipsește", () => {
+    const n = recipeNutrition(recipe({ id: "r5", servings: 1 }), [
+      ingredient({ recipe_id: "r5", product_id: "piept-pui", quantity: 100, unit: "g" }),
+      ingredient({ recipe_id: "r5", product_id: "ulei", quantity: 500, unit: "ml", note: "pentru prajit" }),
+    ], of);
+    expect(n.per_serving).toEqual({ kcal: 110, protein_g: 23, carbs_g: 0, fat_g: 2 });
+    expect(n.missing).toEqual([{ product_id: "ulei", frying: true }]);
   });
 });

@@ -50,7 +50,7 @@ test("import din text: ciorna, ingredientul de ales, produsul nou, salvarea", as
 
   await page.getByRole("button", { name: "Salvează rețeta" }).click();
   await expect(page.getByRole("heading", { name: "Ciorbă rapidă de legume" })).toBeVisible();
-  await expect(page.getByText("Pastă de chipotle")).toBeVisible();
+  await expect(page.getByText("Pastă de chipotle", { exact: true })).toBeVisible();
   await expect(page.getByText("Fierbe totul 30 de minute.")).toBeVisible();
 });
 
