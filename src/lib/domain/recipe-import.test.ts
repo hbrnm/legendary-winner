@@ -329,6 +329,17 @@ describe("unitățile imperiale → metric (.tasks/011)", () => {
     ["Cut 1-2 inches thick.", "Cut 2,5–5 cm thick."],
     ["Taie fâșii de 2 cm.", "Taie fâșii de 2 cm."],
     ["Mix in a bowl.", "Mix in a bowl."],
+    // Greutățile și volumele, ca în lista de ingrediente (20 oct. 2026: „10 ounces” rămăsese în pași).
+    ["Fierbe cele 10 ounces de paste penne.", "Fierbe cele 283 g de paste penne."],
+    ["Taie cele 1 ½ pounds de piept de pui.", "Taie cele 680 g de piept de pui."],
+    ["Adaugă 2 cups de supă, 1 cup de smântână și ½ cup de parmezan.", "Adaugă 480 ml de supă, 240 ml de smântână și 120 ml de parmezan."],
+    ["1 1/2 lbs beef, 8 oz cheese, 8 fl oz milk, 1½ cups flour.", "680 g beef, 227 g cheese, 240 ml milk, 360 ml flour."],
+    ["Open the cupboard and take 2 cupcakes.", "Open the cupboard and take 2 cupcakes."],
+    ["Adaugă 3 linguri de unt.", "Adaugă 3 linguri de unt."],
+    ["Add 1-2 cups broth, then 8 to 10 ounces pasta.", "Add 240–480 ml broth, then 227–283 g pasta."],
+    ["Add 8 oz. Then stir.", "Add 227 g. Then stir."],
+    ["Add 8 oz. cream cheese and 2 lbs.", "Add 227 g cream cheese and 907 g."],
+    ["Add 8 ounces (227 g) pasta and 1 cup (240 ml) milk.", "Add 227 g pasta and 240 ml milk."],
   ])("%s", (step, expected) => {
     expect(metricText(step)).toBe(expected);
   });

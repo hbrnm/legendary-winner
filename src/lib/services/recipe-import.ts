@@ -33,7 +33,8 @@ export interface PreparedImport {
 
 const englishIngredient = phraseDictionary(ENGLISH_INGREDIENTS);
 
-type RecipeText = Pick<RecipeDraft, "name" | "description" | "steps">;
+/** `notes`: observațiile ingredientelor („minced”), câte una pe ingredient; MyMemory nu le traduce. */
+type RecipeText = Pick<RecipeDraft, "name" | "description" | "steps"> & { notes?: string[] };
 
 /** Traduce în română textele unei rețete (aceleași câmpuri, același număr de pași). */
 export type Translate = (recipe: RecipeText, from: string) => Promise<RecipeText>;
@@ -105,12 +106,19 @@ export function firstWorking(...translators: Translate[]): Translate {
  */
 export async function translateDraft(draft: RecipeDraft, translate: Translate): Promise<{ draft: RecipeDraft; translation?: "done" | "failed" }> {
   if (!looksForeign(draft)) return { draft };
+  // Observațiile („cut into 1-inch pieces”) se traduc și ele; ingredientele rămân în engleză, pentru dicționar.
+  const notes = draft.ingredients.map((line) => parseIngredientLine(line).note ?? "");
   try {
-    const r = await translate({ name: draft.name, description: draft.description, steps: draft.steps }, guessLanguage([draft.name, draft.description, ...draft.steps].join(" ")));
+    // Peste limita serverului (100) observațiile nu se trimit; rămân cele originale.
+    const r = await translate({ name: draft.name, description: draft.description, steps: draft.steps, ...(notes.some(Boolean) && notes.length <= 100 ? { notes } : {}) }, guessLanguage([draft.name, draft.description, ...draft.steps].join(" ")));
     const text = (v: unknown): v is string => typeof v === "string";
     const steps = Array.isArray(r?.steps) && r.steps.length === draft.steps.length && r.steps.every((s, i) => text(s) && (s.trim() !== "" || draft.steps[i].trim() === ""));
     if (r && text(r.name) && r.name.trim() && text(r.description) && steps) {
-      return { draft: { ...draft, name: clip(r.name, 120), description: clip(r.description, 1000), steps: r.steps.map((s) => clip(s, 1500)) }, translation: "done" };
+      const translatedNotes = Array.isArray(r.notes) && r.notes.length === notes.length && r.notes.every(text) ? r.notes.map((n) => clip(n.trim(), 200)) : undefined;
+      return {
+        draft: { ...draft, name: clip(r.name, 120), description: clip(r.description, 1000), steps: r.steps.map((s) => clip(s, 1500)), ...(translatedNotes ? { ingredient_notes: translatedNotes } : {}) },
+        translation: "done",
+      };
     }
   } catch {
     // fără internet sau limita zilnică: rămâne originalul
@@ -127,14 +135,18 @@ export async function prepareImport(ctx: AppCtx, draft: RecipeDraft): Promise<Pr
   const nonFood = new Set((await visible(ctx.db, "product_categories", ctx.householdId)).filter((c) => !c.is_food).map((c) => c.id));
   const isFood = (id: string) => !nonFood.has(products.get(id)?.category_id ?? "");
   const matches = matchIngredients(draft.ingredients.map(parseIngredientLine), await productSearchIndex(ctx), 5, englishIngredient);
-  const ingredients = matches.map(({ ingredient: i, product_id, candidates }) => ({
+  const ingredients = matches.map(({ ingredient: i, product_id, candidates }, k) => ({
     text: i.text,
     name: i.name,
     product_id: product_id && products.has(product_id) && isFood(product_id) ? product_id : null,
     quantity: i.quantity,
     // Un număr fără unitate („1 ceapă”) înseamnă bucăți.
     unit: i.unit ?? (i.quantity != null ? "buc" : null),
-    note: i.note,
+    // Observația tradusă, dacă e; lungimile și măsurile americane, în metric.
+    note: (() => {
+      const note = draft.ingredient_notes?.[k]?.trim() || i.note;
+      return note ? metricText(note) : null;
+    })(),
     optional: i.optional,
     candidates: candidates.flatMap((id) => {
       const p = products.get(id);

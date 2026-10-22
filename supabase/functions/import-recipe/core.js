@@ -268,6 +268,15 @@ var PAIR = String.raw`\s*(?:\(\s*X\s*\)|\/\s*X|,?\s+(?:or|and|sau|ori|si|și)\s+
 var RANGE = String.raw`\s*(?:-|–|to)\s*`;
 var INCHES = String.raw`(?<![\d/])(\d+\s+\d\/\d|\d\/\d|\d+(?:\.\d+)?)`;
 var INCH = String.raw`\s*-?\s*inch(?:es)?(?!\p{L})`;
+var NUMBER = String.raw`(\d+\s+\d\/\d|\d+\s*[½¼¾⅓⅔⅛]|\d\/\d|[½¼¾⅓⅔⅛]|\d+(?:\.\d+)?)`;
+var AMOUNT = String.raw`(?<![\d/.,\-–])` + NUMBER;
+var US_MEASURES = [
+  [String.raw`fl\.?\s*oz`, "ml", 30],
+  [String.raw`(?:ounces?|oz)`, "g", 28.349523125],
+  [String.raw`(?:pounds?|lbs?)`, "g", 453.59237],
+  [String.raw`cups?`, "ml", 240]
+];
+var MEASURE = `(?:${US_MEASURES.map(([w]) => `(${w})`).join("|")})(?!\\p{L})`;
 
 // src/lib/server/import-recipe.ts
 var IMPORT_LIMITS = {

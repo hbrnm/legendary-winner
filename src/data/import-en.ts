@@ -73,6 +73,8 @@ export const ENGLISH_INGREDIENTS: [string, string | null][] = [
   ["mint", "menta-proaspata"], ["rosemary", "rozmarin-proaspat"], ["sage", "salvie-proaspata"],
 
   // Carne și pește
+  // „Boneless skinless chicken”, fără altă parte, e de obicei piept; „... chicken thighs” rămâne pulpe (expresia din dreapta câștigă la egalitate).
+  ["boneless chicken", "piept-pui"], ["skinless chicken", "piept-pui"],
   ["chicken", "pui-intreg"], ["whole chicken", "pui-intreg"], ["chicken breast", "piept-pui"], ["chicken thigh", "pulpe-pui"], ["chicken leg", "pulpe-pui"], ["chicken drumstick", "pulpe-pui"],
   ["chicken wing", "aripi-pui"], ["chicken liver", "ficat-pui"], ["chicken noodle", null], ["chicken sausage", null], ["chicken tender", null],
   ["ground beef", "carne-tocata-vita"], ["minced beef", "carne-tocata-vita"], ["beef mince", "carne-tocata-vita"],

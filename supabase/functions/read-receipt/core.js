@@ -114,6 +114,15 @@ var PAIR = String.raw`\s*(?:\(\s*X\s*\)|\/\s*X|,?\s+(?:or|and|sau|ori|si|și)\s+
 var RANGE = String.raw`\s*(?:-|–|to)\s*`;
 var INCHES = String.raw`(?<![\d/])(\d+\s+\d\/\d|\d\/\d|\d+(?:\.\d+)?)`;
 var INCH = String.raw`\s*-?\s*inch(?:es)?(?!\p{L})`;
+var NUMBER = String.raw`(\d+\s+\d\/\d|\d+\s*[½¼¾⅓⅔⅛]|\d\/\d|[½¼¾⅓⅔⅛]|\d+(?:\.\d+)?)`;
+var AMOUNT = String.raw`(?<![\d/.,\-–])` + NUMBER;
+var US_MEASURES = [
+  [String.raw`fl\.?\s*oz`, "ml", 30],
+  [String.raw`(?:ounces?|oz)`, "g", 28.349523125],
+  [String.raw`(?:pounds?|lbs?)`, "g", 453.59237],
+  [String.raw`cups?`, "ml", 240]
+];
+var MEASURE = `(?:${US_MEASURES.map(([w]) => `(${w})`).join("|")})(?!\\p{L})`;
 
 // src/lib/server/import-recipe.ts
 var ImportError = class extends Error {
@@ -153,10 +162,10 @@ var RON = new Intl.NumberFormat("ro-RO", { style: "currency", currency: "RON" })
 
 // src/lib/domain/receipt-json.ts
 var RECEIPT_JSON_LIMITS = { maxLines: 200, maxLabel: 120 };
-var AMOUNT = /^\d{1,6}(\.\d{1,2})?$/;
+var AMOUNT2 = /^\d{1,6}(\.\d{1,2})?$/;
 function money(text) {
   const t = typeof text === "string" ? text.trim() : "";
-  return AMOUNT.test(t) ? Number(t) : null;
+  return AMOUNT2.test(t) ? Number(t) : null;
 }
 var str = (v, max) => typeof v === "string" && v.trim() ? v.replace(/\s+/g, " ").trim().slice(0, max) : null;
 var amountText = (v) => typeof v === "string" && money(v) != null ? v.trim() : null;

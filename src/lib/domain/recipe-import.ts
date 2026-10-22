@@ -19,6 +19,8 @@ export interface RecipeDraft {
   source_url: string | null;
   /** Fotografia rețetei de pe pagină (doar la link, .tasks/013), dacă are una `https`. */
   image_url?: string;
+  /** Observațiile ingredientelor traduse în română, în ordinea `ingredients` ("" unde nu e). */
+  ingredient_notes?: string[];
 }
 
 const MAX_NAME = 120;
@@ -639,13 +641,41 @@ const PAIR = String.raw`\s*(?:\(\s*X\s*\)|\/\s*X|,?\s+(?:or|and|sau|ori|si|și)\
 const RANGE = String.raw`\s*(?:-|–|to)\s*`;
 const INCHES = String.raw`(?<![\d/])(\d+\s+\d\/\d|\d\/\d|\d+(?:\.\d+)?)`;
 const INCH = String.raw`\s*-?\s*inch(?:es)?(?!\p{L})`;
+/** O cantitate dintr-un pas: „10”, „1.5”, „1 ½”, „1 1/2”, „1½”, „½”, „1/2”. */
+const NUMBER = String.raw`(\d+\s+\d\/\d|\d+\s*[½¼¾⅓⅔⅛]|\d\/\d|[½¼¾⅓⅔⅛]|\d+(?:\.\d+)?)`;
+const AMOUNT = String.raw`(?<![\d/.,\-–])` + NUMBER;
+/** Greutăți și volume americane din pași, cu factorii din lista de ingrediente (`UNITS`). */
+const US_MEASURES: [string, "g" | "ml", number][] = [
+  [String.raw`fl\.?\s*oz`, "ml", 30],
+  [String.raw`(?:ounces?|oz)`, "g", 28.349523125],
+  [String.raw`(?:pounds?|lbs?)`, "g", 453.59237],
+  [String.raw`cups?`, "ml", 240],
+];
+
+/** Grupurile din `MEASURE`, câte unul pe măsură: primul prins spune care e. */
+const MEASURE = `(?:${US_MEASURES.map(([w]) => `(${w})`).join("|")})(?!\\p{L})`;
+/**
+ * Punctul de după măsură (`[punct, poziția, textul]` din `replace`): al abrevierii
+ * („8 oz. cream cheese”) dispare, cel de la sfârșitul propoziției („8 oz. Then”) rămâne.
+ */
+function sentenceDot(all: unknown, [dot, offset, text]: (string | number | undefined)[]): string {
+  if (!dot) return "";
+  const after = String(text).slice(Number(offset) + String(all).length);
+  return /^\s+[a-zăâîșț]/.test(after) ? "" : ".";
+}
+
+function measureOf(groups: (string | undefined)[]): { unit: "g" | "ml"; factor: number } | null {
+  const k = groups.slice(0, US_MEASURES.length).findIndex((g) => g !== undefined);
+  return k < 0 ? null : { unit: US_MEASURES[k][1], factor: US_MEASURES[k][2] };
+}
 
 function toCelsius(f: number): number {
   return Math.round((((f - 32) * 5) / 9) / 5) * 5;
 }
 
 function readInches(s: string): number {
-  return s.trim().split(/\s+/).reduce((sum, part) => sum + (readNumber(part) ?? 0), 0);
+  // „1½” lipit: cifrele și fracția se citesc separat.
+  return s.trim().replace(/(\d)([½¼¾⅓⅔⅛])/g, "$1 $2").split(/\s+/).reduce((sum, part) => sum + (readNumber(part) ?? 0), 0);
 }
 
 /** Centimetri pentru bucătărie: la jumătate de cm sub 3 cm, apoi la cm întreg. */
@@ -674,7 +704,19 @@ export function metricText(text: string): string {
     })
     .replace(re(`${INCHES}\\s*[x×]\\s*${INCHES}${INCH}`), (_, a: string, b: string) => `${toCm(a)}×${toCm(b)} cm`)
     .replace(re(`${INCHES}${RANGE}${INCHES}${INCH}`), (_, a: string, b: string) => `${toCm(a)}–${toCm(b)} cm`)
-    .replace(re(`${INCHES}${INCH}`), (_, a: string) => `${toCm(a)} cm`);
+    .replace(re(`${INCHES}${INCH}`), (_, a: string) => `${toCm(a)} cm`)
+    // „8 ounces (227 g)”: rămâne doar valoarea metrică de pe pagină.
+    .replace(re(`${AMOUNT}\\s*${MEASURE}\\s*\\(\\s*(\\d+(?:[.,]\\d+)?\\s*(?:g|kg|ml|l))\\s*\\)`), (...m: string[]) => m[2 + US_MEASURES.length])
+    // „1-2 cups” → „240–480 ml”; „10 ounces de paste” → „283 g de paste”, rotunjit ca în lista de ingrediente.
+    .replace(re(`${AMOUNT}${RANGE}${NUMBER}\\s*${MEASURE}(\\.?)`), (...args: (string | number | undefined)[]) => {
+      const m = measureOf(args.slice(3) as (string | undefined)[]);
+      const [a, b] = [String(args[1]), String(args[2])];
+      return m ? `${Math.round(readInches(a) * m.factor)}–${Math.round(readInches(b) * m.factor)} ${m.unit}${sentenceDot(args[0], args.slice(3 + US_MEASURES.length))}` : String(args[0]);
+    })
+    .replace(re(`${AMOUNT}\\s*${MEASURE}(\\.?)`), (...args: (string | number | undefined)[]) => {
+      const m = measureOf(args.slice(2) as (string | undefined)[]);
+      return m ? `${Math.round(readInches(String(args[1])) * m.factor)} ${m.unit}${sentenceDot(args[0], args.slice(2 + US_MEASURES.length))}` : String(args[0]);
+    });
 }
 
 // --- Potrivirea cu catalogul ------------------------------------------------------------

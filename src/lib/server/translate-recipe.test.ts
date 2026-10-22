@@ -90,6 +90,16 @@ describe("checkTranslation", () => {
     expect(checkTranslation(recipe, { ...romanian, name: " " })).toBeNull();
     expect(checkTranslation(recipe, "nu e obiect")).toBeNull();
   });
+
+  it("observațiile ingredientelor: același număr, goale rămân goale; o aplicație veche nu le trimite", () => {
+    const withNotes = { ...recipe, notes: ["minced", "", "cut into 1-inch pieces"] };
+    expect(checkTranslation(withNotes, { ...romanian, notes: ["tocat", "", "tăiat în bucăți de 1-inch"] })).toEqual({ ...romanian, notes: ["tocat", "", "tăiat în bucăți de 1-inch"] });
+    // Observații greșite: traducerea pașilor rămâne, fără observații.
+    expect(checkTranslation(withNotes, { ...romanian, notes: ["tocat"] })).toEqual(romanian);
+    expect(checkTranslation(withNotes, { ...romanian, notes: ["tocat", "", " "] })).toEqual(romanian);
+    expect(checkTranslation(withNotes, romanian)).toEqual(romanian);
+    expect(checkTranslation(recipe, { ...romanian, notes: ["în plus"] })).toEqual(romanian);
+  });
 });
 
 describe("geminiTranslator", () => {
