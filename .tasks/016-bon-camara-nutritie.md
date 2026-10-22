@@ -78,7 +78,8 @@ Lista proprietarului (22 oct. 2026), cu deciziile din chestionar (variantele rec
 ### Etapa 3: sugestii după oră (22 oct. 2026)
 - **Texte** (chestionar, 22 oct. 2026): titlul secțiunii „Pentru micul dejun” / „Pentru prânz” / „Pentru cină” (în loc de „Rețete sugerate”).
 - **Cum merge:** `mealForHour` (05–10, 11–16, 17–04) și `recipesForMeal` (fără rețete potrivite, toate); pe prima pagină, „ce pot găti” și rețetele rapide se aleg doar dintre rețetele mesei. Ora vine din `now()` (ora telefonului); datele se recalculează când se schimbă masa.
-- **Teste:** `recipes.test.ts` (+2), `e2e/retete-camara.spec.ts` (la 09:00, „Pentru micul dejun” cu trei rețete). `npm test`: 603.
+- **După `verificare`:** cu sub trei rețete rapide pentru masa curentă, sugestiile se aleg din toate rețetele mesei (secțiunea nu rămâne goală).
+- **Teste:** `recipes.test.ts` (+2), `e2e/retete-camara.spec.ts` (la 09:00, „Pentru micul dejun” cu trei rețete). `npm test`: 603; `npm run test:e2e`: 44 (gospodăria model, 50/50 la repetare); `npm run build` reușit.
 
 ## Cum verific la final
 Pe telefon, cu cont: un bon Lidl fără listă → Istoric arată „LAPTE ZUZU 1,5% 1L” (legat de „Lapte”), produsele noi au categoriile propuse, alimentele sunt în cămară; data mutată peste 8 zile (test) → lactatele au dispărut, uleiul nu. Dimineața, prima pagină arată rețete de mic dejun. O rețetă din catalog arată kcal/porție „aproximativ”.
