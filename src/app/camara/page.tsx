@@ -16,7 +16,7 @@ import { addPantryItem, adjustPantry, removePantryItem, updatePantryItem } from 
 import { addItem, createList } from "@/lib/services/shopping";
 import { expiringSoon, expiryState } from "@/lib/domain/pantry";
 import { recipesUsingProducts } from "@/lib/domain/recipes";
-import { daysBetween, formatShortDate, toISODate } from "@/lib/domain/dates";
+import { addDays, daysBetween, formatShortDate, toISODate } from "@/lib/domain/dates";
 import { formatQuantity, SHOPPING_UNITS, unitLabel } from "@/lib/domain/units";
 import { normalize } from "@/lib/domain/search";
 import { now } from "@/lib/clock";
@@ -340,6 +340,8 @@ function PantryScreen() {
                 type="date"
                 value={draft.auto_consume_on}
                 onChange={(e) => setDraft({ ...draft, auto_consume_on: e.target.value })}
+                // De mâine încolo: o zi trecută l-ar scoate din cămară imediat.
+                min={addDays(today, 1)}
                 hint="Apoi îl scot singur din cămară. Golește data ca să rămână."
               />
             )}
