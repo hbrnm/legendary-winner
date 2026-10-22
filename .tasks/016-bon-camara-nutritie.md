@@ -1,6 +1,6 @@
 # 016 — Bonul cu numele lui, categorii, cămara din bon, sugestii după oră, nutriție
 
-**Stare:** în așteptare (etapele 1–3 integrate; etapa 4, nutriția: proprietarul deschide accesul la CIQUAL în setările mediului)
+**Stare:** în așteptare (etapele 1–3 integrate; etapa 4: tabelul de nutriție `src/data/nutrition.ts` gata, așteaptă aprobarea proprietarului)
 **Ramuri:** câte una pe etapă, din `main` (`claude/016-...`).
 
 ## Scop
@@ -83,10 +83,14 @@ Lista proprietarului (22 oct. 2026), cu deciziile din chestionar (variantele rec
 
 ### Etapa 4: nutriția — sursa (22 oct. 2026)
 - **Sursa** (chestionar, 22 oct. 2026): proprietarul vrea surse cât mai apropiate de România. USDA = medii pentru alimentele din SUA (apropiate la alimentele de bază, departe la cele prelucrate: pâine, telemea, mezeluri). Nu există o bază românească publică, descărcabilă, cu licență liberă (tabelele românești sunt în cărți, cu drepturi de autor). Ales: **CIQUAL** (ANSES, Franța, licență liberă, ~3.000 de alimente europene); ce nu are corespondent rămâne „DE COMPLETAT”. Dacă proprietarul aduce un tabel românesc cu drept de folosire, are prioritate.
-- **Blocaj:** rețeaua sesiunii refuză `fdc.nal.usda.gov`, `api.nal.usda.gov`, `ciqual.anses.fr`, `www.data.gouv.fr`, `static.data.gouv.fr`. Valorile nu se scriu din memorie.
+- **Rețeaua:** proprietarul a deschis domeniile CIQUAL și USDA (22 oct. 2026) și a cerut ambele surse: CIQUAL întâi, USDA unde CIQUAL nu are alimentul sau nu are toate cele patru valori.
+- **Tabelul** (`src/data/nutrition.ts`, `NutritionSeed` în `seed-types.ts`): CIQUAL 2025 (`Table Ciqual 2025_ENG_2025_11_03.xlsx`) și USDA SR Legacy (2018-04, CSV). Agenții (4 loturi) au ales doar codul fiecărui produs, așa cum se cumpără; valorile le-a luat un script direct din fișiere (numele din sursă verificat pe cod). Glucidele asimilabile (USDA: minus fibre), „urme”/„< x” = 0. La 12 produse CIQUAL nu avea energia sau o valoare: alt rând complet (CIQUAL) sau USDA. Rezultat: 385 din 424 cu valori (358 CIQUAL, 27 USDA; 104 „aproape”, cu numele alimentului din sursă în comentariu), 39 DE COMPLETAT (7 nealimentare din „copii”).
+- **Limită cunoscută:** valorile sunt pentru partea care se mănâncă; la carnea cu os (pulpe, pui întreg, ciolan) calculul iese puțin mai mare.
+- **Pagina de aprobare:** https://claude.ai/artifact/BXfPdd8qXHMwcQbXWv8Wv6 (privată).
+- **Test:** `catalog.test.ts` (+1: doar produse alimentare din catalog, valori plauzibile).
 
 ## Cum verific la final
 Pe telefon, cu cont: un bon Lidl fără listă → Istoric arată „LAPTE ZUZU 1,5% 1L” (legat de „Lapte”), produsele noi au categoriile propuse, alimentele sunt în cămară; data mutată peste 8 zile (test) → lactatele au dispărut, uleiul nu. Dimineața, prima pagină arată rețete de mic dejun. O rețetă din catalog arată kcal/porție „aproximativ”.
 
 ## Următorul pas
-Proprietarul adaugă la Allowed domains ale mediului `ciqual.anses.fr`, `www.data.gouv.fr`, `static.data.gouv.fr`; apoi, într-o sesiune nouă, etapa 4: descărcarea CIQUAL, tabelul pe produsele din catalog (cu codul CIQUAL pe rând), de aprobat de proprietar.
+Aprobarea tabelului de proprietar; apoi, într-o sesiune nouă, restul etapei 4: migrația `nutrition_per_100g` + `nutrition_source` pe `products`, catalogul și seed-ul, `recipeNutrition`, ecranul rețetei (parțial, cu „Fără: …”; textele într-un chestionar).

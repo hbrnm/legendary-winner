@@ -4,6 +4,7 @@ import { buildCatalog } from "./catalog";
 import { CATEGORY_SEEDS } from "./categories";
 import { PRODUCT_SEEDS } from "./products";
 import { RECIPE_SEEDS } from "./recipes";
+import { NUTRITION_SEEDS } from "./nutrition";
 import { USOARE_MIC_DEJUN_GUSTARI } from "./recipes/usoare-mic-dejun-gustari";
 import { USOARE_SUPE_LEGUME } from "./recipes/usoare-supe-legume";
 import { USOARE_CARNE_PESTE } from "./recipes/usoare-carne-peste";
@@ -118,5 +119,26 @@ describe("catalogul de rețete", () => {
 describe("seed-ul SQL", () => {
   it("e la zi cu datele din src/data (rulează npm run seed:sql)", () => {
     expect(readFileSync(new URL("../../supabase/seed.sql", import.meta.url), "utf8")).toBe(seedSql());
+  });
+});
+
+describe("valorile nutriționale (.tasks/016, etapa 4)", () => {
+  it("sunt doar pentru produsele alimentare din catalog, la 100 g, în limite plauzibile", () => {
+    const food = new Set(CATEGORY_SEEDS.filter((c) => c.is_food).map((c) => c.id));
+    const category = new Map(PRODUCT_SEEDS.map((p) => [p.id, p.category]));
+    const wrong = Object.entries(NUTRITION_SEEDS).filter(([id, n]) => {
+      const cat = category.get(id);
+      const values = [n.protein_g, n.carbs_g, n.fat_g];
+      return (
+        cat === undefined ||
+        !food.has(cat) ||
+        !Number.isInteger(n.code) ||
+        n.kcal < 0 ||
+        n.kcal > 900 ||
+        values.some((v) => v < 0) ||
+        n.protein_g + n.carbs_g + n.fat_g > 101 // rotunjirile sursei (uleiul: 100 + 0,25)
+      );
+    });
+    expect(wrong).toEqual([]);
   });
 });
