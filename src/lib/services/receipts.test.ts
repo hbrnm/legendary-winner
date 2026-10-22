@@ -4,7 +4,7 @@ import { setClock } from "@/lib/clock";
 import { seedCatalog } from "./bootstrap";
 import type { AppCtx } from "./context";
 import { applyReceipt, learnReceiptAlias, proposeReceiptMatches } from "./receipts";
-import { addItem, createList, finalizeShopping, setChecked } from "./shopping";
+import { addItem, createList, duplicateList, finalizeShopping, setChecked } from "./shopping";
 import { listItems, spendRecords } from "./queries";
 import { createProduct, deleteProduct } from "./catalog";
 import { exportHouseholdData, importHouseholdData } from "./backup";
@@ -196,6 +196,20 @@ describe("aplicarea bonului", () => {
     const pantry = await owned(ctx.db, "pantry_items", "h1");
     expect(pantry.map((p) => [p.product_id, p.name]).sort()).toEqual([["ceapa-galbena", "CEAPA GALBENA KG"], ["lapte-integral", "Lapte integral"]]);
     // Lista recurentă revine la numele generic pentru data viitoare.
+    expect((await ctx.db.shopping_list_items.get(ceapa))?.receipt_name ?? null).toBeNull();
+  });
+
+  it("numele unui bon vechi nu rămâne: la debifare, la duplicare, la un bon fără nume distinct", async () => {
+    const listId = await createList(ctx, { name: "Săptămâna" });
+    const ceapa = await addItem(ctx, listId, { product_id: "ceapa-galbena", quantity: 1, unit: "kg" });
+    const named = { ...lines[0], receipt_name: "CEAPA GALBENA KG" };
+    await applyReceipt(ctx, { retailer_id: "kaufland", date: "2026-10-12", list_id: listId, lines: [named] });
+    const copy = await duplicateList(ctx, listId);
+    expect((await listItems(ctx.db, copy))[0].receipt_name ?? null).toBeNull();
+    await setChecked(ctx, ceapa, false);
+    expect((await ctx.db.shopping_list_items.get(ceapa))?.receipt_name ?? null).toBeNull();
+    await applyReceipt(ctx, { retailer_id: "kaufland", date: "2026-10-12", list_id: listId, lines: [named] });
+    await applyReceipt(ctx, { retailer_id: "kaufland", date: "2026-10-12", list_id: listId, lines: [{ ...named, receipt_name: null }] });
     expect((await ctx.db.shopping_list_items.get(ceapa))?.receipt_name ?? null).toBeNull();
   });
 

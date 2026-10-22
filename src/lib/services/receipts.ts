@@ -126,7 +126,9 @@ export async function applyReceipt(ctx: AppCtx, input: ReceiptApplyInput): Promi
       const match = l.product_id ? open.find((i) => i.product_id === l.product_id) : undefined;
       if (match) {
         open.splice(open.indexOf(match), 1);
-        await updateRow(ctx.db, "shopping_list_items", match.id, { ...paid, ...qty }, w(ctx));
+        // Un nume de pe un bon mai vechi nu rămâne pe linie.
+        const stale = match.receipt_name && !paid.receipt_name ? { receipt_name: null } : {};
+        await updateRow(ctx.db, "shopping_list_items", match.id, { ...paid, ...qty, ...stale }, w(ctx));
         result.checked++;
       } else {
         const id = await addItem(ctx, v.list_id, { product_id: l.product_id, name: l.name, quantity: l.quantity, unit: l.unit as UnitCode | null, retailer_id: v.retailer_id, source });

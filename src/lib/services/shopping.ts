@@ -57,7 +57,7 @@ export async function duplicateList(ctx: AppCtx, id: string, name?: string): Pro
     await insertRow(
       ctx.db,
       "shopping_list_items",
-      { ...pickItem(item), id: newId(), list_id: newListId, checked: false, checked_at: null, checked_by: null, actual_price: null },
+      { ...pickItem(item), id: newId(), list_id: newListId, checked: false, checked_at: null, checked_by: null, actual_price: null, ...(item.receipt_name ? { receipt_name: null } : {}) },
       w(ctx),
     );
   }
@@ -173,11 +173,13 @@ export async function updateItem(ctx: AppCtx, id: string, patch: ItemInput) {
 }
 
 export async function setChecked(ctx: AppCtx, id: string, checked: boolean) {
+  // Debifat, produsul nu mai e cel de pe bon (.tasks/016).
+  const fromReceipt = !checked && Boolean((await ctx.db.shopping_list_items.get(id))?.receipt_name);
   await updateRow(
     ctx.db,
     "shopping_list_items",
     id,
-    checked ? { checked: true, checked_at: nowIso(), checked_by: ctx.userId } : { checked: false, checked_at: null, checked_by: null },
+    checked ? { checked: true, checked_at: nowIso(), checked_by: ctx.userId } : { checked: false, checked_at: null, checked_by: null, ...(fromReceipt ? { receipt_name: null } : {}) },
     w(ctx),
   );
 }

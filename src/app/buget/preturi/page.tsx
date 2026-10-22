@@ -53,19 +53,19 @@ function PricesScreen() {
   const [error, setError] = useState<string | null>(null);
 
   const data = useData(async (ctx) => {
-    const [prices, retailers, products, variants, brands, index, bought] = await Promise.all([
+    const [prices, retailers, products, variants, brands, index] = await Promise.all([
       owned(ctx.db, "product_prices", ctx.householdId),
       visible(ctx.db, "retailers", ctx.householdId),
       visible(ctx.db, "products", ctx.householdId),
       visible(ctx.db, "product_variants", ctx.householdId),
       visible(ctx.db, "brands", ctx.householdId),
       priceIndex(ctx.db, ctx.householdId),
-      owned(ctx.db, "shopping_transaction_items", ctx.householdId),
     ]);
+    const bought = await ctx.db.shopping_transaction_items.bulkGet(prices.flatMap((p) => (p.transaction_item_id ? [p.transaction_item_id] : [])));
     return {
       prices,
       // Numele de pe bon al cumpărăturii din care vine prețul (.tasks/016).
-      receiptNames: new Map(bought.filter((i) => i.receipt_name).map((i) => [i.id, i.receipt_name!])),
+      receiptNames: new Map(bought.flatMap((i) => (i?.receipt_name ? [[i.id, i.receipt_name] as const] : []))),
       retailers: retailers.sort((a, b) => a.name.localeCompare(b.name, "ro")),
       products: new Map(products.map((p) => [p.id, p])),
       variants,
