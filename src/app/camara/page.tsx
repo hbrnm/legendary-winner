@@ -16,7 +16,7 @@ import { addPantryItem, adjustPantry, removePantryItem, updatePantryItem } from 
 import { addItem, createList } from "@/lib/services/shopping";
 import { expiringSoon, expiryState } from "@/lib/domain/pantry";
 import { recipesUsingProducts } from "@/lib/domain/recipes";
-import { daysBetween, formatShortDate, toISODate } from "@/lib/domain/dates";
+import { addDays, daysBetween, formatShortDate, toISODate } from "@/lib/domain/dates";
 import { formatQuantity, SHOPPING_UNITS, unitLabel } from "@/lib/domain/units";
 import { normalize } from "@/lib/domain/search";
 import { now } from "@/lib/clock";
@@ -68,6 +68,10 @@ interface Draft {
   expires_on: string;
   purchased_on: string;
   note: string;
+  /** Ziua de „consumat” (.tasks/016); goală la produsele adăugate de mână. */
+  auto_consume_on: string;
+  /** Avea zi de „consumat” la deschidere: golirea ei se salvează. */
+  had_auto: boolean;
 }
 
 function PantryScreen() {
@@ -120,6 +124,8 @@ function PantryScreen() {
       expires_on: "",
       purchased_on: today,
       note: "",
+      auto_consume_on: "",
+      had_auto: false,
     });
   }
 
@@ -134,6 +140,8 @@ function PantryScreen() {
       expires_on: i.expires_on ?? "",
       purchased_on: i.purchased_on ?? "",
       note: i.note ?? "",
+      auto_consume_on: i.auto_consume_on ?? "",
+      had_auto: Boolean(i.auto_consume_on),
     });
   }
 
@@ -148,6 +156,7 @@ function PantryScreen() {
       expires_on: d.expires_on || null,
       purchased_on: d.purchased_on || null,
       note: d.note.trim() || null,
+      ...(d.auto_consume_on || d.had_auto ? { auto_consume_on: d.auto_consume_on || null } : {}),
     };
     const ok = await run(async (ctx) => {
       if (d.id) await updatePantryItem(ctx, d.id, input);
@@ -325,6 +334,17 @@ function PantryScreen() {
               <LabeledInput label="Expiră pe" type="date" value={draft.expires_on} onChange={(e) => setDraft({ ...draft, expires_on: e.target.value })} />
               <LabeledInput label="Cumpărat pe" type="date" value={draft.purchased_on} onChange={(e) => setDraft({ ...draft, purchased_on: e.target.value })} />
             </div>
+            {draft.id && (
+              <LabeledInput
+                label="Consumat până pe"
+                type="date"
+                value={draft.auto_consume_on}
+                onChange={(e) => setDraft({ ...draft, auto_consume_on: e.target.value })}
+                // De mâine încolo: o zi trecută l-ar scoate din cămară imediat.
+                min={addDays(today, 1)}
+                hint="Apoi îl scot singur din cămară. Golește data ca să rămână."
+              />
+            )}
             <LabeledInput label="Observații" value={draft.note} onChange={(e) => setDraft({ ...draft, note: e.target.value })} maxLength={300} placeholder="ex. deschis, de folosit în 3 zile" />
           </div>
         )}

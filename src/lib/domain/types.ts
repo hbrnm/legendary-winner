@@ -317,6 +317,8 @@ export interface PantryItem extends SyncedRow {
   purchased_on: ISODate | null;
   expires_on: ISODate | null;
   note: string | null;
+  /** Ziua de la care se consideră consumat și iese singur din cămară (.tasks/016); lipsă sau null = rămâne. */
+  auto_consume_on?: ISODate | null;
 }
 
 export type BudgetPeriod = "lunar" | "saptamanal";

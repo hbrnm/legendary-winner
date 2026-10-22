@@ -54,7 +54,7 @@ Citesc și scriu doar membrii gospodăriei.
 | `favorite_recipes` | `recipe_id` |
 | `recipe_photos` | `recipe_id` (globală sau a gospodăriei), `storage_path` (`{household_id}/{recipe_id}/{id}.webp` sau `.jpg`, legată de rând), `width`, `height` (1–1280), `created_by`; cel mult una activă pe gospodărie și rețetă |
 | `meal_plan_items` | `date`, `slot`, `recipe_id`, `servings`, `note` |
-| `pantry_items` | `product_id`/`name`, `quantity`, `unit`, `location_id`, `purchased_on`, `expires_on` |
+| `pantry_items` | `product_id`/`name`, `quantity`, `unit`, `location_id`, `purchased_on`, `expires_on`, `auto_consume_on` (ziua de la care iese singur din cămară, nulabilă; migrația `20261022000002`, `.tasks/016`) |
 | `budgets` | `name`, `period`, `scope` (total, sursă, categorie sau magazin), `amount`, `active` |
 
 ## Storage

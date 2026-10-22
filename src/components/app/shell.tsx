@@ -10,8 +10,10 @@ import { useData } from "./hooks";
 import { owned } from "@/lib/services/queries";
 import { expiringSoon } from "@/lib/domain/pantry";
 import { toISODate } from "@/lib/domain/dates";
-import { now } from "@/lib/clock";
+import { now, nowIso } from "@/lib/clock";
 import { notifyExpiring } from "@/lib/notifications";
+import { sweepConsumed } from "@/lib/services/kitchen";
+import { useToast } from "@/components/ui/toast";
 
 /** O notificare pe zi (dacă utilizatorul a activat-o) pentru produsele care expiră. */
 function ExpiryNotifier() {
@@ -20,6 +22,36 @@ function ExpiryNotifier() {
   useEffect(() => {
     if (names?.length) void notifyExpiring(names, today);
   }, [names, today]);
+  return null;
+}
+
+/** Pornirea aplicației: ștergerea așteaptă o sincronizare de după ea. */
+const OPENED_AT = nowIso();
+/** Gospodăria și ziua deja verificate (o dată pe zi, oricâte ecrane se deschid). */
+let sweptFor: string | null = null;
+
+/**
+ * Scoate din cămară ce se consideră consumat (.tasks/016) și spune câte. Cu
+ * cont, doar după o sincronizare reușită în această pornire, ca un telefon
+ * rămas offline să nu șteargă un produs prelungit între timp pe alt telefon.
+ */
+function ConsumedSweeper() {
+  const { ctx, mode, sync } = useApp();
+  const toast = useToast();
+  const synced = mode === "demo" || (sync?.last_synced_at != null && sync.last_synced_at >= OPENED_AT);
+  useEffect(() => {
+    if (!ctx || !synced) return;
+    const today = toISODate(now());
+    const key = `${ctx.householdId}|${today}`;
+    if (sweptFor === key) return;
+    sweptFor = key;
+    sweepConsumed(ctx, today)
+      .then((n) => n > 0 && toast(`Am scos din cămară ${n === 1 ? "un produs" : `${n} produse`}, probabil ${n === 1 ? "consumat" : "consumate"}.`))
+      .catch((e) => {
+        sweptFor = null;
+        console.error(e);
+      });
+  }, [ctx, synced, toast]);
   return null;
 }
 
@@ -164,6 +196,7 @@ export function AppShell({ children, wide = false }: { children: ReactNode; wide
           <RejectedNotice />
           {ready ? children : <Spinner />}
           {app.status === "ready" && <ExpiryNotifier />}
+          {app.status === "ready" && <ConsumedSweeper />}
         </main>
       </div>
 

@@ -102,7 +102,8 @@ test("fără bon: scrii cumpărăturile, le verifici, intră în istoric", async
   await unt.getByLabel("Categoria").selectOption("diverse");
 
   await page.getByRole("button", { name: "Salvează", exact: true }).click();
-  await expect(page.getByText("Am pus cumpărăturile. Am adăugat un produs nou în catalog.")).toBeVisible();
+  // Fără listă, alimentele intră și în cămară (setarea „întreabă”, comutatorul pornit; .tasks/016).
+  await expect(page.getByText("Am pus cumpărăturile. Am adăugat un produs nou în catalog. 2 produse au intrat în cămară.")).toBeVisible();
   await page.waitForURL(/\/cumparaturi\/istoric\//);
   await expect(page.getByText(/37,89/).first()).toBeVisible();
 
@@ -112,4 +113,9 @@ test("fără bon: scrii cumpărăturile, le verifici, intră în istoric", async
   await page.getByRole("listitem").filter({ hasText: "Unt de arahide" }).getByLabel("Categoria").selectOption("dulciuri-gustari");
   await expect(page.getByText("Am mutat „Unt de arahide” la Dulciuri și gustări.")).toBeVisible();
   await expect(page.getByText("Nu mai ai nimic în Diverse.")).toBeVisible();
+
+  // În cămară, produsul venit din cumpărături are ziua de „consumat”.
+  await page.goto("/camara/");
+  await page.getByRole("button", { name: /Ceapă galbenă/ }).first().click();
+  await expect(page.getByLabel("Consumat până pe")).toHaveValue(/^\d{4}-\d{2}-\d{2}$/);
 });

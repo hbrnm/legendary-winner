@@ -13,6 +13,17 @@ export function expiryState(item: Pick<PantryItem, "expires_on">, today: ISODate
   return "ok";
 }
 
+/** Ziua de la care un produs cumpărat se consideră consumat, după categoria lui (.tasks/016); null = nu iese singur. */
+export function autoConsumeOn(categoryId: string, purchasedOn: ISODate, days: Record<string, number>): ISODate | null {
+  const n = days[categoryId];
+  return n ? addDays(purchasedOn, n) : null;
+}
+
+/** Produsele care au ajuns la ziua lor de „consumat”: ies singure din cămară. */
+export function consumedBy(items: PantryItem[], today: ISODate): PantryItem[] {
+  return items.filter((i) => !i.deleted_at && i.auto_consume_on != null && i.auto_consume_on <= today);
+}
+
 export function livePantry(items: PantryItem[]): PantryItem[] {
   return items.filter((i) => !i.deleted_at && i.quantity > 0);
 }

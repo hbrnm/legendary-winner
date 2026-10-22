@@ -9,7 +9,7 @@ import { diverseGroups, type DiverseGroup } from "@/lib/domain/budget";
 import { type AppCtx, UserError, w } from "./context";
 import { listItems, owned, spendRecords, visible } from "./queries";
 import { parse, zDate, zMoney, zName, zQuantity, zUnit } from "./validation";
-import { addItem } from "./shopping";
+import { addItem, addPurchaseToPantry } from "./shopping";
 import { createProduct, productSearchIndex, updateProduct } from "./catalog";
 
 // Bonurile fiscale (.tasks/005): potrivirea care învață din confirmări.
@@ -52,6 +52,8 @@ const applyInput = z.object({
   date: zDate,
   /** Lista pe care se bifează produsele; null = cumpărătură direct în istoric. */
   list_id: z.string().nullable(),
+  /** Fără listă: alimentele intră și în cămară (setarea gospodăriei, .tasks/016); cu listă decide „Gata”. */
+  add_to_pantry: z.boolean().default(false),
   lines: z
     .array(
       z.object({
@@ -83,6 +85,8 @@ export interface ReceiptApplyResult {
   transaction_id: string | null;
   /** Produse noi în catalogul gospodăriei, din liniile fără produs. */
   created: number;
+  /** Alimente puse în cămară (doar fără listă). */
+  added_to_pantry: number;
 }
 
 /**
@@ -104,13 +108,15 @@ export async function applyReceipt(ctx: AppCtx, input: ReceiptApplyInput): Promi
   const purchasedAt = new Date(`${v.date}T12:00:00`).toISOString();
   const products = new Map((await visible(ctx.db, "products", ctx.householdId)).map((p) => [p.id, p]));
   for (const l of v.lines) if (l.product_id && !products.has(l.product_id)) throw new UserError("Un produs ales nu mai există în catalog. Alege-l din nou.");
-  const categories = new Set((await visible(ctx.db, "product_categories", ctx.householdId)).map((c) => c.id));
+  const categoryRows = await visible(ctx.db, "product_categories", ctx.householdId);
+  const categories = new Set(categoryRows.map((c) => c.id));
+  const nonFood = new Set(categoryRows.filter((c) => !c.is_food).map((c) => c.id));
 
   // Lista se verifică înainte de produsele noi, ca un bon refuzat să nu lase produse în catalog.
   const list = v.list_id ? await ctx.db.shopping_lists.get(v.list_id) : undefined;
   if (v.list_id && (!list || list.deleted_at || list.household_id !== ctx.householdId || list.archived_at)) throw new UserError("Lista aleasă nu mai există.");
 
-  const result: ReceiptApplyResult = { checked: 0, added: 0, transaction_id: null, created: 0 };
+  const result: ReceiptApplyResult = { checked: 0, added: 0, transaction_id: null, created: 0, added_to_pantry: 0 };
   // Același nume (de pe acest bon sau din catalog) e același produs, nu o dublură.
   const byName = new Map([...products.values()].map((p) => [normalize(p.name), p]));
   // Numele de pe bon se păstrează doar când spune altceva decât numele produsului.
@@ -181,6 +187,10 @@ export async function applyReceipt(ctx: AppCtx, input: ReceiptApplyInput): Promi
           },
           w(ctx),
         );
+        if (v.add_to_pantry && !nonFood.has(product.category_id)) {
+          await addPurchaseToPantry(ctx, itemId, product, { name: receiptName(l).receipt_name ?? l.name, quantity: l.quantity, unit: l.unit as UnitCode | null, purchased_at: purchasedAt });
+          result.added_to_pantry++;
+        }
       }
       result.added++;
     }
