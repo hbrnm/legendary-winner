@@ -143,7 +143,25 @@ describe("translateDraft (.tasks/012)", () => {
     const { draft: d, translation } = await translateDraft(english, translate);
     expect(translation).toBe("done");
     expect(d).toEqual({ ...english, ...romanian });
-    expect(translate).toHaveBeenCalledWith({ name: english.name, description: english.description, steps: english.steps }, "en");
+    expect(translate).toHaveBeenCalledWith(expect.objectContaining({ name: english.name, description: english.description, steps: english.steps }), "en");
+  });
+
+  it("observațiile ingredientelor se traduc și ele; prepareImport le folosește, în metric", async () => {
+    const withNotes: RecipeDraft = { ...english, ingredients: ["1 ½ pounds boneless skinless chicken, cut into 1-inch pieces", "10 ounces penne pasta", "2 teaspoons garlic, minced"] };
+    const translate = answer({ ...romanian, notes: ["tăiat în bucăți de 1-inch", "", "tocat"] });
+    const { draft: d } = await translateDraft(withNotes, translate);
+    expect(translate).toHaveBeenCalledWith({ name: english.name, description: english.description, steps: english.steps, notes: ["cut into 1-inch pieces", "", "minced"] }, "en");
+    expect(d.ingredient_notes).toEqual(["tăiat în bucăți de 1-inch", "", "tocat"]);
+    const { ingredients } = await prepareImport(ctx, d);
+    expect(ingredients.map((i) => [i.product_id, i.quantity, i.unit, i.note])).toEqual([
+      ["piept-pui", 680, "g", "tăiat în bucăți de 2,5 cm"],
+      [expect.any(String), 283, "g", null],
+      ["usturoi", 2, "lingurita", "tocat"],
+    ]);
+    // MyMemory nu traduce observațiile: rămân cele originale.
+    const { draft: plain } = await translateDraft(withNotes, answer(romanian));
+    expect(plain.ingredient_notes).toBeUndefined();
+    expect((await prepareImport(ctx, plain)).ingredients[0].note).toBe("cut into 2,5 cm pieces");
   });
 
   it("o rețetă în română nu se trimite la tradus", async () => {
