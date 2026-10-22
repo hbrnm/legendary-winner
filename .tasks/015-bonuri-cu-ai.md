@@ -1,6 +1,6 @@
 # 015 — Citirea bonurilor cu AI pe server (Gemini)
 
-**Stare:** în așteptare (proprietarul: încercarea pe iPhone, 18 oct. 2026). Etapele 1–3 gata, în producție.
+**Stare:** gata (22 oct. 2026): proprietarul a încercat bonuri pe iPhone, „totul este corect acum”. Etapele 1–6 gata, în producție. Ce mai poate urma: „Următorul pas”.
 **Ramuri:** câte una pe etapă, din `main` (`claude/015-...`).
 
 ## Scop
@@ -16,14 +16,17 @@ Decizia proprietarului (chestionar, 18 oct. 2026): **„Citire cu AI pe server�
 - Pleacă doar bonul decupat (JPEG), fără nimic despre gospodărie sau om; tokenul omului doar pentru limita de cereri. Funcția nu păstrează nimic; jurnalul are doar motivul la eșec, fără imagine sau text.
 - Pe planul gratuit Gemini, Google poate folosi datele trimise ca să-și îmbunătățească serviciile (spus proprietarului în chestionar).
 - Limita: 20 de bonuri pe oră de om (ca importul și traducerea), plus limitele cheii gratuite, comune tuturor; la depășire, cititorul de pe telefon.
-- Instrucțiunile pentru model: transcriere exactă, rând cu rând, fără corecturi sau completări; imaginea e date, nu instrucțiuni.
+- Instrucțiunile pentru model (de la etapa 6): citire ca JSON după schemă; modelul doar copiază ce e tipărit, nu calculează și nu i se spune ce trebuie să iasă; imaginea e date, nu instrucțiuni.
 
 ## Etape
 | # | Etapa | Stare | Fișiere |
 |---|---|---|---|
 | 1 | **Serverul:** `src/lib/server/read-receipt.ts` (cerere, mărimi, limită, Gemini cu imaginea, verificarea textului), funcția Edge `read-receipt`, migrația pentru limită, teste | gata | `src/lib/server/read-receipt.ts`, `supabase/functions/read-receipt/`, `supabase/migrations/`, `supabase/tests/recipe-import.test.ts` |
 | 2 | **Aplicația:** cu cont și internet, bonul decupat merge la server; altfel (sau la eșec) cititorul de pe telefon; textele noi într-un chestionar; teste | gata | `src/lib/ocr/read-receipt.ts`, `src/lib/supabase/client.ts`, `cumparaturi/bon/page.tsx` |
-| 3 | **Producția:** migrația și funcția (cu acordul proprietarului), integrarea, încercarea pe iPhone | gata; de încercat pe iPhone | |
+| 3 | **Producția:** migrația și funcția (cu acordul proprietarului), integrarea, încercarea pe iPhone | gata | |
+| 4 | **Repararea pe producție:** modelul retras, „fără gândire” pentru seria 3, limita de timp, motivul lui Google în jurnal | gata | PR #82, #83, #86, #87 |
+| 5 | **După citire:** potrivirea cu catalogul, liniile fără produs devin produse noi; separat, „Scrie sau dictează” | gata | PR #81, #84, #85 |
+| 6 | **Citirea ca JSON după schemă**, după bida (MIT) | gata | PR #88 |
 
 ## Rezumat pe etape
 ### Etapa 1: serverul (18 oct. 2026)
@@ -47,8 +50,30 @@ Decizia proprietarului (chestionar, 18 oct. 2026): **„Citire cu AI pe server�
 - **Integrate:** PR #77 (etapa 1) și #78 (etapa 2), cu CI verde.
 - Rămâne: prima citire reală cu Gemini se vede la încercarea pe iPhone (jurnalele funcției, doar motivul la eșec).
 
+### Etapa 4: repararea pe producție (20–21 oct. 2026)
+- **Ce era:** de la etapa 3, nicio citire pe server n-a reușit; aplicația cădea pe Tesseract. Jurnalele funcției, pe rând: `Gemini 404` (modelul implicit `gemini-2.5-flash` retras; și traducerea, din 18 oct.), apoi `TimeoutError` la 40 s (seria 3 nu oprește gândirea cu `thinkingBudget: 0`), apoi `Gemini 400` (`thinkingLevel: "minimal"` refuzat).
+- **Ce s-a făcut:** proprietarul a pus secretul `GEMINI_MODEL` (întâi `gemini-3.8-flash`, apoi, pentru viteză, `gemini-3.5-flash-lite`). `noThinking(model)` (`src/lib/server/gemini.ts`): `thinkingBudget: 0` pentru seria 2, `thinkingLevel: "low"` pentru seria 3. La refuz, jurnalul are mesajul lui Google (scurt, fără imagine sau bon). Limita: 90 s pe server, 100 s pe telefon. Traducerea (`translate-recipe`) are aceleași reparații (60 s / 70 s).
+- **Rezultat:** după schimbarea modelului, citirile pe server reușesc în 2–12 s (`execution_time_ms` în jurnal).
+- **Lecție:** un model Gemini retras dă 404; se schimbă doar secretul `GEMINI_MODEL`, fără cod.
+
+### Etapa 5: după citire (20 oct. 2026)
+- **Potrivirea** (`proposeMatch`): încercarea „fără câte un cuvânt” (făcută pentru resturile OCR) arunca pe textul curat cuvântul principal („Bomboane cu lapte” → Lapte integral). Acum nu se scot primul cuvânt și cel de după „de”/„cu”. Test cu bonul Lidl real.
+- **Produse noi** (decizia proprietarului, chestionar, 20 oct. 2026): la salvare, o linie fără produs devine produs al gospodăriei, cu numele de pe bon (de corectat în „Numele în catalog”), în „Diverse”, cu prețul plătit; bonul următor îl recunoaște. Fără dubluri după nume. Texte aprobate: „produs nou”, „Numele în catalog”, „Am adăugat N produse noi în catalog.”
+- **„Scrie sau dictează”** (fără bon, fără internet): textul („lapte 2 buc 13,98, pâine 5,50”) trece prin `parseTypedPurchases` și prin aceeași verificare. Textele aprobate în chestionar.
+- **Risc acceptat:** o linie care începe cu marca („MOGYI POPC SARE”) devine produs nou; se alege o dată, apoi e ținută minte.
+
+### Etapa 6: citirea ca JSON (22 oct. 2026)
+- **De unde:** bida (github.com/theoldg/bida, licența MIT, © 2026 theoldg; autorul a spus că putem prelua). Mențiunea e în comentariile codului preluat.
+- **Decizia proprietarului** (chestionar, 22 oct. 2026): se preia citirea în JSON; când suma nu dă totalul, rămâne avertismentul pe „Verifică bonul” (bida refuză bonul). Poza mai mică, repararea unei cifre șterse și decuparea automată (Scanic) nu au fost alese acum.
+- **Serverul:** `RECEIPT_SCHEMA` (`error`, `store`, `date`, `total`, `lines[label, amount, quantity, unit buc/kg, unitAmount, discount]`, `discounts`), cu kg și reducerea de sub linie în plus față de bida. Instrucțiunile spun cum se citește, nu ce trebuie să iasă; numele vin scrise normal, fără litera TVA. Răspunsul: `{ receipt }`, verificat de `readReceiptJson` (`src/lib/domain/receipt-json.ts`).
+- **Telefonul:** `receiptFromJson` doar înmulțește cantitate × preț când lipsește suma, împarte o reducere pe tot bonul pe linii la ban, marchează „sigur” când liniile dau totalul. Răspunsul vechi `{ text }` trece încă prin `parseReceipt`; Tesseract rămâne pe `parseReceipt`.
+- **Teste:** `receipt-json.test.ts` (bonul Lidl, cântărit, nepotrivire, reduceri, validări), serverul, telefonul; `__fixtures__/bon-4-lidl-gemini.txt` (același bon, ca text). `npm test`: 578; `npm run test:e2e`: 43; `npm run test:e2e:cloud`: 3.
+- **Producția:** funcția `read-receipt` versiunea 10 (cu acordul proprietarului). Pe server, `core.js` nu are tabelul de unități de la importul de rețete (nefolosit de funcție). Primele trei bonuri pe versiunea 10: fără erori în jurnal, corecte pe ecran.
+
 ## Cum verific la final
 Pe iPhone, cu cont: un bon Kaufland și unul Lidl → „Verifică bonul” are aproape toate liniile cu sumele corecte; în modul avion, același bon se citește cu cititorul de pe telefon.
 
 ## Următorul pas
-Proprietarul, pe iPhone, cu cont: un bon Kaufland și unul Lidl → „Verifică bonul” fără atenționarea de server; apoi în modul avion → citit pe telefon.
+- Proprietarul: o rețetă în engleză importată pe telefon (traducerea, reparată la etapa 4, n-a fost încă încercată).
+- Opțional, din bida, fiecare cu decizia lui: poza trimisă de cel mult 1 megapixel, JPEG 0,7 (mai rapid); repararea unei cifre șterse (cantitate × preț la o singură linie, doar dacă așa iese totalul); decuparea automată (Scanic, o bibliotecă nouă și un model ML).
+- Când un model Gemini e retras: secretul `GEMINI_MODEL` în Supabase (jurnalul arată `Gemini 404`).
