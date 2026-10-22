@@ -1,11 +1,11 @@
 import { z } from "zod";
-import type { MealSlot, PantryItem, Recipe, UnitCode } from "@/lib/domain/types";
+import type { ISODate, MealSlot, PantryItem, Recipe, UnitCode } from "@/lib/domain/types";
 import { insertRow, softDelete, updateRow, upsertRow } from "@/lib/db/write";
 import { newId, stableId } from "@/lib/db/ids";
 import { aggregateNeeds, productUnitsOf, subtractStock, toShoppingNeed, type Need } from "@/lib/domain/quantities";
 import { activeIngredients, recipeNeeds } from "@/lib/domain/recipes";
 import { isRecipeImageUrl } from "@/lib/domain/recipe-photos";
-import { pantryStock, planConsumption } from "@/lib/domain/pantry";
+import { consumedBy, pantryStock, planConsumption } from "@/lib/domain/pantry";
 import { addDays } from "@/lib/domain/dates";
 import { type AppCtx, UserError, w } from "./context";
 import { parse, parsePatch, zDate, zName, zNote, zQuantity, zUnit } from "./validation";
@@ -212,6 +212,8 @@ const pantryInput = z.object({
   purchased_on: zDate.nullable().default(null),
   expires_on: zDate.nullable().default(null),
   note: zNote.nullable().default(null),
+  /** Doar când e dată: produsele adăugate de mână nu o au (.tasks/016). */
+  auto_consume_on: zDate.nullable().optional(),
 });
 
 export async function addPantryItem(ctx: AppCtx, input: z.input<typeof pantryInput>): Promise<string> {
@@ -245,3 +247,14 @@ export async function setPantryOnPurchase(ctx: AppCtx, value: "intreaba" | "mere
 }
 
 export type { UnitCode };
+
+/**
+ * Scoate din cămară (ștergere logică) produsele ajunse la ziua de „consumat”
+ * (.tasks/016). Rulează la deschiderea ecranelor; pe două telefoane, același
+ * rezultat. Întoarce câte a scos.
+ */
+export async function sweepConsumed(ctx: AppCtx, today: ISODate): Promise<number> {
+  const gone = consumedBy(await owned(ctx.db, "pantry_items", ctx.householdId), today);
+  for (const i of gone) await softDelete(ctx.db, "pantry_items", i.id, w(ctx));
+  return gone.length;
+}

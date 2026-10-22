@@ -5,6 +5,7 @@ import { seedCatalog } from "./bootstrap";
 import type { AppCtx } from "./context";
 import { applyReceipt, diverseToSort, learnReceiptAlias, moveOutOfDiverse, proposeReceiptCategories, proposeReceiptMatches } from "./receipts";
 import { addItem, createList, duplicateList, finalizeShopping, setChecked } from "./shopping";
+import { addPantryItem, sweepConsumed } from "./kitchen";
 import { listItems, spendRecords } from "./queries";
 import { createProduct, deleteProduct } from "./catalog";
 import { exportHouseholdData, importHouseholdData } from "./backup";
@@ -104,7 +105,7 @@ describe("aplicarea bonului", () => {
     const ceapa = await addItem(ctx, listId, { product_id: "ceapa-galbena", quantity: 1, unit: "kg" });
     await addItem(ctx, listId, { product_id: "rosii", quantity: 1, unit: "kg" });
     const r = await applyReceipt(ctx, { retailer_id: "kaufland", date: "2026-10-12", list_id: listId, lines });
-    expect(r).toEqual({ checked: 1, added: 2, transaction_id: null, created: 1 });
+    expect(r).toEqual({ checked: 1, added: 2, transaction_id: null, created: 1, added_to_pantry: 0 });
     const items = await listItems(ctx.db, listId);
     expect(items.find((i) => i.id === ceapa)).toMatchObject({ checked: true, actual_price: 2.32, quantity: 1.014, retailer_id: "kaufland" });
     expect(items.find((i) => i.product_id === "rosii")?.checked).toBe(false);
@@ -269,5 +270,46 @@ describe("categoriile de pe bon (.tasks/016)", () => {
     expect((await ctx.db.products.get("sare"))?.household_id).toBeNull();
     expect((await ctx.db.shopping_list_items.get(sare))?.category_id).toBe("uleiuri-condimente");
     await expect(moveOutOfDiverse(ctx, unt.id, "nu-exista")).rejects.toThrow(/Categoria/);
+  });
+});
+
+describe("cămara din cumpărături (.tasks/016, etapa 2)", () => {
+  const line = (product_id: string, name: string, amount: number) => ({ product_id, name, receipt_text: name, quantity: 1, unit: "buc" as const, amount });
+
+  it("bonul fără listă pune alimentele în cămară, cu ziua de „consumat” după categorie; nealimentarele nu", async () => {
+    const r = await applyReceipt(ctx, {
+      retailer_id: "lidl",
+      date: "2026-10-12",
+      list_id: null,
+      add_to_pantry: true,
+      lines: [{ ...line("lapte-integral", "Lapte integral", 5.29), receipt_name: "Lapte Pilos 3,5%" }, line("ulei-floarea-soarelui", "Ulei de floarea-soarelui", 9.99), line("baterii", "Baterii", 12)],
+    });
+    expect(r.added_to_pantry).toBe(2);
+    const pantry = await owned(ctx.db, "pantry_items", "h1");
+    expect(Object.fromEntries(pantry.map((p) => [p.name, [p.purchased_on, p.auto_consume_on]]))).toEqual({
+      "Lapte Pilos 3,5%": ["2026-10-12", "2026-10-19"],
+      "Ulei de floarea-soarelui": ["2026-10-12", "2027-02-09"],
+    });
+  });
+
+  it("fără „pune în cămară”, bonul nu atinge cămara; „Gata” pe listă pune și ziua de „consumat”", async () => {
+    await applyReceipt(ctx, { retailer_id: "lidl", date: "2026-10-12", list_id: null, lines: [line("lapte-integral", "Lapte integral", 5.29)] });
+    expect(await owned(ctx.db, "pantry_items", "h1")).toEqual([]);
+    const listId = await createList(ctx, { name: "Săptămâna" });
+    const paine = await addItem(ctx, listId, { product_id: "paine-alba" });
+    await setChecked(ctx, paine, true);
+    await finalizeShopping(ctx, listId, { addToPantry: true });
+    const [p] = await owned(ctx.db, "pantry_items", "h1");
+    // Bifat la 18 oct. (ceasul testului): pâinea, 3 zile.
+    expect(p).toMatchObject({ product_id: "paine-alba", purchased_on: "2026-10-18", auto_consume_on: "2026-10-21" });
+  });
+
+  it("iese singur din cămară în ziua lui; ce e adăugat de mână rămâne", async () => {
+    await applyReceipt(ctx, { retailer_id: "lidl", date: "2026-10-12", list_id: null, add_to_pantry: true, lines: [line("lapte-integral", "Lapte integral", 5.29), line("ulei-floarea-soarelui", "Ulei", 9.99)] });
+    await addPantryItem(ctx, { product_id: "lapte-integral", name: "Lapte de la bunica", quantity: 1, unit: "l", location_id: "frigider" });
+    expect(await sweepConsumed(ctx, "2026-10-18")).toBe(0);
+    expect(await sweepConsumed(ctx, "2026-10-19")).toBe(1);
+    expect(await sweepConsumed(ctx, "2026-10-19")).toBe(0);
+    expect((await owned(ctx.db, "pantry_items", "h1")).map((p) => p.name).sort()).toEqual(["Lapte de la bunica", "Ulei"]);
   });
 });

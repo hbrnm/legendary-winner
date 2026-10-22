@@ -1,5 +1,5 @@
 import { z } from "zod";
-import type { ItemOrigin, PurchaseSource, ShoppingListItem, UnitCode } from "@/lib/domain/types";
+import type { ItemOrigin, Product, PurchaseSource, ShoppingListItem, UnitCode } from "@/lib/domain/types";
 import { insertRow, softDelete, updateRow, upsertRow } from "@/lib/db/write";
 import { newId, stableId } from "@/lib/db/ids";
 import { nowIso } from "@/lib/clock";
@@ -7,6 +7,8 @@ import { planMerge } from "@/lib/domain/shopping";
 import type { ShoppingNeed } from "@/lib/domain/quantities";
 import { sumMoney } from "@/lib/domain/money";
 import { localDateOf } from "@/lib/domain/dates";
+import { autoConsumeOn } from "@/lib/domain/pantry";
+import { CONSUME_DAYS } from "@/data/consume-days";
 import { type AppCtx, UserError, w } from "./context";
 import { parse, parsePatch, zMoney, zName, zNote, zQuantity, zSource, zUnit } from "./validation";
 import { listItems, owned, productMap } from "./queries";
@@ -234,6 +236,38 @@ function guessLocation(categoryId: string): string {
   return "camara";
 }
 
+/**
+ * Pune în cămară un aliment cumpărat (id determinist după linia cumpărăturii),
+ * cu ziua de la care se consideră consumat, după categorie (.tasks/016).
+ */
+export async function addPurchaseToPantry(
+  ctx: AppCtx,
+  txItemId: string,
+  product: Product,
+  line: { name: string; quantity: number | null; unit: UnitCode | null; purchased_at: string },
+): Promise<void> {
+  const purchasedOn = localDateOf(line.purchased_at);
+  const consumeOn = autoConsumeOn(product.category_id, purchasedOn, CONSUME_DAYS);
+  await upsertRow(
+    ctx.db,
+    "pantry_items",
+    {
+      id: await stableId("camara", txItemId),
+      household_id: ctx.householdId,
+      product_id: product.id,
+      name: line.name,
+      quantity: line.quantity ?? 1,
+      unit: line.unit ?? product.default_unit,
+      location_id: guessLocation(product.category_id),
+      purchased_on: purchasedOn,
+      expires_on: null,
+      note: null,
+      ...(consumeOn ? { auto_consume_on: consumeOn } : {}),
+    },
+    w(ctx),
+  );
+}
+
 export interface FinalizeResult {
   transaction_id: string;
   total: number;
@@ -319,23 +353,7 @@ export async function finalizeShopping(ctx: AppCtx, listId: string, opts: { addT
       );
     }
     if (opts.addToPantry && product && categories.get(product.category_id)?.is_food !== false) {
-      await upsertRow(
-        ctx.db,
-        "pantry_items",
-        {
-          id: await stableId("camara", txItemId),
-          household_id: ctx.householdId,
-          product_id: product.id,
-          name: item.receipt_name || item.name,
-          quantity: item.quantity ?? 1,
-          unit: item.unit ?? product.default_unit,
-          location_id: guessLocation(product.category_id),
-          purchased_on: localDateOf(purchasedAt),
-          expires_on: null,
-          note: null,
-        },
-        w(ctx),
-      );
+      await addPurchaseToPantry(ctx, txItemId, product, { name: item.receipt_name || item.name, quantity: item.quantity, unit: item.unit, purchased_at: purchasedAt });
       added++;
     }
   }

@@ -89,3 +89,15 @@ describe("receipt_name pe liniile din listă și cumpărături (.tasks/016)", ()
     expect(r).toEqual([{ receipt_name: "Lapte Pilos 3,5%" }]);
   });
 });
+
+describe("auto_consume_on pe cămară (.tasks/016, etapa 2)", () => {
+  it("se scrie o zi sau null", async () => {
+    const id = randomUUID();
+    await asUser(ana, (q) =>
+      q("insert into pantry_items (id, household_id, product_id, name, quantity, unit, location_id, auto_consume_on) values ($1, $2, 'lapte-integral', 'Lapte', 1, 'l', 'frigider', '2026-10-19')", [id, hA]),
+    );
+    await asUser(ana, (q) => q("update pantry_items set auto_consume_on = null where id = $1", [id]));
+    const r = await asUser(ana, async (q) => (await q("select auto_consume_on from pantry_items where id = $1", [id])).rows);
+    expect(r).toEqual([{ auto_consume_on: null }]);
+  });
+});

@@ -11,7 +11,7 @@ import { ProductSearch } from "@/components/shopping/product-search";
 import { Button } from "@/components/ui/button";
 import { Badge, Spinner } from "@/components/ui/misc";
 import { Sheet } from "@/components/ui/sheet";
-import { Input, LabeledInput, LabeledSelect, TextArea } from "@/components/ui/fields";
+import { Input, LabeledInput, LabeledSelect, TextArea, Toggle } from "@/components/ui/fields";
 import { owned, visible } from "@/lib/services/queries";
 import { applyReceipt, proposeReceiptCategories, proposeReceiptMatches } from "@/lib/services/receipts";
 import { parseReceipt, type ParsedReceipt } from "@/lib/domain/receipt";
@@ -127,19 +127,22 @@ function ReceiptScreen() {
   const [retailerId, setRetailerId] = useState("");
   const [date, setDate] = useState(toISODate(now()));
   const [listId, setListId] = useState(listParam ?? "");
+  const [addToPantry, setAddToPantry] = useState(true);
   const [picking, setPicking] = useState<number | null>(null);
   const [error, setError] = useState<string | null>(null);
   const camera = useRef<HTMLInputElement>(null);
   const gallery = useRef<HTMLInputElement>(null);
 
   const data = useData(async (ctx) => {
-    const [retailers, lists, products, categories] = await Promise.all([
+    const [retailers, lists, products, categories, settings] = await Promise.all([
       visible(ctx.db, "retailers", ctx.householdId),
       owned(ctx.db, "shopping_lists", ctx.householdId),
       visible(ctx.db, "products", ctx.householdId),
       visible(ctx.db, "product_categories", ctx.householdId),
+      ctx.db.household_settings.get(ctx.householdId),
     ]);
     return {
+      pantrySetting: settings?.pantry_on_purchase ?? "intreaba",
       categories: categories.sort((a, b) => a.sort_order - b.sort_order),
       retailers: retailers.sort((a, b) => a.name.localeCompare(b.name, "ro")),
       lists: lists.filter((l) => !l.archived_at).sort((a, b) => a.sort_order - b.sort_order),
@@ -254,12 +257,15 @@ function ReceiptScreen() {
           retailer_id: retailerId || null,
           date,
           list_id: listId || null,
+          // Fără listă, cămara după setarea gospodăriei, ca la „Gata” (.tasks/016).
+          add_to_pantry: !listId && (data!.pantrySetting === "mereu" || (data!.pantrySetting === "intreaba" && addToPantry)),
           lines: kept.map((l) => ({ product_id: l.product?.id ?? null, name: l.product?.name ?? l.name.trim(), receipt_text: l.receipt_text, receipt_name: typed ? null : l.receipt_text.trim() || null, category_id: l.product ? null : l.category_id, quantity: l.quantity, unit: l.unit, amount: parseMoney(l.amount)! })),
         }),
       (res) => {
         const done = typed ? "Am pus cumpărăturile." : "Am pus bonul.";
-        if (res.created === 0) return done;
-        return `${done} Am adăugat ${res.created === 1 ? "un produs nou" : `${res.created} produse noi`} în catalog.`;
+        const pantry = res.added_to_pantry ? ` ${res.added_to_pantry === 1 ? "Un produs a intrat" : `${res.added_to_pantry} produse au intrat`} în cămară.` : "";
+        if (res.created === 0) return done + pantry;
+        return `${done} Am adăugat ${res.created === 1 ? "un produs nou" : `${res.created} produse noi`} în catalog.${pantry}`;
       },
     );
     if (r) router.push(listId ? `/cumparaturi/lista/?id=${listId}` : "/cumparaturi/istoric/");
@@ -403,6 +409,11 @@ function ReceiptScreen() {
           </option>
         ))}
       </LabeledSelect>
+      {!listId && data.pantrySetting === "intreaba" && (
+        <div className="mt-3">
+          <Toggle checked={addToPantry} onChange={setAddToPantry} label="Pune alimentele în cămară" description="Le poți scădea apoi când gătești." />
+        </div>
+      )}
 
       <ul className="mt-4 divide-y divide-line overflow-hidden rounded-lg border border-line bg-surface">
         {lines.map((l) => (

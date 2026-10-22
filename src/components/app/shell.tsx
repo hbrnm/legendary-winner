@@ -12,6 +12,8 @@ import { expiringSoon } from "@/lib/domain/pantry";
 import { toISODate } from "@/lib/domain/dates";
 import { now } from "@/lib/clock";
 import { notifyExpiring } from "@/lib/notifications";
+import { sweepConsumed } from "@/lib/services/kitchen";
+import { useToast } from "@/components/ui/toast";
 
 /** O notificare pe zi (dacă utilizatorul a activat-o) pentru produsele care expiră. */
 function ExpiryNotifier() {
@@ -20,6 +22,19 @@ function ExpiryNotifier() {
   useEffect(() => {
     if (names?.length) void notifyExpiring(names, today);
   }, [names, today]);
+  return null;
+}
+
+/** Scoate din cămară, la deschiderea ecranelor, ce se consideră consumat (.tasks/016), și spune câte. */
+function ConsumedSweeper() {
+  const { ctx } = useApp();
+  const toast = useToast();
+  useEffect(() => {
+    if (!ctx) return;
+    sweepConsumed(ctx, toISODate(now()))
+      .then((n) => n > 0 && toast(`Am scos din cămară ${n === 1 ? "un produs" : `${n} produse`}, probabil ${n === 1 ? "consumat" : "consumate"}.`))
+      .catch((e) => console.error(e));
+  }, [ctx, toast]);
   return null;
 }
 
@@ -164,6 +179,7 @@ export function AppShell({ children, wide = false }: { children: ReactNode; wide
           <RejectedNotice />
           {ready ? children : <Spinner />}
           {app.status === "ready" && <ExpiryNotifier />}
+          {app.status === "ready" && <ConsumedSweeper />}
         </main>
       </div>
 
