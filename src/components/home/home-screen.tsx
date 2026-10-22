@@ -70,7 +70,9 @@ export function HomeScreen() {
     const forMeal = recipesForMeal(recipes, meal);
     const cook = whatCanICook(forMeal, ingredients, pantryStock(pantry), 0.6, prices.product_units).slice(0, 3);
     // Fără cămară completată: trei rețete rapide, altele în fiecare zi.
-    const quick = forMeal.filter((r) => totalMinutes(r) <= 30).sort((a, b) => a.id.localeCompare(b.id));
+    // Cu sub trei rețete rapide pentru masa asta, toate rețetele mesei.
+    const fast = forMeal.filter((r) => totalMinutes(r) <= 30);
+    const quick = [...(fast.length >= 3 ? fast : forMeal)].sort((a, b) => a.id.localeCompare(b.id));
     const start = quick.length ? Number(today.replace(/-/g, "")) % quick.length : 0;
     const suggestions = cook.length
       ? cook.map((c) => ({ recipe: c.recipe, why: c.missing.length ? `${c.missing.length === 1 ? "lipsește 1 ingredient" : `lipsesc ${c.missing.length} ingrediente`}` : "ai tot ce trebuie" }))
