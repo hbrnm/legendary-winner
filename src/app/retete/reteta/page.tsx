@@ -261,8 +261,8 @@ function RecipeScreen() {
       <p className="mt-1.5 px-1 text-xs text-ink-2">Bifa verde: ai ingredientul în cămară, în cantitatea necesară.</p>
 
       <SectionTitle>Valori nutriționale</SectionTitle>
+      {/* Parțial, cu ce lipsește (decizia proprietarului, 22 oct. 2026). */}
       {view.nutrition.per_serving ? (
-        // Parțial, cu ce lipsește (decizia proprietarului, 22 oct. 2026).
         <Card as="section" className="p-4" aria-label="Valori nutriționale">
           <p className="text-sm text-ink-2">Pe porție, aproximativ</p>
           <p className="mt-1 font-mono text-lg font-medium">{view.nutrition.per_serving.kcal} kcal</p>
@@ -300,7 +300,6 @@ function RecipeScreen() {
           </li>
         ))}
       </ol>
-
 
       <Sheet open={addOpen} onClose={() => setAddOpen(false)} title="Adaugă ingredientele în listă" footer={<Button block onClick={addToList} disabled={busy}>Adaugă pentru {servings} porții</Button>}>
         <div className="flex flex-col gap-4">
