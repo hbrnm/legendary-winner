@@ -243,7 +243,7 @@ function ReceiptScreen() {
           retailer_id: retailerId || null,
           date,
           list_id: listId || null,
-          lines: kept.map((l) => ({ product_id: l.product?.id ?? null, name: l.product?.name ?? l.name.trim(), receipt_text: l.receipt_text, quantity: l.quantity, unit: l.unit, amount: parseMoney(l.amount)! })),
+          lines: kept.map((l) => ({ product_id: l.product?.id ?? null, name: l.product?.name ?? l.name.trim(), receipt_text: l.receipt_text, receipt_name: typed ? null : l.receipt_text.trim() || null, quantity: l.quantity, unit: l.unit, amount: parseMoney(l.amount)! })),
         }),
       (res) => {
         const done = typed ? "Am pus cumpărăturile." : "Am pus bonul.";

@@ -53,16 +53,19 @@ function PricesScreen() {
   const [error, setError] = useState<string | null>(null);
 
   const data = useData(async (ctx) => {
-    const [prices, retailers, products, variants, brands, index] = await Promise.all([
+    const [prices, retailers, products, variants, brands, index, bought] = await Promise.all([
       owned(ctx.db, "product_prices", ctx.householdId),
       visible(ctx.db, "retailers", ctx.householdId),
       visible(ctx.db, "products", ctx.householdId),
       visible(ctx.db, "product_variants", ctx.householdId),
       visible(ctx.db, "brands", ctx.householdId),
       priceIndex(ctx.db, ctx.householdId),
+      owned(ctx.db, "shopping_transaction_items", ctx.householdId),
     ]);
     return {
       prices,
+      // Numele de pe bon al cumpărăturii din care vine prețul (.tasks/016).
+      receiptNames: new Map(bought.filter((i) => i.receipt_name).map((i) => [i.id, i.receipt_name!])),
       retailers: retailers.sort((a, b) => a.name.localeCompare(b.name, "ro")),
       products: new Map(products.map((p) => [p.id, p])),
       variants,
@@ -75,6 +78,7 @@ function PricesScreen() {
     if (!data) return null;
     const retailerName = new Map(data.retailers.map((r) => [r.id, r.name]));
     const place = (p: ProductPrice) => (p.retailer_id ? (retailerName.get(p.retailer_id) ?? "—") : SOURCE_LABELS[p.source]);
+    const receiptName = (p: ProductPrice) => (p.transaction_item_id ? (data.receiptNames.get(p.transaction_item_id) ?? null) : null);
     const variantById = new Map(data.variants.map((v) => [v.id, v]));
     const variantName = (id: string | null | undefined) => {
       const v = id ? variantById.get(id) : undefined;
@@ -82,7 +86,7 @@ function PricesScreen() {
     };
     if (!product) {
       const recent = [...data.prices].sort((a, b) => b.observed_on.localeCompare(a.observed_on) || b.updated_at.localeCompare(a.updated_at)).slice(0, 25);
-      return { place, variantName, recent, history: [], compare: [], brands: [], productVariants: [] };
+      return { place, receiptName, variantName, recent, history: [], compare: [], brands: [], productVariants: [] };
     }
     const history = data.prices.filter((p) => p.product_id === product.id).sort((a, b) => b.observed_on.localeCompare(a.observed_on));
     const latestByPlace = new Map<string, ProductPrice>();
@@ -96,7 +100,7 @@ function PricesScreen() {
     // Prețul pe kg pe mărci, doar când produsul are prețuri pe variante.
     const byBrand = compareVariants(data.index, product.id, toISODate(now()));
     const brandsRows = variantsEnabled && byBrand.some((r) => r.variant_id) ? byBrand : [];
-    return { place, variantName, recent: [], history, compare, brands: brandsRows, productVariants: variantsOf(data.variants, product.id) };
+    return { place, receiptName, variantName, recent: [], history, compare, brands: brandsRows, productVariants: variantsOf(data.variants, product.id) };
   }, [data, product, variantsEnabled]);
 
   if (!data || !view) return <Spinner />;
@@ -205,6 +209,7 @@ function PricesScreen() {
                       <p className="text-xs text-ink-2">
                         <span className="font-mono">{formatShortDate(p.observed_on)}</span> · {TYPE_LABELS[p.price_type]} · {SOURCE_LABELS[p.source]}
                       </p>
+                      {view.receiptName(p) && <p className="text-xs text-ink-2">pe bon: {view.receiptName(p)}</p>}
                     </div>
                     <span className="text-right">
                       <span className="block font-mono font-medium">{unitPrice != null ? `${formatRon(unitPrice)}/${unitLabel(product.default_unit, 1)}` : formatRon(p.amount)}</span>
@@ -228,6 +233,7 @@ function PricesScreen() {
                         </span>{" "}
                         · {TYPE_LABELS[p.price_type]}
                       </p>
+                      {view.receiptName(p) && <p className="text-xs text-ink-2">pe bon: {view.receiptName(p)}</p>}
                     </div>
                     <span className="font-mono text-sm">{perUnit(p, product.default_unit) != null ? formatRon(perUnit(p, product.default_unit)) : ""}</span>
                     {!p.transaction_item_id && (

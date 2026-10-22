@@ -8,6 +8,7 @@ Sursa de adevăr: [`supabase/migrations/20261011000001_schema.sql`](../supabase/
 - Ștergerea e logică (`deleted_at`); tabelele sincronizate nu au politici `DELETE`.
 - `household_id` nu se poate schimba după creare (`keep_household_id`).
 - Referințele între tabele trebuie să fie din aceeași gospodărie sau globale (`check_household_refs`).
+- `receipt_name` (listă, cumpărătură) e numele tipărit pe bon, 1–200 caractere, nulabil (null = linia nu vine de pe un bon); `name` și `product_id` rămân ale produsului generic; migrația `20261022000001` (`.tasks/016`).
 - `variant_id` (listă, cumpărătură, preț) e nulabil (null = produsul generic) și trebuie să fie o variantă a `product_id` de pe același rând (`check_variant_product`).
 
 ## Conturi și gospodării
@@ -45,9 +46,9 @@ Citesc și scriu doar membrii gospodăriei.
 | --- | --- |
 | `household_settings` | `pantry_on_purchase`, `week_starts_on` |
 | `shopping_lists` | `name`, `is_recurring`, `cycle`, `archived_at`, `default_retailer_id` |
-| `shopping_list_items` | `list_id`, `product_id`/`name`, `quantity`, `unit`, `category_id`, `estimated_price`, `actual_price`, `retailer_id`, `source`, `checked`, `checked_by`, `origin`, `variant_id` |
+| `shopping_list_items` | `list_id`, `product_id`/`name`, `quantity`, `unit`, `category_id`, `estimated_price`, `actual_price`, `retailer_id`, `source`, `checked`, `checked_by`, `origin`, `variant_id`, `receipt_name` |
 | `shopping_transactions` | `list_id`, `list_cycle` (unic pe listă), `started_at`, `completed_at` |
-| `shopping_transaction_items` | `transaction_id`, `list_item_id`, `product_id`, `quantity`, `amount`, `retailer_id`, `purchased_at`, `variant_id` |
+| `shopping_transaction_items` | `transaction_id`, `list_item_id`, `product_id`, `quantity`, `amount`, `retailer_id`, `purchased_at`, `variant_id`, `receipt_name` |
 | `product_prices` | `product_id`, `retailer_id`, `source`, `amount`, `quantity`, `unit`, `price_type`, `confidence`, `observed_on`, `variant_id` |
 | `receipt_aliases` | `retailer_id` (sau null), `receipt_text` (textul liniei de pe bon, normalizat, 1–120), `product_id`; un singur produs pe gospodărie, magazin și text; id determinist; migrația `20261018000002` |
 | `favorite_recipes` | `recipe_id` |

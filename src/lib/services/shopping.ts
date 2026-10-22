@@ -288,6 +288,7 @@ export async function finalizeShopping(ctx: AppCtx, listId: string, opts: { addT
         source: item.source,
         purchased_at: purchasedAt,
         ...(item.variant_id ? { variant_id: item.variant_id } : {}),
+        ...(item.receipt_name ? { receipt_name: item.receipt_name } : {}),
       },
       w(ctx),
     );
@@ -323,7 +324,7 @@ export async function finalizeShopping(ctx: AppCtx, listId: string, opts: { addT
           id: await stableId("camara", txItemId),
           household_id: ctx.householdId,
           product_id: product.id,
-          name: item.name,
+          name: item.receipt_name || item.name,
           quantity: item.quantity ?? 1,
           unit: item.unit ?? product.default_unit,
           location_id: guessLocation(product.category_id),
@@ -340,7 +341,7 @@ export async function finalizeShopping(ctx: AppCtx, listId: string, opts: { addT
   await updateRow(ctx.db, "shopping_lists", listId, list.is_recurring ? { cycle: list.cycle + 1 } : { cycle: list.cycle + 1, archived_at: nowIso() }, w(ctx));
   if (list.is_recurring) {
     for (const item of checked) {
-      await updateRow(ctx.db, "shopping_list_items", item.id, { checked: false, checked_at: null, checked_by: null, actual_price: null }, w(ctx));
+      await updateRow(ctx.db, "shopping_list_items", item.id, { checked: false, checked_at: null, checked_by: null, actual_price: null, ...(item.receipt_name ? { receipt_name: null } : {}) }, w(ctx));
     }
   }
 

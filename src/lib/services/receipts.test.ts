@@ -171,6 +171,40 @@ describe("aplicarea bonului", () => {
     expect(items.find((i) => i.amount === 2.5)?.product_id).toBe("ceapa-galbena");
   });
 
+  it("păstrează numele de pe bon, legat de produsul generic, în istoric și în cămară (.tasks/016)", async () => {
+    const named = lines.map((l) => ({ ...l, receipt_name: l.receipt_text }));
+    // Fără listă: fiecare magazin își păstrează numele lui pentru același produs.
+    await applyReceipt(ctx, { retailer_id: "kaufland", date: "2026-10-12", list_id: null, lines: [named[1]] });
+    await applyReceipt(ctx, { retailer_id: "lidl", date: "2026-10-13", list_id: null, lines: [{ ...named[1], receipt_name: "Lapte Pilos 3,5%" }] });
+    const direct = await owned(ctx.db, "shopping_transaction_items", "h1");
+    expect(direct.map((i) => [i.product_id, i.name, i.receipt_name, i.retailer_id])).toEqual(
+      expect.arrayContaining([
+        ["lapte-integral", "Lapte integral", "VDR.LAP.3,5%1L", "kaufland"],
+        ["lapte-integral", "Lapte integral", "Lapte Pilos 3,5%", "lidl"],
+      ]),
+    );
+
+    // Pe o listă recurentă: numele stă pe linie până la „Gata”, apoi trece în istoric și în cămară.
+    const listId = await createList(ctx, { name: "Săptămâna", is_recurring: true });
+    const ceapa = await addItem(ctx, listId, { product_id: "ceapa-galbena", quantity: 1, unit: "kg" });
+    await applyReceipt(ctx, { retailer_id: "kaufland", date: "2026-10-14", list_id: listId, lines: [named[0], { ...named[1], receipt_name: null }] });
+    expect((await ctx.db.shopping_list_items.get(ceapa))).toMatchObject({ name: "Ceapă galbenă", receipt_name: "CEAPA GALBENA KG" });
+    const fin = await finalizeShopping(ctx, listId, { addToPantry: true });
+    const items = (await owned(ctx.db, "shopping_transaction_items", "h1")).filter((i) => i.transaction_id === fin.transaction_id);
+    expect(items.find((i) => i.product_id === "ceapa-galbena")).toMatchObject({ name: "Ceapă galbenă", receipt_name: "CEAPA GALBENA KG" });
+    expect(items.find((i) => i.product_id === "lapte-integral")?.receipt_name ?? null).toBeNull();
+    const pantry = await owned(ctx.db, "pantry_items", "h1");
+    expect(pantry.map((p) => [p.product_id, p.name]).sort()).toEqual([["ceapa-galbena", "CEAPA GALBENA KG"], ["lapte-integral", "Lapte integral"]]);
+    // Lista recurentă revine la numele generic pentru data viitoare.
+    expect((await ctx.db.shopping_list_items.get(ceapa))?.receipt_name ?? null).toBeNull();
+  });
+
+  it("nu păstrează numele de pe bon când e chiar numele produsului", async () => {
+    await applyReceipt(ctx, { retailer_id: "lidl", date: "2026-10-12", list_id: null, lines: [{ ...lines[0], receipt_name: "ceapa  galbenă" }] });
+    const [item] = await owned(ctx.db, "shopping_transaction_items", "h1");
+    expect(item.receipt_name ?? null).toBeNull();
+  });
+
   it("refuză bonul gol, lista și magazinul inexistente, produsul șters", async () => {
     await expect(applyReceipt(ctx, { retailer_id: null, date: "2026-10-12", list_id: null, lines: [] })).rejects.toThrow(/cel puțin un produs/);
     await expect(applyReceipt(ctx, { retailer_id: "nu-exista", date: "2026-10-12", list_id: null, lines })).rejects.toThrow(/Magazinul/);

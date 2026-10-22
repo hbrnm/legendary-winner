@@ -51,6 +51,8 @@ const applyInput = z.object({
         name: zName(120, "Denumirea produsului"),
         /** Textul de pe bon, ca aplicația să învețe potrivirea. */
         receipt_text: z.string().max(200).default(""),
+        /** Numele tipărit pe bon, păstrat în istoric (.tasks/016); null = linia nu vine de pe un bon. */
+        receipt_name: z.string().trim().max(200).nullable().default(null),
         quantity: zQuantity.nullable(),
         unit: zUnit.nullable(),
         /** Suma plătită pe linie, după reducere. */
@@ -100,6 +102,8 @@ export async function applyReceipt(ctx: AppCtx, input: ReceiptApplyInput): Promi
   const result: ReceiptApplyResult = { checked: 0, added: 0, transaction_id: null, created: 0 };
   // Același nume (de pe acest bon sau din catalog) e același produs, nu o dublură.
   const byName = new Map([...products.values()].map((p) => [normalize(p.name), p]));
+  // Numele de pe bon se păstrează doar când spune altceva decât numele produsului.
+  const receiptName = (l: (typeof v.lines)[number]) => (l.receipt_name && normalize(l.receipt_name) !== normalize(l.name) ? { receipt_name: l.receipt_name } : {});
   for (const l of v.lines) {
     if (l.product_id) continue;
     let product = byName.get(normalize(l.name));
@@ -117,7 +121,7 @@ export async function applyReceipt(ctx: AppCtx, input: ReceiptApplyInput): Promi
     // (altfel „Gata” l-ar număra de două ori).
     const open = (await listItems(ctx.db, v.list_id)).sort((a, b) => Number(a.checked) - Number(b.checked));
     for (const l of v.lines) {
-      const paid = { checked: true, checked_at: purchasedAt, checked_by: ctx.userId, actual_price: l.amount, retailer_id: v.retailer_id, source };
+      const paid = { ...receiptName(l), checked: true, checked_at: purchasedAt, checked_by: ctx.userId, actual_price: l.amount, retailer_id: v.retailer_id, source };
       const qty = l.quantity != null && l.unit ? { quantity: l.quantity, unit: l.unit as UnitCode } : {};
       const match = l.product_id ? open.find((i) => i.product_id === l.product_id) : undefined;
       if (match) {
@@ -139,7 +143,7 @@ export async function applyReceipt(ctx: AppCtx, input: ReceiptApplyInput): Promi
       await insertRow(
         ctx.db,
         "shopping_transaction_items",
-        { id: itemId, household_id: ctx.householdId, transaction_id: txId, list_item_id: null, product_id: product?.id ?? null, name: l.name, quantity: l.quantity, unit: l.unit as UnitCode | null, category_id: product?.category_id ?? "diverse", amount: l.amount, retailer_id: v.retailer_id, source, purchased_at: purchasedAt },
+        { id: itemId, household_id: ctx.householdId, transaction_id: txId, list_item_id: null, product_id: product?.id ?? null, name: l.name, ...receiptName(l), quantity: l.quantity, unit: l.unit as UnitCode | null, category_id: product?.category_id ?? "diverse", amount: l.amount, retailer_id: v.retailer_id, source, purchased_at: purchasedAt },
         w(ctx),
       );
       if (product) {

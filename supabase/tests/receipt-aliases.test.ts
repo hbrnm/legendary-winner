@@ -59,3 +59,33 @@ describe("receipt_aliases", () => {
     await expect(asUser(ana, (q) => q("update receipt_aliases set household_id = $1 where id = $2", [hB, id]))).rejects.toThrow();
   });
 });
+
+describe("receipt_name pe liniile din listă și cumpărături (.tasks/016)", () => {
+  it("se scrie numele de pe bon, de cel mult 200 de caractere, nu gol", async () => {
+    const list = randomUUID();
+    await asUser(ana, (q) => q("insert into shopping_lists (id, household_id, name) values ($1, $2, 'Bon')", [list, hA]));
+    const insert = (name: string | null) =>
+      asUser(ana, (q) =>
+        q("insert into shopping_list_items (id, household_id, list_id, product_id, name, category_id, receipt_name) values ($1, $2, $3, 'lapte-integral', 'Lapte integral', 'lactate', $4)", [
+          randomUUID(),
+          hA,
+          list,
+          name,
+        ]),
+      );
+    await insert("Lapte Zuzu 1,5% 1L");
+    await insert(null);
+    await expect(insert("")).rejects.toThrow(/check/);
+    await expect(insert("x".repeat(201))).rejects.toThrow(/check/);
+    const tx = randomUUID();
+    await asUser(ana, (q) => q("insert into shopping_transactions (id, household_id, started_at) values ($1, $2, now())", [tx, hA]));
+    await asUser(ana, (q) =>
+      q(
+        "insert into shopping_transaction_items (id, household_id, transaction_id, product_id, name, category_id, purchased_at, receipt_name) values ($1, $2, $3, 'lapte-integral', 'Lapte integral', 'lactate', now(), 'Lapte Pilos 3,5%')",
+        [randomUUID(), hA, tx],
+      ),
+    );
+    const r = await asUser(ana, async (q) => (await q("select receipt_name from shopping_transaction_items where transaction_id = $1", [tx])).rows);
+    expect(r).toEqual([{ receipt_name: "Lapte Pilos 3,5%" }]);
+  });
+});
