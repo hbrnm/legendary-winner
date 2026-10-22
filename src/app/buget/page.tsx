@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from "react";
 import Link from "next/link";
-import { ChevronLeft, ChevronRight, Download, Pencil, Plus, Tags, Trash2, Wallet } from "lucide-react";
+import { ChevronLeft, ChevronRight, Download, Pencil, Plus, Shapes, Tags, Trash2, Wallet } from "lucide-react";
 import { AppShell } from "@/components/app/shell";
 import { useAction, useData } from "@/components/app/hooks";
 import { Button, IconButton } from "@/components/ui/button";
@@ -12,6 +12,7 @@ import { LabeledInput, LabeledSelect, Segmented } from "@/components/ui/fields";
 import { BarList, ColumnChart } from "@/components/budget/charts";
 import { listItems, owned, priceIndex, spendRecords, visible } from "@/lib/services/queries";
 import { createBudget, deleteBudget, updateBudget } from "@/lib/services/money";
+import { diverseToSort } from "@/lib/services/receipts";
 import { averageTrip, budgetStatus, byCategory, byRetailer, monthlyTotals, SOURCE_LABELS, spendInPeriod, spendToCsv, sumAmounts, weeklyTotals } from "@/lib/domain/budget";
 import { listTotals } from "@/lib/domain/shopping";
 import { addDays, formatMonth, formatShortDate, monthPeriod, startOfMonth, toISODate } from "@/lib/domain/dates";
@@ -71,6 +72,8 @@ function BudgetScreen() {
       retailers: retailers.sort((a, b) => a.name.localeCompare(b.name, "ro")),
       openEstimate: sumMoney(open.map((t) => t.remaining_estimate)),
       openUnknown: open.reduce((n, t) => n + t.remaining_unknown_count, 0),
+      // Produsele din „Diverse” ale cumpărăturilor încheiate, de mutat (.tasks/016).
+      diverse: (await diverseToSort(ctx)).length,
     };
   });
 
@@ -311,6 +314,11 @@ function BudgetScreen() {
         {view.split.length === 0 ? <p className="text-sm text-ink-2">Nicio cheltuială în {formatMonth(month)}.</p> : <BarList bars={view.split} total={view.total} />}
         {view.noAmount > 0 && <p className="mt-3 text-xs text-ink-2">{view.noAmount} produse fără preț nu apar în împărțire.</p>}
       </Card>
+      {data.diverse > 0 && (
+        <Link href="/buget/diverse/" className="mt-2 inline-flex h-11 w-full items-center justify-center gap-2 rounded-lg border border-line font-medium transition duration-150 ease-out hover:bg-surface-2 active:scale-[0.99]">
+          <Shapes size={18} /> Mută din Diverse ({data.diverse})
+        </Link>
+      )}
 
       {/* Fără flex-1 în coloană: butoanele își păstrează înălțimea de 44 px. */}
       <div className="mt-6 grid grid-cols-2 gap-2">

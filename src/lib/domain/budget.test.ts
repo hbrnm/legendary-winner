@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { averageTrip, budgetStatus, byCategory, monthlyTotals, spendToCsv, weeklyTotals } from "./budget";
+import { averageTrip, budgetStatus, byCategory, diverseGroups, monthlyTotals, spendToCsv, weeklyTotals } from "./budget";
+import { normalize } from "./search";
 import { budget, category, txItem } from "@/test/factories";
 import type { ProductCategory, Retailer } from "./types";
 
@@ -61,5 +62,25 @@ describe("rapoarte", () => {
     const csv = spendToCsv([items[0]], cats, new Map<string, Retailer>());
     expect(csv.startsWith("﻿Data;Produs")).toBe(true);
     expect(csv).toContain("2026-03-02;Produs;1;buc;Legume;;Piață;100,00");
+  });
+});
+
+describe("cumpărăturile din „Diverse” (.tasks/016)", () => {
+  it("adunate pe produs sau, fără produs, pe nume; eticheta de pe cel mai recent bon; cele mai scumpe primele", () => {
+    const g = diverseGroups(
+      [
+        txItem({ product_id: "p-unt", name: "Unt de arahide", receipt_name: "Unt arahide Lidl", amount: 24.99, purchased_at: "2026-03-12T09:00:00Z" }),
+        txItem({ product_id: "p-unt", name: "Unt de arahide", amount: 22.5, purchased_at: "2026-03-01T09:00:00Z" }),
+        txItem({ name: "Pungă", amount: 0.5 }),
+        txItem({ name: "pungă ", amount: 0.5, purchased_at: "2026-03-11T09:00:00Z" }),
+        txItem({ name: "Pungă", amount: 9, deleted_at: "2026-03-11T10:00:00Z" }),
+        txItem({ product_id: "lapte", name: "Lapte", category_id: "lactate", amount: 5 }),
+      ],
+      normalize,
+    );
+    expect(g).toEqual([
+      { key: "p-unt", product_id: "p-unt", label: "Unt arahide Lidl", count: 2, total: 47.49, last_bought: "2026-03-12" },
+      { key: `nume:${normalize("Pungă")}`, product_id: null, label: "pungă", count: 2, total: 1, last_bought: "2026-03-11" },
+    ]);
   });
 });

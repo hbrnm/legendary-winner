@@ -96,6 +96,12 @@ describe("readReceiptJson", () => {
     expect(readReceiptJson({ ...LIDL, date: "2028-02-29" })!.date).toBe("2028-02-29");
   });
 
+  it("categoria propusă trece doar dacă e una din cele 20 ale catalogului (.tasks/016)", () => {
+    const r = readReceiptJson({ ...LIDL, lines: [{ ...line("Iaurt grecesc", "8.49"), category: "lactate" }, { ...line("Sacosa", "0.50"), category: "pungi" }] })!;
+    expect(r.lines.map((l) => l.category ?? null)).toEqual(["lactate", null]);
+    expect(receiptFromJson(r).lines.map((l) => l.category ?? null)).toEqual(["lactate", null]);
+  });
+
   it("o linie cu sumă, dar fără nume, rămâne (de verificat); una fără nume și fără sumă se sare", () => {
     const r = readReceiptJson({ ...LIDL, total: "3.00", lines: [{ label: " ", amount: "3.00" }, { label: "", amount: null }] })!;
     expect(r.lines).toEqual([{ label: "", amount: "3.00", quantity: null, unit: null, unitAmount: null, discount: null }]);

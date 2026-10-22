@@ -56,3 +56,21 @@ export function proposeMatch(text: string, retailerId: string | null, aliases: R
   }
   return null;
 }
+
+/**
+ * Categoria propusă pentru o linie fără produs (.tasks/016), după produsele
+ * asemănătoare din catalog: tot textul, apoi tot mai scurt de la coadă, păstrând
+ * primul cuvânt (cel care spune ce e produsul; cuvintele de la final, ca „sărat”,
+ * ar duce la altă categorie). Doar o propunere, schimbată de om pe „Verifică
+ * bonul”; null = nimic asemănător („Diverse”).
+ */
+export function guessCategory(text: string, index: SearchIndex, categoryOf: (productId: string) => string | undefined): string | null {
+  const ws = words(receiptKey(text));
+  for (let n = ws.length; n > 0; n--) {
+    const q = ws.slice(0, n).join(" ");
+    const hit = search(index, q, 1)[0];
+    const category = hit ? categoryOf(hit.doc.id) : undefined;
+    if (category) return category;
+  }
+  return null;
+}

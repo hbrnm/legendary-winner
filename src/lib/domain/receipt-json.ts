@@ -1,6 +1,7 @@
 import type { ISODate } from "./types";
 import { roundMoney, sumMoney } from "./money";
 import { chainOf, type ParsedReceipt, type ReceiptLine, type ReceiptUnit } from "./receipt";
+import { CATEGORY_SEEDS } from "../../data/categories";
 
 // Bonul citit de Gemini direct ca JSON, după o schemă (.tasks/015; ideea, schema
 // și regulile de citire adaptate din bida, github.com/theoldg/bida, licența MIT,
@@ -21,7 +22,12 @@ export interface ReceiptJsonLine {
   unitAmount: string | null;
   /** Reducerea tipărită chiar sub linie (Lidl Plus, „DISCOUNT”), pozitivă. */
   discount: string | null;
+  /** Categoria propusă de model, una din `RECEIPT_CATEGORIES` (.tasks/016); doar o propunere. */
+  category?: string | null;
 }
+
+/** Categoriile din care poate propune modelul: cele 20 ale catalogului comun. */
+export const RECEIPT_CATEGORIES: string[] = CATEGORY_SEEDS.map((c) => c.id);
 
 export interface ReceiptJson {
   /** Fotografia nu e un bon sau nu se poate citi; atunci restul e gol. */
@@ -71,7 +77,7 @@ export function readReceiptJson(value: unknown, limits = RECEIPT_JSON_LIMITS): R
     if (!label && amountText(raw?.amount) == null) continue;
     const quantity = typeof raw.quantity === "number" && Number.isFinite(raw.quantity) && raw.quantity > 0 ? raw.quantity : null;
     const unit = raw.unit === "buc" || raw.unit === "kg" ? raw.unit : null;
-    lines.push({ label, amount: amountText(raw.amount), quantity, unit: quantity == null ? null : unit, unitAmount: amountText(raw.unitAmount), discount: discountText(raw.discount) });
+    lines.push({ label, amount: amountText(raw.amount), quantity, unit: quantity == null ? null : unit, unitAmount: amountText(raw.unitAmount), discount: discountText(raw.discount), ...(typeof raw.category === "string" && RECEIPT_CATEGORIES.includes(raw.category) ? { category: raw.category } : {}) });
   }
   const discounts = (Array.isArray(v.discounts) ? (v.discounts as Record<string, unknown>[]) : [])
     .map((d) => ({ label: str(d?.label, limits.maxLabel) ?? "", amount: discountText(d?.amount) }))
@@ -103,6 +109,7 @@ export function receiptFromJson(r: ReceiptJson): ParsedReceipt {
       printed_amount: printed,
       discount: money(l.discount) ?? 0,
       check: confirmed && l.label ? "sigur" : "de_verificat",
+      ...(l.category ? { category: l.category } : {}),
     };
   });
 

@@ -1,6 +1,6 @@
 # 016 — Bonul cu numele lui, categorii, cămara din bon, sugestii după oră, nutriție
 
-**Stare:** în lucru (etapa 1a gata: PR #92; urmează etapa 1b)
+**Stare:** în lucru (etapa 1a gata, PR #92 integrat; etapa 1b: PR deschis, funcția `read-receipt` de publicat cu acordul proprietarului)
 **Ramuri:** câte una pe etapă, din `main` (`claude/016-...`).
 
 ## Scop
@@ -28,7 +28,7 @@ Lista proprietarului (22 oct. 2026), cu deciziile din chestionar (variantele rec
 | # | Etapa | Stare | Fișiere |
 |---|---|---|---|
 | 1a | **Numele de pe bon** (împărțită din etapa 1, chestionar 22 oct. 2026): migrația `receipt_name`, `applyReceipt`, `finalizeShopping`, Istoric, Prețuri, Cămara. | gata | `receipts.ts`, `shopping.ts`, `cumparaturi/bon/page.tsx`, `cumparaturi/istoric/page.tsx`, `buget/preturi/page.tsx`, `supabase/migrations/20261022000001_receipt_name.sql`; PR #92 |
-| 1b | **Categorii** (restul etapei 1, de mai jos). | de făcut | |
+| 1b | **Categorii** (restul etapei 1, de mai jos). | în lucru | `read-receipt.ts`, `receipt-json.ts`, `receipt-match.ts`, `receipts.ts`, `budget.ts`, `cumparaturi/bon/page.tsx`, `buget/page.tsx`, `buget/diverse/page.tsx`, `supabase/functions/read-receipt/core.js` |
 | 1 | **Numele de pe bon + categorii:** migrație `receipt_name text null` pe `shopping_list_items` și `shopping_transaction_items`; `applyReceipt` și `finalizeShopping` scriu/copiază numele de pe bon, exact cum vine de la citire; lista recurentă îl golește la „Gata”; Istoric, cămară, Prețuri îl arată, cu generic dedesubt. Categoria: `category` în `RECEIPT_SCHEMA` (enum cu id-urile din `categories.ts`), `guessCategory(name)` în `src/lib/domain` (cuvinte → categorie, pentru Tesseract/„Scrie sau dictează”), selector pe „Verifică bonul” la produsele noi; produsul nou se creează în categoria aleasă. Ecran „Diverse”: produsele gospodăriei din „Diverse” cu selector; schimbarea mută și liniile din istoric ale produsului. Textele într-un chestionar. Funcția `read-receipt` pe producție doar cu acordul proprietarului. | de făcut | `receipts.ts`, `shopping.ts`, `read-receipt.ts`, `receipt-json.ts`, `cumparaturi/bon/page.tsx`, `cumparaturi/istoric/page.tsx`, `supabase/migrations/`, `supabase/functions/read-receipt/` |
 | 2 | **Cămara din bon + consum automat:** migrație `auto_consume_on date null` pe `pantry_items`; `CONSUME_DAYS` pe categorii (tabelul de mai jos, în `src/data`); `finalizeShopping` și `applyReceipt` (fără listă, după `pantry_on_purchase`; „întreabă” = bifă pe „Verifică bonul”) îl completează; `sweepConsumed(today)` la deschiderea aplicației șterge logic ce a trecut (idempotent pe mai multe telefoane); editarea cantității sau a datei în cămară îl poate schimba/goli. Teste cu data fixată. | de făcut | `shopping.ts`, `receipts.ts`, `pantry.ts`, `kitchen.ts`, `camara/`, `supabase/migrations/` |
 | 3 | **Sugestii după oră:** `mealSlotForHour(h)` în `src/lib/domain`, filtrul pe `categories` al rețetei în `home-screen.tsx`; titlul secțiunii după interval. Ora din `Date` locală, injectată în test. | de făcut | `recipes.ts`, `home-screen.tsx`, `e2e/` |
@@ -60,8 +60,16 @@ Lista proprietarului (22 oct. 2026), cu deciziile din chestionar (variantele rec
 - Numele vechi nu rămâne pe listă: la debifare, la duplicarea listei, la un bon nou fără nume distinct (găsit de `verificare`).
 - **Teste:** `receipts.test.ts` (+3), `supabase/tests/receipt-aliases.test.ts` (+1), `e2e/bonuri.spec.ts` (Istoric). `npm test`: 593; `npm run test:db`: 62; `npm run test:e2e`: 43; `npm run build` reușit.
 
+### Etapa 1b: categoriile (22 oct. 2026)
+- **Texte** (chestionar, 22 oct. 2026, variantele recomandate): pe „Verifică bonul”, la produsul nou, „Categoria”; în Buget, „Mută din Diverse (N)” → „Produse din Diverse”, „Alege categoria potrivită. Se mută și cumpărăturile de până acum, ca bugetul să arate unde s-au dus banii.”, „Am mutat „X” la Lactate.”, „Nu mai ai nimic în Diverse.”
+- **Pe server:** `category` pe fiecare linie din `RECEIPT_SCHEMA` (enum cu cele 20 de id-uri din `src/data/categories.ts`), explicată în instrucțiuni („diverse” când nu e sigur). `readReceiptJson` păstrează doar o categorie validă.
+- **Fără internet** (Tesseract, „Scrie sau dictează”, sau răspunsul vechi `{ text }`): `guessCategory` caută în catalog tot textul, apoi tot mai scurt de la coadă (păstrând primul cuvânt); nimic = „Diverse”. Proba: „Detergent Ariel” → curățenie, „Piept pui dezosat” → carne, „Cheescake caramel sarat” → nimic (înainte, cu fiecare cuvânt, ieșea pește).
+- **Aplicarea:** produsul nou se creează în categoria aleasă (una necunoscută = „Diverse”). **Mutarea din „Diverse”** (`moveOutOfDiverse`): produsul gospodăriei, liniile din liste și cumpărăturile; un produs din catalogul comun nu se schimbă, doar cumpărăturile gospodăriei. Ecranul arată doar produsele gospodăriei și liniile fără produs (`diverseToSort`): bateriile, becurile, hrana pentru animale din catalog sunt în „Diverse” pe bună dreptate (găsit de `verificare`).
+- **Teste:** `receipt-json.test.ts` (+1), `read-receipt.test.ts` (fiecare categorie explicată), `budget.test.ts` (+1), `receipts.test.ts` (+3), `e2e/bonuri.spec.ts` (categoria propusă, mutarea din Buget). `npm test`: 598.
+- **Producția:** funcția `read-receipt` (cu `core.js` nou) se publică doar cu acordul proprietarului; până atunci serverul nu trimite categoria și telefonul o ghicește după catalog.
+
 ## Cum verific la final
 Pe telefon, cu cont: un bon Lidl fără listă → Istoric arată „LAPTE ZUZU 1,5% 1L” (legat de „Lapte”), produsele noi au categoriile propuse, alimentele sunt în cămară; data mutată peste 8 zile (test) → lactatele au dispărut, uleiul nu. Dimineața, prima pagină arată rețete de mic dejun. O rețetă din catalog arată kcal/porție „aproximativ”.
 
 ## Următorul pas
-Proprietarul: un bon pe telefon → Istoric arată numele de pe bon. Apoi etapa 1b (categoriile), într-o sesiune nouă.
+Proprietarul: un bon pe telefon → Istoric arată numele de pe bon; produsele noi au categoria propusă. Apoi etapa 2 (cămara din bon), într-o sesiune nouă.

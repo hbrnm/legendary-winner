@@ -160,7 +160,32 @@ function noThinking(model) {
 // src/lib/domain/money.ts
 var RON = new Intl.NumberFormat("ro-RO", { style: "currency", currency: "RON" });
 
+// src/data/categories.ts
+var CATEGORY_SEEDS = [
+  { id: "fructe", name: "Fructe", icon: "apple", is_food: true },
+  { id: "legume", name: "Legume și verdețuri", icon: "carrot", is_food: true },
+  { id: "carne", name: "Carne", icon: "beef", is_food: true },
+  { id: "peste", name: "Pește și fructe de mare", icon: "fish", is_food: true },
+  { id: "lactate", name: "Lactate", icon: "milk", is_food: true },
+  { id: "branzeturi", name: "Brânzeturi", icon: "triangle", is_food: true },
+  { id: "oua", name: "Ouă", icon: "egg", is_food: true },
+  { id: "mezeluri", name: "Mezeluri", icon: "ham", is_food: true },
+  { id: "panificatie", name: "Panificație", icon: "croissant", is_food: true },
+  { id: "cereale-paste", name: "Cereale, orez și paste", icon: "wheat", is_food: true },
+  { id: "copt", name: "Făină, zahăr și ingrediente de copt", icon: "cake-slice", is_food: true },
+  { id: "conserve", name: "Conserve și murături", icon: "cylinder", is_food: true },
+  { id: "uleiuri-condimente", name: "Uleiuri și condimente", icon: "droplet", is_food: true },
+  { id: "congelate", name: "Produse congelate", icon: "snowflake", is_food: true },
+  { id: "bauturi", name: "Băuturi", icon: "cup-soda", is_food: true },
+  { id: "dulciuri-gustari", name: "Dulciuri și gustări", icon: "candy", is_food: true },
+  { id: "copii", name: "Produse pentru copii", icon: "baby", is_food: true },
+  { id: "curatenie", name: "Produse de curățenie", icon: "spray-can", is_food: false },
+  { id: "igiena", name: "Igienă personală", icon: "bath", is_food: false },
+  { id: "diverse", name: "Diverse", icon: "package", is_food: false }
+];
+
 // src/lib/domain/receipt-json.ts
+var RECEIPT_CATEGORIES = CATEGORY_SEEDS.map((c) => c.id);
 var RECEIPT_JSON_LIMITS = { maxLines: 200, maxLabel: 120 };
 var AMOUNT2 = /^\d{1,6}(\.\d{1,2})?$/;
 function money(text) {
@@ -185,7 +210,7 @@ function readReceiptJson(value, limits = RECEIPT_JSON_LIMITS) {
     if (!label && amountText(raw?.amount) == null) continue;
     const quantity = typeof raw.quantity === "number" && Number.isFinite(raw.quantity) && raw.quantity > 0 ? raw.quantity : null;
     const unit = raw.unit === "buc" || raw.unit === "kg" ? raw.unit : null;
-    lines.push({ label, amount: amountText(raw.amount), quantity, unit: quantity == null ? null : unit, unitAmount: amountText(raw.unitAmount), discount: discountText(raw.discount) });
+    lines.push({ label, amount: amountText(raw.amount), quantity, unit: quantity == null ? null : unit, unitAmount: amountText(raw.unitAmount), discount: discountText(raw.discount), ...typeof raw.category === "string" && RECEIPT_CATEGORIES.includes(raw.category) ? { category: raw.category } : {} });
   }
   const discounts = (Array.isArray(v.discounts) ? v.discounts : []).map((d) => ({ label: str(d?.label, limits.maxLabel) ?? "", amount: discountText(d?.amount) })).filter((d) => d.amount != null && money(d.amount) > 0);
   return { error: str(v.error, 300), store: str(v.store, limits.maxLabel), date: validDate(v.date), total: amountText(v.total), lines, discounts };
@@ -241,6 +266,7 @@ Follow the printer's columns, not the photo's alignment: in an angled shot an am
 - unitAmount: the price of one piece or one kilogram, only if printed for that line.
 - Copy quantity, unitAmount and amount exactly as printed, even if they do not multiply to the amount.
 - discount: a deduction printed right under this line (for example "Reducere Lidl Plus" / "DISCOUNT -8.49"), as a positive number; otherwise null. Never list it as a separate line.
+- category: the shop aisle the product belongs to, one of the allowed values: fructe (fruit), legume (vegetables, herbs), carne (meat), peste (fish, seafood), lactate (milk, yogurt, butter, cream), branzeturi (cheese), oua (eggs), mezeluri (cold cuts, sausages), panificatie (bread, pastries), cereale-paste (cereals, rice, pasta), copt (flour, sugar, baking), conserve (canned food, pickles), uleiuri-condimente (oils, vinegar, spices, sauces), congelate (frozen food), bauturi (drinks), dulciuri-gustari (sweets, snacks), copii (baby products), curatenie (cleaning), igiena (personal care), diverse (bags, deposits, anything else). Use diverse when unsure.
 
 5. BILL DISCOUNTS
 discounts: deductions on the whole bill that are not printed under one line (a voucher, a loyalty discount on the total), each with its label and a positive amount. Leave out notes that only report a discount already included in a price, and VAT lines.`;
@@ -260,9 +286,10 @@ var RECEIPT_SCHEMA = {
           quantity: { type: "NUMBER", nullable: true },
           unit: { type: "STRING", enum: ["buc", "kg"], nullable: true },
           unitAmount: { type: "STRING", nullable: true },
-          discount: { type: "STRING", nullable: true }
+          discount: { type: "STRING", nullable: true },
+          category: { type: "STRING", enum: RECEIPT_CATEGORIES, nullable: true }
         }),
-        required: ["label", "amount", "quantity", "unit", "unitAmount", "discount"]
+        required: ["label", "amount", "quantity", "unit", "unitAmount", "discount", "category"]
       }
     },
     discounts: {

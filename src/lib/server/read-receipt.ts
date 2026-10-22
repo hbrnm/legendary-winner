@@ -9,7 +9,7 @@
 
 import { quotaViaRest } from "./import-recipe";
 import { googleReason, noThinking } from "./gemini";
-import { readReceiptJson, type ReceiptJson } from "../domain/receipt-json";
+import { RECEIPT_CATEGORIES, readReceiptJson, type ReceiptJson } from "../domain/receipt-json";
 
 export { noThinking, quotaViaRest };
 
@@ -94,6 +94,7 @@ Follow the printer's columns, not the photo's alignment: in an angled shot an am
 - unitAmount: the price of one piece or one kilogram, only if printed for that line.
 - Copy quantity, unitAmount and amount exactly as printed, even if they do not multiply to the amount.
 - discount: a deduction printed right under this line (for example "Reducere Lidl Plus" / "DISCOUNT -8.49"), as a positive number; otherwise null. Never list it as a separate line.
+- category: the shop aisle the product belongs to, one of the allowed values: fructe (fruit), legume (vegetables, herbs), carne (meat), peste (fish, seafood), lactate (milk, yogurt, butter, cream), branzeturi (cheese), oua (eggs), mezeluri (cold cuts, sausages), panificatie (bread, pastries), cereale-paste (cereals, rice, pasta), copt (flour, sugar, baking), conserve (canned food, pickles), uleiuri-condimente (oils, vinegar, spices, sauces), congelate (frozen food), bauturi (drinks), dulciuri-gustari (sweets, snacks), copii (baby products), curatenie (cleaning), igiena (personal care), diverse (bags, deposits, anything else). Use diverse when unsure.
 
 5. BILL DISCOUNTS
 discounts: deductions on the whole bill that are not printed under one line (a voucher, a loyalty discount on the total), each with its label and a positive amount. Leave out notes that only report a discount already included in a price, and VAT lines.`;
@@ -118,8 +119,9 @@ export const RECEIPT_SCHEMA = {
           unit: { type: "STRING", enum: ["buc", "kg"], nullable: true },
           unitAmount: { type: "STRING", nullable: true },
           discount: { type: "STRING", nullable: true },
+          category: { type: "STRING", enum: RECEIPT_CATEGORIES, nullable: true },
         }),
-        required: ["label", "amount", "quantity", "unit", "unitAmount", "discount"],
+        required: ["label", "amount", "quantity", "unit", "unitAmount", "discount", "category"],
       },
     },
     discounts: {
