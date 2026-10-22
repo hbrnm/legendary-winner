@@ -115,7 +115,7 @@ function cleanName(s: string): string {
     .trim();
 }
 
-function chainOf(header: string[]): ReceiptChain | null {
+export function chainOf(header: string[]): ReceiptChain | null {
   for (const line of header) for (const [re, chain] of CHAINS) if (re.test(line)) return chain;
   return null;
 }

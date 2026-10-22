@@ -10,6 +10,18 @@ VDR.LAP.3,5%1L 5,29 C
 CEAPA GALBENA KG 2,32 C
 TOTAL 7,61
 DATA:05/03/2026`;
+// Același bon, cum îl întoarce funcția: citit de Gemini ca JSON după schemă.
+const RECEIPT = {
+  error: null,
+  store: "Kaufland",
+  date: "2026-03-05",
+  total: "7.61",
+  lines: [
+    { label: "Vdr.lap.3,5%1l", amount: "5.29", quantity: 1, unit: "buc", unitAmount: "5.29", discount: null },
+    { label: "Ceapa galbena", amount: "2.32", quantity: 1.014, unit: "kg", unitAmount: "2.29", discount: null },
+  ],
+  discounts: [],
+};
 
 test("cu cont, bonul decupat se citește pe server; dacă serverul nu merge, pe telefon, cu atenționare", async ({ browser }) => {
   const ana = await signUp(browser, "Irina");
@@ -21,7 +33,7 @@ test("cu cont, bonul decupat se citește pe server; dacă serverul nu merge, pe 
   const sent: { mimeType: string; data: string }[] = [];
   await ana.route("**/functions/v1/read-receipt", async (route) => {
     sent.push(route.request().postDataJSON().image);
-    await route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ text: BON }) });
+    await route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ receipt: RECEIPT }) });
   });
 
   await ana.goto("/cumparaturi/bon/");
@@ -29,7 +41,9 @@ test("cu cont, bonul decupat se citește pe server; dacă serverul nu merge, pe 
   await expect(ana.getByText("Cu internet, bonul decupat se citește pe server și nu se păstrează. Fără internet, îl citesc pe telefon.")).toBeVisible();
   await ana.getByRole("button", { name: "Citește bonul" }).click();
   await expect(ana.getByRole("heading", { name: "Verifică bonul" })).toBeVisible();
-  await expect(ana.getByText(/pe bon: CEAPA GALBENA/)).toBeVisible();
+  await expect(ana.getByText(/pe bon: Ceapa galbena/)).toBeVisible();
+  await expect(ana.getByLabel("Magazinul")).toHaveValue("kaufland");
+  await expect(ana.getByLabel("Data")).toHaveValue("2026-03-05");
   await expect(ana.getByText(/Nu am putut citi bonul pe server/)).toHaveCount(0);
   // Pleacă doar bonul decupat, ca JPEG, cu latura mare de cel mult 2400 px.
   expect(sent).toHaveLength(1);
