@@ -28,6 +28,8 @@ export interface ReceiptLine {
   discount: number | null;
   /** „sigur” doar când suma e confirmată (de suma tipărită sau de totalul bonului). */
   check: "sigur" | "de_verificat";
+  /** Categoria propusă la citirea pe server (.tasks/016); lipsă = de ghicit pe telefon. */
+  category?: string | null;
 }
 
 export interface ParsedReceipt {

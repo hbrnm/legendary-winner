@@ -199,3 +199,31 @@ export function spendToCsv(
   }
   return "﻿" + rows.map((r) => r.map(esc).join(";")).join("\r\n") + "\r\n";
 }
+
+/** Cumpărăturile din „Diverse”, adunate pe produs (sau pe nume, fără produs), pentru mutarea lor (.tasks/016). */
+export interface DiverseGroup {
+  /** `product_id` sau, fără produs, numele normalizat. */
+  key: string;
+  product_id: string | null;
+  /** Numele de pe cel mai recent bon, altfel numele liniei. */
+  label: string;
+  count: number;
+  total: number;
+  last_bought: ISODate;
+}
+
+export function diverseGroups(items: ShoppingTransactionItem[], normalizeName: (s: string) => string): DiverseGroup[] {
+  const map = new Map<string, DiverseGroup>();
+  // Cele mai vechi întâi, ca eticheta și data să rămână ale celei mai recente cumpărături.
+  for (const i of liveSpend(items).sort((a, b) => a.purchased_at.localeCompare(b.purchased_at))) {
+    if (i.category_id !== "diverse") continue;
+    const key = i.product_id ?? `nume:${normalizeName(i.name)}`;
+    const g = map.get(key) ?? { key, product_id: i.product_id, label: "", count: 0, total: 0, last_bought: "" };
+    g.count++;
+    g.total = roundMoney(g.total + (i.amount ?? 0));
+    g.label = (i.receipt_name || i.name).trim();
+    g.last_bought = localDateOf(i.purchased_at);
+    map.set(key, g);
+  }
+  return [...map.values()].sort((a, b) => b.total - a.total || a.label.localeCompare(b.label, "ro"));
+}

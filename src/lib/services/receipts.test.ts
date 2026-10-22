@@ -3,7 +3,7 @@ import { CamaraDB } from "@/lib/db/database";
 import { setClock } from "@/lib/clock";
 import { seedCatalog } from "./bootstrap";
 import type { AppCtx } from "./context";
-import { applyReceipt, learnReceiptAlias, proposeReceiptMatches } from "./receipts";
+import { applyReceipt, diverseToSort, learnReceiptAlias, moveOutOfDiverse, proposeReceiptCategories, proposeReceiptMatches } from "./receipts";
 import { addItem, createList, duplicateList, finalizeShopping, setChecked } from "./shopping";
 import { listItems, spendRecords } from "./queries";
 import { createProduct, deleteProduct } from "./catalog";
@@ -226,5 +226,48 @@ describe("aplicarea bonului", () => {
     // Bonul refuzat nu lasă în urmă produsul nou al liniei fără produs.
     expect(await owned(ctx.db, "products", "h1")).toHaveLength(0);
     await expect(applyReceipt(ctx, { retailer_id: null, date: "2026-10-12", list_id: null, lines: [{ ...lines[0], product_id: "nu-exista" }] })).rejects.toThrow(/nu mai există în catalog/);
+  });
+});
+
+describe("categoriile de pe bon (.tasks/016)", () => {
+  it("fără internet, propune categoria după catalog; nimic asemănător = null („Diverse”)", async () => {
+    expect(await proposeReceiptCategories(ctx, ["Detergent Ariel 2L", "Piept pui dezosat", "Cheescake caramel sarat", ""])).toEqual(["curatenie", "carne", null, null]);
+  });
+
+  it("produsul nou primește categoria aleasă; una necunoscută rămâne „Diverse”", async () => {
+    const line = (name: string, category_id: string | null) => ({ product_id: null, name, receipt_text: name, quantity: 1, unit: "buc" as const, amount: 9.99, category_id });
+    await applyReceipt(ctx, { retailer_id: "lidl", date: "2026-10-13", list_id: null, lines: [line("Unt de arahide", "dulciuri-gustari"), line("Sacoșă", "nu-exista")] });
+    const own = await owned(ctx.db, "products", "h1");
+    expect(Object.fromEntries(own.map((p) => [p.name, p.category_id]))).toEqual({ "Unt de arahide": "dulciuri-gustari", "Sacoșă": "diverse" });
+    const items = await owned(ctx.db, "shopping_transaction_items", "h1");
+    expect(items.find((i) => i.name === "Unt de arahide")?.category_id).toBe("dulciuri-gustari");
+  });
+
+  it("mută din „Diverse” produsul, cumpărăturile și liniile din liste; produsul comun rămâne neschimbat", async () => {
+    const lines = [{ product_id: null, name: "Unt de arahide", receipt_text: "Unt de arahide", quantity: 1, unit: "buc" as const, amount: 24.99 }];
+    await applyReceipt(ctx, { retailer_id: "lidl", date: "2026-10-13", list_id: null, lines });
+    const unt = (await owned(ctx.db, "products", "h1"))[0];
+    const listId = await createList(ctx, { name: "Săptămâna" });
+    await addItem(ctx, listId, { product_id: unt.id });
+    // Același produs, scris altfel pe al doilea bon.
+    await applyReceipt(ctx, { retailer_id: "lidl", date: "2026-10-14", list_id: null, lines: [{ ...lines[0], name: "unt de ARAHIDE" }] });
+
+    // Bateriile din catalogul comun sunt în „Diverse” pe bună dreptate: nu se arată.
+    await applyReceipt(ctx, { retailer_id: "lidl", date: "2026-10-14", list_id: null, lines: [{ ...lines[0], product_id: "baterii", name: "Baterii" }] });
+    expect((await diverseToSort(ctx)).map((g) => [g.key, g.count])).toEqual([[unt.id, 2]]);
+    expect(await moveOutOfDiverse(ctx, unt.id, "dulciuri-gustari")).toBe(2);
+    expect(await diverseToSort(ctx)).toEqual([]);
+    expect((await ctx.db.products.get(unt.id))?.category_id).toBe("dulciuri-gustari");
+    expect((await owned(ctx.db, "shopping_transaction_items", "h1")).filter((i) => i.product_id === unt.id).map((i) => i.category_id)).toEqual(["dulciuri-gustari", "dulciuri-gustari"]);
+    expect((await listItems(ctx.db, listId))[0].category_id).toBe("dulciuri-gustari");
+
+    // Produsul din catalogul comun nu se schimbă; doar cumpărăturile gospodăriei.
+    const listA = await createList(ctx, { name: "A" });
+    const sare = await addItem(ctx, listA, { product_id: "sare", name: "Sare" });
+    await ctx.db.shopping_list_items.update(sare, { category_id: "diverse" });
+    await moveOutOfDiverse(ctx, "sare", "uleiuri-condimente");
+    expect((await ctx.db.products.get("sare"))?.household_id).toBeNull();
+    expect((await ctx.db.shopping_list_items.get(sare))?.category_id).toBe("uleiuri-condimente");
+    await expect(moveOutOfDiverse(ctx, unt.id, "nu-exista")).rejects.toThrow(/Categoria/);
   });
 });

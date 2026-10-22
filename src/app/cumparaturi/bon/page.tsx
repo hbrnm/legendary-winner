@@ -13,7 +13,7 @@ import { Badge, Spinner } from "@/components/ui/misc";
 import { Sheet } from "@/components/ui/sheet";
 import { Input, LabeledInput, LabeledSelect, TextArea } from "@/components/ui/fields";
 import { owned, visible } from "@/lib/services/queries";
-import { applyReceipt, proposeReceiptMatches } from "@/lib/services/receipts";
+import { applyReceipt, proposeReceiptCategories, proposeReceiptMatches } from "@/lib/services/receipts";
 import { parseReceipt, type ParsedReceipt } from "@/lib/domain/receipt";
 import { parseTypedPurchases } from "@/lib/domain/typed-purchases";
 import { FULL_CROP, type Crop } from "@/lib/domain/receipt-crop";
@@ -43,6 +43,8 @@ interface Line {
   receipt_text: string;
   /** Numele produsului nou din catalog, când linia nu are produs (de la început, cel de pe bon). */
   name: string;
+  /** Categoria produsului nou: propusă la citire sau după catalog (.tasks/016), altfel „diverse”. */
+  category_id: string;
   product: Product | null;
   learned: boolean;
   quantity: number | null;
@@ -131,8 +133,14 @@ function ReceiptScreen() {
   const gallery = useRef<HTMLInputElement>(null);
 
   const data = useData(async (ctx) => {
-    const [retailers, lists, products] = await Promise.all([visible(ctx.db, "retailers", ctx.householdId), owned(ctx.db, "shopping_lists", ctx.householdId), visible(ctx.db, "products", ctx.householdId)]);
+    const [retailers, lists, products, categories] = await Promise.all([
+      visible(ctx.db, "retailers", ctx.householdId),
+      owned(ctx.db, "shopping_lists", ctx.householdId),
+      visible(ctx.db, "products", ctx.householdId),
+      visible(ctx.db, "product_categories", ctx.householdId),
+    ]);
     return {
+      categories: categories.sort((a, b) => a.sort_order - b.sort_order),
       retailers: retailers.sort((a, b) => a.name.localeCompare(b.name, "ro")),
       lists: lists.filter((l) => !l.archived_at).sort((a, b) => a.sort_order - b.sort_order),
       products: new Map(products.map((p) => [p.id, p])),
@@ -196,7 +204,8 @@ function ReceiptScreen() {
   async function review(receipt: ParsedReceipt, fallback: boolean, typed: string | null) {
     const ok = await run(async (ctx) => {
       const retailer = receipt.chain && data!.retailers.some((r) => r.id === receipt.chain) ? receipt.chain : null;
-      const proposals = await proposeReceiptMatches(ctx, receipt.lines.map((l) => l.name), retailer);
+      const names = receipt.lines.map((l) => l.name);
+      const [proposals, guesses] = await Promise.all([proposeReceiptMatches(ctx, names, retailer), proposeReceiptCategories(ctx, names)]);
       setRetailerId(retailer ?? "");
       // O dată din viitor e citită greșit: rămâne ziua de azi, de corectat dacă e nevoie.
       if (receipt.date && receipt.date <= toISODate(now())) setDate(receipt.date);
@@ -209,6 +218,8 @@ function ReceiptScreen() {
             keep: true,
             receipt_text: l.name,
             name: l.name,
+            // Întâi categoria propusă la citirea pe server, apoi cea după catalog.
+            category_id: [l.category, guesses[i]].find((c) => c && data!.categories.some((x) => x.id === c)) ?? "diverse",
             product: p ? (data!.products.get(p.product_id) ?? null) : null,
             learned: p?.source === "invatat",
             quantity: l.quantity,
@@ -243,7 +254,7 @@ function ReceiptScreen() {
           retailer_id: retailerId || null,
           date,
           list_id: listId || null,
-          lines: kept.map((l) => ({ product_id: l.product?.id ?? null, name: l.product?.name ?? l.name.trim(), receipt_text: l.receipt_text, receipt_name: typed ? null : l.receipt_text.trim() || null, quantity: l.quantity, unit: l.unit, amount: parseMoney(l.amount)! })),
+          lines: kept.map((l) => ({ product_id: l.product?.id ?? null, name: l.product?.name ?? l.name.trim(), receipt_text: l.receipt_text, receipt_name: typed ? null : l.receipt_text.trim() || null, category_id: l.product ? null : l.category_id, quantity: l.quantity, unit: l.unit, amount: parseMoney(l.amount)! })),
         }),
       (res) => {
         const done = typed ? "Am pus cumpărăturile." : "Am pus bonul.";
@@ -406,7 +417,18 @@ function ReceiptScreen() {
               </div>
               {l.keep && !l.product ? <Badge tone="info">produs nou</Badge> : l.keep && l.unsure && <Badge tone="warn">de verificat</Badge>}
             </div>
-            {l.keep && !l.product && <LabeledInput label="Numele în catalog" value={l.name} onChange={(e) => update(l.key, { name: e.target.value })} />}
+            {l.keep && !l.product && (
+              <>
+                <LabeledInput label="Numele în catalog" value={l.name} onChange={(e) => update(l.key, { name: e.target.value })} />
+                <LabeledSelect label="Categoria" value={l.category_id} onChange={(e) => update(l.key, { category_id: e.target.value })}>
+                  {data.categories.map((c) => (
+                    <option key={c.id} value={c.id}>
+                      {c.name}
+                    </option>
+                  ))}
+                </LabeledSelect>
+              </>
+            )}
             {l.keep && (
               <div className="flex items-center gap-2">
                 <Button size="sm" variant="secondary" icon={<Search size={16} />} onClick={() => setPicking(l.key)}>
