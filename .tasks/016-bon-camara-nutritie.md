@@ -1,6 +1,6 @@
 # 016 — Bonul cu numele lui, categorii, cămara din bon, sugestii după oră, nutriție
 
-**Stare:** în lucru (etapa 1a: PR deschis; urmează migrația pe producție, cu acordul proprietarului)
+**Stare:** în lucru (etapa 1a gata: PR #92; urmează etapa 1b)
 **Ramuri:** câte una pe etapă, din `main` (`claude/016-...`).
 
 ## Scop
@@ -27,7 +27,7 @@ Lista proprietarului (22 oct. 2026), cu deciziile din chestionar (variantele rec
 ## Etape
 | # | Etapa | Stare | Fișiere |
 |---|---|---|---|
-| 1a | **Numele de pe bon** (împărțită din etapa 1, chestionar 22 oct. 2026): migrația `receipt_name`, `applyReceipt`, `finalizeShopping`, Istoric, Prețuri, Cămara. | în lucru | `receipts.ts`, `shopping.ts`, `cumparaturi/bon/page.tsx`, `cumparaturi/istoric/page.tsx`, `buget/preturi/page.tsx`, `supabase/migrations/20261022000001_receipt_name.sql` |
+| 1a | **Numele de pe bon** (împărțită din etapa 1, chestionar 22 oct. 2026): migrația `receipt_name`, `applyReceipt`, `finalizeShopping`, Istoric, Prețuri, Cămara. | gata | `receipts.ts`, `shopping.ts`, `cumparaturi/bon/page.tsx`, `cumparaturi/istoric/page.tsx`, `buget/preturi/page.tsx`, `supabase/migrations/20261022000001_receipt_name.sql`; PR #92 |
 | 1b | **Categorii** (restul etapei 1, de mai jos). | de făcut | |
 | 1 | **Numele de pe bon + categorii:** migrație `receipt_name text null` pe `shopping_list_items` și `shopping_transaction_items`; `applyReceipt` și `finalizeShopping` scriu/copiază numele de pe bon, exact cum vine de la citire; lista recurentă îl golește la „Gata”; Istoric, cămară, Prețuri îl arată, cu generic dedesubt. Categoria: `category` în `RECEIPT_SCHEMA` (enum cu id-urile din `categories.ts`), `guessCategory(name)` în `src/lib/domain` (cuvinte → categorie, pentru Tesseract/„Scrie sau dictează”), selector pe „Verifică bonul” la produsele noi; produsul nou se creează în categoria aleasă. Ecran „Diverse”: produsele gospodăriei din „Diverse” cu selector; schimbarea mută și liniile din istoric ale produsului. Textele într-un chestionar. Funcția `read-receipt` pe producție doar cu acordul proprietarului. | de făcut | `receipts.ts`, `shopping.ts`, `read-receipt.ts`, `receipt-json.ts`, `cumparaturi/bon/page.tsx`, `cumparaturi/istoric/page.tsx`, `supabase/migrations/`, `supabase/functions/read-receipt/` |
 | 2 | **Cămara din bon + consum automat:** migrație `auto_consume_on date null` pe `pantry_items`; `CONSUME_DAYS` pe categorii (tabelul de mai jos, în `src/data`); `finalizeShopping` și `applyReceipt` (fără listă, după `pantry_on_purchase`; „întreabă” = bifă pe „Verifică bonul”) îl completează; `sweepConsumed(today)` la deschiderea aplicației șterge logic ce a trecut (idempotent pe mai multe telefoane); editarea cantității sau a datei în cămară îl poate schimba/goli. Teste cu data fixată. | de făcut | `shopping.ts`, `receipts.ts`, `pantry.ts`, `kitchen.ts`, `camara/`, `supabase/migrations/` |
@@ -56,7 +56,7 @@ Lista proprietarului (22 oct. 2026), cu deciziile din chestionar (variantele rec
 ### Etapa 1a: numele de pe bon (22 oct. 2026)
 - **Texte** (chestionar, 22 oct. 2026, variantele recomandate): în Istoric, numele de pe bon sus și „Lapte integral · 1 l” dedesubt; în Prețuri, sub data și locul, „pe bon: …”; în Cămară, numele de pe bon.
 - **Cum merge:** `applyReceipt` primește `receipt_name` pe linie (null la „Scrie sau dictează”) și îl păstrează doar când diferă de numele produsului; cu listă stă pe linie până la „Gata”, când `finalizeShopping` îl copiază în cumpărătură și în numele din cămară; lista recurentă îl golește. `name` și `product_id` rămân ale produsului generic (rețete, cămară, prețuri). Prețurile găsesc numele prin `transaction_item_id`.
-- **Migrația** `20261022000001_receipt_name.sql`: coloane nulabile, 1–200 caractere. Pe producție înainte de integrare (altfel scrierile cu coloana nouă nu se sincronizează).
+- **Migrația** `20261022000001_receipt_name.sql`: coloane nulabile, 1–200 caractere. Pe producție înainte de integrare (altfel scrierile cu coloana nouă nu se sincronizează): aplicată prin conector cu acordul proprietarului (chestionar, 22 oct. 2026), coloanele verificate, versiunea din istoric aliniată cu repo-ul (`20261022000001`).
 - Numele vechi nu rămâne pe listă: la debifare, la duplicarea listei, la un bon nou fără nume distinct (găsit de `verificare`).
 - **Teste:** `receipts.test.ts` (+3), `supabase/tests/receipt-aliases.test.ts` (+1), `e2e/bonuri.spec.ts` (Istoric). `npm test`: 593; `npm run test:db`: 62; `npm run test:e2e`: 43; `npm run build` reușit.
 
@@ -64,4 +64,4 @@ Lista proprietarului (22 oct. 2026), cu deciziile din chestionar (variantele rec
 Pe telefon, cu cont: un bon Lidl fără listă → Istoric arată „LAPTE ZUZU 1,5% 1L” (legat de „Lapte”), produsele noi au categoriile propuse, alimentele sunt în cămară; data mutată peste 8 zile (test) → lactatele au dispărut, uleiul nu. Dimineața, prima pagină arată rețete de mic dejun. O rețetă din catalog arată kcal/porție „aproximativ”.
 
 ## Următorul pas
-Migrația `20261022000001` pe producție (acordul proprietarului), integrarea PR-ului 1a; apoi etapa 1b (categoriile), într-o sesiune nouă.
+Proprietarul: un bon pe telefon → Istoric arată numele de pe bon. Apoi etapa 1b (categoriile), într-o sesiune nouă.
