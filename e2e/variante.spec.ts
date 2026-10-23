@@ -36,7 +36,8 @@ test("varianta Sissi 300 g: 21 lei → 70 lei/kg în Prețuri, iar data viitoare
   await page.goto("/buget/preturi/");
   const search = page.getByRole("combobox");
   await search.fill("șuncă");
-  await page.getByRole("option").first().click();
+  // Așteptăm un produs din catalog: până se încarcă, singura opțiune e „ca produs nou”.
+  await page.getByRole("option").filter({ hasNotText: "ca produs nou" }).first().click();
   await expect(page.getByText("Prețul pe kg, pe mărci")).toBeVisible();
   await expect(page.getByRole("listitem").filter({ hasText: "Sissi, Șuncă de pui, 300 g" }).first()).toContainText(/70,00\sRON\/kg/);
 });

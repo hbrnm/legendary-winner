@@ -1,6 +1,6 @@
 # 017 — Lista de cumpărături mai caldă („carnețelul de pe frigider”)
 
-**Stare:** în lucru — etapele 1–2 gata, urmează etapa 3
+**Stare:** în lucru — etapele 1–3 gata, urmează etapa 4 (de decis)
 **Ramuri:** câte una pe etapă, din `main` (`claude/017-...`).
 
 ## Scop
@@ -23,7 +23,7 @@ Cererea proprietarului din 23 oct. 2026: secțiunea Cumpărături să sune și s
 |---|---|---|---|
 | 1 | Textele din Cumpărături (tabelul de mai jos) | gata | `cumparaturi/page.tsx`, `cumparaturi/lista/page.tsx`, `cumparaturi/bon/page.tsx`, `shopping/item-sheet.tsx`, `home-screen.tsx`, e2e care citesc textele |
 | 2 | Bifa desenată, secțiunea „În coș” (în locul „Ascunde luate”), „Ai tot!”, „Anulează” după punere deoparte și ștergere, fără JetBrains Mono | gata | `cumparaturi/lista/page.tsx`, `ui/toast.tsx`, `globals.css`, `fonts.ts` |
-| 3 | Tokeni noi (`--sprout`, `--wood`, `--paper`), cu `contrast.test.ts`; 6–8 iconițe proprii (SVG inline) | de făcut | `globals.css`, `contrast.test.ts`, `components/ui/icons.tsx` |
+| 3 | Tokeni noi (`--sprout`, `--sprout-ink`, `--wood`), cu `contrast.test.ts`; 8 iconițe proprii (SVG inline) în bara de jos și pe Cumpărături | gata | `globals.css`, `contrast.test.ts`, `components/ui/icons.tsx`, `shell.tsx`, `cumparaturi/` |
 | 4 | De decis: font de mână pentru 2–3 momente; căutarea jos, lângă total | de făcut | — |
 
 ## Decizii (chestionar, 23 oct. 2026)
@@ -37,6 +37,10 @@ Cererea proprietarului din 23 oct. 2026: secțiunea Cumpărături să sune și s
 - Bifatele coboară în „În coș (N)”, strâns, jos; butonul „Ascunde luate / Arată tot” dispare.
 - La ultima bifă: „Ai tot! Apasă „Gata” la casă.” în bara de jos, iar „Gata” e evidențiat.
 - „Anulează” după „Pune deoparte” și după ștergerea listei (întrebarea „Ștergi lista?” rămâne); vibrație scurtă la bifă pe Android.
+
+## Decizii etapa 3 (chestionar, 23 oct. 2026)
+- Verde crud `#557A1F` (întunecat `#A3C46A`) pentru bifă, bara de progres, „Ai tot!”; lemn `#7A5A3C` (întunecat `#C9A57E`) pentru titlurile raioanelor și „În coș”. Fără token „hârtie”.
+- Iconițe desenate pentru aplicație în bara de jos (Acasă, Cumpărături, Rețete, Buget, Cămară) și pe Cumpărături (bon, istoric, „se reia”, paginile goale). Sigla din antet rămâne.
 
 ## Etapa 1 — textele aprobate
 ### Ecranul cu liste (`cumparaturi/page.tsx`)
@@ -110,8 +114,14 @@ Cererea proprietarului din 23 oct. 2026: secțiunea Cumpărături să sune și s
 - Pe drum: #103 a reparat sincronizarea (formularul trimitea și câmpurile neschimbate) și CI-ul de pe `main`.
 - `npm test` 614/614, `npm run build`, `npm run test:e2e` 47/47 (de două ori; o primă rulare a avut o cădere în `demo-model.spec.ts:134` pe care n-am mai putut-o reproduce), `npm run test:e2e:cloud` 3/3.
 
+### Etapa 3 (23 oct. 2026)
+- Tokenii `--sprout`, `--sprout-ink`, `--wood` în ambele moduri; `contrast.test.ts` verifică 6 perechi noi (pica fără tokeni).
+- `components/ui/icons.tsx`: casa, coșul, caietul de rețete, portofelul, borcanul, bonul, carnețelul, săgeata „se reia”; același API ca lucide; `icons.test.tsx`.
+- Pe drum: #105 (testele e2e așteaptă catalogul înainte să aleagă din căutare; CI pe `main` picase după #104).
+- `npm test` 622/622, `npm run build`, `npm run test:e2e` 47/47, `npm run test:e2e:cloud` 3/3.
+
 ## Cum verific la final
 `npm test`, `npm run build`, `npm run test:e2e` verzi; pe 360 px, în ambele moduri, lista se folosește cu degetul mare.
 
 ## Următorul pas
-Etapa 3: chestionarul pentru tokenii noi (`--sprout`, `--wood`, `--paper`) și iconițele proprii.
+Etapa 4: chestionarul pentru fontul de mână (2–3 momente) și căutarea jos, lângă total.

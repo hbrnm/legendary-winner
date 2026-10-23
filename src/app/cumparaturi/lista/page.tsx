@@ -3,7 +3,8 @@
 import { Suspense, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { Archive, ArrowLeft, ChevronDown, Copy, MoreHorizontal, Pencil, Plus, Receipt, Repeat, Scale, Store, Trash2, LayoutList } from "lucide-react";
+import { Archive, ArrowLeft, ChevronDown, Copy, MoreHorizontal, Pencil, Plus, Scale, Store, Trash2 } from "lucide-react";
+import { AgainIcon, NotebookIcon, ReceiptIcon } from "@/components/ui/icons";
 import { AppShell } from "@/components/app/shell";
 import { useAction, useData } from "@/components/app/hooks";
 import { useApp } from "@/components/app/app-provider";
@@ -231,7 +232,7 @@ function ListScreen() {
           </p>
           {totals && totals.item_count > 0 && (
             <div className="mt-1.5 h-1.5 overflow-hidden rounded-full bg-surface-2" aria-hidden>
-              <div className="h-full rounded-full bg-brand transition-[width]" style={{ width: `${(totals.checked_count / totals.item_count) * 100}%` }} />
+              <div className="h-full rounded-full bg-sprout transition-[width]" style={{ width: `${(totals.checked_count / totals.item_count) * 100}%` }} />
             </div>
           )}
         </div>
@@ -261,14 +262,14 @@ function ListScreen() {
       </div>
 
       {data.items.length === 0 ? (
-        <EmptyState icon={<LayoutList size={32} />} title="Foaia e albă">
+        <EmptyState icon={<NotebookIcon size={32} />} title="Foaia e albă">
           Scrie sus ce-ți trebuie („2 kg cartofi”, „lapte”) sau ia direct dintr-o rețetă ori din planul meselor.
         </EmptyState>
       ) : (
         <div className="flex flex-col gap-5">
           {groups.map((g) => (
             <section key={g.key} aria-label={g.title}>
-              <h2 className="mb-1.5 px-1 text-xs font-semibold uppercase tracking-wider text-ink-2">{g.title}</h2>
+              <h2 className="mb-1.5 px-1 text-xs font-semibold uppercase tracking-wider text-wood">{g.title}</h2>
               <ul className="overflow-hidden rounded-lg border border-line bg-surface">
                 {g.items.map(itemRow)}
               </ul>
@@ -280,7 +281,7 @@ function ListScreen() {
                 type="button"
                 aria-expanded={basketOpen}
                 onClick={() => setBasketOpen((v) => !v)}
-                className="flex min-h-11 w-full items-center gap-2 px-1 text-left text-sm font-medium text-ink-2"
+                className="flex min-h-11 w-full items-center gap-2 px-1 text-left text-sm font-medium text-wood"
               >
                 <span className="flex-1">În coș ({basket.length})</span>
                 <ChevronDown size={18} className={`transition-transform ${basketOpen ? "rotate-180" : ""}`} />
@@ -345,7 +346,7 @@ function ListScreen() {
                   </Link>
                 )}
               </div>
-              {allIn && <p className="mt-0.5 text-sm font-medium text-brand">Ai tot! Apasă „Gata” la casă.</p>}
+              {allIn && <p className="mt-0.5 text-sm font-medium text-sprout">Ai tot! Apasă „Gata” la casă.</p>}
               {data.budget && (
                 <div className="mt-1.5">
                   <BudgetBar pct={((data.budget.spent + totals.remaining_estimate) / data.budget.budget.amount) * 100} label={data.budget.budget.period === "saptamanal" ? "Bugetul săptămânii, cu lista inclusă" : "Bugetul lunii, cu lista inclusă"} />
@@ -353,7 +354,7 @@ function ListScreen() {
               )}
             </div>
             {!list.archived_at && (
-              <Button onClick={() => setFinishing(true)} disabled={totals.checked_count === 0} className={allIn ? "ring-2 ring-brand ring-offset-2 ring-offset-surface" : ""}>
+              <Button onClick={() => setFinishing(true)} disabled={totals.checked_count === 0} className={allIn ? "ring-2 ring-sprout ring-offset-2 ring-offset-surface" : ""}>
                 Gata
               </Button>
             )}
@@ -416,8 +417,8 @@ function ListScreen() {
               },
             },
             { icon: Scale, label: "Unde iese mai ieftin", run: () => setComparing(true) },
-            { icon: Repeat, label: list.is_recurring ? "Nu o mai relua" : "Păstreaz-o pentru data viitoare", run: () => run((ctx) => shop.updateList(ctx, id, { is_recurring: !list.is_recurring })) },
-            ...(list.archived_at ? [] : [{ icon: Receipt, label: "Adaugă bon", run: () => router.push(`/cumparaturi/bon/?lista=${id}`) }]),
+            { icon: AgainIcon, label: list.is_recurring ? "Nu o mai relua" : "Păstreaz-o pentru data viitoare", run: () => run((ctx) => shop.updateList(ctx, id, { is_recurring: !list.is_recurring })) },
+            ...(list.archived_at ? [] : [{ icon: ReceiptIcon, label: "Adaugă bon", run: () => router.push(`/cumparaturi/bon/?lista=${id}`) }]),
             {
               icon: Copy,
               label: "Fă o copie",
@@ -596,9 +597,9 @@ function CheckMark({ checked, animate }: { checked: boolean; animate: boolean })
       <path
         d="M14.2 2.6c6.3-.1 11.3 5 11.2 11.5-.1 6.3-5.3 11.4-11.6 11.3C7.4 25.3 2.5 20.2 2.6 13.8 2.7 7.6 7.9 2.7 14.2 2.6z"
         strokeWidth={2}
-        className={`transition-colors duration-200 ${checked ? "fill-brand stroke-brand" : "fill-none stroke-line"}`}
+        className={`transition-colors duration-200 ${checked ? "fill-sprout stroke-sprout" : "fill-none stroke-line"}`}
       />
-      {checked && <path d="M8.6 14.6l3.7 3.5 7.4-8" fill="none" strokeWidth={2.6} strokeLinecap="round" strokeLinejoin="round" className={`stroke-brand-ink ${animate ? "draw-check" : ""}`} />}
+      {checked && <path d="M8.6 14.6l3.7 3.5 7.4-8" fill="none" strokeWidth={2.6} strokeLinecap="round" strokeLinejoin="round" className={`stroke-sprout-ink ${animate ? "draw-check" : ""}`} />}
     </svg>
   );
 }

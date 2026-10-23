@@ -3,7 +3,8 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { ChevronRight, History, Plus, Receipt, Repeat, ShoppingBasket } from "lucide-react";
+import { ChevronRight, Plus } from "lucide-react";
+import { AgainIcon, BasketIcon, NotebookIcon, ReceiptIcon } from "@/components/ui/icons";
 import { AppShell } from "@/components/app/shell";
 import { useAction, useData } from "@/components/app/hooks";
 import { Button } from "@/components/ui/button";
@@ -61,7 +62,7 @@ function ListsScreen() {
       />
 
       {active.length === 0 ? (
-        <EmptyState icon={<ShoppingBasket size={32} />} title="Încă n-ai nicio listă" action={<Button onClick={() => setCreating(true)}>Începe o listă</Button>}>
+        <EmptyState icon={<BasketIcon size={32} />} title="Încă n-ai nicio listă" action={<Button onClick={() => setCreating(true)}>Începe o listă</Button>}>
           Una pentru săptămână, una pentru piață, sau câte una pe magazin, cum îți vine mai la îndemână.
         </EmptyState>
       ) : (
@@ -75,7 +76,7 @@ function ListsScreen() {
                       <span className="line-clamp-2 break-words font-serif text-lg font-semibold leading-snug">{list.name}</span>
                       {list.is_recurring && (
                         <Badge tone="brand">
-                          <Repeat size={12} /> se reia
+                          <AgainIcon size={12} strokeWidth={2} /> se reia
                         </Badge>
                       )}
                     </div>
@@ -85,7 +86,7 @@ function ListsScreen() {
                     </p>
                     {totals.item_count > 0 && (
                       <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-surface-2" aria-hidden>
-                        <div className="h-full rounded-full bg-brand" style={{ width: `${(totals.checked_count / totals.item_count) * 100}%` }} />
+                        <div className="h-full rounded-full bg-sprout" style={{ width: `${(totals.checked_count / totals.item_count) * 100}%` }} />
                       </div>
                     )}
                   </div>
@@ -99,12 +100,12 @@ function ListsScreen() {
 
       <Card className="mt-6 divide-y divide-line overflow-hidden">
       <Link href="/cumparaturi/bon/" className="flex min-h-12 items-center gap-3 px-4 text-[15px] transition-colors duration-150 ease-out hover:bg-surface-2 active:bg-surface-2">
-        <Receipt size={20} strokeWidth={1.75} className="text-ink-2" />
+        <ReceiptIcon size={20} strokeWidth={1.75} className="text-ink-2" />
         <span className="flex-1">Pune un bon</span>
         <ChevronRight size={18} className="text-ink-3" />
       </Link>
       <Link href="/cumparaturi/istoric/" className="flex min-h-12 items-center gap-3 px-4 text-[15px] transition-colors duration-150 ease-out hover:bg-surface-2 active:bg-surface-2">
-        <History size={20} strokeWidth={1.75} className="text-ink-2" />
+        <NotebookIcon size={20} strokeWidth={1.75} className="text-ink-2" />
         <span className="flex-1">Ce-ai cumpărat până acum</span>
         <ChevronRight size={18} strokeWidth={1.75} className="text-ink-3" />
       </Link>

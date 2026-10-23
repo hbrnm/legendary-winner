@@ -45,6 +45,13 @@ const PAIRS: [string, string, number][] = [
   ["accent", "accent-soft", 4.5],
   ["warn", "warn-soft", 4.5],
   ["info", "info-soft", 4.5],
+  // Verde crud (bifa, progresul, „Ai tot!”) și lemnul (titlurile raioanelor), .tasks/017.
+  ["sprout", "bg", 4.5],
+  ["sprout", "surface", 4.5],
+  ["sprout-ink", "sprout", 4.5],
+  ["wood", "bg", 4.5],
+  ["wood", "surface", 4.5],
+  ["wood", "surface-2", 4.5],
 ];
 
 const LIGHT = tokens(":root,\n::backdrop");

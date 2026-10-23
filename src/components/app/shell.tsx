@@ -3,7 +3,8 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, type ReactNode } from "react";
-import { BookOpen, Cloud, CloudOff, Home, Loader2, RefreshCw, Settings, ShoppingBasket, Warehouse, Wallet, CalendarDays, AlertTriangle } from "lucide-react";
+import { Cloud, CloudOff, Loader2, RefreshCw, Settings, Warehouse, CalendarDays, AlertTriangle } from "lucide-react";
+import { BasketIcon, HouseIcon, JarIcon, PurseIcon, RecipeBookIcon } from "@/components/ui/icons";
 import { useApp } from "./app-provider";
 import { Spinner } from "@/components/ui/misc";
 import { useData } from "./hooks";
@@ -56,11 +57,11 @@ function ConsumedSweeper() {
 }
 
 const NAV = [
-  { href: "/", label: "Acasă", icon: Home, match: (p: string) => p === "/" },
-  { href: "/cumparaturi/", label: "Cumpărături", icon: ShoppingBasket, match: (p: string) => p.startsWith("/cumparaturi") },
-  { href: "/retete/", label: "Rețete", icon: BookOpen, match: (p: string) => p.startsWith("/retete") || p.startsWith("/plan") },
-  { href: "/buget/", label: "Buget", icon: Wallet, match: (p: string) => p.startsWith("/buget") },
-  { href: "/camara/", label: "Cămară", icon: Warehouse, match: (p: string) => p.startsWith("/camara") },
+  { href: "/", label: "Acasă", icon: HouseIcon, match: (p: string) => p === "/" },
+  { href: "/cumparaturi/", label: "Cumpărături", icon: BasketIcon, match: (p: string) => p.startsWith("/cumparaturi") },
+  { href: "/retete/", label: "Rețete", icon: RecipeBookIcon, match: (p: string) => p.startsWith("/retete") || p.startsWith("/plan") },
+  { href: "/buget/", label: "Buget", icon: PurseIcon, match: (p: string) => p.startsWith("/buget") },
+  { href: "/camara/", label: "Cămară", icon: JarIcon, match: (p: string) => p.startsWith("/camara") },
 ];
 
 function SyncIndicator() {
