@@ -22,6 +22,7 @@ import { compareRetailers, estimateFlag, groupByCategory, lineEstimate, listTota
 import { budgetStatus, SOURCE_LABELS } from "@/lib/domain/budget";
 import { formatQuantity } from "@/lib/domain/units";
 import { formatRon } from "@/lib/domain/money";
+import { count } from "@/lib/domain/text";
 import { toISODate } from "@/lib/domain/dates";
 import { now } from "@/lib/clock";
 import type { Retailer, ShoppingListItem } from "@/lib/domain/types";
@@ -143,10 +144,10 @@ function ListScreen() {
         <div className="min-w-0 flex-1">
           <h1 className="line-clamp-2 break-words text-xl font-semibold leading-snug tracking-tight">{list.name}</h1>
           <p className="text-xs text-ink-2 tabular">
-            {totals?.checked_count ?? 0} din {totals?.item_count ?? 0} luate
+            {totals?.checked_count ?? 0} din {totals?.item_count ?? 0} în coș
             {totals && totals.projected_total > 0 && ` · ~${formatRon(totals.projected_total)}`}
-            {list.is_recurring && " · listă recurentă"}
-            {list.archived_at && " · arhivată"}
+            {list.is_recurring && " · se reia"}
+            {list.archived_at && " · pusă deoparte"}
           </p>
           {totals && totals.item_count > 0 && (
             <div className="mt-1.5 h-1.5 overflow-hidden rounded-full bg-surface-2" aria-hidden>
@@ -161,7 +162,7 @@ function ListScreen() {
 
       {!list.archived_at && (
         <div className="sticky top-14 z-20 -mx-4 bg-bg px-4 pb-3 pt-1">
-          <ProductSearch onPick={onPick} />
+          <ProductSearch placeholder="Ce-ți trebuie? ex. 2 kg roșii" onPick={onPick} />
         </div>
       )}
 
@@ -183,8 +184,8 @@ function ListScreen() {
       </div>
 
       {data.items.length === 0 ? (
-        <EmptyState icon={<LayoutList size={32} />} title="Lista e goală">
-          Scrie mai sus ce ai de cumpărat, de exemplu „2 kg cartofi” sau „lapte”. Poți adăuga și din rețete sau din planul meselor.
+        <EmptyState icon={<LayoutList size={32} />} title="Foaia e albă">
+          Scrie sus ce-ți trebuie („2 kg cartofi”, „lapte”) sau ia direct dintr-o rețetă ori din planul meselor.
         </EmptyState>
       ) : (
         <div className="flex flex-col gap-5">
@@ -214,7 +215,7 @@ function ListScreen() {
                           {item.name}
                           {item.priority === "ridicata" && !item.checked && (
                             <Badge tone="accent" className="ml-2 align-middle">
-                              important
+                              neapărat
                             </Badge>
                           )}
                         </span>
@@ -236,7 +237,7 @@ function ListScreen() {
                             {flag && <span className="font-sans text-[11px] leading-tight text-ink-3">{flag}</span>}
                           </>
                         ) : (
-                          <span className="font-sans text-xs text-ink-3">{item.checked ? "+ preț" : "fără preț"}</span>
+                          <span className="font-sans text-xs text-ink-3">{item.checked ? "cât a costat?" : "preț?"}</span>
                         )}
                       </button>
                     </li>
@@ -249,8 +250,8 @@ function ListScreen() {
       )}
 
       {!list.archived_at && data.suggestions.length > 0 && (
-        <section aria-label="Adăugare rapidă" className="mt-6">
-          <h2 className="px-1 text-xs font-semibold uppercase tracking-wider text-ink-2">Adăugare rapidă</h2>
+        <section aria-label="Poate-ți mai trebuie" className="mt-6">
+          <h2 className="px-1 text-xs font-semibold uppercase tracking-wider text-ink-2">Poate-ți mai trebuie</h2>
           {/* Două grupuri cu titlu, în locul sufixului de pe fiecare buton (decizia proprietarului, 18 oct. 2026). */}
           {QUICK_GROUPS.map(([reason, title]) => {
             const items = data.suggestions.filter((s) => s.reason === reason);
@@ -288,23 +289,23 @@ function ListScreen() {
             <div className="min-w-0 flex-1 tabular">
               <div className="flex flex-wrap items-baseline gap-x-3">
                 <span className="font-mono text-lg font-medium">{formatRon(totals.spent)}</span>
-                <span className="text-xs text-ink-2">cheltuit{totals.projected_total > totals.spent ? ` · estimat total ${formatRon(totals.projected_total)}` : ""}</span>
+                <span className="text-xs text-ink-2">dați până acum{totals.projected_total > totals.spent ? ` · cam ${formatRon(totals.projected_total)} în total` : ""}</span>
               </div>
               <div className="text-xs text-ink-2">
-                {totals.unknown_price_count > 0 && <span>{totals.unknown_price_count} fără preț cunoscut · </span>}
+                {totals.unknown_price_count > 0 && <span>{totals.unknown_price_count} încă fără preț · </span>}
                 {remainingBudget != null ? (
                   <span className={remainingBudget < 0 ? "font-medium text-accent" : ""}>
-                    {remainingBudget < 0 ? `Depășește bugetul cu ${formatRon(-remainingBudget)}` : `Rămân ${formatRon(remainingBudget)} din buget`}
+                    {remainingBudget < 0 ? `Ai trecut de buget cu ${formatRon(-remainingBudget)}` : `Mai ai ${formatRon(remainingBudget)} ${data.budget?.budget.period === "saptamanal" ? "săptămâna asta" : "luna asta"}`}
                   </span>
                 ) : (
                   <Link href="/buget/" className="underline underline-offset-2">
-                    Setează un buget
+                    Pune-ți un buget
                   </Link>
                 )}
               </div>
               {data.budget && (
                 <div className="mt-1.5">
-                  <BudgetBar pct={((data.budget.spent + totals.remaining_estimate) / data.budget.budget.amount) * 100} label="Bugetul lunii, cu lista inclusă" />
+                  <BudgetBar pct={((data.budget.spent + totals.remaining_estimate) / data.budget.budget.amount) * 100} label={data.budget.budget.period === "saptamanal" ? "Bugetul săptămânii, cu lista inclusă" : "Bugetul lunii, cu lista inclusă"} />
                 </div>
               )}
             </div>
@@ -365,26 +366,26 @@ function ListScreen() {
           {[
             {
               icon: Pencil,
-              label: "Redenumește",
+              label: "Schimbă numele",
               run: () => {
                 setNewName(list.name);
                 setRenaming(true);
               },
             },
-            { icon: Scale, label: "Compară magazinele", run: () => setComparing(true) },
-            { icon: Repeat, label: list.is_recurring ? "Nu mai e recurentă" : "Fă-o recurentă (se refolosește săptămânal)", run: () => run((ctx) => shop.updateList(ctx, id, { is_recurring: !list.is_recurring })) },
+            { icon: Scale, label: "Unde iese mai ieftin", run: () => setComparing(true) },
+            { icon: Repeat, label: list.is_recurring ? "Nu o mai relua" : "Păstreaz-o pentru data viitoare", run: () => run((ctx) => shop.updateList(ctx, id, { is_recurring: !list.is_recurring })) },
             ...(list.archived_at ? [] : [{ icon: Receipt, label: "Adaugă bon", run: () => router.push(`/cumparaturi/bon/?lista=${id}`) }]),
             {
               icon: Copy,
-              label: "Duplică lista",
+              label: "Fă o copie",
               run: async () => {
-                const copy = await run((ctx) => shop.duplicateList(ctx, id), "Lista a fost duplicată.");
+                const copy = await run((ctx) => shop.duplicateList(ctx, id), "Gata copia.");
                 if (copy) router.push(`/cumparaturi/lista/?id=${copy}`);
               },
             },
             list.archived_at
-              ? { icon: Archive, label: "Scoate din arhivă", run: () => run((ctx) => shop.restoreList(ctx, id), "Lista e din nou activă.") }
-              : { icon: Archive, label: "Arhivează", run: () => run((ctx) => shop.archiveList(ctx, id), "Lista a fost arhivată.") },
+              ? { icon: Archive, label: "Scoate înapoi", run: () => run((ctx) => shop.restoreList(ctx, id), "Am scos lista înapoi.") }
+              : { icon: Archive, label: "Pune deoparte", run: () => run((ctx) => shop.archiveList(ctx, id), "Am pus-o deoparte.") },
             { icon: Trash2, label: "Șterge lista", run: () => setConfirmDelete(true), danger: true },
           ].map((o) => (
             <button
@@ -413,7 +414,7 @@ function ListScreen() {
       <Sheet
         open={renaming}
         onClose={() => setRenaming(false)}
-        title="Redenumește lista"
+        title="Schimbă numele listei"
         footer={
           <Button
             block
@@ -440,7 +441,7 @@ function ListScreen() {
         }
         confirmLabel="Șterge"
         onConfirm={async () => {
-          await run((ctx) => shop.deleteList(ctx, id), "Lista a fost ștearsă.");
+          await run((ctx) => shop.deleteList(ctx, id), "Am șters lista.");
           router.push("/cumparaturi/");
         }}
       />
@@ -448,7 +449,7 @@ function ListScreen() {
       <Sheet
         open={finishing}
         onClose={() => setFinishing(false)}
-        title="Ai terminat cumpărăturile?"
+        title="Gata la cumpărături?"
         footer={
           <Button
             block
@@ -456,12 +457,12 @@ function ListScreen() {
               const r = await run((ctx) => shop.finalizeShopping(ctx, id, { addToPantry: data.pantrySetting === "mereu" || (data.pantrySetting === "intreaba" && addToPantry) }));
               setFinishing(false);
               if (r) {
-                toast(`Gata! Ai cheltuit ${formatRon(r.total)}${r.added_to_pantry ? `; ${r.added_to_pantry} produse au intrat în cămară` : ""}.`);
+                toast(`Gata! Ai dat ${formatRon(r.total)}.${r.added_to_pantry ? ` Am pus ${r.added_to_pantry === 1 ? "un produs" : count(r.added_to_pantry, "produs", "produse")} în cămară.` : ""}`);
                 if (!list.is_recurring) router.push("/cumparaturi/");
               }
             }}
           >
-            Finalizează
+            Gata, am terminat
           </Button>
         }
       >
@@ -472,20 +473,22 @@ function ListScreen() {
             </p>
             {totals.checked_without_price_count > 0 && (
               <p className="rounded-lg bg-warn-soft px-3 py-2 text-sm text-warn">
-                {totals.checked_without_price_count} {totals.checked_without_price_count === 1 ? "produs bifat nu are" : "produse bifate nu au"} preț. Le poți completa acum, ca bugetul să fie exact, sau mai târziu din istoric.
+                La {count(totals.checked_without_price_count, "produs", "produse")} n-ai pus prețul. {totals.checked_without_price_count === 1 ? "Îl pui" : "Le pui"} acum sau mai încolo, din istoric, cum îți vine.
               </p>
             )}
             {totals.item_count - totals.checked_count > 0 && (
               <p className="text-sm text-ink-2">
-                {totals.item_count - totals.checked_count} {totals.item_count - totals.checked_count === 1 ? "produs a rămas nebifat" : "produse au rămas nebifate"}
-                {list.is_recurring ? " și rămân pe listă pentru data viitoare." : ". Lista se arhivează; le poți muta înainte în altă listă."}
+                {totals.item_count - totals.checked_count === 1 ? "1 produs a rămas nebifat" : `${count(totals.item_count - totals.checked_count, "produs", "produse")} au rămas nebifate`}
+                {list.is_recurring
+                  ? ` și ${totals.item_count - totals.checked_count === 1 ? "rămâne" : "rămân"} pe listă pentru data viitoare.`
+                  : `. Pun lista deoparte; ${totals.item_count - totals.checked_count === 1 ? "îl" : "le"} poți muta înainte în altă listă.`}
               </p>
             )}
             {data.pantrySetting === "intreaba" && (
               <Toggle checked={addToPantry} onChange={setAddToPantry} label="Pune alimentele în cămară" description="Le poți scădea apoi când gătești." />
             )}
             <p className="text-sm text-ink-2">
-              {list.is_recurring ? "Lista recurentă se golește de bifări și e gata pentru data viitoare." : "Lista se arhivează. Cheltuielile apar în Buget."}
+              {list.is_recurring ? "Debifez tot și lista te așteaptă data viitoare." : "Pun lista deoparte, iar banii îi trec la Buget."}
             </p>
           </div>
         )}
@@ -494,7 +497,7 @@ function ListScreen() {
   );
 }
 
-/** Grupurile din „Adăugare rapidă”, în ordinea în care apar. */
+/** Grupurile din „Poate-ți mai trebuie”, în ordinea în care apar. */
 const QUICK_GROUPS = [
   ["terminat", "S-a terminat în cămară"],
   ["des", "Cumperi des"],

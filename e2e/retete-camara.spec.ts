@@ -96,7 +96,7 @@ test("prețuri de la piață și comparație", async ({ page }) => {
   await createList(page, "Comparație");
   await quickAdd(page, "2 kg roșii");
   await page.getByRole("button", { name: "Opțiunile listei" }).click();
-  await page.getByRole("button", { name: "Compară magazinele" }).click();
+  await page.getByRole("button", { name: "Unde iese mai ieftin" }).click();
   await expect(page.getByRole("heading", { name: "Cât ar costa lista" })).toBeVisible();
   const rows = page.locator("li").filter({ hasText: "preț aici" });
   await expect(rows).toHaveCount(2);
