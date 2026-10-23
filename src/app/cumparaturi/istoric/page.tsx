@@ -102,10 +102,10 @@ function HistoryScreen() {
       ) : (
         [...byMonth.entries()].sort(([a], [b]) => b.localeCompare(a)).map(([month, { trips, openTrips }]) => (
           <section key={month} className="mb-6">
-            {/* Registrul lunii: luna în serif, totalul în mono, cumpărăturile pe o foaie cu filete punctate. */}
+            {/* Registrul lunii: luna în serif, totalul cu cifre aliniate, cumpărăturile pe o foaie cu filete punctate. */}
             <div className="mb-2 flex items-baseline justify-between gap-3 px-1">
               <h2 className="font-serif text-xl font-semibold capitalize">{formatMonth(`${month}-01`)}</h2>
-              <span className="font-mono text-[15px] font-medium">{formatRon(sumMoney([...openTrips, ...trips].map((t) => t.total)))}</span>
+              <span className="text-[15px] font-medium">{formatRon(sumMoney([...openTrips, ...trips].map((t) => t.total)))}</span>
             </div>
             <ul className="divide-y divide-dashed divide-line overflow-hidden rounded-lg border border-line bg-surface">
               {openTrips.map((t) => (
@@ -119,8 +119,8 @@ function HistoryScreen() {
                       </span>
                     </span>
                     <span className="shrink-0 text-right">
-                      <span className="block font-mono text-[15px] font-medium">{formatRon(t.total)}</span>
-                      {t.missing > 0 && <span className="block font-mono text-[11px] font-medium uppercase tracking-wider text-accent">{t.missing} fără preț</span>}
+                      <span className="block text-[15px] font-medium">{formatRon(t.total)}</span>
+                      {t.missing > 0 && <span className="block text-[11px] font-medium uppercase tracking-wider text-accent">{t.missing} fără preț</span>}
                     </span>
                   </Link>
                 </li>
@@ -136,8 +136,8 @@ function HistoryScreen() {
                       </span>
                     </span>
                     <span className="shrink-0 text-right">
-                      <span className="block font-mono text-[15px] font-medium">{formatRon(t.total)}</span>
-                      {t.missing > 0 && <span className="block font-mono text-[11px] font-medium uppercase tracking-wider text-accent">{t.missing} fără preț</span>}
+                      <span className="block text-[15px] font-medium">{formatRon(t.total)}</span>
+                      {t.missing > 0 && <span className="block text-[11px] font-medium uppercase tracking-wider text-accent">{t.missing} fără preț</span>}
                     </span>
                   </button>
                 </li>
@@ -174,7 +174,7 @@ function HistoryScreen() {
                     <p className="text-[15px]">{i.receipt_name || i.name}</p>
                     <p className="text-xs text-ink-2">
                       {i.receipt_name && `${i.name} · `}
-                      <span className="font-mono">{formatQuantity(i.quantity, i.unit)}</span>
+                      <span>{formatQuantity(i.quantity, i.unit)}</span>
                     </p>
                   </div>
                   {/* Input are w-full: lățimea fixă stă pe container, ca numele să aibă loc. */}
@@ -182,7 +182,7 @@ function HistoryScreen() {
                     <Input
                       inputMode="decimal"
                       aria-label={`Suma pentru ${i.receipt_name || i.name}`}
-                      className="text-right font-mono"
+                      className="text-right"
                       placeholder="lei"
                       value={drafts[i.id] ?? (i.amount == null ? "" : i.amount.toFixed(2).replace(".", ","))}
                       onChange={(e) => setDrafts((d) => ({ ...d, [i.id]: e.target.value }))}
@@ -199,7 +199,7 @@ function HistoryScreen() {
             </ul>
             <p className="mt-3 flex justify-between border-t border-line pt-3 font-semibold">
               <span>Total</span>
-              <span className="font-mono">{formatRon(open.total)}</span>
+              <span>{formatRon(open.total)}</span>
             </p>
           </div>
         )}

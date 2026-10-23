@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test";
-import { createList, quickAdd, start } from "./helpers";
+import { createList, openBasket, quickAdd, start } from "./helpers";
 
 test("lista: adăugare rapidă, cantități, preț, total, sursă piață", async ({ page }) => {
   await start(page);
@@ -19,11 +19,14 @@ test("lista: adăugare rapidă, cantități, preț, total, sursă piață", asyn
   await page.getByLabel("Preț plătit").fill("15");
   await page.getByRole("button", { name: "Salvează" }).click();
   await expect(page.getByText("15,00 RON").first()).toBeVisible();
-  await expect(page.getByText("Piață", { exact: false }).first()).toBeVisible();
+  // Cu prețul plătit, roșiile s-au bifat singure și au coborât în „În coș”.
+  await openBasket(page);
+  await expect(page.getByRole("region", { name: "În coș" }).getByText("Piață", { exact: false })).toBeVisible();
 
-  // Gruparea pe magazine.
+  // Gruparea pe magazine, pentru ce mai e de luat.
   await page.getByRole("radio", { name: "Pe magazine" }).click();
-  await expect(page.getByRole("heading", { name: "Piață" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Oriunde" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Piață" })).toHaveCount(0);
 
   // Bifare și debifare.
   await page.getByRole("checkbox", { name: /Bifează Pâine albă/ }).click();
@@ -98,4 +101,32 @@ test("prețul de la raft: 300 g la 7,99 lei/100 g, apoi 312 g la cântar", async
 
   await page.getByRole("button", { name: "Salvează" }).click();
   await expect(page.getByText("24,93 RON").first()).toBeVisible();
+});
+
+test("„În coș”: bifatele coboară strânse, „Ai tot!” la final, „Anulează” după ștergere", async ({ page }) => {
+  await start(page);
+  await createList(page, "Seara");
+  await quickAdd(page, "pâine");
+  await quickAdd(page, "lapte");
+
+  await page.getByRole("checkbox", { name: /Bifează Pâine albă/ }).click();
+  const basket = page.getByRole("button", { name: "În coș (1)" });
+  await expect(basket).toHaveAttribute("aria-expanded", "false");
+  await expect(page.getByRole("checkbox", { name: /Debifează Pâine albă/ })).toHaveCount(0);
+  await expect(page.getByText("Ai tot!", { exact: false })).toHaveCount(0);
+
+  await page.getByRole("checkbox", { name: /Bifează Lapte/ }).click();
+  await expect(page.getByText("Ai tot! Apasă „Gata” la casă.")).toBeVisible();
+  await page.getByRole("button", { name: "În coș (2)" }).click();
+  await page.getByRole("checkbox", { name: /Debifează Pâine albă/ }).click();
+  await expect(page.getByRole("checkbox", { name: /Bifează Pâine albă/ })).toBeVisible();
+  await expect(page.getByText("Ai tot!", { exact: false })).toHaveCount(0);
+
+  await page.getByRole("button", { name: "Opțiunile listei" }).click();
+  await page.getByRole("button", { name: "Șterge lista" }).click();
+  await page.getByRole("dialog").getByRole("button", { name: "Șterge", exact: true }).click();
+  await page.waitForURL(/\/cumparaturi\/$/);
+  await expect(page.getByText("Seara")).toHaveCount(0);
+  await page.getByRole("status").getByRole("button", { name: "Anulează" }).click();
+  await expect(page.getByText("Seara")).toBeVisible();
 });

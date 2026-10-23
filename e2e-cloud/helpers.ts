@@ -33,3 +33,9 @@ export async function syncNow(page: Page) {
   await expect(page.getByRole("button", { name: /^Sincronizat/ })).toBeVisible();
 }
 
+
+/** Deschide „În coș”, unde coboară produsele bifate (strâns la început). */
+export async function openBasket(page: Page) {
+  const basket = page.getByRole("button", { name: /^În coș \(\d+\)$/ });
+  if ((await basket.getAttribute("aria-expanded")) !== "true") await basket.click();
+}

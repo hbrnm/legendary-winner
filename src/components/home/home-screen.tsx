@@ -116,7 +116,7 @@ export function HomeScreen() {
   return (
     <>
       <header className="mb-5">
-        <p className="font-mono text-xs uppercase tracking-wider text-ink-2">{capitalizeFirst(formatLongDate(today))}</p>
+        <p className="text-xs uppercase tracking-wider text-ink-2">{capitalizeFirst(formatLongDate(today))}</p>
         <h1 className="mt-1 text-[32px] font-semibold leading-tight tracking-tight">
           {greeting()}
           {displayName ? `, ${displayName}` : ""}!
@@ -132,12 +132,12 @@ export function HomeScreen() {
           {data.budget ? (
             <>
               <p className="mt-1.5 flex items-baseline justify-between gap-3">
-                <span className={`font-mono text-[26px] font-medium leading-none tracking-tight ${data.budget.over ? "text-accent" : "text-ink"}`}>
+                <span className={`text-[26px] font-medium leading-none tracking-tight ${data.budget.over ? "text-accent" : "text-ink"}`}>
                   {data.budget.over ? `−${formatRon(-data.budget.remaining)}` : formatRon(data.budget.remaining)}
                 </span>
                 <span className="text-sm text-ink-2">{data.budget.over ? "peste buget" : "rămași"}</span>
               </p>
-              <p className="mb-3 mt-1.5 font-mono text-xs text-ink-2">
+              <p className="mb-3 mt-1.5 text-xs text-ink-2">
                 cheltuit {formatRon(data.budget.spent)} din {formatRon(data.budget.budget.amount)}
               </p>
               <BudgetBar pct={data.budget.used_pct} label="Bugetul lunii folosit" />
@@ -183,7 +183,7 @@ export function HomeScreen() {
                   <span className={`block ${LABEL}`}>{SLOT_LABELS[meal.slot]}</span>
                   <span className="mt-0.5 line-clamp-2 font-serif text-lg font-medium leading-snug">{recipe?.name ?? "Rețetă ștearsă"}</span>
                 </span>
-                <span className="shrink-0 font-mono text-xs text-ink-2">{meal.servings} porții</span>
+                <span className="shrink-0 text-xs text-ink-2">{meal.servings} porții</span>
               </Link>
             </li>
           ))}
@@ -200,7 +200,7 @@ export function HomeScreen() {
               return (
                 <li key={i.id} className={`flex items-center gap-3 rounded-md border border-dashed border-accent px-3.5 py-2.5 ${d < 0 ? "bg-accent-soft" : "bg-surface"}`}>
                   <span className="min-w-0 flex-1 text-[15px] text-ink">{i.name}</span>
-                  <span className="shrink-0 font-mono text-xs font-medium uppercase tracking-wider text-accent">{d < 0 ? "expirat" : d === 0 ? "azi" : d === 1 ? "mâine" : `în ${d} zile`}</span>
+                  <span className="shrink-0 text-xs font-medium uppercase tracking-wider text-accent">{d < 0 ? "expirat" : d === 0 ? "azi" : d === 1 ? "mâine" : `în ${d} zile`}</span>
                 </li>
               );
             })}
@@ -239,7 +239,7 @@ export function HomeScreen() {
                     {capitalizeFirst(formatLongDate(t.date))} · <span className="whitespace-nowrap">{count(t.count, "produs", "produse")}</span>
                   </span>
                 </span>
-                <span className="shrink-0 font-mono text-[15px] font-medium">{formatRon(t.total)}</span>
+                <span className="shrink-0 text-[15px] font-medium">{formatRon(t.total)}</span>
                 <ChevronRight size={16} strokeWidth={1.75} className="shrink-0 text-ink-3" />
               </Link>
             ))}

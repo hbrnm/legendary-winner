@@ -197,8 +197,8 @@ function BudgetScreen() {
                 </IconButton>
               </div>
               <div className="mt-3 flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
-                <span className={`font-mono text-[26px] font-medium leading-none tracking-tight ${s.over ? "text-accent" : "text-ink"}`}>{formatRon(s.spent)}</span>
-                <span className="whitespace-nowrap font-mono text-sm text-ink-2">din {formatRon(s.budget.amount)}</span>
+                <span className={`text-[26px] font-medium leading-none tracking-tight ${s.over ? "text-accent" : "text-ink"}`}>{formatRon(s.spent)}</span>
+                <span className="whitespace-nowrap text-sm text-ink-2">din {formatRon(s.budget.amount)}</span>
               </div>
               <div className="mt-2">
                 {s === mainStatus && data.openEstimate > 0 ? (
@@ -235,7 +235,7 @@ function BudgetScreen() {
             <span className="mt-1 block text-[15px]">
               {data.openEstimate > 0 ? (
                 <>
-                  Listele deschise mai au de cumpărat produse de aproximativ <strong className="font-mono font-medium">{formatRon(data.openEstimate)}</strong>
+                  Listele deschise mai au de cumpărat produse de aproximativ <strong className="font-medium">{formatRon(data.openEstimate)}</strong>
                   {data.openUnknown > 0 && <> și {count(data.openUnknown, "produs", "produse")} cu preț necunoscut</>}.
                 </>
               ) : (
@@ -270,11 +270,11 @@ function BudgetScreen() {
       <Card className="grid grid-cols-2 divide-x divide-line">
         <div className="p-3">
           <p className="text-xs text-ink-2">Cheltuit în lună</p>
-          <p className="mt-0.5 font-mono text-xl font-medium">{formatRon(view.total)}</p>
+          <p className="mt-0.5 text-xl font-medium">{formatRon(view.total)}</p>
         </div>
         <div className="p-3">
           <p className="text-xs text-ink-2">Media unei ieșiri la cumpărături</p>
-          <p className="mt-0.5 font-mono text-xl font-medium">{view.avgTrip == null ? "—" : formatRon(view.avgTrip)}</p>
+          <p className="mt-0.5 text-xl font-medium">{view.avgTrip == null ? "—" : formatRon(view.avgTrip)}</p>
         </div>
       </Card>
       {view.sources.length > 0 && (

@@ -266,7 +266,7 @@ function AdminScreen() {
             className="text-sm"
           />
           <Field label="sau lipește conținutul">
-            <textarea value={importText} onChange={(e) => setImportText(e.target.value)} className="min-h-32 rounded-lg border border-line bg-surface p-3 font-mono text-xs" />
+            <textarea value={importText} onChange={(e) => setImportText(e.target.value)} className="min-h-32 rounded-lg border border-line bg-surface p-3 text-xs" />
           </Field>
           <Button variant="secondary" icon={<Upload size={18} />} disabled={!importText.trim()} onClick={() => setPreview(parseProductImport(importText, data.categories, data.products.map((p) => p.name)))}>
             Previzualizează

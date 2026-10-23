@@ -84,14 +84,14 @@ function RecipesScreen() {
               {data!.favorites.has(r.id) && <Heart size={14} className="ml-1.5 inline fill-accent text-accent" aria-label="favorită" />}
             </p>
             <p className="mt-0.5 flex flex-wrap items-center gap-x-2 text-sm text-ink-2">
-              <span className="inline-flex items-center gap-1 font-mono text-xs">
+              <span className="inline-flex items-center gap-1 text-xs">
                 <Clock size={13} strokeWidth={1.75} /> {totalMinutes(r)} min
               </span>
               <span>
-                · <span className="font-mono text-xs">{r.servings}</span> porții
+                · <span className="text-xs">{r.servings}</span> porții
               </span>
               {c && c.priced_count > 0 && (
-                <span>· {perServing ? <span className="font-mono text-xs">{perServing}/porție</span> : partialCostLabel(c.priced_count, c.costable_count)}</span>
+                <span>· {perServing ? <span className="text-xs">{perServing}/porție</span> : partialCostLabel(c.priced_count, c.costable_count)}</span>
               )}
               {r.household_id && <Badge>a gospodăriei</Badge>}
             </p>

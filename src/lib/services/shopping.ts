@@ -50,6 +50,11 @@ export async function deleteList(ctx: AppCtx, id: string) {
   await softDelete(ctx.db, "shopping_lists", id, w(ctx));
 }
 
+/** „Anulează” după ștergere: lista revine, cu produsele ei (ștergerea e logică). */
+export async function restoreDeletedList(ctx: AppCtx, id: string) {
+  await updateRow(ctx.db, "shopping_lists", id, { deleted_at: null }, w(ctx));
+}
+
 /** Copie a listei, cu toate produsele nebifate și fără prețurile plătite. */
 export async function duplicateList(ctx: AppCtx, id: string, name?: string): Promise<string> {
   const source = await ctx.db.shopping_lists.get(id);

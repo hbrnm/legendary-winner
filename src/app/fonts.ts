@@ -11,8 +11,6 @@ const fraunces = localFont({ src: "./fonts/fraunces-latin-wght-normal.woff2", va
 const frauncesExt = localFont({ src: "./fonts/fraunces-latin-ext-wght-normal.woff2", variable: "--font-fraunces-ext", weight: "100 900", display: "swap", adjustFontFallback: false, preload: false });
 const dmSans = localFont({ src: "./fonts/dm-sans-latin-wght-normal.woff2", variable: "--font-dm-sans", weight: "100 900", display: "swap", adjustFontFallback: false, preload: true });
 const dmSansExt = localFont({ src: "./fonts/dm-sans-latin-ext-wght-normal.woff2", variable: "--font-dm-sans-ext", weight: "100 900", display: "swap", adjustFontFallback: false, preload: false });
-const jetbrainsMono = localFont({ src: "./fonts/jetbrains-mono-latin-wght-normal.woff2", variable: "--font-jetbrains-mono", weight: "100 900", display: "swap", adjustFontFallback: false, preload: false });
-const jetbrainsMonoExt = localFont({ src: "./fonts/jetbrains-mono-latin-ext-wght-normal.woff2", variable: "--font-jetbrains-mono-ext", weight: "100 900", display: "swap", adjustFontFallback: false, preload: false });
 
 /** Clasele care definesc variabilele fonturilor; se pun pe <html>. */
-export const fontVariables = [fraunces, frauncesExt, dmSans, dmSansExt, jetbrainsMono, jetbrainsMonoExt].map((f) => f.variable).join(" ");
+export const fontVariables = [fraunces, frauncesExt, dmSans, dmSansExt].map((f) => f.variable).join(" ");

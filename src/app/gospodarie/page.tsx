@@ -200,7 +200,7 @@ function Members() {
         {created ? (
           <div className="flex flex-col gap-2">
             <p className="text-[15px]">Trimite acest link persoanei invitate. E valabil 7 zile și poate fi folosit o singură dată.</p>
-            <p className="break-all rounded-lg bg-surface-2 p-3 font-mono text-xs">{hh.invitationLink(created.token)}</p>
+            <p className="break-all rounded-lg bg-surface-2 p-3 text-xs">{hh.invitationLink(created.token)}</p>
           </div>
         ) : (
           <div className="flex flex-col gap-4">
