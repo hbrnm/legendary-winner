@@ -21,8 +21,22 @@ export interface PickedProduct {
 /**
  * Căutare cu completare automată în catalog. Înțelege și cantitatea scrisă
  * („2 kg roșii”). Enter alege primul rezultat sau adaugă textul ca produs nou.
+ * `allowNew={false}`: unde nu se poate crea produs, fără „ca produs nou”, cu un mesaj.
+ * `inline`: rezultatele în pagină, sub câmp (în ferestre, unde lista suprapusă ar fi tăiată).
  */
-export function ProductSearch({ onPick, placeholder = "Adaugă: ex. 2 kg roșii", autoFocus }: { onPick: (p: PickedProduct) => void; placeholder?: string; autoFocus?: boolean }) {
+export function ProductSearch({
+  onPick,
+  placeholder = "Adaugă: ex. 2 kg roșii",
+  autoFocus,
+  allowNew = true,
+  inline = false,
+}: {
+  onPick: (p: PickedProduct) => void;
+  placeholder?: string;
+  autoFocus?: boolean;
+  allowNew?: boolean;
+  inline?: boolean;
+}) {
   const [text, setText] = useState("");
   const [active, setActive] = useState(0);
   // Enter apăsat înainte să se încarce catalogul: alegem după încărcare, ca textul să nu devină o dublură a produsului din catalog.
@@ -40,14 +54,15 @@ export function ProductSearch({ onPick, placeholder = "Adaugă: ex. 2 kg roșii"
   const hits = useMemo(() => (data && parsed.text.length >= 1 ? search(data.index, parsed.text, 6) : []), [data, parsed.text]);
 
   function pick(product: Product | null) {
-    if (!parsed.text) return;
+    if (!parsed.text || (!product && !allowNew)) return;
     onPick({ product, parsed });
     setText("");
     setActive(0);
     inputRef.current?.focus();
   }
 
-  const options = [...hits.map((h) => data!.products.get(h.doc.id) ?? null), null];
+  const found = hits.map((h) => data!.products.get(h.doc.id)).filter((p): p is Product => Boolean(p));
+  const options: (Product | null)[] = allowNew ? [...found, null] : found;
 
   useEffect(() => {
     if (!enterPending.current || !data) return;
@@ -93,8 +108,13 @@ export function ProductSearch({ onPick, placeholder = "Adaugă: ex. 2 kg roșii"
           className="h-12 min-w-0 flex-1 bg-transparent text-base text-ink placeholder:text-ink-3 focus:outline-none"
         />
       </div>
-      {text.trim() && (
-        <ul id="rezultate-produse" role="listbox" className="absolute inset-x-0 top-full z-20 mt-1 overflow-hidden rounded-lg border border-line bg-surface shadow-card">
+      {text.trim() && options.length === 0 && (
+        <p role="status" className={`${inline ? "" : "absolute inset-x-0 top-full z-20 shadow-card"} mt-1 rounded-lg border border-line bg-surface px-4 py-3 text-sm text-ink-2`}>
+          {data ? `Nu am găsit „${parsed.text}” în catalog.` : "Caut în catalog…"}
+        </p>
+      )}
+      {text.trim() && options.length > 0 && (
+        <ul id="rezultate-produse" role="listbox" className={`${inline ? "" : "absolute inset-x-0 top-full z-20 shadow-card"} mt-1 overflow-hidden rounded-lg border border-line bg-surface`}>
           {options.map((p, i) => (
             <li key={p?.id ?? "_nou"} role="option" aria-selected={i === active}>
               <button

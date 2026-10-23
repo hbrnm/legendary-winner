@@ -150,7 +150,7 @@ function PricesScreen() {
         Prețurile sunt cele plătite sau văzute de gospodăria ta. Aplicația nu preia prețuri din magazine și nu afișează prețuri oficiale.
       </p>
 
-      <ProductSearch placeholder="Caută un produs (ex. roșii)" onPick={({ product: p }) => p && setProduct(p)} />
+      <ProductSearch allowNew={false} placeholder="Caută un produs (ex. roșii)" onPick={({ product: p }) => p && setProduct(p)} />
 
       {product ? (
         <>
