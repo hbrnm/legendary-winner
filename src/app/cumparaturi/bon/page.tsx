@@ -489,9 +489,11 @@ function ReceiptScreen() {
       <Sheet open={picking !== null} onClose={() => setPicking(null)} title="Alege produsul">
         <ProductSearch
           autoFocus
+          inline
           placeholder="Caută produsul (ex. lapte)"
-          onPick={({ product }) => {
-            if (product && picking !== null) update(picking, { product, learned: false });
+          onPick={({ product, parsed }) => {
+            // „Ca produs nou”: rândul devine produs nou, cu numele scris; intră în catalog la salvare.
+            if (picking !== null) update(picking, product ? { product, learned: false } : { product: null, name: parsed.text, learned: false });
             setPicking(null);
           }}
         />

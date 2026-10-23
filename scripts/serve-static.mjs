@@ -23,9 +23,14 @@ createServer(async (req, res) => {
     }
   }
   try {
-    const body = await readFile(file);
+    let body = await readFile(file);
     res.setHeader("Content-Type", TYPES[extname(file)] ?? "application/octet-stream");
-    if (file.endsWith("sw.js")) res.setHeader("Cache-Control", "no-cache");
+    if (file.endsWith("sw.js")) {
+      res.setHeader("Cache-Control", "no-cache");
+      // Doar pentru teste: cookie-ul `sw-versiune` simulează publicarea unei versiuni noi (e2e/offline-pwa.spec.ts).
+      const fake = /(?:^|;\s*)sw-versiune=([a-z0-9]+)/.exec(req.headers.cookie ?? "")?.[1];
+      if (fake) body = Buffer.from(body.toString("utf8").replace(/const VERSION = "([^"]+)"/, `const VERSION = "$1-${fake}"`));
+    }
     res.end(body);
   } catch {
     res.statusCode = 404;

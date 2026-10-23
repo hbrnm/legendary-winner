@@ -112,3 +112,13 @@ test("prima pagină: dimineața, rețete pentru micul dejun (.tasks/016)", async
   await expect(section).toBeVisible();
   await expect(section.getByRole("link")).toHaveCount(3);
 });
+
+test("Prețuri: un produs care nu e în catalog primește un mesaj, nu „ca produs nou”", async ({ page }) => {
+  await start(page, "/buget/preturi/");
+  const box = page.getByRole("combobox", { name: "Caută sau adaugă un produs" });
+  await box.fill("zzqx produs inexistent");
+  await expect(page.getByRole("status").filter({ hasText: "Nu am găsit „zzqx produs inexistent” în catalog." })).toBeVisible();
+  await expect(page.getByText("ca produs nou")).toHaveCount(0);
+  await box.press("Enter");
+  await expect(box).toHaveValue("zzqx produs inexistent");
+});
