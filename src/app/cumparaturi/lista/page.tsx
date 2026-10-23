@@ -1,9 +1,9 @@
 "use client";
 
-import { Suspense, useMemo, useState } from "react";
+import { Suspense, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { Archive, ArrowLeft, Check, Copy, MoreHorizontal, Pencil, Plus, Receipt, Repeat, Scale, Store, Trash2, LayoutList } from "lucide-react";
+import { Archive, ArrowLeft, ChevronDown, Copy, MoreHorizontal, Pencil, Plus, Receipt, Repeat, Scale, Store, Trash2, LayoutList } from "lucide-react";
 import { AppShell } from "@/components/app/shell";
 import { useAction, useData } from "@/components/app/hooks";
 import { useApp } from "@/components/app/app-provider";
@@ -43,7 +43,11 @@ function ListScreen() {
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [finishing, setFinishing] = useState(false);
   const [addToPantry, setAddToPantry] = useState(true);
-  const [hideChecked, setHideChecked] = useState(false);
+  // „În coș”: ce bifezi coboară aici, strâns (decizia proprietarului, 23 oct. 2026).
+  const [basketOpen, setBasketOpen] = useState(false);
+  // Produsul abia bifat rămâne o clipă la locul lui, cât se desenează bifa.
+  const [lingering, setLingering] = useState<Set<string>>(new Set());
+  const lingerTimers = useRef(new Map<string, ReturnType<typeof setTimeout>>());
 
   const data = useData(
     async (ctx) => {
@@ -93,7 +97,7 @@ function ListScreen() {
 
   const groups = useMemo(() => {
     if (!data?.list) return [];
-    const visibleItems = hideChecked ? data.items.filter((i) => !i.checked) : data.items;
+    const visibleItems = data.items.filter((i) => !i.checked || lingering.has(i.id));
     if (groupBy === "raioane") return groupByCategory(visibleItems, data.categories).map((g) => ({ key: g.category?.id ?? "_", title: g.category?.name ?? "Altele", items: g.items }));
     const retailers = new Map(data.retailers.map((r) => [r.id, r]));
     const map = new Map<string, ShoppingListItem[]>();
@@ -108,7 +112,7 @@ function ListScreen() {
         items: groupByCategory(items, data.categories).flatMap((g) => g.items),
       }))
       .sort((a, b) => a.title.localeCompare(b.title, "ro"));
-  }, [data, groupBy, hideChecked]);
+  }, [data, groupBy, lingering]);
 
   if (!data) return <Spinner />;
   if (!data.list) {
@@ -130,8 +134,84 @@ function ListScreen() {
   }
 
   async function toggle(item: ShoppingListItem) {
+    if (!item.checked) {
+      // Pe Android, o vibrație scurtă la bifă; pe iPhone nu există.
+      try {
+        navigator.vibrate?.(10);
+      } catch {}
+      setLingering((xs) => new Set(xs).add(item.id));
+      clearTimeout(lingerTimers.current.get(item.id));
+      lingerTimers.current.set(
+        item.id,
+        setTimeout(() => {
+          lingerTimers.current.delete(item.id);
+          setLingering((xs) => {
+            const next = new Set(xs);
+            next.delete(item.id);
+            return next;
+          });
+        }, 500),
+      );
+    }
     await run((ctx) => shop.setChecked(ctx, item.id, !item.checked));
   }
+
+  async function archive() {
+    if (await run(async (ctx) => (await shop.archiveList(ctx, id), true)))
+      toast("Am pus-o deoparte.", { action: { label: "Anulează", run: () => void run((ctx) => shop.restoreList(ctx, id)) } });
+  }
+
+  const basket = data.items.filter((i) => i.checked && !lingering.has(i.id));
+  const allIn = !list.archived_at && totals != null && totals.item_count > 0 && totals.checked_count === totals.item_count;
+
+  const itemRow = (item: ShoppingListItem) => {
+    const est = lineEstimate(item, data.prices, today);
+    const flag = estimateFlag(est);
+    return (
+      <li key={item.id} className="flex items-stretch border-b border-line last:border-b-0">
+        <button
+          type="button"
+          role="checkbox"
+          aria-checked={item.checked}
+          aria-label={`${item.checked ? "Debifează" : "Bifează"} ${item.name}`}
+          onClick={() => toggle(item)}
+          className="flex w-14 shrink-0 items-center justify-center"
+        >
+          <CheckMark checked={item.checked} animate={lingering.has(item.id)} />
+        </button>
+        <button type="button" onClick={() => setEditing({ id: item.id, focusPrice: false })} className="flex min-h-14 min-w-0 flex-1 flex-col justify-center py-2 pr-2 text-left">
+          <span className={`text-[15px] leading-tight ${item.checked ? "text-ink-3 line-through" : "text-ink"}`}>
+            {item.name}
+            {item.priority === "ridicata" && !item.checked && (
+              <Badge tone="accent" className="ml-2 align-middle">
+                neapărat
+              </Badge>
+            )}
+          </span>
+          <span className="mt-0.5 truncate text-xs text-ink-2">
+            {[formatQuantity(item.quantity, item.unit), variantText(item), item.note, item.source !== "supermarket" ? SOURCE_LABELS[item.source] : null].filter(Boolean).join(" · ")}
+          </span>
+        </button>
+        <button
+          type="button"
+          onClick={() => setEditing({ id: item.id, focusPrice: true })}
+          aria-label={`Prețul pentru ${item.name}`}
+          className="flex w-24 shrink-0 flex-col items-end justify-center pr-4 text-right"
+        >
+          {item.actual_price != null ? (
+            <span className="text-sm font-medium text-ink">{formatRon(item.actual_price)}</span>
+          ) : est.amount != null ? (
+            <>
+              <span className="text-[13px] text-ink-2">~{formatRon(est.amount)}</span>
+              {flag && <span className="font-sans text-[11px] leading-tight text-ink-3">{flag}</span>}
+            </>
+          ) : (
+            <span className="font-sans text-xs text-ink-3">{item.checked ? "cât a costat?" : "preț?"}</span>
+          )}
+        </button>
+      </li>
+    );
+  };
 
   const remainingBudget = data.budget ? data.budget.remaining - (totals?.remaining_estimate ?? 0) : null;
 
@@ -166,8 +246,8 @@ function ListScreen() {
         </div>
       )}
 
-      <div className="mb-3 flex flex-wrap items-center gap-2">
-        <div className="min-w-64 flex-1">
+      <div className="mb-3">
+        <div>
           <Segmented
             label="Grupare"
             value={groupBy}
@@ -178,9 +258,6 @@ function ListScreen() {
             ]}
           />
         </div>
-        <Button variant={hideChecked ? "primary" : "secondary"} size="sm" className="grow" onClick={() => setHideChecked((v) => !v)} aria-pressed={hideChecked}>
-          {hideChecked ? "Arată tot" : "Ascunde luate"}
-        </Button>
       </div>
 
       {data.items.length === 0 ? (
@@ -193,59 +270,24 @@ function ListScreen() {
             <section key={g.key} aria-label={g.title}>
               <h2 className="mb-1.5 px-1 text-xs font-semibold uppercase tracking-wider text-ink-2">{g.title}</h2>
               <ul className="overflow-hidden rounded-lg border border-line bg-surface">
-                {g.items.map((item) => {
-                  const est = lineEstimate(item, data.prices, today);
-                  const flag = estimateFlag(est);
-                  return (
-                    <li key={item.id} className="flex items-stretch border-b border-line last:border-b-0">
-                      <button
-                        type="button"
-                        role="checkbox"
-                        aria-checked={item.checked}
-                        aria-label={`${item.checked ? "Debifează" : "Bifează"} ${item.name}`}
-                        onClick={() => toggle(item)}
-                        className="flex w-14 shrink-0 items-center justify-center"
-                      >
-                        <span className={`inline-flex h-7 w-7 items-center justify-center rounded-full border-2 transition-colors ${item.checked ? "border-brand bg-brand text-brand-ink" : "border-line"}`}>
-                          {item.checked && <Check size={16} strokeWidth={3} />}
-                        </span>
-                      </button>
-                      <button type="button" onClick={() => setEditing({ id: item.id, focusPrice: false })} className="flex min-h-14 min-w-0 flex-1 flex-col justify-center py-2 pr-2 text-left">
-                        <span className={`text-[15px] leading-tight ${item.checked ? "text-ink-3 line-through" : "text-ink"}`}>
-                          {item.name}
-                          {item.priority === "ridicata" && !item.checked && (
-                            <Badge tone="accent" className="ml-2 align-middle">
-                              neapărat
-                            </Badge>
-                          )}
-                        </span>
-                        <span className="mt-0.5 truncate text-xs text-ink-2">
-                          {[formatQuantity(item.quantity, item.unit), variantText(item), item.note, item.source !== "supermarket" ? SOURCE_LABELS[item.source] : null].filter(Boolean).join(" · ")}
-                        </span>
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => setEditing({ id: item.id, focusPrice: true })}
-                        aria-label={`Prețul pentru ${item.name}`}
-                        className="flex w-24 shrink-0 flex-col items-end justify-center pr-4 text-right font-mono"
-                      >
-                        {item.actual_price != null ? (
-                          <span className="text-sm font-medium text-ink">{formatRon(item.actual_price)}</span>
-                        ) : est.amount != null ? (
-                          <>
-                            <span className="text-[13px] text-ink-2">~{formatRon(est.amount)}</span>
-                            {flag && <span className="font-sans text-[11px] leading-tight text-ink-3">{flag}</span>}
-                          </>
-                        ) : (
-                          <span className="font-sans text-xs text-ink-3">{item.checked ? "cât a costat?" : "preț?"}</span>
-                        )}
-                      </button>
-                    </li>
-                  );
-                })}
+                {g.items.map(itemRow)}
               </ul>
             </section>
           ))}
+          {basket.length > 0 && (
+            <section aria-label="În coș">
+              <button
+                type="button"
+                aria-expanded={basketOpen}
+                onClick={() => setBasketOpen((v) => !v)}
+                className="flex min-h-11 w-full items-center gap-2 px-1 text-left text-sm font-medium text-ink-2"
+              >
+                <span className="flex-1">În coș ({basket.length})</span>
+                <ChevronDown size={18} className={`transition-transform ${basketOpen ? "rotate-180" : ""}`} />
+              </button>
+              {basketOpen && <ul className="overflow-hidden rounded-lg border border-line bg-surface">{basket.map(itemRow)}</ul>}
+            </section>
+          )}
         </div>
       )}
 
@@ -281,14 +323,14 @@ function ListScreen() {
       )}
 
       {/* Loc pentru bara cu totalul, fixată jos, ca ultimele rânduri să nu rămână sub ea. */}
-      {totals && totals.item_count > 0 && <div aria-hidden className="h-24 lg:h-16" />}
+      {totals && totals.item_count > 0 && <div aria-hidden className={allIn ? "h-28 lg:h-20" : "h-24 lg:h-16"} />}
 
       {totals && totals.item_count > 0 && (
         <div className="pb-safe fixed inset-x-0 bottom-16 z-30 border-t border-line bg-surface px-4 py-3 lg:bottom-0 lg:left-60">
           <div className="mx-auto flex max-w-3xl items-center gap-3">
             <div className="min-w-0 flex-1 tabular">
               <div className="flex flex-wrap items-baseline gap-x-3">
-                <span className="font-mono text-lg font-medium">{formatRon(totals.spent)}</span>
+                <span className="text-lg font-medium">{formatRon(totals.spent)}</span>
                 <span className="text-xs text-ink-2">dați până acum{totals.projected_total > totals.spent ? ` · cam ${formatRon(totals.projected_total)} în total` : ""}</span>
               </div>
               <div className="text-xs text-ink-2">
@@ -303,6 +345,7 @@ function ListScreen() {
                   </Link>
                 )}
               </div>
+              {allIn && <p className="mt-0.5 text-sm font-medium text-brand">Ai tot! Apasă „Gata” la casă.</p>}
               {data.budget && (
                 <div className="mt-1.5">
                   <BudgetBar pct={((data.budget.spent + totals.remaining_estimate) / data.budget.budget.amount) * 100} label={data.budget.budget.period === "saptamanal" ? "Bugetul săptămânii, cu lista inclusă" : "Bugetul lunii, cu lista inclusă"} />
@@ -310,7 +353,7 @@ function ListScreen() {
               )}
             </div>
             {!list.archived_at && (
-              <Button onClick={() => setFinishing(true)} disabled={totals.checked_count === 0}>
+              <Button onClick={() => setFinishing(true)} disabled={totals.checked_count === 0} className={allIn ? "ring-2 ring-brand ring-offset-2 ring-offset-surface" : ""}>
                 Gata
               </Button>
             )}
@@ -385,7 +428,7 @@ function ListScreen() {
             },
             list.archived_at
               ? { icon: Archive, label: "Scoate înapoi", run: () => run((ctx) => shop.restoreList(ctx, id), "Am scos lista înapoi.") }
-              : { icon: Archive, label: "Pune deoparte", run: () => run((ctx) => shop.archiveList(ctx, id), "Am pus-o deoparte.") },
+              : { icon: Archive, label: "Pune deoparte", run: archive },
             { icon: Trash2, label: "Șterge lista", run: () => setConfirmDelete(true), danger: true },
           ].map((o) => (
             <button
@@ -441,7 +484,8 @@ function ListScreen() {
         }
         confirmLabel="Șterge"
         onConfirm={async () => {
-          await run((ctx) => shop.deleteList(ctx, id), "Am șters lista.");
+          if (!(await run(async (ctx) => (await shop.deleteList(ctx, id), true)))) return;
+          toast("Am șters lista.", { action: { label: "Anulează", run: () => void run((ctx) => shop.restoreDeletedList(ctx, id)) } });
           router.push("/cumparaturi/");
         }}
       />
@@ -542,5 +586,19 @@ function CompareStores({ items, prices, retailers, today }: { items: ShoppingLis
         ))}
       </ul>
     </div>
+  );
+}
+
+/** Bifa desenată: un cerc ca trasat de mână, care se umple, iar bifa se scrie dintr-o trăsătură. */
+function CheckMark({ checked, animate }: { checked: boolean; animate: boolean }) {
+  return (
+    <svg viewBox="0 0 28 28" className="h-7 w-7" aria-hidden>
+      <path
+        d="M14.2 2.6c6.3-.1 11.3 5 11.2 11.5-.1 6.3-5.3 11.4-11.6 11.3C7.4 25.3 2.5 20.2 2.6 13.8 2.7 7.6 7.9 2.7 14.2 2.6z"
+        strokeWidth={2}
+        className={`transition-colors duration-200 ${checked ? "fill-brand stroke-brand" : "fill-none stroke-line"}`}
+      />
+      {checked && <path d="M8.6 14.6l3.7 3.5 7.4-8" fill="none" strokeWidth={2.6} strokeLinecap="round" strokeLinejoin="round" className={`stroke-brand-ink ${animate ? "draw-check" : ""}`} />}
+    </svg>
   );
 }

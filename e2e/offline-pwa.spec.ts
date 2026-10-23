@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test";
-import { createList, quickAdd, start } from "./helpers";
+import { createList, openBasket, quickAdd, start } from "./helpers";
 
 test("manifestul și service worker-ul permit instalarea", async ({ page }) => {
   await start(page);
@@ -28,9 +28,11 @@ test("lista funcționează fără internet, iar modificările rămân", async ({
   await page.getByRole("checkbox", { name: /Bifează Lapte integral/ }).click();
   // Reîncarcă abia după ce lista arată schimbările, adică după ce au ajuns în baza locală.
   await expect(page.getByText("Cartofi albi")).toBeVisible();
+  await openBasket(page);
   await expect(page.getByRole("checkbox", { name: /Debifează Lapte integral/ })).toBeVisible();
   await page.reload();
   await expect(page.getByText("Cartofi albi")).toBeVisible();
+  await openBasket(page);
   await expect(page.getByRole("checkbox", { name: /Debifează Lapte integral/ })).toBeVisible();
   await context.setOffline(false);
 });

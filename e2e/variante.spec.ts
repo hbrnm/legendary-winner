@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test";
-import { quickAdd, start } from "./helpers";
+import { openBasket, quickAdd, start } from "./helpers";
 
 // Variantele comerciale (.tasks/007): „Cum verific la final”, în modul demonstrativ.
 test("varianta Sissi 300 g: 21 lei → 70 lei/kg în Prețuri, iar data viitoare linia e estimată la 21 lei", async ({ page }) => {
@@ -20,6 +20,7 @@ test("varianta Sissi 300 g: 21 lei → 70 lei/kg în Prețuri, iar data viitoare
   await page.getByLabel("Unitate", { exact: true }).selectOption("pachet");
   await page.getByLabel("Preț plătit").fill("21");
   await page.getByRole("button", { name: "Salvează" }).click();
+  await openBasket(page);
   await expect(page.getByText("1 pachet · Sissi, Șuncă de pui, 300 g")).toBeVisible();
   await expect(page.getByRole("dialog")).toHaveCount(0);
 

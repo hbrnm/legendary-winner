@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test";
-import { quickAdd, signUp, syncNow } from "./helpers";
+import { openBasket, quickAdd, signUp, syncNow } from "./helpers";
 
 // Variantele comerciale (.tasks/007) prin Supabase-ul local: varianta și linia
 // cu ea ajung la celălalt membru, iar prețul plătit intră pe variantă.
@@ -11,7 +11,7 @@ test("varianta pusă de un membru ajunge la celălalt, cu prețul pe kg", async 
   await expect(dana.getByText("Familia Dobre").first()).toBeVisible();
   await dana.getByRole("button", { name: "Invită pe cineva" }).click();
   await dana.getByRole("button", { name: "Creează linkul de invitație" }).click();
-  const link = new URL((await dana.locator("p.font-mono").textContent())!.trim());
+  const link = new URL((await dana.locator("p", { hasText: "/invitatie/?token=" }).textContent())!.trim());
   await dana.keyboard.press("Escape");
 
   const emil = await signUp(browser, "Emil", link.pathname + link.search);
@@ -39,6 +39,7 @@ test("varianta pusă de un membru ajunge la celălalt, cu prețul pe kg", async 
   await dana.getByLabel("Unitate", { exact: true }).selectOption("pachet");
   await dana.getByLabel("Preț plătit").fill("21");
   await dana.getByRole("button", { name: "Salvează" }).click();
+  await openBasket(dana);
   await expect(dana.getByText("1 pachet · Sissi, Șuncă de pui, 300 g")).toBeVisible();
   await expect(dana.getByRole("dialog")).toHaveCount(0);
   await dana.getByRole("button", { name: "Gata", exact: true }).click();

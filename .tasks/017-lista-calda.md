@@ -1,6 +1,6 @@
 # 017 — Lista de cumpărături mai caldă („carnețelul de pe frigider”)
 
-**Stare:** în lucru — etapa 1 gata (PR), urmează etapa 2
+**Stare:** în lucru — etapele 1–2 gata, urmează etapa 3
 **Ramuri:** câte una pe etapă, din `main` (`claude/017-...`).
 
 ## Scop
@@ -22,7 +22,7 @@ Cererea proprietarului din 23 oct. 2026: secțiunea Cumpărături să sune și s
 | # | Etapa | Stare | Fișiere |
 |---|---|---|---|
 | 1 | Textele din Cumpărături (tabelul de mai jos) | gata | `cumparaturi/page.tsx`, `cumparaturi/lista/page.tsx`, `cumparaturi/bon/page.tsx`, `shopping/item-sheet.tsx`, `home-screen.tsx`, e2e care citesc textele |
-| 2 | Bifa desenată, secțiunea „În coș” (în locul „Ascunde luate”), „Gata coșul!”, „Anulează” după ștergere/punere deoparte, prețurile fără mono (de decis: contrazice decizia din 014, 18 oct.) | de făcut | `cumparaturi/lista/page.tsx`, `ui/toast.tsx`, `globals.css`, `fonts.ts` |
+| 2 | Bifa desenată, secțiunea „În coș” (în locul „Ascunde luate”), „Ai tot!”, „Anulează” după punere deoparte și ștergere, fără JetBrains Mono | gata | `cumparaturi/lista/page.tsx`, `ui/toast.tsx`, `globals.css`, `fonts.ts` |
 | 3 | Tokeni noi (`--sprout`, `--wood`, `--paper`), cu `contrast.test.ts`; 6–8 iconițe proprii (SVG inline) | de făcut | `globals.css`, `contrast.test.ts`, `components/ui/icons.tsx` |
 | 4 | De decis: font de mână pentru 2–3 momente; căutarea jos, lângă total | de făcut | — |
 
@@ -31,6 +31,12 @@ Cererea proprietarului din 23 oct. 2026: secțiunea Cumpărături să sune și s
 - „S-a terminat în cămară” și „Cumperi des” rămân cum sunt (decizia din 18 oct.).
 - Lista refolosită: eticheta „se reia”.
 - Arhivarea: „Pune deoparte” · „Puse deoparte” · „Scoate înapoi”.
+
+## Decizii etapa 2 (chestionar, 23 oct. 2026)
+- JetBrains Mono iese din toată aplicația (înlocuiește decizia din 014, 18 oct.); sumele și datele în DM Sans cu cifre aliniate.
+- Bifatele coboară în „În coș (N)”, strâns, jos; butonul „Ascunde luate / Arată tot” dispare.
+- La ultima bifă: „Ai tot! Apasă „Gata” la casă.” în bara de jos, iar „Gata” e evidențiat.
+- „Anulează” după „Pune deoparte” și după ștergerea listei (întrebarea „Ștergi lista?” rămâne); vibrație scurtă la bifă pe Android.
 
 ## Etapa 1 — textele aprobate
 ### Ecranul cu liste (`cumparaturi/page.tsx`)
@@ -96,8 +102,16 @@ Cererea proprietarului din 23 oct. 2026: secțiunea Cumpărături să sune și s
 - Mesajele din `src/lib/services` (folosite și în alte secțiuni) au rămas.
 - `npm test` 610/610, `npm run build`, `npm run test:e2e` 46/46. `e2e-cloud` (2 texte actualizate) nu a rulat aici: cere Supabase local.
 
+### Etapa 2 (23 oct. 2026)
+- Fără JetBrains Mono: fișierele și licența scoase, `font-mono` scos din 14 ecrane, `tokens.test.ts` îl interzice.
+- Lista: bifa desenată (`CheckMark`, `.draw-check` în `globals.css`); produsul bifat rămâne 0,5 s pe loc, apoi coboară în „În coș (N)”; „Pe raioane / Pe magazine” grupează doar ce mai e de luat; „Ai tot!” și „Gata” evidențiat la ultima bifă; vibrație la bifă.
+- `restoreDeletedList` (serviciu nou) pentru „Anulează” după ștergere; „Anulează” și după „Pune deoparte”.
+- Teste: `services.test.ts` (lista ștearsă revine cu produsele), `tokens.test.ts` (fără mono), e2e nou în `cumparaturi.spec.ts`; testele care căutau produse bifate deschid „În coș” (`openBasket`).
+- Pe drum: #103 a reparat sincronizarea (formularul trimitea și câmpurile neschimbate) și CI-ul de pe `main`.
+- `npm test` 614/614, `npm run build`, `npm run test:e2e` 47/47 (de două ori; o primă rulare a avut o cădere în `demo-model.spec.ts:134` pe care n-am mai putut-o reproduce), `npm run test:e2e:cloud` 3/3.
+
 ## Cum verific la final
 `npm test`, `npm run build`, `npm run test:e2e` verzi; pe 360 px, în ambele moduri, lista se folosește cu degetul mare.
 
 ## Următorul pas
-Etapa 2, într-o sesiune nouă: chestionarul (prețurile fără mono? textele „În coș”, „Gata coșul!”), apoi bifa desenată și secțiunea „În coș”.
+Etapa 3: chestionarul pentru tokenii noi (`--sprout`, `--wood`, `--paper`) și iconițele proprii.

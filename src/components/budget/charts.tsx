@@ -63,7 +63,7 @@ export function ColumnChart({ bars, title, reference }: { bars: Bar[]; title: st
       </svg>
       {hover !== null && (
         <div
-          className="pointer-events-none absolute -top-2 rounded-md bg-ink px-2 py-1 font-mono text-xs text-bg shadow-card"
+          className="pointer-events-none absolute -top-2 rounded-md bg-ink px-2 py-1 text-xs text-bg shadow-card"
           style={{ left: `${((hover + 0.5) / bars.length) * 100}%`, transform: "translateX(-50%)" }}
         >
           {bars[hover].label}: {formatRon(bars[hover].value)}
@@ -116,7 +116,7 @@ export function BarList({ bars, total }: { bars: Bar[]; total: number }) {
         <li key={b.key} title={`${b.label}: ${formatRon(b.value)}`}>
           <div className="mb-1 flex items-baseline justify-between gap-2 text-sm">
             <span className="truncate text-ink">{b.label}</span>
-            <span className="shrink-0 font-mono text-xs text-ink-2">
+            <span className="shrink-0 text-xs text-ink-2">
               {formatRon(b.value)} <span>· {total > 0 ? Math.round((b.value / total) * 100) : 0}%</span>
             </span>
           </div>

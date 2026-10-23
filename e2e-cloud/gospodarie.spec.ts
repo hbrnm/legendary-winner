@@ -1,6 +1,6 @@
 import { readFileSync } from "node:fs";
 import { expect, test } from "@playwright/test";
-import { quickAdd, signUp, syncNow } from "./helpers";
+import { openBasket, quickAdd, signUp, syncNow } from "./helpers";
 
 test("cont, gospodărie, invitație, listă comună sincronizată, gospodării izolate", async ({ browser }) => {
   // Ana își face cont și gospodărie.
@@ -13,7 +13,7 @@ test("cont, gospodărie, invitație, listă comună sincronizată, gospodării i
   // Ana o invită pe Bogdan.
   await ana.getByRole("button", { name: "Invită pe cineva" }).click();
   await ana.getByRole("button", { name: "Creează linkul de invitație" }).click();
-  const link = (await ana.locator("p.font-mono").textContent())!.trim();
+  const link = (await ana.locator("p", { hasText: "/invitatie/?token=" }).textContent())!.trim();
   expect(link).toContain("/invitatie/?token=");
   await ana.keyboard.press("Escape");
 
@@ -49,6 +49,7 @@ test("cont, gospodărie, invitație, listă comună sincronizată, gospodării i
   await bogdan.getByRole("button", { name: "Prețul pentru Lapte integral" }).click();
   await bogdan.getByLabel("Preț plătit").fill("8,90");
   await bogdan.getByRole("button", { name: "Salvează" }).click();
+  await openBasket(bogdan);
   await expect(bogdan.getByRole("checkbox", { name: /Debifează Lapte integral/ })).toBeVisible();
 
   await ana.getByRole("button", { name: /^Lapte integral/ }).click();
@@ -61,6 +62,7 @@ test("cont, gospodărie, invitație, listă comună sincronizată, gospodării i
   await syncNow(bogdan);
   await expect(bogdan.getByText("2 buc", { exact: true })).toBeVisible();
   await syncNow(ana);
+  await openBasket(ana);
   await expect(ana.getByRole("checkbox", { name: /Debifează Lapte integral/ })).toBeVisible();
   await expect(ana.getByText("8,90 RON").first()).toBeVisible();
 

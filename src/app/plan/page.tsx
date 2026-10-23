@@ -102,13 +102,13 @@ function PlanScreen() {
         title="Planul meselor"
         subtitle={
           <span>
-            Săptămâna <span className="font-mono text-sm">{formatShortDate(week)} – {formatShortDate(addDays(week, 6))}</span>
+            Săptămâna <span className="text-sm">{formatShortDate(week)} – {formatShortDate(addDays(week, 6))}</span>
             {/* Aceeași regulă ca la rețete: suma doar peste 80% din ingrediente cu preț (decizia proprietarului, 18 oct. 2026). */}
             {data.weekPriced > 0 &&
               (costAmount(data.weekCost, data.weekPriced, data.weekCostable) ? (
                 <>
                   {" "}
-                  · cost estimat <span className="font-mono text-sm">{costAmount(data.weekCost, data.weekPriced, data.weekCostable)}</span>
+                  · cost estimat <span className="text-sm">{costAmount(data.weekCost, data.weekPriced, data.weekCostable)}</span>
                 </>
               ) : (
                 ` · ${partialCostLabel(data.weekPriced, data.weekCostable)}`
@@ -153,8 +153,8 @@ function PlanScreen() {
           <Card key={d} as="section" aria-label={formatLongDate(d)} className={`p-3 ${d === today ? "border-brand" : ""}`}>
             <h2 className="mb-2 flex items-baseline gap-2 px-1">
               <span className="font-serif text-lg font-semibold capitalize">{formatWeekdayShort(d)}</span>
-              <span className="font-mono text-xs text-ink-2">{formatShortDate(d)}</span>
-              {d === today && <span className="font-mono text-xs font-medium uppercase tracking-wider text-brand">azi</span>}
+              <span className="text-xs text-ink-2">{formatShortDate(d)}</span>
+              {d === today && <span className="text-xs font-medium uppercase tracking-wider text-brand">azi</span>}
             </h2>
             <div className="grid grid-cols-2 gap-1.5">
               {SLOTS.map((slot) => {
@@ -187,7 +187,7 @@ function PlanScreen() {
                           className="flex min-h-11 items-center gap-1.5 rounded-md border border-line bg-surface px-2 py-1 text-left text-[13px] leading-tight transition-colors duration-150 ease-out active:bg-surface-2"
                         >
                           <span className="min-w-0 flex-1 font-serif text-sm font-medium">{r?.name ?? "Rețetă ștearsă"}</span>
-                          <span className="shrink-0 font-mono text-[11px] text-ink-2">{m.servings} p.</span>
+                          <span className="shrink-0 text-[11px] text-ink-2">{m.servings} p.</span>
                         </button>
                       );
                     })}
@@ -222,7 +222,7 @@ function PlanScreen() {
                   {data.favs.has(r.id) && <span className="ml-1 text-xs text-accent">♥</span>}
                 </span>
                 <span className="shrink-0 text-xs text-ink-2">
-                  <span className="font-mono">{r.servings}</span> porții
+                  <span>{r.servings}</span> porții
                 </span>
               </button>
             </li>

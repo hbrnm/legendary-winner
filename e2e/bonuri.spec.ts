@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test";
-import { createList, quickAdd, start } from "./helpers";
+import { createList, openBasket, quickAdd, start } from "./helpers";
 
 // Bonul fiscal (.tasks/005, etapa 4), cu textul OCR simulat (fără motorul real).
 const BON = `KAUFLAND ROMANIA SCS
@@ -39,6 +39,7 @@ test("bonul pe o listă: propune, confirmi, bifează cu prețul; al doilea bon �
 
   await page.getByRole("button", { name: "Salvează bonul" }).click();
   await page.waitForURL(/\/cumparaturi\/lista\//);
+  await openBasket(page);
   await expect(page.getByRole("checkbox", { name: /Debifează Ceapă galbenă/ })).toBeVisible();
   await expect(page.getByRole("checkbox", { name: /Debifează Lapte integral/ })).toBeVisible();
   await expect(page.getByText("2,32 RON").first()).toBeVisible();

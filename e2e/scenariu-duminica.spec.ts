@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test";
-import { start } from "./helpers";
+import { openBasket, start } from "./helpers";
 
 // Experiența centrală: plan → listă consolidată → cumpărături cu prețuri reale → buget → istoric.
 test("de la planul săptămânii la buget", async ({ page }) => {
@@ -37,6 +37,7 @@ test("de la planul săptămânii la buget", async ({ page }) => {
   await page.getByRole("button", { name: "Prețul pentru Ceapă galbenă" }).click();
   await page.getByLabel("Preț plătit").fill("4,50");
   await page.getByRole("button", { name: "Salvează" }).click();
+  await openBasket(page);
   await expect(page.getByRole("checkbox", { name: /Debifează Ceapă galbenă/ })).toBeVisible();
   await expect(page.getByText("4,50 RON").first()).toBeVisible();
   await expect(page.getByText(/Mai ai .* luna asta/)).toBeVisible();

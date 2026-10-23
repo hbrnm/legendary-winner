@@ -46,9 +46,9 @@ function DiverseScreen() {
                 <div className="flex items-start justify-between gap-3">
                   <div className="min-w-0">
                     <p className="text-[15px] font-medium">{g.label}</p>
-                    <p className="font-mono text-xs text-ink-2">{formatShortDate(g.last_bought)}</p>
+                    <p className="text-xs text-ink-2">{formatShortDate(g.last_bought)}</p>
                   </div>
-                  <span className="shrink-0 font-mono font-medium">{formatRon(g.total)}</span>
+                  <span className="shrink-0 font-medium">{formatRon(g.total)}</span>
                 </div>
                 <LabeledSelect
                   label="Categoria"

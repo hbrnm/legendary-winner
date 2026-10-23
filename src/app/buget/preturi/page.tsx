@@ -26,8 +26,8 @@ import type { PriceType, Product, ProductPrice, PurchaseSource, UnitCode } from 
 
 const TYPE_LABELS: Record<PriceType, string> = { platit: "plătit", observat: "văzut", promotie: "promoție", estimat: "estimat" };
 
-/** Etichetele ca ștampile: mono, majuscule, fără pastilă (decizia proprietarului, 18 oct. 2026). */
-const STAMP = "whitespace-nowrap font-mono text-[11px] font-medium uppercase tracking-wider";
+/** Etichetele ca ștampile: majuscule, fără pastilă (decizia proprietarului, 18 oct. 2026). */
+const STAMP = "whitespace-nowrap text-[11px] font-medium uppercase tracking-wider";
 
 /** Prețul pe unitatea de referință a produsului (ex. lei/kg), dacă se poate converti. */
 function perUnit(p: ProductPrice, unit: UnitCode): number | null {
@@ -186,10 +186,10 @@ function PricesScreen() {
                           <div className="min-w-0 flex-1">
                             <p className="text-[15px]">{view.variantName(r.variant_id) ?? "Fără marcă anume"}</p>
                             <p className="text-xs text-ink-2">
-                              <span className="font-mono">{formatShortDate(r.observed_on)}</span> · {view.place(p)} {r.promo && <span className={`${STAMP} text-accent`}>promoție</span>} {r.stale && <span className={`${STAMP} text-ink-2`}>preț vechi</span>}
+                              <span>{formatShortDate(r.observed_on)}</span> · {view.place(p)} {r.promo && <span className={`${STAMP} text-accent`}>promoție</span>} {r.stale && <span className={`${STAMP} text-ink-2`}>preț vechi</span>}
                             </p>
                           </div>
-                          <span className="font-mono font-medium">
+                          <span className="font-medium">
                             {formatRon(r.per)}/{r.unit}
                           </span>
                         </li>
@@ -207,13 +207,13 @@ function PricesScreen() {
                         {view.place(p)} {k === 0 && view.compare.length > 1 && unitPrice != null && <span className={`${STAMP} text-brand`}>cel mai bun</span>}
                       </p>
                       <p className="text-xs text-ink-2">
-                        <span className="font-mono">{formatShortDate(p.observed_on)}</span> · {TYPE_LABELS[p.price_type]} · {SOURCE_LABELS[p.source]}
+                        <span>{formatShortDate(p.observed_on)}</span> · {TYPE_LABELS[p.price_type]} · {SOURCE_LABELS[p.source]}
                       </p>
                       {view.receiptName(p) && <p className="text-xs text-ink-2">pe bon: {view.receiptName(p)}</p>}
                     </div>
                     <span className="text-right">
-                      <span className="block font-mono font-medium">{unitPrice != null ? `${formatRon(unitPrice)}/${unitLabel(product.default_unit, 1)}` : formatRon(p.amount)}</span>
-                      {unitPrice == null && <span className="font-mono text-xs text-ink-2">pentru {p.quantity.toLocaleString("ro-RO")} {unitLabel(p.unit, p.quantity)}</span>}
+                      <span className="block font-medium">{unitPrice != null ? `${formatRon(unitPrice)}/${unitLabel(product.default_unit, 1)}` : formatRon(p.amount)}</span>
+                      {unitPrice == null && <span className="text-xs text-ink-2">pentru {p.quantity.toLocaleString("ro-RO")} {unitLabel(p.unit, p.quantity)}</span>}
                     </span>
                   </li>
                 ))}
@@ -224,18 +224,18 @@ function PricesScreen() {
                   <li key={p.id} className="flex items-center gap-3 px-4 py-2.5">
                     <div className="min-w-0 flex-1 text-sm">
                       <p>
-                        <span className="font-mono">{formatShortDate(p.observed_on)}</span> · {view.place(p)}
+                        <span>{formatShortDate(p.observed_on)}</span> · {view.place(p)}
                         {view.variantName(p.variant_id) && ` · ${view.variantName(p.variant_id)}`}
                       </p>
                       <p className="text-xs text-ink-2">
-                        <span className="font-mono">
+                        <span>
                           {formatRon(p.amount)} pentru {p.quantity.toLocaleString("ro-RO")} {unitLabel(p.unit, p.quantity)}
                         </span>{" "}
                         · {TYPE_LABELS[p.price_type]}
                       </p>
                       {view.receiptName(p) && <p className="text-xs text-ink-2">pe bon: {view.receiptName(p)}</p>}
                     </div>
-                    <span className="font-mono text-sm">{perUnit(p, product.default_unit) != null ? formatRon(perUnit(p, product.default_unit)) : ""}</span>
+                    <span className="text-sm">{perUnit(p, product.default_unit) != null ? formatRon(perUnit(p, product.default_unit)) : ""}</span>
                     {!p.transaction_item_id && (
                       <IconButton label="Șterge prețul" onClick={() => run((ctx) => deletePrice(ctx, p.id))}>
                         <Trash2 size={16} />
@@ -264,10 +264,10 @@ function PricesScreen() {
                       <div className="min-w-0 flex-1 text-sm">
                         <p className="text-[15px]">{prod?.name ?? "Produs șters"}</p>
                         <p className="text-xs text-ink-2">
-                          <span className="font-mono">{formatShortDate(p.observed_on)}</span> · {view.place(p)}
+                          <span>{formatShortDate(p.observed_on)}</span> · {view.place(p)}
                         </p>
                       </div>
-                      <span className="shrink-0 font-mono text-sm">
+                      <span className="shrink-0 text-sm">
                         {formatRon(p.amount)} / {p.quantity.toLocaleString("ro-RO")} {unitLabel(p.unit, p.quantity)}
                       </span>
                     </button>

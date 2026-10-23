@@ -25,7 +25,7 @@ import type { PantryItem, Product, UnitCode } from "@/lib/domain/types";
 const STEP: Partial<Record<UnitCode, number>> = { kg: 0.25, g: 100, l: 0.25, ml: 100 };
 
 /** Termenul ca o ștampilă, ca pe Acasă (decizia proprietarului, 18 oct. 2026). */
-const STAMP = "font-mono text-xs font-medium uppercase tracking-wider text-accent";
+const STAMP = "text-xs font-medium uppercase tracking-wider text-accent";
 
 function expiryBadge(item: PantryItem, today: string) {
   const s = expiryState(item, today);
@@ -39,7 +39,7 @@ function expiryBadge(item: PantryItem, today: string) {
       </span>
     );
   }
-  if (s === "ok") return <span className="text-xs text-ink-2">până pe <span className="font-mono">{formatShortDate(item.expires_on!)}</span></span>;
+  if (s === "ok") return <span className="text-xs text-ink-2">până pe <span>{formatShortDate(item.expires_on!)}</span></span>;
   return null;
 }
 
@@ -248,7 +248,7 @@ function PantryScreen() {
                       <button type="button" onClick={() => startEdit(i)} className="min-w-0 flex-1 py-1 text-left">
                         <span className={`block text-[15px] ${i.quantity <= 0 ? "text-ink-3 line-through" : ""}`}>{i.name}</span>
                         <span className="flex flex-wrap items-center gap-2 text-xs text-ink-2">
-                          <span className="font-mono">{formatQuantity(i.quantity, i.unit)}</span>
+                          <span>{formatQuantity(i.quantity, i.unit)}</span>
                           {expiryBadge(i, today)}
                         </span>
                       </button>

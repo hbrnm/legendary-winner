@@ -14,6 +14,8 @@ const FORBIDDEN = [
   { what: "culoare Tailwind standard", re: new RegExp(`\\b(?:[a-z-]+:)*(?:text|bg|border|ring|from|to|via|fill|stroke|outline|decoration|divide|shadow|accent|caret|placeholder)-(?:${PALETTE})(?:-\\d{2,3})?(?:\\/\\d+)?\\b`) },
   { what: "umbră Tailwind standard", re: /(?<![-\w])shadow(?:-(?:sm|md|lg|xl|2xl|inner))?(?=["'\s`])/ },
   { what: "sticlă mată (blur), în afara direcției vizuale", re: /\bbackdrop-blur/ },
+  // Sumele și datele în DM Sans, cu cifre aliniate (decizia din 23 oct. 2026, .tasks/017).
+  { what: "font mono, scos din aplicație", re: /\bfont-mono\b/ },
   { what: "culoare scrisă direct", re: /#[0-9a-fA-F]{3,8}\b|\brgba?\(|\bhsla?\(|-\[#/ },
   // Colțuri mici (direcția editorială): cel mult 8 px, ca `Card` și `Button`.
   // Fereastra de jos (`ui/sheet.tsx`) păstrează 12 px, aprobați în etapa 2.

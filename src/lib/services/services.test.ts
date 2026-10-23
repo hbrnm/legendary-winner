@@ -3,7 +3,7 @@ import { CamaraDB } from "@/lib/db/database";
 import { setClock } from "@/lib/clock";
 import { seedCatalog } from "./bootstrap";
 import type { AppCtx } from "./context";
-import { addItem, createList, duplicateList, finalizeShopping, moveItem, setActualPrice, setChecked, updateList } from "./shopping";
+import { addItem, createList, deleteList, duplicateList, finalizeShopping, moveItem, restoreDeletedList, setActualPrice, setChecked, updateList } from "./shopping";
 import { addMeal, addPantryItem, addRecipeToList, cookRecipe, generateListFromPlan, saveRecipe, toggleFavorite } from "./kitchen";
 import { createBudget, recordPrice } from "./money";
 import { createProduct, productSearchIndex } from "./catalog";
@@ -287,5 +287,17 @@ describe("catalog", () => {
     expect(await ctx.db.products.count()).toBeGreaterThanOrEqual(300);
     expect(await ctx.db.recipes.count()).toBeGreaterThanOrEqual(80);
     expect(await ctx.db.outbox.count()).toBe(0); // catalogul nu se trimite la server
+  });
+});
+
+describe("ștergerea listei", () => {
+  it("„Anulează” readuce lista ștearsă, cu produsele ei", async () => {
+    const id = await createList(ctx, { name: "Weekend" });
+    await addItem(ctx, id, { name: "Bere", quantity: 6 });
+    await deleteList(ctx, id);
+    expect((await owned(ctx.db, "shopping_lists", "h1")).map((l) => l.id)).not.toContain(id);
+    await restoreDeletedList(ctx, id);
+    expect((await owned(ctx.db, "shopping_lists", "h1")).map((l) => l.id)).toContain(id);
+    expect((await listItemsForTest(ctx, id)).map((i) => i.name)).toEqual(["Bere"]);
   });
 });

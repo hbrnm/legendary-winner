@@ -165,9 +165,9 @@ function RecipeScreen() {
       <Card className="mt-4 grid grid-cols-3 divide-x divide-line text-center">
         <div className="p-3">
           <Clock size={18} strokeWidth={1.75} className="mx-auto text-ink-2" />
-          <p className="mt-1 font-mono text-sm font-medium">{totalMinutes(r)} min</p>
+          <p className="mt-1 text-sm font-medium">{totalMinutes(r)} min</p>
           <p className="text-xs text-ink-2">
-            <span className="font-mono">{r.prep_minutes}</span> pregătire · <span className="font-mono">{r.cook_minutes}</span> gătire
+            <span>{r.prep_minutes}</span> pregătire · <span>{r.cook_minutes}</span> gătire
           </p>
         </div>
         <div className="p-3">
@@ -183,7 +183,7 @@ function RecipeScreen() {
                 <Minus size={14} />
               </span>
             </button>
-            <span className="w-6 font-mono text-sm font-semibold" aria-live="polite">
+            <span className="w-6 text-sm font-semibold" aria-live="polite">
               {servings}
             </span>
             <button type="button" aria-label="Mai multe porții" onClick={() => setServings(Math.min(50, servings + 1))} className="group inline-flex h-11 w-8 items-center justify-center">
@@ -200,12 +200,12 @@ function RecipeScreen() {
       <Card className="mt-3 p-4">
         <div className="flex items-baseline justify-between gap-3">
           <span className="text-sm text-ink-2">{coverage === "partial" ? capitalizeFirst(partialCostLabel(view.cost.priced_count, view.cost.costable_count)) : "Cost estimat"}</span>
-          <span className="shrink-0 font-mono text-lg font-medium">{coverage === "none" ? "—" : coverage === "partial" ? formatRon(view.cost.total) : costAmount(view.cost.total, view.cost.priced_count, view.cost.costable_count)}</span>
+          <span className="shrink-0 text-lg font-medium">{coverage === "none" ? "—" : coverage === "partial" ? formatRon(view.cost.total) : costAmount(view.cost.total, view.cost.priced_count, view.cost.costable_count)}</span>
         </div>
         {perServing && (
           <div className="flex items-baseline justify-between text-sm">
             <span className="text-ink-2">pe porție</span>
-            <span className="font-mono">{perServing}</span>
+            <span>{perServing}</span>
           </div>
         )}
         <p className="mt-2 text-xs text-ink-2">
@@ -222,7 +222,7 @@ function RecipeScreen() {
       {view.allergens.length > 0 && (
         // Etichetă de borcan, ca „Expiră curând” (decizia proprietarului, 18 oct. 2026).
         <p data-testid="alergeni" className="mt-3 rounded-md border border-dashed border-accent bg-surface px-3.5 py-2.5 text-sm text-ink">
-          <span className="font-mono text-xs font-medium uppercase tracking-wider text-accent">Conține:</span> {view.allergens.map((a) => ALLERGEN_LABELS[a]).join(", ")}. Verifică și eticheta produselor folosite.
+          <span className="text-xs font-medium uppercase tracking-wider text-accent">Conține:</span> {view.allergens.map((a) => ALLERGEN_LABELS[a]).join(", ")}. Verifică și eticheta produselor folosite.
         </p>
       )}
 
@@ -253,7 +253,7 @@ function RecipeScreen() {
                 {i.note && <span className="text-ink-2">, {i.note}</span>}
                 {i.optional && <span className="text-ink-2"> (opțional)</span>}
               </span>
-              <span className={`shrink-0 text-sm text-ink-2 ${i.quantity == null ? "" : "font-mono"}`}>{i.quantity == null ? "după gust" : formatQuantity(i.quantity, i.unit)}</span>
+              <span className="shrink-0 text-sm text-ink-2">{i.quantity == null ? "după gust" : formatQuantity(i.quantity, i.unit)}</span>
             </li>
           );
         })}
@@ -265,7 +265,7 @@ function RecipeScreen() {
       {view.nutrition.per_serving ? (
         <Card as="section" className="p-4" aria-label="Valori nutriționale">
           <p className="text-sm text-ink-2">Pe porție, aproximativ</p>
-          <p className="mt-1 font-mono text-lg font-medium">{view.nutrition.per_serving.kcal} kcal</p>
+          <p className="mt-1 text-lg font-medium">{view.nutrition.per_serving.kcal} kcal</p>
           <dl className="mt-2 flex flex-col gap-1 text-sm">
             {(
               [
@@ -276,7 +276,7 @@ function RecipeScreen() {
             ).map(([label, g]) => (
               <div key={label} className="flex items-baseline justify-between">
                 <dt className="text-ink-2">{label}</dt>
-                <dd className="font-mono">{g} g</dd>
+                <dd>{g} g</dd>
               </div>
             ))}
           </dl>

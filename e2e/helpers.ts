@@ -27,3 +27,9 @@ export async function createList(page: Page, name: string) {
   await page.waitForURL(/\/cumparaturi\/lista\//);
   await expect(page.getByRole("heading", { name })).toBeVisible();
 }
+
+/** Deschide „În coș”, unde coboară produsele bifate (strâns la început). */
+export async function openBasket(page: Page) {
+  const basket = page.getByRole("button", { name: /^În coș \(\d+\)$/ });
+  if ((await basket.getAttribute("aria-expanded")) !== "true") await basket.click();
+}
