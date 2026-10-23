@@ -133,3 +133,28 @@ test("bonul lung: „Citește bonul” rămâne deasupra meniului de jos", async
   expect(button.y + button.height).toBeLessThanOrEqual(nav.y);
   expect(button.y).toBeGreaterThanOrEqual(0);
 });
+
+test("pe bon, fereastra „Alege produsul” arată rezultatele pe ecran și poate face din rând un produs nou", async ({ page }) => {
+  await page.setViewportSize({ width: 360, height: 740 });
+  await start(page);
+  await page.goto("/cumparaturi/bon/");
+  await page.getByRole("button", { name: "Scrie sau dictează" }).click();
+  await page.getByLabel("Scrie cumpărăturile").fill("ceapă galbenă 1 kg 2,32, lapte integral 2 buc 10,58");
+  await page.getByRole("button", { name: "Continuă" }).click();
+  const lapte = page.getByRole("listitem").filter({ hasText: "ai scris: lapte integral" });
+  await lapte.getByRole("button", { name: "Alt produs" }).click();
+
+  const dialog = page.getByRole("dialog", { name: "Alege produsul" });
+  await dialog.getByRole("combobox").fill("iaurt");
+  // Rezultatele apar cât tastezi, în fereastră, nu tăiate sub ea.
+  await expect(dialog.getByRole("option").filter({ hasNotText: "ca produs nou" }).first()).toBeInViewport();
+
+  await dialog.getByRole("combobox").fill("smântână de casă");
+  const nou = dialog.getByRole("option", { name: "Adaugă „smântână de casă” ca produs nou" });
+  await expect(nou).toBeInViewport();
+  await nou.click();
+  await expect(dialog).toBeHidden();
+  const rand = page.getByRole("listitem").filter({ hasText: "ai scris: lapte integral" });
+  await expect(rand.getByText("produs nou")).toBeVisible();
+  await expect(rand.getByLabel("Numele în catalog")).toHaveValue("smântână de casă");
+});

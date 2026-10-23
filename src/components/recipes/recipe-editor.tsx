@@ -197,6 +197,7 @@ export function RecipeEditor({ id, isGlobal, source, imported, onBack }: { id: s
         </p>
       )}
       <ProductSearch
+        allowNew={false}
         placeholder="Adaugă ingredient: ex. 500 g piept de pui"
         onPick={({ product, parsed }) => {
           if (!product) return;
@@ -314,7 +315,7 @@ function PendingIngredient({ item, onChoose, onRemove }: { item: IngredientDraft
         </div>
       )}
       <div className="mt-2">
-        <ProductSearch placeholder="Caută produsul în catalog" onPick={({ product }) => product && onChoose(product)} />
+        <ProductSearch allowNew={false} placeholder="Caută produsul în catalog" onPick={({ product }) => product && onChoose(product)} />
       </div>
       {creating ? (
         <div className="mt-2 grid gap-2">
