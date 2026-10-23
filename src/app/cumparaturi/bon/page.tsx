@@ -342,7 +342,8 @@ function ReceiptScreen() {
         {header}
         <p className="mb-3 text-[15px] text-ink-2">Trage colțurile ca dreptunghiul să cuprindă doar bonul.</p>
         <CropBox url={step.url} aspect={step.image.width / step.image.height} crop={step.crop} onChange={(crop) => setStep({ ...step, crop })} />
-        <div className="mt-4 flex gap-2">
+        {/* Lipite deasupra meniului de jos: pe telefoanele înalte, poza le-ar împinge sub el. */}
+        <div className="sticky bottom-[calc(4rem+1px+env(safe-area-inset-bottom))] z-30 -mx-4 mt-4 flex gap-2 border-t border-line bg-bg px-4 py-3 lg:bottom-0">
           <Button variant="ghost" onClick={() => setStep({ ...step, crop: FULL_CROP })}>
             Toată poza
           </Button>
