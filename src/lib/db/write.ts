@@ -63,9 +63,22 @@ export async function updateRow<T extends TableName>(db: CamaraDB, table: T, id:
   await db.transaction("rw", [db.table(table), db.outbox], async () => {
     const existing = await db.table(table).get(id);
     if (!existing) throw new Error(`Rândul ${table}/${id} nu există`);
-    await db.table(table).put({ ...existing, ...clean, updated_at: nowIso() });
-    if (opts.outbox) await enqueue(db, { table, row_id: id, op: "update", payload: clean });
+    // Doar câmpurile schimbate: un formular salvat întreg nu trimite valorile vechi
+    // peste ce a schimbat între timp alt membru (ex. cantitatea pusă de altcineva).
+    const changed = Object.fromEntries(Object.entries(clean).filter(([k, v]) => !sameValue(existing[k], v)));
+    if (Object.keys(changed).length === 0) return;
+    await db.table(table).put({ ...existing, ...changed, updated_at: nowIso() });
+    if (opts.outbox) await enqueue(db, { table, row_id: id, op: "update", payload: changed });
   });
+}
+
+// Se compară cu rândul local (ce vede omul), nu cu serverul. Un câmp lipsă pe
+// rândul local (rând vechi, de dinaintea unei migrații) se trimite mereu.
+function sameValue(a: unknown, b: unknown): boolean {
+  if (a === undefined) return b === undefined;
+  if (a === null || b == null) return a === null && b == null;
+  if (typeof a === "object" || typeof b === "object") return JSON.stringify(a) === JSON.stringify(b);
+  return a === b;
 }
 
 export async function softDelete(db: CamaraDB, table: TableName, id: string, opts: WriteOptions): Promise<void> {
