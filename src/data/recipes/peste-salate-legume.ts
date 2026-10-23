@@ -398,7 +398,7 @@ export const PESTE_SALATE_LEGUME: RecipeSeed[] = [
       { p: "oua", q: 2, u: "buc" },
       { p: "faina-alba", q: 60, u: "g" },
       { p: "pesmet", q: 100, u: "g" },
-      { p: "ulei-floarea-soarelui", q: 200, u: "ml" },
+      { p: "ulei-floarea-soarelui", q: 200, u: "ml", note: "pentru prăjit" },
       { p: "usturoi", q: 2, u: "catel", opt: true, note: "pentru sos" },
       { p: "iaurt-natural", q: 1, u: "buc", opt: true, note: "pentru sos" },
       { p: "sare", q: null, u: null },

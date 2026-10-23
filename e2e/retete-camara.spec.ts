@@ -14,6 +14,11 @@ test("rețetă: porții, cost incomplet, alergeni, favorite, ingrediente în lis
   await expect(page.getByText("750 g")).toBeVisible(); // 6 → 9 porții
   await expect(page.getByText(/Costul apare după ce introduci prețuri/)).toBeVisible();
 
+  // Valorile pe porție nu depind de numărul de porții; uleiul de prăjit nu se socotește (.tasks/016, etapa 4).
+  const nutrition = page.getByRole("region", { name: "Valori nutriționale" });
+  await expect(nutrition.getByText("338 kcal")).toBeVisible();
+  await expect(nutrition.getByText("Fără: Zahăr vanilat, Praf de copt, Ulei de floarea-soarelui (pentru prăjit).")).toBeVisible();
+
   await page.getByRole("button", { name: "Adaugă la favorite" }).click();
   await expect(page.getByRole("button", { name: "Scoate de la favorite" })).toBeVisible();
 

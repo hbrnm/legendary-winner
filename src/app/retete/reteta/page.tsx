@@ -17,7 +17,8 @@ import { RecipePhotoPanel } from "@/components/recipes/recipe-photo";
 import { owned, priceIndex, productMap } from "@/lib/services/queries";
 import { addMeal, addRecipeToList, cookRecipe, deleteRecipe, toggleFavorite } from "@/lib/services/kitchen";
 import { createList } from "@/lib/services/shopping";
-import { activeIngredients, recipeAllergens, recipeCost, scaleIngredients, totalMinutes } from "@/lib/domain/recipes";
+import { activeIngredients, recipeAllergens, recipeCost, recipeNutrition, scaleIngredients, totalMinutes } from "@/lib/domain/recipes";
+import { catalogNutrition } from "@/data/nutrition-lookup";
 import { productUnitsOf, subtractStock } from "@/lib/domain/quantities";
 import { pantryStock } from "@/lib/domain/pantry";
 import { formatQuantity } from "@/lib/domain/units";
@@ -89,6 +90,7 @@ function RecipeScreen() {
       available,
       cost: recipeCost(data.recipe, data.ingredients, servings, data.prices, toISODate(now())),
       allergens: recipeAllergens(data.ingredients, data.products),
+      nutrition: recipeNutrition(data.recipe, data.ingredients, catalogNutrition(data.products)),
     };
   }, [data, servings]);
 
@@ -258,6 +260,37 @@ function RecipeScreen() {
       </ul>
       <p className="mt-1.5 px-1 text-xs text-ink-2">Bifa verde: ai ingredientul în cămară, în cantitatea necesară.</p>
 
+      <SectionTitle>Valori nutriționale</SectionTitle>
+      {/* Parțial, cu ce lipsește (decizia proprietarului, 22 oct. 2026). */}
+      {view.nutrition.per_serving ? (
+        <Card as="section" className="p-4" aria-label="Valori nutriționale">
+          <p className="text-sm text-ink-2">Pe porție, aproximativ</p>
+          <p className="mt-1 font-mono text-lg font-medium">{view.nutrition.per_serving.kcal} kcal</p>
+          <dl className="mt-2 flex flex-col gap-1 text-sm">
+            {(
+              [
+                ["Proteine", view.nutrition.per_serving.protein_g],
+                ["Glucide", view.nutrition.per_serving.carbs_g],
+                ["Grăsimi", view.nutrition.per_serving.fat_g],
+              ] as const
+            ).map(([label, g]) => (
+              <div key={label} className="flex items-baseline justify-between">
+                <dt className="text-ink-2">{label}</dt>
+                <dd className="font-mono">{g} g</dd>
+              </div>
+            ))}
+          </dl>
+          {view.nutrition.missing.length > 0 && (
+            <p className="mt-2 text-xs text-ink-2">
+              Fără: {view.nutrition.missing.map((m) => `${data.products.get(m.product_id)?.name ?? m.product_id}${m.frying ? " (pentru prăjit)" : ""}`).join(", ")}.
+            </p>
+          )}
+          <p className="mt-2 text-xs text-ink-3">Din CIQUAL (Franța) și USDA (SUA), pentru ingredientele crude.</p>
+        </Card>
+      ) : (
+        <p className="text-xs text-ink-3">Valorile nutriționale nu sunt disponibile pentru această rețetă.</p>
+      )}
+
       <SectionTitle>Mod de preparare</SectionTitle>
       <ol className="flex flex-col gap-3">
         {data.steps.map((s, k) => (
@@ -267,7 +300,6 @@ function RecipeScreen() {
           </li>
         ))}
       </ol>
-      {r.nutrition == null && <p className="mt-6 text-xs text-ink-3">Valorile nutriționale nu sunt disponibile pentru această rețetă.</p>}
 
       <Sheet open={addOpen} onClose={() => setAddOpen(false)} title="Adaugă ingredientele în listă" footer={<Button block onClick={addToList} disabled={busy}>Adaugă pentru {servings} porții</Button>}>
         <div className="flex flex-col gap-4">

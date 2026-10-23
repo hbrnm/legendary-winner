@@ -132,7 +132,7 @@ describe("valorile nutriționale (.tasks/016, etapa 4)", () => {
       return (
         cat === undefined ||
         !food.has(cat) ||
-        !Number.isInteger(n.code) ||
+        (n.src === "medie" ? n.code !== undefined : !Number.isInteger(n.code)) ||
         n.kcal < 0 ||
         n.kcal > 900 ||
         values.some((v) => v < 0) ||
@@ -140,5 +140,10 @@ describe("valorile nutriționale (.tasks/016, etapa 4)", () => {
       );
     });
     expect(wrong).toEqual([]);
+  });
+
+  it("tocata de porc și vită e media celor două rânduri", () => {
+    const [mix, porc, vita] = ["carne-tocata-porc-vita", "carne-tocata-porc", "carne-tocata-vita"].map((id) => NUTRITION_SEEDS[id]);
+    for (const k of ["kcal", "protein_g", "carbs_g", "fat_g"] as const) expect(mix[k]).toBeCloseTo((porc[k] + vita[k]) / 2, 6);
   });
 });

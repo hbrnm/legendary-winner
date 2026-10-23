@@ -160,7 +160,7 @@ test("gospodăria model: cămară, listă, buget, plan", async ({ page }) => {
   await expect(page.getByText(/\(parțial\)/)).toHaveCount(0);
   await ardei.click();
   await expect(page.getByText("Preț pentru 6 din 10 ingrediente")).toBeVisible();
-  await expect(page.getByText("pe porție")).toHaveCount(0);
+  await expect(page.getByText("pe porție", { exact: true })).toHaveCount(0);
 });
 
 for (const scheme of ["light", "dark"] as const) {

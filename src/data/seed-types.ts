@@ -90,10 +90,10 @@ export interface RetailerSeed {
 }
 
 export interface NutritionSeed {
-  /** Sursa: CIQUAL (ANSES) sau USDA FoodData Central SR Legacy. */
-  src: "ciqual" | "usda";
-  /** alim_code (CIQUAL) sau fdc_id (USDA). */
-  code: number;
+  /** Sursa: CIQUAL (ANSES), USDA FoodData Central SR Legacy sau media altor rânduri. */
+  src: "ciqual" | "usda" | "medie";
+  /** alim_code (CIQUAL) sau fdc_id (USDA); lipsește la medie. */
+  code?: number;
   /** La 100 g. */
   kcal: number;
   protein_g: number;

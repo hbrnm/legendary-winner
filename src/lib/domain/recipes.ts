@@ -2,6 +2,8 @@ import type { Allergen, ISODate, Product, Recipe, RecipeIngredient } from "./typ
 import { aggregateNeeds, scaleQuantity, subtractStock, type Need, type ProductUnitsMap, type Stock } from "./quantities";
 import { estimateCost, type PriceIndex } from "./pricing";
 import { roundMoney, sumMoney } from "./money";
+import { convertForProduct, type ProductUnits } from "./units";
+import { normalize } from "./search";
 
 export function activeIngredients(ingredients: RecipeIngredient[], recipeId: string): RecipeIngredient[] {
   return ingredients
@@ -69,6 +71,66 @@ export function recipeCost(recipe: Recipe, ingredients: RecipeIngredient[], serv
     newest_price_on: newest,
     has_stale_price: stale,
     missing_product_ids: missing,
+  };
+}
+
+/** Valori nutriționale: la 100 g pentru produse, pe porție pentru rețete. */
+export interface NutritionValues {
+  kcal: number;
+  protein_g: number;
+  carbs_g: number;
+  fat_g: number;
+}
+
+/** Ce știm despre un produs pentru calcul: valorile la 100 g și greutățile unităților (bucată, ml, cățel). */
+export interface ProductNutrition {
+  per_100g: NutritionValues | null;
+  units: ProductUnits & { catel_g?: number | null };
+}
+
+export interface RecipeNutrition {
+  /** Din ingredientele care se pot calcula; null dacă niciunul nu se poate. */
+  per_serving: NutritionValues | null;
+  /** Ingredientele fără valori sau fără greutate și uleiul de prăjit („după gust” și opționalele nu contează). */
+  missing: { product_id: string; frying: boolean }[];
+}
+
+/** Uleiul „pentru prăjit” rămâne mai ales în tigaie: nu se socotește (decizia proprietarului, 22 oct. 2026). */
+function isFrying(note: string | null | undefined): boolean {
+  return !!note && normalize(note).includes("pentru prajit");
+}
+
+function gramsOf(quantity: number, unit: RecipeIngredient["unit"] & string, units: ProductNutrition["units"]): number | null {
+  if (unit === "catel") return units.catel_g && units.catel_g > 0 ? quantity * units.catel_g : null;
+  return convertForProduct(quantity, unit, "g", units);
+}
+
+/**
+ * Valorile pe porție ale unei rețete (.tasks/016, etapa 4), aproximative: din
+ * gramele fiecărui ingredient (prin greutatea bucății, densitate sau cățel) și
+ * valorile la 100 g. Ce nu se poate calcula (și uleiul de prăjit) se numără la
+ * `missing`, iar restul se adună (decizia proprietarului: parțial, cu avertisment).
+ */
+export function recipeNutrition(recipe: Pick<Recipe, "servings">, ingredients: RecipeIngredient[], nutritionOf: (productId: string) => ProductNutrition | undefined): RecipeNutrition {
+  const sum: NutritionValues = { kcal: 0, protein_g: 0, carbs_g: 0, fat_g: 0 };
+  const missing: RecipeNutrition["missing"] = [];
+  let counted = 0;
+  for (const i of ingredients) {
+    if (i.optional || i.quantity == null || !i.unit) continue;
+    const frying = isFrying(i.note);
+    const n = frying ? undefined : nutritionOf(i.product_id);
+    const grams = n?.per_100g ? gramsOf(i.quantity, i.unit, n.units) : null;
+    if (!n?.per_100g || grams == null) {
+      if (!missing.some((m) => m.product_id === i.product_id && m.frying === frying)) missing.push({ product_id: i.product_id, frying });
+      continue;
+    }
+    for (const k of Object.keys(sum) as (keyof NutritionValues)[]) sum[k] += (n.per_100g[k] * grams) / 100;
+    counted++;
+  }
+  const servings = recipe.servings > 0 ? recipe.servings : 1;
+  return {
+    per_serving: counted === 0 ? null : { kcal: Math.round(sum.kcal / servings), protein_g: Math.round(sum.protein_g / servings), carbs_g: Math.round(sum.carbs_g / servings), fat_g: Math.round(sum.fat_g / servings) },
+    missing,
   };
 }
 
