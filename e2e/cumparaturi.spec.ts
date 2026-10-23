@@ -117,6 +117,8 @@ test("„În coș”: bifatele coboară strânse, „Ai tot!” la final, „Anu
 
   await page.getByRole("checkbox", { name: /Bifează Lapte/ }).click();
   await expect(page.getByText("Ai tot! Apasă „Gata” la casă.")).toBeVisible();
+  // Momentul cald în Fraunces, fontul titlurilor (.tasks/017, etapa 4).
+  expect(await page.getByText("Ai tot! Apasă „Gata” la casă.").evaluate((el) => getComputedStyle(el).fontFamily)).toMatch(/^"?fraunces/);
   await page.getByRole("button", { name: "În coș (2)" }).click();
   await page.getByRole("checkbox", { name: /Debifează Pâine albă/ }).click();
   await expect(page.getByRole("checkbox", { name: /Bifează Pâine albă/ })).toBeVisible();
