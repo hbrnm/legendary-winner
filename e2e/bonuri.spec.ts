@@ -119,3 +119,15 @@ test("fără bon: scrii cumpărăturile, le verifici, intră în istoric", async
   await page.getByRole("button", { name: /Ceapă galbenă/ }).first().click();
   await expect(page.getByLabel("Consumat până pe")).toHaveValue(/^\d{4}-\d{2}-\d{2}$/);
 });
+
+test("bonul lung: „Citește bonul” rămâne deasupra meniului de jos", async ({ page }) => {
+  await start(page, "/cumparaturi/bon/");
+  await page.getByTestId("bon-fisier").setInputFiles("e2e/fixtures/bon-lung-600x1800.jpg");
+  const read = page.getByRole("button", { name: "Citește bonul" });
+  await expect(read).toBeVisible();
+  // Fără derulare: butonul e în ecran și nu stă sub meniu.
+  const button = (await read.boundingBox())!;
+  const nav = (await page.getByRole("navigation", { name: "Navigare principală" }).last().boundingBox())!;
+  expect(button.y + button.height).toBeLessThanOrEqual(nav.y);
+  expect(button.y).toBeGreaterThanOrEqual(0);
+});
