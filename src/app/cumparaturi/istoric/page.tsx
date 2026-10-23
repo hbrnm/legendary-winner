@@ -2,7 +2,8 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { ArrowLeft, Receipt, Trash2 } from "lucide-react";
+import { ArrowLeft, Trash2 } from "lucide-react";
+import { ReceiptIcon } from "@/components/ui/icons";
 import { AppShell } from "@/components/app/shell";
 import { useAction, useData } from "@/components/app/hooks";
 import { EmptyState, Spinner } from "@/components/ui/misc";
@@ -96,7 +97,7 @@ function HistoryScreen() {
       </div>
 
       {byMonth.size === 0 ? (
-        <EmptyState icon={<Receipt size={32} />} title="Încă nu ai cumpărături finalizate">
+        <EmptyState icon={<ReceiptIcon size={32} />} title="Încă nu ai cumpărături finalizate">
           Când termini cumpărăturile dintr-o listă și apeși „Gata”, ele apar aici, cu sumele plătite.
         </EmptyState>
       ) : (

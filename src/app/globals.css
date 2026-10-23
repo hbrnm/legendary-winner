@@ -23,6 +23,9 @@
   --warn-soft: #f7eed8;
   --info: #2c5d8a;
   --info-soft: #e1ebf5;
+  --sprout: #557a1f;
+  --sprout-ink: #fbfaf6;
+  --wood: #7a5a3c;
   --shadow: 0 1px 2px rgb(28 36 30 / 0.06);
   color-scheme: light;
 }
@@ -47,6 +50,9 @@
     --warn-soft: #3a2f1a;
     --info: #8db8e0;
     --info-soft: #1c2a38;
+    --sprout: #a3c46a;
+    --sprout-ink: #10180f;
+    --wood: #c9a57e;
     --shadow: 0 1px 2px rgb(0 0 0 / 0.3);
     color-scheme: dark;
   }
@@ -71,6 +77,9 @@
   --warn-soft: #3a2f1a;
   --info: #8db8e0;
   --info-soft: #1c2a38;
+  --sprout: #a3c46a;
+  --sprout-ink: #10180f;
+  --wood: #c9a57e;
   --shadow: 0 1px 2px rgb(0 0 0 / 0.3);
   color-scheme: dark;
 }
@@ -93,6 +102,9 @@
   --color-warn-soft: var(--warn-soft);
   --color-info: var(--info);
   --color-info-soft: var(--info-soft);
+  --color-sprout: var(--sprout);
+  --color-sprout-ink: var(--sprout-ink);
+  --color-wood: var(--wood);
   --shadow-card: var(--shadow);
   /* Fonturile vin din src/app/fonts.ts (fișiere locale, licență OFL); fiecare are
      două subseturi: latin și latin-ext (ă, ș, ț), puse unul după altul. */
