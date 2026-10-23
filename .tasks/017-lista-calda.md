@@ -1,6 +1,6 @@
 # 017 — Lista de cumpărături mai caldă („carnețelul de pe frigider”)
 
-**Stare:** în lucru — etapele 1–3 gata, urmează etapa 4 (de decis)
+**Stare:** gata (23 oct. 2026): etapele 1–4
 **Ramuri:** câte una pe etapă, din `main` (`claude/017-...`).
 
 ## Scop
@@ -24,7 +24,7 @@ Cererea proprietarului din 23 oct. 2026: secțiunea Cumpărături să sune și s
 | 1 | Textele din Cumpărături (tabelul de mai jos) | gata | `cumparaturi/page.tsx`, `cumparaturi/lista/page.tsx`, `cumparaturi/bon/page.tsx`, `shopping/item-sheet.tsx`, `home-screen.tsx`, e2e care citesc textele |
 | 2 | Bifa desenată, secțiunea „În coș” (în locul „Ascunde luate”), „Ai tot!”, „Anulează” după punere deoparte și ștergere, fără JetBrains Mono | gata | `cumparaturi/lista/page.tsx`, `ui/toast.tsx`, `globals.css`, `fonts.ts` |
 | 3 | Tokeni noi (`--sprout`, `--sprout-ink`, `--wood`), cu `contrast.test.ts`; 8 iconițe proprii (SVG inline) în bara de jos și pe Cumpărături | gata | `globals.css`, `contrast.test.ts`, `components/ui/icons.tsx`, `shell.tsx`, `cumparaturi/` |
-| 4 | De decis: font de mână pentru 2–3 momente; căutarea jos, lângă total | de făcut | — |
+| 4 | Fără font de mână („Ai tot!” în Fraunces); căutarea rămâne sus | gata | `cumparaturi/lista/page.tsx` |
 
 ## Decizii (chestionar, 23 oct. 2026)
 - Textele din tabel: aprobate toate, cu forme prescurtate („n-ai”, „ce-ți”).
@@ -41,6 +41,10 @@ Cererea proprietarului din 23 oct. 2026: secțiunea Cumpărături să sune și s
 ## Decizii etapa 3 (chestionar, 23 oct. 2026)
 - Verde crud `#557A1F` (întunecat `#A3C46A`) pentru bifă, bara de progres, „Ai tot!”; lemn `#7A5A3C` (întunecat `#C9A57E`) pentru titlurile raioanelor și „În coș”. Fără token „hârtie”.
 - Iconițe desenate pentru aplicație în bara de jos (Acasă, Cumpărături, Rețete, Buget, Cămară) și pe Cumpărături (bon, istoric, „se reia”, paginile goale). Sigla din antet rămâne.
+
+## Decizii etapa 4 (chestionar, 23 oct. 2026)
+- Fără font de mână: momentele calde rămân în Fraunces (fără italic: fișierul are doar stilul drept).
+- Căutarea rămâne sus, fixă la derulare.
 
 ## Etapa 1 — textele aprobate
 ### Ecranul cu liste (`cumparaturi/page.tsx`)
@@ -120,8 +124,11 @@ Cererea proprietarului din 23 oct. 2026: secțiunea Cumpărături să sune și s
 - Pe drum: #105 (testele e2e așteaptă catalogul înainte să aleagă din căutare; CI pe `main` picase după #104).
 - `npm test` 622/622, `npm run build`, `npm run test:e2e` 47/47, `npm run test:e2e:cloud` 3/3.
 
+### Etapa 4 (23 oct. 2026)
+- „Ai tot! Apasă „Gata” la casă.” în Fraunces; e2e verifică fontul.
+
 ## Cum verific la final
 `npm test`, `npm run build`, `npm run test:e2e` verzi; pe 360 px, în ambele moduri, lista se folosește cu degetul mare.
 
 ## Următorul pas
-Etapa 4: chestionarul pentru fontul de mână (2–3 momente) și căutarea jos, lângă total.
+Nimic în 017. Problema de pe Prețuri („ca produs nou” nu făcea nimic) e rezolvată în #108.

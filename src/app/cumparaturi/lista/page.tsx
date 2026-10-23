@@ -346,7 +346,7 @@ function ListScreen() {
                   </Link>
                 )}
               </div>
-              {allIn && <p className="mt-0.5 text-sm font-medium text-sprout">Ai tot! Apasă „Gata” la casă.</p>}
+              {allIn && <p className="mt-0.5 font-serif text-[15px] font-semibold text-sprout">Ai tot! Apasă „Gata” la casă.</p>}
               {data.budget && (
                 <div className="mt-1.5">
                   <BudgetBar pct={((data.budget.spent + totals.remaining_estimate) / data.budget.budget.amount) * 100} label={data.budget.budget.period === "saptamanal" ? "Bugetul săptămânii, cu lista inclusă" : "Bugetul lunii, cu lista inclusă"} />
