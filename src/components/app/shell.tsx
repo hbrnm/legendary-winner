@@ -173,10 +173,8 @@ export function AppShell({ children, wide = false }: { children: ReactNode; wide
       <div className="min-w-0 flex-1">
         <header className="sticky top-0 z-30 border-b border-line bg-bg">
           <div className={`mx-auto flex h-14 items-center justify-between gap-2 px-4 ${wide ? "max-w-5xl" : "max-w-3xl"}`}>
-            <Link href="/" className="flex min-w-0 items-center gap-2 font-serif text-[17px] font-semibold tracking-tight lg:hidden">
-              <span className="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-brand text-brand-ink">
-                <Warehouse size={16} />
-              </span>
+            {/* Doar numele gospodăriei, fără iconiță (decizia proprietarului, 23 oct. 2026). */}
+            <Link href="/" className="flex min-h-11 min-w-0 items-center font-serif text-[17px] font-semibold tracking-tight lg:hidden">
               {app.household?.name ?? "Cămara"}
             </Link>
             <span className="hidden font-serif text-[17px] font-semibold tracking-tight lg:block">{app.household?.name}</span>

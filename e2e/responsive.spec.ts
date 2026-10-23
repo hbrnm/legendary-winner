@@ -23,6 +23,14 @@ test("navigația principală are cele cinci secțiuni", async ({ page }) => {
   for (const label of ["Acasă", "Cumpărături", "Rețete", "Buget", "Cămară"]) await expect(nav.getByRole("link", { name: label })).toBeVisible();
 });
 
+test("pe telefon, antetul arată doar numele gospodăriei, fără iconiță", async ({ page }) => {
+  await page.setViewportSize({ width: 360, height: 740 });
+  await start(page);
+  const name = page.getByRole("banner").getByRole("link").first();
+  await expect(name).toBeVisible();
+  await expect(name.locator("svg")).toHaveCount(0);
+});
+
 // Pe iPhone, Safari mărește pagina când atingi un câmp cu litera sub 16 px,
 // iar după mărire pagina se poate trage stânga-dreapta.
 async function smallFields(page: import("@playwright/test").Page) {
