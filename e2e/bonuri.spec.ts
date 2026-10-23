@@ -33,7 +33,8 @@ test("bonul pe o listă: propune, confirmi, bifează cu prețul; al doilea bon �
   await lapte.getByRole("button", { name: /Alege produsul|Alt produs/ }).click();
   const box = page.getByRole("dialog").getByRole("combobox");
   await box.fill("lapte integral");
-  await page.getByRole("dialog").getByRole("option").first().click();
+  // Așteptăm un produs din catalog: până se încarcă, singura opțiune e „ca produs nou”.
+  await page.getByRole("dialog").getByRole("option").filter({ hasNotText: "ca produs nou" }).first().click();
   await expect(lapte).toContainText("Lapte integral");
   await expect(page.getByText("Suma produselor")).toBeVisible();
 

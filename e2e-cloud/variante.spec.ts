@@ -52,7 +52,8 @@ test("varianta pusă de un membru ajunge la celălalt, cu prețul pe kg", async 
   await emil.goto("/buget/preturi/");
   await syncNow(emil);
   await emil.getByRole("combobox").fill("șuncă");
-  await emil.getByRole("option").first().click();
+  // Așteptăm un produs din catalog: până se încarcă, singura opțiune e „ca produs nou”.
+  await emil.getByRole("option").filter({ hasNotText: "ca produs nou" }).first().click();
   await expect(emil.getByText("Prețul pe kg, pe mărci")).toBeVisible();
   await expect(emil.getByRole("listitem").filter({ hasText: "Sissi, Șuncă de pui, 300 g" }).first()).toContainText(/70,00\sRON\/kg/);
 });
