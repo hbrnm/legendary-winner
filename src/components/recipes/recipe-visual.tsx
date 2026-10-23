@@ -18,7 +18,7 @@ export const RECIPE_CATEGORY_LABELS: Record<RecipeCategoryId, string> = {
   salate: "Salate",
   deserturi: "Deserturi",
   rapide: "Rapide",
-  meal_prep: "Meal prep",
+  meal_prep: "Din timp",
 };
 
 export const DIFFICULTY_LABELS = { usor: "Ușor", mediu: "Mediu", dificil: "Dificil" } as const;

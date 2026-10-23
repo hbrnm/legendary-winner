@@ -155,7 +155,7 @@ export function HomeScreen() {
                 <span className="mt-1 line-clamp-2 font-serif text-xl font-semibold leading-snug">{data.next.list.name}</span>
                 <span className="block text-sm text-ink-2">
                   {count(data.next.totals.item_count - data.next.totals.checked_count, "produs", "produse")} de luat
-                  {data.next.totals.remaining_estimate > 0 && ` · ~${formatRon(data.next.totals.remaining_estimate)}`}
+                  {data.next.totals.remaining_estimate > 0 && ` · încă ~${formatRon(data.next.totals.remaining_estimate)}`}
                   {data.next.totals.unknown_price_count > 0 && ` · ${data.next.totals.unknown_price_count} fără preț`}
                 </span>
                 {data.listCount > 1 && <span className="mt-1 block text-xs text-ink-2">și încă {data.listCount - 1} {data.listCount === 2 ? "listă" : "liste"}</span>}

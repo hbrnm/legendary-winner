@@ -119,6 +119,18 @@ test("istoricul ca registru: magazinul pe rândul principal, lista dedesubt", as
   await expect(page.getByRole("dialog", { name: /^Kaufland/ })).toBeVisible();
 });
 
+test("istoricul are și lista în curs, cu aceeași sumă a lunii ca bugetul", async ({ page }) => {
+  await startModel(page, "/cumparaturi/istoric/");
+  // Laptele și pâinea bifate pe listă, înainte de „Gata” (.tasks/016, auditul din 23 oct. 2026).
+  const current = page.getByRole("link", { name: /În curs: Cumpărături săptămânale/ });
+  await expect(current).toContainText("18,79 RON");
+  await expect(page.getByText("256,91 RON").first()).toBeVisible();
+  await current.click();
+  await expect(page.getByRole("heading", { name: "Cumpărături săptămânale" })).toBeVisible();
+  await page.goto("/buget/");
+  await expect(page.getByText("256,91 RON").first()).toBeVisible();
+});
+
 test("gospodăria model: cămară, listă, buget, plan", async ({ page }) => {
   await startModel(page, "/camara/");
   await expect(page.getByText("14 produse acasă")).toBeVisible();
