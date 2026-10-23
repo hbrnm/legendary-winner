@@ -109,6 +109,47 @@ describe("sincronizarea între dispozitive", () => {
     }
   });
 
+  it("salvarea întregului formular nu trimite câmpurile neschimbate peste modificarea altui membru", async () => {
+    const a = device(remote);
+    const b = device(remote);
+    await addList(a.db, "l1");
+    await addItem(a.db, "i1", "l1");
+    await a.sync.syncNow();
+    await b.sync.syncNow();
+
+    // Ana schimbă cantitatea; Bogdan, fără semnal, salvează fereastra produsului cu cantitatea veche și prețul.
+    await updateRow(a.db, "shopping_list_items", "i1", { quantity: 2 }, W);
+    await a.sync.syncNow();
+    remote.online = false;
+    await updateRow(b.db, "shopping_list_items", "i1", { name: "Lapte", quantity: 1, unit: "l", actual_price: 8.9 }, W);
+    expect((await b.db.outbox.toArray()).map((e) => e.payload)).toEqual([{ actual_price: 8.9 }]);
+    remote.online = true;
+    await b.sync.syncNow();
+    await a.sync.syncNow();
+
+    for (const d of [a, b]) {
+      expect(await d.db.shopping_list_items.get("i1")).toMatchObject({ quantity: 2, actual_price: 8.9 });
+    }
+  });
+
+  it("un câmp lipsă pe rândul local (rând vechi) se trimite, chiar dacă e null", async () => {
+    const a = device(remote);
+    await addList(a.db, "l1");
+    await addItem(a.db, "i1", "l1");
+    await a.sync.syncNow();
+    await updateRow(a.db, "shopping_list_items", "i1", { variant_id: null }, W);
+    expect((await a.db.outbox.toArray()).map((e) => e.payload)).toEqual([{ variant_id: null }]);
+  });
+
+  it("o salvare fără nicio schimbare nu mai ajunge în outbox", async () => {
+    const a = device(remote);
+    await addList(a.db, "l1");
+    await addItem(a.db, "i1", "l1");
+    await a.sync.syncNow();
+    await updateRow(a.db, "shopping_list_items", "i1", { name: "Lapte", quantity: 1 }, W);
+    expect(await a.db.outbox.count()).toBe(0);
+  });
+
   it("pe același câmp câștigă ultima modificare ajunsă la server, iar dispozitivele converg", async () => {
     const a = device(remote);
     const b = device(remote);

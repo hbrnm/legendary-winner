@@ -59,7 +59,7 @@ test("cont, gospodărie, invitație, listă comună sincronizată, gospodării i
   // Revine semnalul: modificările amândurora se păstrează.
   await bogdan.context().setOffline(false);
   await syncNow(bogdan);
-  await expect(bogdan.getByText("2 l")).toBeVisible();
+  await expect(bogdan.getByText("2 buc", { exact: true })).toBeVisible();
   await syncNow(ana);
   await expect(ana.getByRole("checkbox", { name: /Debifează Lapte integral/ })).toBeVisible();
   await expect(ana.getByText("8,90 RON").first()).toBeVisible();
