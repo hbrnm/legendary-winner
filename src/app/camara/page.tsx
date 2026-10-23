@@ -186,7 +186,7 @@ function PantryScreen() {
           <p className="mt-1 text-sm text-ink">{data.soon.map((i) => i.name).join(", ")}</p>
           {data.useSoon.length > 0 && (
             <div className="mt-3">
-              <p className="text-xs text-ink-2">Le poți folosi în:</p>
+              <p className="text-xs text-ink-2">{data.soon.length === 1 ? "Rețete în care intră:" : "Le poți folosi în:"}</p>
               <div className="mt-1 flex flex-wrap gap-2">
                 {data.useSoon.map((r) => (
                   <Link key={r.recipe.id} href={`/retete/reteta/?id=${r.recipe.id}`} className="inline-flex min-h-11 items-center rounded-md border border-line bg-surface px-3 font-serif text-[15px] font-medium text-ink transition-colors duration-150 ease-out hover:bg-surface-2 active:bg-surface-2">

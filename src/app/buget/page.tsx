@@ -312,7 +312,7 @@ function BudgetScreen() {
       </SectionTitle>
       <Card className="p-4">
         {view.split.length === 0 ? <p className="text-sm text-ink-2">Nicio cheltuială în {formatMonth(month)}.</p> : <BarList bars={view.split} total={view.total} />}
-        {view.noAmount > 0 && <p className="mt-3 text-xs text-ink-2">{view.noAmount} produse fără preț nu apar în împărțire.</p>}
+        {view.noAmount > 0 && <p className="mt-3 text-xs text-ink-2">{view.noAmount === 1 ? "Un produs fără preț nu apare" : `${view.noAmount} produse fără preț nu apar`} în împărțire.</p>}
       </Card>
       {data.diverse > 0 && (
         <Link href="/buget/diverse/" className="mt-2 inline-flex h-11 w-full items-center justify-center gap-2 rounded-lg border border-line font-medium transition duration-150 ease-out hover:bg-surface-2 active:scale-[0.99]">

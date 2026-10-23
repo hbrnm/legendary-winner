@@ -9,7 +9,7 @@ import { EmptyState, Spinner } from "@/components/ui/misc";
 import { ConfirmSheet, Sheet } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/fields";
-import { owned, visible } from "@/lib/services/queries";
+import { owned, spendRecords, visible } from "@/lib/services/queries";
 import { deleteTransaction, setTransactionItemAmount } from "@/lib/services/shopping";
 import { formatRon, parseMoney, sumMoney } from "@/lib/domain/money";
 import { formatLongDate, formatMonth, localDateOf } from "@/lib/domain/dates";
@@ -24,6 +24,16 @@ interface Trip {
   title: string;
   listNote: string | null;
   items: ShoppingTransactionItem[];
+  total: number;
+  missing: number;
+}
+
+/** Lista în curs: produsele bifate înainte de „Gata”, socotite deja în buget (decizia proprietarului, 23 oct. 2026). */
+interface OpenTrip {
+  listId: string;
+  title: string;
+  date: string;
+  count: number;
   total: number;
   missing: number;
 }
@@ -43,6 +53,19 @@ function HistoryScreen() {
     ]);
     const listName = new Map(lists.map((l) => [l.id, l.name]));
     const retailerName = new Map(retailers.map((r) => [r.id, r.name]));
+    const pending = (await spendRecords(ctx.db, ctx.householdId)).filter((i) => i.transaction_id.startsWith("in-curs:"));
+    const openTrips: OpenTrip[] = [...new Set(pending.map((i) => i.transaction_id))].map((key) => {
+      const its = pending.filter((i) => i.transaction_id === key);
+      const listId = key.slice("in-curs:".length);
+      return {
+        listId,
+        title: `În curs: ${listName.get(listId) ?? "Cumpărături"}`,
+        date: its.map((i) => i.purchased_at).sort().at(-1)!,
+        count: its.length,
+        total: sumMoney(its.map((i) => i.amount ?? 0)),
+        missing: its.filter((i) => i.amount == null).length,
+      };
+    });
     const trips: Trip[] = txs
       .map((tx) => {
         const its = items.filter((i) => i.transaction_id === tx.id).sort((a, b) => (a.receipt_name || a.name).localeCompare(b.receipt_name || b.name, "ro"));
@@ -53,16 +76,15 @@ function HistoryScreen() {
         return { tx, title, listNote: tx.list_id && title !== name ? name : null, items: its, total: sumMoney(its.map((i) => i.amount ?? 0)), missing: its.filter((i) => i.amount == null).length };
       })
       .sort((a, b) => (b.tx.completed_at ?? b.tx.started_at).localeCompare(a.tx.completed_at ?? a.tx.started_at));
-    return trips;
+    return { trips, openTrips };
   });
 
   if (!data) return <Spinner />;
-  const open = data.find((t) => t.tx.id === openId) ?? null;
-  const byMonth = new Map<string, Trip[]>();
-  for (const t of data) {
-    const m = localDateOf(t.tx.completed_at ?? t.tx.started_at).slice(0, 7);
-    byMonth.set(m, [...(byMonth.get(m) ?? []), t]);
-  }
+  const open = data.trips.find((t) => t.tx.id === openId) ?? null;
+  const byMonth = new Map<string, { trips: Trip[]; openTrips: OpenTrip[] }>();
+  const monthOf = (m: string) => byMonth.get(m) ?? byMonth.set(m, { trips: [], openTrips: [] }).get(m)!;
+  for (const t of data.openTrips) monthOf(localDateOf(t.date).slice(0, 7)).openTrips.push(t);
+  for (const t of data.trips) monthOf(localDateOf(t.tx.completed_at ?? t.tx.started_at).slice(0, 7)).trips.push(t);
 
   return (
     <>
@@ -73,19 +95,36 @@ function HistoryScreen() {
         <h1 className="text-2xl font-semibold tracking-tight">Istoric</h1>
       </div>
 
-      {data.length === 0 ? (
+      {byMonth.size === 0 ? (
         <EmptyState icon={<Receipt size={32} />} title="Încă nu ai cumpărături finalizate">
           Când termini cumpărăturile dintr-o listă și apeși „Gata”, ele apar aici, cu sumele plătite.
         </EmptyState>
       ) : (
-        [...byMonth.entries()].map(([month, trips]) => (
+        [...byMonth.entries()].sort(([a], [b]) => b.localeCompare(a)).map(([month, { trips, openTrips }]) => (
           <section key={month} className="mb-6">
             {/* Registrul lunii: luna în serif, totalul în mono, cumpărăturile pe o foaie cu filete punctate. */}
             <div className="mb-2 flex items-baseline justify-between gap-3 px-1">
               <h2 className="font-serif text-xl font-semibold capitalize">{formatMonth(`${month}-01`)}</h2>
-              <span className="font-mono text-[15px] font-medium">{formatRon(sumMoney(trips.map((t) => t.total)))}</span>
+              <span className="font-mono text-[15px] font-medium">{formatRon(sumMoney([...openTrips, ...trips].map((t) => t.total)))}</span>
             </div>
             <ul className="divide-y divide-dashed divide-line overflow-hidden rounded-lg border border-line bg-surface">
+              {openTrips.map((t) => (
+                <li key={t.listId}>
+                  {/* Prețurile se schimbă pe listă, până la „Gata”. */}
+                  <Link href={`/cumparaturi/lista/?id=${t.listId}`} className="flex w-full items-center gap-3 px-4 py-3 text-left transition-colors duration-150 ease-out hover:bg-surface-2 active:bg-surface-2">
+                    <span className="min-w-0 flex-1">
+                      <span className="line-clamp-2 text-[15px] font-medium leading-snug">{t.title}</span>
+                      <span className="block text-xs leading-snug text-ink-2">
+                        {capitalizeFirst(formatLongDate(localDateOf(t.date)))} · <span className="whitespace-nowrap">{count(t.count, "produs", "produse")}</span>
+                      </span>
+                    </span>
+                    <span className="shrink-0 text-right">
+                      <span className="block font-mono text-[15px] font-medium">{formatRon(t.total)}</span>
+                      {t.missing > 0 && <span className="block font-mono text-[11px] font-medium uppercase tracking-wider text-accent">{t.missing} fără preț</span>}
+                    </span>
+                  </Link>
+                </li>
+              ))}
               {trips.map((t) => (
                 <li key={t.tx.id}>
                   <button type="button" onClick={() => setOpenId(t.tx.id)} className="flex w-full items-center gap-3 px-4 py-3 text-left transition-colors duration-150 ease-out hover:bg-surface-2 active:bg-surface-2">
