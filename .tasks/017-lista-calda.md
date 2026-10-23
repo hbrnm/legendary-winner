@@ -131,4 +131,4 @@ Cererea proprietarului din 23 oct. 2026: secțiunea Cumpărături să sune și s
 `npm test`, `npm run build`, `npm run test:e2e` verzi; pe 360 px, în ambele moduri, lista se folosește cu degetul mare.
 
 ## Următorul pas
-Nimic în 017. De reluat separat, dacă proprietarul vrea: pe Prețuri, „ca produs nou” ales înainte de încărcarea catalogului nu face nimic.
+Nimic în 017. Problema de pe Prețuri („ca produs nou” nu făcea nimic) e rezolvată în #108.
