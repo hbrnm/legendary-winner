@@ -48,7 +48,7 @@ type Shelf = { price: string; basis: ShelfBasis; quantity: string; unit: UnitCod
 function shelfTotal(s: Shelf): { total: number; hint: string } | { error: string } | null {
   if (!s.price.trim()) return null;
   const shelf = parseMoney(s.price);
-  if (shelf == null) return { error: "Prețul la raft nu e valid. Scrie de exemplu 7,99." };
+  if (shelf == null) return { error: "Prețul nu arată a preț. Scrie-l așa: 7,99." };
   const q = s.quantity ? Number(s.quantity.replace(",", ".")) : null;
   if (q == null || !(q > 0)) return { error: "Scrie cantitatea ca să calculăm totalul." };
   const unit = (s.unit || "buc") as UnitCode;
@@ -111,10 +111,10 @@ function ItemSheetForm({ item, estimate, categories, retailers, lists, focusPric
   function save() {
     const actual = price.trim() ? parseMoney(price) : null;
     const est = estimated.trim() ? parseMoney(estimated) : null;
-    if (price.trim() && actual == null) return setError("Prețul nu e valid. Scrie de exemplu 12,50.");
-    if (estimated.trim() && est == null) return setError("Estimarea nu e validă. Scrie de exemplu 12,50.");
-    if (q != null && !(q > 0)) return setError("Cantitatea trebuie să fie mai mare decât zero.");
-    if (!name.trim()) return setError("Scrie numele produsului.");
+    if (price.trim() && actual == null) return setError("Prețul nu arată a preț. Scrie-l așa: 12,50.");
+    if (estimated.trim() && est == null) return setError("Prețul estimat nu arată a preț. Scrie-l așa: 12,50.");
+    if (q != null && !(q > 0)) return setError("Cantitatea trebuie să fie peste zero (de exemplu 0,5 sau 2).");
+    if (!name.trim()) return setError("Cum se numește produsul?");
     const retailer = retailers.find((r) => r.id === retailerId);
     onSave({
       name: name.trim(),

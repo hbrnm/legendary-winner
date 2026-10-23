@@ -102,7 +102,7 @@ test("adăugarea rapidă pune produsele terminate în cămară sub titlul lor", 
   await expect(page.getByRole("button", { name: /^Scade Unt/ })).toHaveCount(0);
   await page.goto("/cumparaturi/");
   await page.getByText("Cumpărături săptămânale").click();
-  const quick = page.getByRole("region", { name: "Adăugare rapidă" });
+  const quick = page.getByRole("region", { name: "Poate-ți mai trebuie" });
   await expect(quick.getByRole("heading", { name: "S-a terminat în cămară" })).toBeVisible();
   const finished = quick.locator("div").filter({ has: page.getByRole("heading", { name: "S-a terminat în cămară" }) });
   await expect(finished.getByRole("button", { name: /^Adaugă Unt/ })).toBeVisible();
@@ -138,10 +138,10 @@ test("gospodăria model: cămară, listă, buget, plan", async ({ page }) => {
   await expect(page.getByText("Un produs expiră curând")).toBeVisible();
 
   await page.goto("/cumparaturi/");
-  await expect(page.getByText(/3 din 10 luate · ~/)).toBeVisible();
+  await expect(page.getByText(/3 din 10 în coș · ~/)).toBeVisible();
   await page.getByText("Cumpărături săptămânale").click();
   await expect(page.getByRole("heading", { name: "Cumpărături săptămânale" })).toBeVisible();
-  const quick = page.getByRole("region", { name: "Adăugare rapidă" });
+  const quick = page.getByRole("region", { name: "Poate-ți mai trebuie" });
   await expect(quick).toBeVisible();
   // Sugestiile stau sub titluri, fără „des” / „s-a terminat” lipit de fiecare produs
   // (în gospodăria model nimic nu s-a terminat, deci apare doar grupul „Cumperi des”).
@@ -150,7 +150,7 @@ test("gospodăria model: cămară, listă, buget, plan", async ({ page }) => {
   const first = quick.getByRole("button").first();
   const name = ((await first.getAttribute("aria-label")) ?? "").replace(/^Adaugă /, "");
   await first.click();
-  await expect(page.getByText(/3 din 11 luate/)).toBeVisible();
+  await expect(page.getByText(/3 din 11 în coș/)).toBeVisible();
   await expect(page.getByRole("checkbox", { name: `Bifează ${name}` })).toBeVisible();
 
   await page.goto("/buget/");

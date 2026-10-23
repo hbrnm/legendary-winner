@@ -91,7 +91,7 @@ test("cont, gospodărie, invitație, listă comună sincronizată, gospodării i
   await carmen.goto("/cumparaturi/");
   await syncNow(carmen);
   await expect(carmen.getByText("Săptămâna asta")).toHaveCount(0);
-  await expect(carmen.getByText("Nicio listă activă")).toBeVisible();
+  await expect(carmen.getByText("Încă n-ai nicio listă")).toBeVisible();
   // Și vede la rețetă fotografia din catalog, nu pe cea a Anei.
   await carmen.goto(recipe);
   await syncNow(carmen);

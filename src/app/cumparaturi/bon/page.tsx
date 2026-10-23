@@ -365,12 +365,12 @@ function ReceiptScreen() {
           <Spinner />
           {p?.stage === "server" ? (
             <>
-              <p className="text-[15px]">Citesc bonul…</p>
-              <p className="text-sm text-ink-2">Durează câteva secunde.</p>
+              <p className="text-[15px]">Mă uit pe bon…</p>
+              <p className="text-sm text-ink-2">Câteva secunde.</p>
             </>
           ) : (
             <>
-              <p className="text-[15px]">{p?.stage === "citire" ? `Citesc bonul… ${Math.round(p.progress * 100)}%` : "Pregătesc cititorul…"}</p>
+              <p className="text-[15px]">{p?.stage === "citire" ? `Mă uit pe bon… ${Math.round(p.progress * 100)}%` : "Pregătesc cititorul…"}</p>
               <p className="text-sm text-ink-2">Prima dată durează mai mult: se descarcă cititorul de bonuri.</p>
             </>
           )}
@@ -469,7 +469,7 @@ function ReceiptScreen() {
             <span className="tabular">{formatRon(total)}</span>
           </p>
         )}
-        {total != null && Math.abs(total - sum) >= 0.005 && <p className="mt-1 text-sm text-warn">Sumele nu se potrivesc cu totalul bonului. Verifică liniile marcate.</p>}
+        {total != null && Math.abs(total - sum) >= 0.005 && <p className="mt-1 text-sm text-warn">Ceva nu bate cu totalul de pe bon. Uită-te la rândurile marcate.</p>}
       </div>
 
       {error && (

@@ -24,7 +24,7 @@ test("varianta Sissi 300 g: 21 lei → 70 lei/kg în Prețuri, iar data viitoare
   await expect(page.getByRole("dialog")).toHaveCount(0);
 
   await page.getByRole("button", { name: "Gata", exact: true }).click();
-  await page.getByRole("button", { name: "Finalizează" }).click();
+  await page.getByRole("button", { name: "Gata, am terminat" }).click();
   await expect(page.getByRole("checkbox", { name: /Bifează Șuncă/ })).toBeVisible();
 
   // Data viitoare, linia cu aceeași variantă e estimată la 21 lei.

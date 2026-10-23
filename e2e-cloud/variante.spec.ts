@@ -42,8 +42,8 @@ test("varianta pusă de un membru ajunge la celălalt, cu prețul pe kg", async 
   await expect(dana.getByText("1 pachet · Sissi, Șuncă de pui, 300 g")).toBeVisible();
   await expect(dana.getByRole("dialog")).toHaveCount(0);
   await dana.getByRole("button", { name: "Gata", exact: true }).click();
-  await dana.getByRole("button", { name: "Finalizează" }).click();
-  await expect(dana.getByText(/Gata! Ai cheltuit 21,00/)).toBeVisible();
+  await dana.getByRole("button", { name: "Gata, am terminat" }).click();
+  await expect(dana.getByText(/Gata! Ai dat 21,00/)).toBeVisible();
   await syncNow(dana);
   await expect(dana.getByRole("button", { name: /Sincronizează acum/ })).not.toContainText(/refuz/i);
 

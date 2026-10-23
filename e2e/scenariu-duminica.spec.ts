@@ -39,12 +39,12 @@ test("de la planul săptămânii la buget", async ({ page }) => {
   await page.getByRole("button", { name: "Salvează" }).click();
   await expect(page.getByRole("checkbox", { name: /Debifează Ceapă galbenă/ })).toBeVisible();
   await expect(page.getByText("4,50 RON").first()).toBeVisible();
-  await expect(page.getByText(/Rămân .* din buget/)).toBeVisible();
+  await expect(page.getByText(/Mai ai .* luna asta/)).toBeVisible();
 
   await page.getByRole("checkbox", { name: /Bifează Morcovi/ }).click();
   await page.getByRole("button", { name: "Gata", exact: true }).click();
-  await expect(page.getByText("produs bifat nu are preț")).toBeVisible();
-  await page.getByRole("button", { name: "Finalizează" }).click();
+  await expect(page.getByText("La 1 produs n-ai pus prețul")).toBeVisible();
+  await page.getByRole("button", { name: "Gata, am terminat" }).click();
   await page.waitForURL(/\/cumparaturi\/$/);
 
   // Bugetul reflectă cheltuiala reală, o singură dată.

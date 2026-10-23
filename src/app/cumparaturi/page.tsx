@@ -52,7 +52,7 @@ function ListsScreen() {
     <>
       <PageHeader
         title="Cumpărături"
-        subtitle="Listele gospodăriei, la comun"
+        subtitle="Ce e de luat, pentru toată casa"
         action={
           <Button onClick={() => setCreating(true)} icon={<Plus size={18} />}>
             Listă nouă
@@ -61,8 +61,8 @@ function ListsScreen() {
       />
 
       {active.length === 0 ? (
-        <EmptyState icon={<ShoppingBasket size={32} />} title="Nicio listă activă" action={<Button onClick={() => setCreating(true)}>Creează prima listă</Button>}>
-          Fă o listă pentru cumpărăturile săptămânale, una pentru piață sau câte una pentru fiecare magazin.
+        <EmptyState icon={<ShoppingBasket size={32} />} title="Încă n-ai nicio listă" action={<Button onClick={() => setCreating(true)}>Începe o listă</Button>}>
+          Una pentru săptămână, una pentru piață, sau câte una pe magazin, cum îți vine mai la îndemână.
         </EmptyState>
       ) : (
         <ul className="flex flex-col gap-3">
@@ -75,12 +75,12 @@ function ListsScreen() {
                       <span className="line-clamp-2 break-words font-serif text-lg font-semibold leading-snug">{list.name}</span>
                       {list.is_recurring && (
                         <Badge tone="brand">
-                          <Repeat size={12} /> recurentă
+                          <Repeat size={12} /> se reia
                         </Badge>
                       )}
                     </div>
                     <p className="mt-1 text-sm text-ink-2 tabular">
-                      {totals.item_count === 0 ? "Goală" : `${totals.checked_count} din ${totals.item_count} luate${totals.projected_total > 0 ? ` · ~${formatRon(totals.projected_total)}` : ""}`}
+                      {totals.item_count === 0 ? "Încă goală" : `${totals.checked_count} din ${totals.item_count} în coș${totals.projected_total > 0 ? ` · ~${formatRon(totals.projected_total)}` : ""}`}
                       {list.default_retailer_id && ` · ${retailerName.get(list.default_retailer_id) ?? ""}`}
                     </p>
                     {totals.item_count > 0 && (
@@ -100,12 +100,12 @@ function ListsScreen() {
       <Card className="mt-6 divide-y divide-line overflow-hidden">
       <Link href="/cumparaturi/bon/" className="flex min-h-12 items-center gap-3 px-4 text-[15px] transition-colors duration-150 ease-out hover:bg-surface-2 active:bg-surface-2">
         <Receipt size={20} strokeWidth={1.75} className="text-ink-2" />
-        <span className="flex-1">Adaugă un bon fiscal</span>
+        <span className="flex-1">Pune un bon</span>
         <ChevronRight size={18} className="text-ink-3" />
       </Link>
       <Link href="/cumparaturi/istoric/" className="flex min-h-12 items-center gap-3 px-4 text-[15px] transition-colors duration-150 ease-out hover:bg-surface-2 active:bg-surface-2">
         <History size={20} strokeWidth={1.75} className="text-ink-2" />
-        <span className="flex-1">Istoricul cumpărăturilor</span>
+        <span className="flex-1">Ce-ai cumpărat până acum</span>
         <ChevronRight size={18} strokeWidth={1.75} className="text-ink-3" />
       </Link>
       </Card>
@@ -115,11 +115,11 @@ function ListsScreen() {
           <SectionTitle
             action={
               <Button variant="ghost" size="sm" onClick={() => setShowArchived((v) => !v)}>
-                {showArchived ? "Ascunde" : `Arată (${archived.length})`}
+                {showArchived ? "Ascunde-le" : `Arată-le (${archived.length})`}
               </Button>
             }
           >
-            Liste arhivate
+            Puse deoparte
           </SectionTitle>
           {showArchived && (
             <ul className="flex flex-col divide-y divide-line overflow-hidden rounded-lg border border-line bg-surface">
@@ -129,7 +129,7 @@ function ListsScreen() {
                     <span className="line-clamp-2 text-[15px] leading-snug">{list.name}</span>
                     <span className="text-xs text-ink-2 tabular">{formatRon(totals.spent)} cheltuit</span>
                   </Link>
-                  <Button variant="secondary" size="sm" onClick={() => run((ctx) => restoreList(ctx, list.id), "Lista e din nou activă.")}>
+                  <Button variant="secondary" size="sm" onClick={() => run((ctx) => restoreList(ctx, list.id), "Am scos lista înapoi.")}>
                     Reactivează
                   </Button>
                 </li>
@@ -156,7 +156,7 @@ function ListsScreen() {
             void submit();
           }}
         >
-          <LabeledInput label="Numele listei" value={name} onChange={(e) => setName(e.target.value)} maxLength={80} placeholder="ex. Cumpărături săptămânale" autoFocus />
+          <LabeledInput label="Numele listei" value={name} onChange={(e) => setName(e.target.value)} maxLength={80} placeholder="ex. Piața de sâmbătă" autoFocus />
           <div className="flex flex-wrap gap-2">
             {SUGGESTED_NAMES.map((s) => (
               <button key={s} type="button" onClick={() => setName(s)} className="h-11 rounded-full border border-line px-3 text-sm text-ink-2 transition-colors duration-150 ease-out hover:text-ink active:bg-surface-2">
@@ -164,15 +164,15 @@ function ListsScreen() {
               </button>
             ))}
           </div>
-          <LabeledSelect label="Magazin obișnuit (opțional)" value={retailerId} onChange={(e) => setRetailerId(e.target.value)}>
-            <option value="">Oriunde</option>
+          <LabeledSelect label="De obicei iei de la…" value={retailerId} onChange={(e) => setRetailerId(e.target.value)}>
+            <option value="">De oriunde</option>
             {data.retailers.map((r) => (
               <option key={r.id} value={r.id}>
                 {r.name}
               </option>
             ))}
           </LabeledSelect>
-          <Toggle checked={recurring} onChange={setRecurring} label="Listă recurentă" description="După ce termini cumpărăturile, produsele rămân pe listă, debifate, pentru data viitoare." />
+          <Toggle checked={recurring} onChange={setRecurring} label="O folosesc des" description="După cumpărături, produsele rămân pe listă, nebifate, gata pentru data viitoare." />
           <button type="submit" className="hidden" />
         </form>
       </Sheet>

@@ -161,7 +161,7 @@ export function HomeScreen() {
                 {data.listCount > 1 && <span className="mt-1 block text-xs text-ink-2">și încă {data.listCount - 1} {data.listCount === 2 ? "listă" : "liste"}</span>}
               </>
             ) : (
-              <span className="mt-1.5 block text-[15px]">Creează prima listă →</span>
+              <span className="mt-1.5 block text-[15px]">Începe o listă →</span>
             )}
           </span>
           <ChevronRight size={18} strokeWidth={1.75} className="shrink-0 text-ink-3" />
