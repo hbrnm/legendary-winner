@@ -54,3 +54,27 @@ test("fotografia din catalog are autorul și rămâne vizibilă fără internet"
   await expect.poll(() => photo.evaluate((img: HTMLImageElement) => img.naturalWidth)).toBeGreaterThan(0);
   await context.setOffline(false);
 });
+
+test("o versiune nouă a aplicației: mesaj jos, „Mai târziu” îl închide, „Reîncarcă” pornește pagina din nou", async ({ page, context }) => {
+  await start(page);
+  await expect.poll(() => page.evaluate(() => Boolean(navigator.serviceWorker.controller))).toBe(true);
+  await expect(page.getByText("Am adus o versiune nouă a Cămării.")).toHaveCount(0);
+
+  // Serverul publică altă versiune: serverul de test schimbă VERSION din sw.js după cookie
+  // (cererea browserului pentru sw.js nu trece prin page.route).
+  await context.addCookies([{ name: "sw-versiune", value: "nou", url: page.url() }]);
+  await page.evaluate(async () => (await navigator.serviceWorker.getRegistration())?.update());
+
+  const banner = page.getByRole("status").filter({ hasText: "Am adus o versiune nouă a Cămării." });
+  await expect(banner).toBeVisible();
+  await banner.getByRole("button", { name: "Mai târziu" }).click();
+  await expect(banner).toHaveCount(0);
+
+  // Încă o versiune: „Reîncarcă” pornește pagina din nou, fără mesaj.
+  await context.addCookies([{ name: "sw-versiune", value: "nou2", url: page.url() }]);
+  await page.evaluate(async () => (await navigator.serviceWorker.getRegistration())?.update());
+  await expect(banner).toBeVisible();
+  await Promise.all([page.waitForEvent("load"), banner.getByRole("button", { name: "Reîncarcă" }).click()]);
+  await expect(page.getByText("Mod demonstrativ")).toBeVisible();
+  await expect(banner).toHaveCount(0);
+});
