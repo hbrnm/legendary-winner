@@ -11,8 +11,8 @@ Ce citești: `git diff origin/main...HEAD` și `git diff` (necomise), plus fiși
 
 Ce verifici (regulile complete sunt în `CLAUDE.md`):
 - **Corectitudine:** erori de logică, cazuri lipsă (listă goală, eroare de rețea, utilizator neautentificat, date invalide).
-- **Date și securitate:** nicio cheie secretă în cod; listele doar pentru utilizatorul autentificat (RLS pe fiecare tabel nou); parola și emailul contului comun nu apar în cod; nimic sensibil în loguri sau URL-uri.
-- **Conținut de specialitate:** nimic nou fără sursă dată de proprietar.
+- **Date și securitate:** nicio cheie secretă în cod (doar URL-ul Supabase și anon key; `service_role` niciodată); datele sunt ale gospodăriei: fiecare tabel nou are `household_id` și RLS, iar un membru citește și scrie doar datele gospodăriilor lui; rolurile (owner/admin/member) sunt respectate; catalogul global (`household_id NULL`) îl scriu doar `app_admins`; ștergerile sunt logice (`deleted_at`); schimbările de bază de date doar prin migrații noi; parolele și emailurile nu apar în cod, loguri sau URL-uri.
+- **Conținut de specialitate:** nimic nou fără sursă dată de proprietar; prețurile vin doar de la gospodărie; prețurile, promoțiile și valorile nutriționale nu se inventează (rămân `null` sau „DE COMPLETAT: …”).
 - **UI și texte:** culori doar din tokenii din `src/app/globals.css`; funcționează de la 360 px, zone de atins ≥ 44 px; texte în română, calde, cu „tu”; erorile spun ce s-a întâmplat și ce faci acum.
 - **Teste:** comportamentul nou are test; niciun test sărit; testele nu depind de data de azi, de rețea sau de ordinea rulării.
 
