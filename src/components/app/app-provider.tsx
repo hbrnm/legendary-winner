@@ -21,6 +21,26 @@ export interface HouseholdInfo {
 
 export type AppStatus = "loading" | "signed_out" | "no_household" | "ready" | "error";
 
+export interface SignOutResult {
+  success: boolean;
+  unsynced?: number;
+}
+
+/** Numărul total de modificări locale netrimise încă la server (outbox și fotografii) - F04. */
+export async function getUnsyncedCount(db: CamaraDB | null): Promise<number> {
+  if (!db) return 0;
+  try {
+    const [outbox, uploads, removals] = await Promise.all([
+      db.outbox.count(),
+      db.photo_uploads.count(),
+      db.photo_removals.count(),
+    ]);
+    return outbox + uploads + removals;
+  } catch {
+    return 0;
+  }
+}
+
 export interface AppState {
   status: AppStatus;
   mode: "demo" | "cloud";
@@ -41,7 +61,7 @@ export interface AppState {
   switchHousehold: (id: string) => Promise<void>;
   refreshHouseholds: () => Promise<void>;
   syncNow: () => Promise<void>;
-  signOut: () => Promise<void>;
+  signOut: (options?: { force?: boolean }) => Promise<SignOutResult>;
   deleteAccount: () => Promise<void>;
 }
 
@@ -253,17 +273,36 @@ export function AppProvider({ children }: { children: ReactNode }) {
     [db, mode, user],
   );
 
-  const signOut = useCallback(async () => {
-    if (mode !== "cloud") return;
-    const current = db;
-    await supabase().auth.signOut();
-    // Datele gospodăriei nu rămân pe dispozitiv după deconectare.
-    await clearPhotoCache();
-    if (current) {
-      current.close();
-      await current.delete();
-    }
-  }, [mode, db]);
+  const signOut = useCallback(
+    async (options?: { force?: boolean }): Promise<SignOutResult> => {
+      if (mode !== "cloud") return { success: true };
+      const current = db;
+
+      // F04: Dacă utilizatorul nu a forțat ieșirea, încercăm sincronizarea
+      // și verificăm dacă există date locale care s-ar pierde ireversibil.
+      if (!options?.force) {
+        try {
+          await engineRef.current?.syncNow();
+        } catch {
+          // Rețeaua este indisponibilă sau sincronizarea a eșuat
+        }
+        const unsynced = await getUnsyncedCount(current);
+        if (unsynced > 0) {
+          return { success: false, unsynced };
+        }
+      }
+
+      await supabase().auth.signOut();
+      // Datele gospodăriei nu rămân pe dispozitiv după deconectare.
+      await clearPhotoCache();
+      if (current) {
+        current.close();
+        await current.delete();
+      }
+      return { success: true };
+    },
+    [mode, db],
+  );
 
   const deleteAccount = useCallback(async () => {
     if (mode !== "cloud") return;
