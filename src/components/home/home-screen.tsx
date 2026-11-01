@@ -97,7 +97,7 @@ export function HomeScreen() {
       suggestions,
       recent,
     };
-  }, [meal]);
+  }, [meal, today]);
 
   if (!data) return <Spinner />;
 

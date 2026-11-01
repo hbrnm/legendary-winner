@@ -278,8 +278,60 @@ var US_MEASURES = [
 ];
 var MEASURE = `(?:${US_MEASURES.map(([w]) => `(${w})`).join("|")})(?!\\p{L})`;
 
+// src/lib/server/edge-body.ts
+async function readJsonBody(req, maxBytes) {
+  const clHeader = req.headers.get("content-length");
+  if (clHeader !== null) {
+    const cl = Number(clHeader);
+    if (Number.isFinite(cl) && cl > maxBytes) {
+      return { ok: false, status: 413, error: "too_large" };
+    }
+  }
+  if (!req.body) {
+    return { ok: false, status: 400, error: "bad_request" };
+  }
+  const reader = req.body.getReader();
+  const chunks = [];
+  let totalBytes = 0;
+  try {
+    for (; ; ) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      if (value) {
+        totalBytes += value.byteLength;
+        if (totalBytes > maxBytes) {
+          await reader.cancel("too_large").catch(() => {
+          });
+          return { ok: false, status: 413, error: "too_large" };
+        }
+        chunks.push(value);
+      }
+    }
+  } catch {
+    return { ok: false, status: 400, error: "bad_request" };
+  }
+  if (chunks.length === 0) {
+    return { ok: false, status: 400, error: "bad_request" };
+  }
+  const total = new Uint8Array(totalBytes);
+  let offset = 0;
+  for (const chunk of chunks) {
+    total.set(chunk, offset);
+    offset += chunk.byteLength;
+  }
+  try {
+    const text = new TextDecoder("utf-8", { fatal: true }).decode(total);
+    const data = JSON.parse(text);
+    return { ok: true, data };
+  } catch {
+    return { ok: false, status: 400, error: "bad_request" };
+  }
+}
+
 // src/lib/server/import-recipe.ts
 var IMPORT_LIMITS = {
+  /** Limita corpului cererii JSON (F11). */
+  maxBody: 1e5,
   /** Timpul total pentru pagină, cu tot cu redirecționări. */
   timeoutMs: 1e4,
   maxBytes: 3e6,
@@ -490,13 +542,10 @@ async function handleImportRequest(req, deps, limits = IMPORT_LIMITS) {
   if (req.method !== "POST") return fail("bad_request");
   const authorization = req.headers.get("authorization") ?? "";
   if (!/^Bearer \S+$/.test(authorization)) return fail("unauthorized");
-  let body;
-  try {
-    body = await req.json();
-  } catch {
-    return fail("bad_request");
-  }
-  const wanted = body;
+  const fullLimits = { ...IMPORT_LIMITS, ...limits };
+  const read = await readJsonBody(req, fullLimits.maxBody);
+  if (!read.ok) return fail(read.error);
+  const wanted = read.data;
   const image = typeof wanted?.image === "string";
   if (image && wanted?.url !== void 0) return fail("bad_request");
   const url = parseImportUrl(image ? wanted?.image : wanted?.url);
@@ -506,10 +555,10 @@ async function handleImportRequest(req, deps, limits = IMPORT_LIMITS) {
     if (quota === null) return fail("unauthorized");
     if (!quota) return fail("rate_limited");
     if (image) {
-      const photo = await fetchRecipeImage(url, deps, limits);
+      const photo = await fetchRecipeImage(url, deps, fullLimits);
       return new Response(photo.bytes, { status: 200, headers: { ...CORS, "content-type": photo.type, "cache-control": "no-store", "x-content-type-options": "nosniff" } });
     }
-    const page = await fetchRecipePage(url, deps, limits);
+    const page = await fetchRecipePage(url, deps, fullLimits);
     const draft = draftFromHtml(page.html, page.url.href);
     return draft ? reply({ draft }, 200) : fail("no_recipe");
   } catch (e) {

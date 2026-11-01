@@ -177,13 +177,21 @@ export function averageTrip(items: ShoppingTransactionItem[]): number | null {
   return roundMoney(sumMoney([...byTx.values()].map(sumMoney)) / byTx.size);
 }
 
+/** Neutralizează prefixele de formulă (=, +, -, @) pentru a preveni formula injection în Excel/Sheets. */
+export function sanitizeCsvFormula(v: string): string {
+  return /^[\s\t\r\n]*[=+\-@]/.test(v) ? `'${v}` : v;
+}
+
 /** Export CSV (separator „;”, cum îl deschide Excel în română; BOM pentru diacritice). */
 export function spendToCsv(
   items: ShoppingTransactionItem[],
   categories: Map<string, ProductCategory>,
   retailers: Map<string, Retailer>,
 ): string {
-  const esc = (v: string) => (/[";\n]/.test(v) ? `"${v.replace(/"/g, '""')}"` : v);
+  const esc = (v: string) => {
+    const safe = sanitizeCsvFormula(v);
+    return /[";\r\n]/.test(safe) ? `"${safe.replace(/"/g, '""')}"` : safe;
+  };
   const rows = [["Data", "Produs", "Cantitate", "Unitate", "Categorie", "Magazin", "Sursă", "Sumă (RON)"]];
   for (const i of [...liveSpend(items)].sort((a, b) => a.purchased_at.localeCompare(b.purchased_at))) {
     rows.push([

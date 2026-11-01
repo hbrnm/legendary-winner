@@ -6,6 +6,7 @@
 // Nu păstrează paginile.
 
 import { draftFromHtml, type RecipeDraft } from "../domain/recipe-import";
+import { readJsonBody } from "./edge-body";
 
 export type ImportErrorCode =
   | "bad_request"
@@ -31,6 +32,8 @@ export interface ImportDeps {
 }
 
 export const IMPORT_LIMITS = {
+  /** Limita corpului cererii JSON (F11). */
+  maxBody: 100_000,
   /** Timpul total pentru pagină, cu tot cu redirecționări. */
   timeoutMs: 10_000,
   maxBytes: 3_000_000,
@@ -38,6 +41,15 @@ export const IMPORT_LIMITS = {
   maxImageBytes: 5_000_000,
   maxRedirects: 3,
   maxUrlLength: 500,
+};
+
+export type ImportLimits = {
+  maxBody?: number;
+  timeoutMs: number;
+  maxBytes: number;
+  maxImageBytes: number;
+  maxRedirects: number;
+  maxUrlLength: number;
 };
 
 const STATUS: Record<ImportErrorCode, number> = {
@@ -292,20 +304,17 @@ function reply(body: ImportResponse | null, status: number): Response {
 const fail = (code: ImportErrorCode) => reply({ error: code }, STATUS[code]);
 
 /** Cererea aplicației: POST cu `{ "url": "https://…" }` (sau `{ "image": … }`) și tokenul omului în `Authorization`. */
-export async function handleImportRequest(req: Request, deps: ImportDeps, limits = IMPORT_LIMITS): Promise<Response> {
+export async function handleImportRequest(req: Request, deps: ImportDeps, limits: ImportLimits = IMPORT_LIMITS): Promise<Response> {
   if (req.method === "OPTIONS") return reply(null, 204);
   if (req.method !== "POST") return fail("bad_request");
   const authorization = req.headers.get("authorization") ?? "";
   if (!/^Bearer \S+$/.test(authorization)) return fail("unauthorized");
 
-  let body: unknown;
-  try {
-    body = await req.json();
-  } catch {
-    return fail("bad_request");
-  }
+  const fullLimits: typeof IMPORT_LIMITS = { ...IMPORT_LIMITS, ...limits };
+  const read = await readJsonBody<{ url?: unknown; image?: unknown }>(req, fullLimits.maxBody);
+  if (!read.ok) return fail(read.error);
   // `{"image": "https://…"}`: fotografia rețetei citite înainte (.tasks/013); altfel `{"url"}`: pagina.
-  const wanted = body as { url?: unknown; image?: unknown } | null;
+  const wanted = read.data;
   const image = typeof wanted?.image === "string";
   if (image && wanted?.url !== undefined) return fail("bad_request");
   const url = parseImportUrl(image ? wanted?.image : wanted?.url);
@@ -316,10 +325,10 @@ export async function handleImportRequest(req: Request, deps: ImportDeps, limits
     if (quota === null) return fail("unauthorized");
     if (!quota) return fail("rate_limited");
     if (image) {
-      const photo = await fetchRecipeImage(url, deps, limits);
+      const photo = await fetchRecipeImage(url, deps, fullLimits);
       return new Response(photo.bytes as BodyInit, { status: 200, headers: { ...CORS, "content-type": photo.type, "cache-control": "no-store", "x-content-type-options": "nosniff" } });
     }
-    const page = await fetchRecipePage(url, deps, limits);
+    const page = await fetchRecipePage(url, deps, fullLimits);
     const draft = draftFromHtml(page.html, page.url.href);
     return draft ? reply({ draft }, 200) : fail("no_recipe");
   } catch (e) {

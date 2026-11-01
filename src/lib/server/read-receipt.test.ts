@@ -58,6 +58,28 @@ describe("read-receipt", () => {
     expect((await handleReceiptRequest(new Request("https://f.ro/x", { method: "OPTIONS" }), d)).status).toBe(204);
   });
 
+  it("respinge corpul cererii care depășește maxBody chiar și fără antet Content-Length (F11)", async () => {
+    const d = deps();
+    const encoder = new TextEncoder();
+    const stream = new ReadableStream({
+      start(c) {
+        c.enqueue(encoder.encode('{"image":{"mimeType":"image/jpeg","data":"'));
+        c.enqueue(encoder.encode("A".repeat(RECEIPT_LIMITS.maxBody + 10)));
+        c.enqueue(encoder.encode('"}}'));
+        c.close();
+      },
+    });
+    const streamedReq = new Request("https://f.ro/x", {
+      method: "POST",
+      // @ts-expect-error duplex
+      duplex: "half",
+      headers: { authorization: "Bearer t", "content-type": "application/json" },
+      body: stream,
+    });
+    expect((await handleReceiptRequest(streamedReq, d)).status).toBe(413);
+    expect(d.takeQuota).not.toHaveBeenCalled();
+  });
+
   it("limita de cereri și tokenul nevalid", async () => {
     const over = deps(RECEIPT, false);
     expect(await call({ image }, over)).toMatchObject({ status: 429, json: { error: "rate_limited" } });

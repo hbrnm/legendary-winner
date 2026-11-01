@@ -35,6 +35,7 @@ Cu Supabase: vezi [`docs/ENVIRONMENT_VARIABLES.md`](docs/ENVIRONMENT_VARIABLES.m
 | `npm run lint`, `npm run typecheck` | ESLint, TypeScript |
 
 ## Documentație
+- [Verificarea locală și pregătirea lansării — 28 octombrie 2026](docs/VERIFICARE_2026-10-28.md)
 - [Arhitectura](docs/ARCHITECTURE.md)
 - [Schema bazei de date](docs/DATABASE_SCHEMA.md)
 - [API (RPC și tabele)](docs/API_DOCUMENTATION.md)

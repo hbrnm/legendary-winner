@@ -140,6 +140,12 @@ export function AppShell({ children, wide = false }: { children: ReactNode; wide
 
   return (
     <div className="min-h-dvh lg:flex">
+      <a
+        href="#continut-principal"
+        className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-50 focus:rounded-lg focus:bg-brand focus:px-4 focus:py-2.5 focus:text-sm focus:font-medium focus:text-brand-ink focus:shadow-card focus:outline-none"
+      >
+        Sari la conținutul principal
+      </a>
       <nav aria-label="Navigare principală" className="sticky top-0 hidden h-dvh w-60 shrink-0 flex-col border-r border-line bg-surface px-3 py-5 lg:flex">
         <Link href="/" className="mb-6 flex items-center gap-2 px-3 font-serif text-xl font-semibold tracking-tight">
           <span className="inline-flex h-8 w-8 items-center justify-center rounded-md bg-brand text-brand-ink">
@@ -191,7 +197,7 @@ export function AppShell({ children, wide = false }: { children: ReactNode; wide
             <span className="font-semibold uppercase tracking-wider text-ink">Mod demonstrativ</span>: datele rămân doar pe acest dispozitiv și nu se sincronizează.
           </p>
         )}
-        <main className={`mx-auto px-4 pb-28 pt-5 lg:pb-12 ${wide ? "max-w-5xl" : "max-w-3xl"}`}>
+        <main id="continut-principal" tabIndex={-1} className={`mx-auto px-4 pb-28 pt-5 focus:outline-none lg:pb-12 ${wide ? "max-w-5xl" : "max-w-3xl"}`}>
           <RejectedNotice />
           {ready ? children : <Spinner />}
           {app.status === "ready" && <ExpiryNotifier />}

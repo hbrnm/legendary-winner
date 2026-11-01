@@ -9,8 +9,10 @@ import { isCloudConfigured, supabase } from "@/lib/supabase/client";
 import { SyncEngine, serverMissingKey, type SyncStatus } from "@/lib/sync/engine";
 import { useLiveQuery } from "dexie-react-hooks";
 import { SupabaseFiles, SupabaseRemote } from "@/lib/sync/supabase-remote";
-import { browserPhotoCache, type PhotoCache, type RemoteFiles } from "@/lib/sync/files";
+import { browserPhotoCache, clearPhotoCache, type PhotoCache, type RemoteFiles } from "@/lib/sync/files";
 import type { Role } from "@/lib/domain/types";
+import { deleteAccount as deleteAccountService } from "@/lib/services/household";
+import { reconcileHouseholds } from "@/lib/sync/membership";
 
 export interface HouseholdInfo {
   id: string;
@@ -19,6 +21,26 @@ export interface HouseholdInfo {
 }
 
 export type AppStatus = "loading" | "signed_out" | "no_household" | "ready" | "error";
+
+export interface SignOutResult {
+  success: boolean;
+  unsynced?: number;
+}
+
+/** Numărul total de modificări locale netrimise încă la server (outbox și fotografii) - F04. */
+export async function getUnsyncedCount(db: CamaraDB | null): Promise<number> {
+  if (!db) return 0;
+  try {
+    const [outbox, uploads, removals] = await Promise.all([
+      db.outbox.count(),
+      db.photo_uploads.count(),
+      db.photo_removals.count(),
+    ]);
+    return outbox + uploads + removals;
+  } catch {
+    return 0;
+  }
+}
 
 export interface AppState {
   status: AppStatus;
@@ -40,7 +62,8 @@ export interface AppState {
   switchHousehold: (id: string) => Promise<void>;
   refreshHouseholds: () => Promise<void>;
   syncNow: () => Promise<void>;
-  signOut: () => Promise<void>;
+  signOut: (options?: { force?: boolean }) => Promise<SignOutResult>;
+  deleteAccount: () => Promise<void>;
 }
 
 const AppContext = createContext<AppState | null>(null);
@@ -123,6 +146,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       const d = openDatabase(`camara-${userId}`);
       await seedCatalog(d);
       const list = await loadHouseholds(userId, d);
+      await reconcileHouseholds(d, list.map((h) => h.id));
       let preferred = (await getMeta<string>(d, "active_household")) ?? null;
       try {
         const [{ data: prefs }, { data: admin }, { data: profile }] = await Promise.all([
@@ -186,7 +210,22 @@ export function AppProvider({ children }: { children: ReactNode }) {
   // Sincronizarea: la pornire, la revenirea conexiunii, la revenirea în aplicație, periodic și la notificări în timp real.
   useEffect(() => {
     if (mode !== "cloud" || !db || !activeId) return;
-    const engine = new SyncEngine(db, new SupabaseRemote(supabase()), { files: photoStore.files ?? undefined, cache: photoStore.cache });
+    const engine = new SyncEngine(db, new SupabaseRemote(supabase()), {
+      files: photoStore.files ?? undefined,
+      cache: photoStore.cache,
+      onBeforePull: async () => {
+        if (!user) return;
+        const list = await loadHouseholds(user.id, db);
+        const { revoked } = await reconcileHouseholds(db, list.map((h) => h.id));
+        setHouseholds(list);
+        if (activeId && revoked.includes(activeId)) {
+          const nextActive = list[0]?.id ?? null;
+          await setMeta(db, "active_household", nextActive);
+          setActiveId(nextActive);
+          setStatus(nextActive ? "ready" : "no_household");
+        }
+      },
+    });
     engineRef.current = engine;
     const off = engine.onStatus(setSync);
     let timer: ReturnType<typeof setTimeout> | null = null;
@@ -213,7 +252,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       if (timer) clearTimeout(timer);
       engineRef.current = null;
     };
-  }, [mode, db, activeId, photoStore]);
+  }, [mode, db, activeId, photoStore, user]);
 
   // Pe producție, butonul de fotografie apare abia după ce serverul are tabelul (migrația aplicată).
   const photosMissing = useLiveQuery(async () => (db ? ((await getMeta<boolean>(db, serverMissingKey("recipe_photos"))) ?? null) : null), [db]);
@@ -232,8 +271,14 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const refreshHouseholds = useCallback(async () => {
     if (mode !== "cloud" || !db || !user) return;
     const list = await loadHouseholds(user.id, db);
+    const { revoked } = await reconcileHouseholds(db, list.map((h) => h.id));
     setHouseholds(list);
-    const active = list.find((h) => h.id === activeId) ?? list[0] ?? null;
+    let nextActiveId = activeId;
+    if (activeId && revoked.includes(activeId)) {
+      nextActiveId = list[0]?.id ?? null;
+      await setMeta(db, "active_household", nextActiveId);
+    }
+    const active = list.find((h) => h.id === nextActiveId) ?? list[0] ?? null;
     setActiveId(active?.id ?? null);
     setStatus(active ? "ready" : "no_household");
     await engineRef.current?.syncNow();
@@ -251,15 +296,50 @@ export function AppProvider({ children }: { children: ReactNode }) {
     [db, mode, user],
   );
 
-  const signOut = useCallback(async () => {
+  const signOut = useCallback(
+    async (options?: { force?: boolean }): Promise<SignOutResult> => {
+      if (mode !== "cloud") return { success: true };
+      const current = db;
+
+      // F04: Dacă utilizatorul nu a forțat ieșirea, încercăm sincronizarea
+      // și verificăm dacă există date locale care s-ar pierde ireversibil.
+      if (!options?.force) {
+        try {
+          await engineRef.current?.syncNow();
+        } catch {
+          // Rețeaua este indisponibilă sau sincronizarea a eșuat
+        }
+        const unsynced = await getUnsyncedCount(current);
+        if (unsynced > 0) {
+          return { success: false, unsynced };
+        }
+      }
+
+      await supabase().auth.signOut();
+      // Datele gospodăriei nu rămân pe dispozitiv după deconectare.
+      await clearPhotoCache();
+      if (current) {
+        current.close();
+        await current.delete();
+      }
+      return { success: true };
+    },
+    [mode, db],
+  );
+
+  const deleteAccount = useCallback(async () => {
     if (mode !== "cloud") return;
     const current = db;
+    await deleteAccountService();
     await supabase().auth.signOut();
-    // Datele gospodăriei nu rămân pe dispozitiv după deconectare.
+    await clearPhotoCache();
     if (current) {
       current.close();
       await current.delete();
     }
+    setDb(null);
+    setUser(null);
+    setStatus("signed_out");
   }, [mode, db]);
 
   const value: AppState = {
@@ -283,6 +363,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       await engineRef.current?.syncNow();
     },
     signOut,
+    deleteAccount,
   };
 
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>;

@@ -5,11 +5,12 @@
 import { copyFileSync, mkdirSync, rmSync } from "node:fs";
 import { createRequire } from "node:module";
 import { dirname, join } from "node:path";
+import { fileURLToPath } from "node:url";
 
 const require = createRequire(import.meta.url);
 const version = require("tesseract.js/package.json").version;
-const OUT = new URL(`../public/ocr/${version}/`, import.meta.url).pathname;
-rmSync(new URL("../public/ocr/", import.meta.url).pathname, { recursive: true, force: true });
+const OUT = fileURLToPath(new URL(`../public/ocr/${version}/`, import.meta.url));
+rmSync(fileURLToPath(new URL("../public/ocr/", import.meta.url)), { recursive: true, force: true });
 mkdirSync(OUT, { recursive: true });
 
 const core = dirname(require.resolve("tesseract.js-core/package.json"));

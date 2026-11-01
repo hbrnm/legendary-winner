@@ -60,6 +60,28 @@ describe("translate-recipe", () => {
     expect(pre.status).toBe(204);
   });
 
+  it("respinge corpul cererii care depășește maxBody chiar și fără antet Content-Length (F11)", async () => {
+    const d = deps();
+    const encoder = new TextEncoder();
+    const stream = new ReadableStream({
+      start(c) {
+        c.enqueue(encoder.encode('{"recipe":{"name":"'));
+        c.enqueue(encoder.encode("x".repeat(TRANSLATE_LIMITS.maxBody + 10)));
+        c.enqueue(encoder.encode('","description":"","steps":[]}}'));
+        c.close();
+      },
+    });
+    const streamedReq = new Request("https://f.ro/x", {
+      method: "POST",
+      // @ts-expect-error duplex
+      duplex: "half",
+      headers: { authorization: "Bearer t", "content-type": "application/json" },
+      body: stream,
+    });
+    expect((await handleTranslateRequest(streamedReq, d)).status).toBe(413);
+    expect(d.takeQuota).not.toHaveBeenCalled();
+  });
+
   it("limita de cereri și tokenul nevalid", async () => {
     const over = deps(romanian, false);
     expect(await call({ recipe }, over)).toMatchObject({ status: 429, json: { error: "rate_limited" } });
@@ -144,6 +166,28 @@ describe("geminiTranslator", () => {
     await expect(t(answer("", "SAFETY"))).rejects.toThrow("SAFETY");
     await expect(t(answer('{"name":"Ch', "MAX_TOKENS"))).rejects.toThrow("MAX_TOKENS");
     await expect(t(new Response(JSON.stringify({ candidates: [] })))).rejects.toThrow();
+  });
+
+  it("nu include textul rețetei sau citate din răspunsul AI în mesajul de eroare la JSON invalid (F12)", async () => {
+    const errorSpy = vi.spyOn(console, "error").mockImplementation(() => {});
+    const t = geminiTranslator((async () => answer('{"secret_payload": "TOP_SECRET_12345"')) as unknown as typeof fetch, "k");
+    let caughtError: unknown;
+    try {
+      await t(recipe);
+    } catch (e) {
+      caughtError = e;
+    }
+    expect(caughtError).toBeInstanceOf(Error);
+    expect((caughtError as Error).message).not.toContain("TOP_SECRET_12345");
+    expect((caughtError as Error).message).toBe("răspunsul AI nu are forma cerută");
+
+    await handleTranslateRequest(post({ recipe }), {
+      takeQuota: async () => true,
+      translate: async () => { throw caughtError; },
+    });
+    const logged = errorSpy.mock.calls.map((c) => c.join(" ")).join("\n");
+    expect(logged).not.toContain("TOP_SECRET_12345");
+    errorSpy.mockRestore();
   });
 });
 

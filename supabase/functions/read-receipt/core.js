@@ -124,6 +124,56 @@ var US_MEASURES = [
 ];
 var MEASURE = `(?:${US_MEASURES.map(([w]) => `(${w})`).join("|")})(?!\\p{L})`;
 
+// src/lib/server/edge-body.ts
+async function readJsonBody(req, maxBytes) {
+  const clHeader = req.headers.get("content-length");
+  if (clHeader !== null) {
+    const cl = Number(clHeader);
+    if (Number.isFinite(cl) && cl > maxBytes) {
+      return { ok: false, status: 413, error: "too_large" };
+    }
+  }
+  if (!req.body) {
+    return { ok: false, status: 400, error: "bad_request" };
+  }
+  const reader = req.body.getReader();
+  const chunks = [];
+  let totalBytes = 0;
+  try {
+    for (; ; ) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      if (value) {
+        totalBytes += value.byteLength;
+        if (totalBytes > maxBytes) {
+          await reader.cancel("too_large").catch(() => {
+          });
+          return { ok: false, status: 413, error: "too_large" };
+        }
+        chunks.push(value);
+      }
+    }
+  } catch {
+    return { ok: false, status: 400, error: "bad_request" };
+  }
+  if (chunks.length === 0) {
+    return { ok: false, status: 400, error: "bad_request" };
+  }
+  const total = new Uint8Array(totalBytes);
+  let offset = 0;
+  for (const chunk of chunks) {
+    total.set(chunk, offset);
+    offset += chunk.byteLength;
+  }
+  try {
+    const text = new TextDecoder("utf-8", { fatal: true }).decode(total);
+    const data = JSON.parse(text);
+    return { ok: true, data };
+  } catch {
+    return { ok: false, status: 400, error: "bad_request" };
+  }
+}
+
 // src/lib/server/import-recipe.ts
 var ImportError = class extends Error {
   constructor(code) {
@@ -331,14 +381,9 @@ async function handleReceiptRequest(req, deps, limits = RECEIPT_LIMITS) {
   if (req.method !== "POST") return fail("bad_request");
   const authorization = req.headers.get("authorization") ?? "";
   if (!/^Bearer \S+$/.test(authorization)) return fail("unauthorized");
-  if (Number(req.headers.get("content-length")) > limits.maxBody) return fail("too_large");
-  let body;
-  try {
-    body = await req.json();
-  } catch {
-    return fail("bad_request");
-  }
-  const raw = body?.image;
+  const read = await readJsonBody(req, limits.maxBody);
+  if (!read.ok) return fail(read.error);
+  const raw = read.data?.image;
   if (typeof raw?.data === "string" && raw.data.length > limits.maxImage) return fail("too_large");
   const image = readReceiptImage(raw);
   if (!image) return fail("bad_request");

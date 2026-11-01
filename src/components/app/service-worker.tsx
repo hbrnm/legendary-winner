@@ -19,7 +19,9 @@ export function ServiceWorker() {
       .then((reg) => {
         stopChecking = checkForUpdates(reg, document, () => navigator.onLine);
       })
-      .catch(() => {});
+      .catch((e) => {
+        console.warn("Nu s-a putut înregistra service worker-ul:", e);
+      });
     return () => {
       stopWatching();
       stopChecking();
@@ -30,7 +32,7 @@ export function ServiceWorker() {
 
 export function UpdateBanner({ onReload, onLater }: { onReload: () => void; onLater: () => void }) {
   return (
-    <div role="status" className="pb-safe fixed inset-x-0 bottom-20 z-50 px-4 lg:bottom-6">
+    <div role="status" className="bottom-nav-safe fixed inset-x-0 z-50 mb-3 px-4 lg:bottom-6 lg:mb-0">
       <div className="mx-auto flex max-w-md flex-wrap items-center gap-x-3 gap-y-2 rounded-lg border border-line bg-surface px-4 py-3 shadow-card">
         <p className="min-w-0 basis-full text-[15px] text-ink sm:flex-1 sm:basis-auto">Am adus o versiune nouă a Cămării.</p>
         <div className="ml-auto flex gap-2">

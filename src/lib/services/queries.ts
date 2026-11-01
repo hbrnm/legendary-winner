@@ -41,14 +41,36 @@ export async function listItems(db: CamaraDB, listId: string): Promise<ShoppingL
  * de bifări, deci nu mai e numărat ca „în curs”.
  */
 export async function spendRecords(db: CamaraDB, householdId: string): Promise<ShoppingTransactionItem[]> {
-  const finalized = await owned(db, "shopping_transaction_items", householdId);
-  const transactions = new Map((await owned(db, "shopping_transactions", householdId)).map((t) => [t.id, t]));
+  const [finalized, transactionsList, openLists] = await Promise.all([
+    owned(db, "shopping_transaction_items", householdId),
+    owned(db, "shopping_transactions", householdId),
+    owned(db, "shopping_lists", householdId),
+  ]);
+  const transactions = new Map(transactionsList.map((t) => [t.id, t]));
   const done = finalized.filter((i) => transactions.has(i.transaction_id));
-  const openLists = (await owned(db, "shopping_lists", householdId)).filter((l) => !l.archived_at);
+  const activeLists = openLists.filter((l) => !l.archived_at);
+
+  const listLastCompleted = new Map<string, string>();
+  for (const t of transactionsList) {
+    if (t.list_id && t.completed_at) {
+      const prev = listLastCompleted.get(t.list_id);
+      if (!prev || t.completed_at > prev) {
+        listLastCompleted.set(t.list_id, t.completed_at);
+      }
+    }
+  }
+
+  const itemsPerList = await Promise.all(activeLists.map((l) => listItems(db, l.id)));
   const pending: ShoppingTransactionItem[] = [];
-  for (const list of openLists) {
-    for (const item of await listItems(db, list.id)) {
+  for (let idx = 0; idx < activeLists.length; idx++) {
+    const list = activeLists[idx];
+    const items = itemsPerList[idx];
+    const lastDoneAt = listLastCompleted.get(list.id);
+    for (const item of items) {
       if (!item.checked) continue;
+      // Prevenire F05: dacă bifarea a avut loc înainte de finalizarea turei anterioare a listei,
+      // produsul este deja inclus în tranzacția înregistrată și nu trebuie numărat dublu ca „în curs”.
+      if (lastDoneAt && item.checked_at && item.checked_at <= lastDoneAt) continue;
       pending.push({
         id: `in-curs:${item.id}`,
         household_id: householdId,

@@ -22,8 +22,8 @@ Proprietarul vrea să împartă aplicația (23 oct. 2026). Decizii (chestionar, 
 ## Etape
 | # | Etapa | Stare |
 |---|---|---|
-| 1 | Ciorna: pagina „Confidențialitate și termeni” (`/confidentialitate/`), legături la înregistrare și în Gospodărie; textul în chestionar | de făcut |
-| 2 | Ștergerea contului și descărcarea datelor, verificate (drepturile din GDPR) | de făcut |
+| 1 | Ciorna: paginile „Confidențialitate” (`/confidentialitate/`) și „Termeni” (`/termeni/`), legături la înregistrare și în Gospodărie | gata (1 nov. 2026) |
+| 2 | Ștergerea contului și descărcarea datelor, verificate (drepturile din GDPR: migrația delete_my_account și dialog confirmare) | gata (1 nov. 2026) |
 | 3 | Pregătirea cercului restrâns: SMTP propriu? limitele Gemini și Supabase gratuit, de verificat cu proprietarul | de făcut |
 | 4 | Cercul restrâns (2–3 săptămâni): erorile și costurile, apoi decizia pentru public | de făcut |
 

@@ -194,6 +194,21 @@ describe("invitații și roluri", () => {
     );
   });
 
+  it("un administrator nu poate transforma o invitație în administrator prin UPDATE (F01)", async () => {
+    const h = await createHousehold(ana, "Casa de vacanță 2");
+    const admin = await createUser("Admin2");
+    await addMember(ana, h, admin, "admin");
+    const inv = await asUser(admin, async (q) =>
+      (await q("insert into household_invitations (household_id, role) values ($1, 'member') returning id", [h])).rows[0],
+    );
+    await expect(
+      asUser(admin, (q) => q("update household_invitations set role = 'admin' where id = $1", [inv.id])),
+    ).rejects.toThrow();
+    await expect(
+      asUser(admin, (q) => q("update household_invitations set expires_at = now() + interval '100 years' where id = $1", [inv.id])),
+    ).rejects.toThrow();
+  });
+
   it("doar proprietarul schimbă rolurile și nu poate exista un al doilea proprietar", async () => {
     const h = await createHousehold(ana, "Roluri");
     const m = await createUser("Mihai");
@@ -297,7 +312,7 @@ describe("integritatea datelor", () => {
 describe("funcțiile din baza de date", () => {
   // Doar funcțiile noastre, nu și cele ale extensiilor (pgcrypto).
   const OURS = "p.pronamespace = 'public'::regnamespace and not exists (select 1 from pg_depend d where d.objid = p.oid and d.deptype = 'e')";
-  const RPC = ["accept_invitation", "create_household", "household_member_list", "invitation_preview", "server_now", "transfer_ownership"];
+  const RPC = ["accept_invitation", "create_household", "delete_my_account", "household_member_list", "invitation_preview", "server_now", "transfer_ownership"];
 
   async function callable(role: string) {
     const r = await db().query(
@@ -317,6 +332,22 @@ describe("funcțiile din baza de date", () => {
     const fns = await callable("authenticated");
     expect(fns.filter((f) => f.is_trigger)).toEqual([]);
     expect(fns.map((f) => f.proname)).toEqual(expect.arrayContaining(RPC));
+  });
+
+  it("delete_my_account șterge contul utilizatorului și gospodăriile proprii", async () => {
+    const dan = await createUser("Dan");
+    const hDan = await createHousehold(dan, "Gospodăria lui Dan");
+    const m1 = await db().query("select 1 from household_members where user_id = $1", [dan.id]);
+    expect(m1.rows.length).toBe(1);
+
+    await asUser(dan, (q) => q("select delete_my_account()"));
+
+    const m2 = await db().query("select 1 from household_members where user_id = $1", [dan.id]);
+    expect(m2.rows.length).toBe(0);
+    const h = await db().query("select 1 from households where id = $1", [hDan]);
+    expect(h.rows.length).toBe(0);
+    const p = await db().query("select 1 from profiles where id = $1", [dan.id]);
+    expect(p.rows.length).toBe(0);
   });
 
   it("toate funcțiile au search_path fix", async () => {

@@ -122,4 +122,28 @@ describe("importul copiei de siguranță", () => {
     await expect(importHouseholdData(ctx, JSON.stringify({ format: "altceva" }))).rejects.toThrow("nu este o copie Cămara");
     await expect(importHouseholdData(ctx, JSON.stringify({ format: "camara-export", version: 2, household_id: "h1", tables: {} }))).rejects.toThrow("versiune mai nouă");
   });
+
+  it("refuză o copie de siguranță care conține rânduri invalide sau corupte (F08)", async () => {
+    const validJson = await exportHouseholdData(ctx);
+    const parsed = JSON.parse(validJson);
+    parsed.tables.budgets = [
+      {
+        id: "b-invalid",
+        household_id: ctx.householdId,
+        name: "Buget Corupt",
+        period: "lunar",
+        scope: null, // invalid: lipsește structura { kind: ... }
+        amount: 500,
+        active: true,
+      },
+    ];
+
+    const corruptedJson = JSON.stringify(parsed);
+    const fresh = await newCtx("h1");
+
+    await expect(importHouseholdData(fresh, corruptedJson)).rejects.toThrow(/nu sunt valide|invalid/i);
+
+    const budgets = await fresh.db.budgets.toArray();
+    expect(budgets).toHaveLength(0);
+  });
 });

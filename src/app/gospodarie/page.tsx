@@ -462,6 +462,101 @@ function HouseholdScreen() {
   const [confirmName, setConfirmName] = useState("");
   const [creatingAnother, setCreatingAnother] = useState(false);
   const [profileName, setProfileName] = useState(app.displayName ?? "");
+  const [deletingAccount, setDeletingAccount] = useState(false);
+  const [confirmDeleteText, setConfirmDeleteText] = useState("");
+  const [busyAccount, setBusyAccount] = useState(false);
+  const [unsyncedCount, setUnsyncedCount] = useState<number | null>(null);
+
+  async function handleSignOut(force = false) {
+    const res = await app.signOut({ force });
+    if (res && !res.success && res.unsynced) {
+      setUnsyncedCount(res.unsynced);
+    }
+  }
+
+  const unsyncedSheet = (
+    <ConfirmSheet
+      open={unsyncedCount !== null}
+      onClose={() => setUnsyncedCount(null)}
+      onConfirm={() => {
+        setUnsyncedCount(null);
+        void handleSignOut(true);
+      }}
+      title="Modificări nesincronizate"
+      confirmLabel="Ieși oricum"
+      message={
+        <div className="flex flex-col gap-2">
+          <p>
+            Ai {unsyncedCount === 1 ? "o modificare care nu a fost încă trimisă" : `${unsyncedCount} modificări care nu au fost încă trimise`} la server (nu există conexiune sau serverul nu a răspuns).
+          </p>
+          <p>
+            Dacă te deconectezi acum, aceste date vor fi șterse definitiv de pe acest dispozitiv.
+          </p>
+        </div>
+      }
+    />
+  );
+
+  const accountDeleteSheet = (
+    <Sheet
+      open={deletingAccount}
+      onClose={() => {
+        setDeletingAccount(false);
+        setConfirmDeleteText("");
+      }}
+      title="Ștergi definitiv contul tău?"
+      footer={
+        <Button
+          block
+          variant="danger"
+          disabled={confirmDeleteText.trim() !== "STERGE" || busyAccount}
+          onClick={async () => {
+            setBusyAccount(true);
+            try {
+              await app.deleteAccount();
+              setDeletingAccount(false);
+              toast("Contul tău a fost șters definitiv.");
+              router.push("/autentificare");
+            } catch (e) {
+              toast(e instanceof UserError ? e.message : "Nu am putut șterge contul.", { tone: "error" });
+            } finally {
+              setBusyAccount(false);
+            }
+          }}
+        >
+          {busyAccount ? "Se șterge..." : "Șterge definitiv contul"}
+        </Button>
+      }
+    >
+      <div className="flex flex-col gap-3 text-[15px]">
+        <p>
+          Această acțiune este ireversibilă. Se șterg definitiv contul tău de utilizator, profilul și preferințele.
+        </p>
+        <p className="text-ink-2">
+          Dacă ești unicul proprietar al unei gospodării fără alți membri, aceasta va fi ștearsă complet. Dacă gospodăria are și alți membri, transferă mai întâi rolul de proprietar către alt membru.
+        </p>
+        <LabeledInput
+          label="Scrie „STERGE” cu majuscule ca să confirmi"
+          value={confirmDeleteText}
+          onChange={(e) => setConfirmDeleteText(e.target.value)}
+          placeholder="STERGE"
+          autoFocus
+        />
+      </div>
+    </Sheet>
+  );
+
+  const legalFooter = (
+    <footer className="mt-8 mb-4 flex justify-center gap-4 text-xs text-ink-2">
+      <Link href="/confidentialitate" className="hover:underline">
+        Politica de confidențialitate
+      </Link>
+      <span>·</span>
+      <Link href="/termeni" className="hover:underline">
+        Termeni și condiții
+      </Link>
+    </footer>
+  );
 
   if (app.status === "no_household") {
     return (
@@ -471,9 +566,17 @@ function HouseholdScreen() {
           <CreateHousehold first />
         </Card>
         <p className="mt-4 text-sm text-ink-2">Ai primit o invitație? Deschide linkul primit și vei intra direct în gospodăria respectivă.</p>
-        <Button variant="ghost" className="mt-6" icon={<LogOut size={18} />} onClick={() => app.signOut()}>
-          Ieși din cont
-        </Button>
+        <div className="mt-6 flex flex-col gap-2">
+          <Button variant="ghost" icon={<LogOut size={18} />} onClick={() => void handleSignOut()}>
+            Ieși din cont
+          </Button>
+          <Button variant="danger" icon={<Trash2 size={18} />} onClick={() => setDeletingAccount(true)}>
+            Șterge contul
+          </Button>
+        </div>
+        {legalFooter}
+        {accountDeleteSheet}
+        {unsyncedSheet}
       </>
     );
   }
@@ -606,8 +709,11 @@ function HouseholdScreen() {
             >
               Salvează numele
             </Button>
-            <Button variant="ghost" icon={<LogOut size={18} />} onClick={() => app.signOut()}>
+            <Button variant="ghost" icon={<LogOut size={18} />} onClick={() => void handleSignOut()}>
               Ieși din cont
+            </Button>
+            <Button variant="danger" icon={<Trash2 size={18} />} onClick={() => setDeletingAccount(true)}>
+              Șterge contul
             </Button>
             {household.role === "owner" && (
               <Button variant="danger" icon={<Trash2 size={18} />} onClick={() => setDeleting(true)}>
@@ -672,6 +778,10 @@ function HouseholdScreen() {
           <LabeledInput label={`Scrie „${household.name}” ca să confirmi`} value={confirmName} onChange={(e) => setConfirmName(e.target.value)} />
         </div>
       </Sheet>
+
+      {legalFooter}
+      {accountDeleteSheet}
+      {unsyncedSheet}
     </>
   );
 }

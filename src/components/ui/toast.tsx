@@ -21,7 +21,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
   return (
     <ToastContext.Provider value={show}>
       {children}
-      <div aria-live="polite" className="pointer-events-none fixed inset-x-0 bottom-24 z-50 flex flex-col items-center gap-2 px-4 lg:bottom-6">
+      <div aria-live="polite" className="pointer-events-none bottom-nav-safe fixed inset-x-0 z-50 mb-3 flex flex-col items-center gap-2 px-4 lg:bottom-6 lg:mb-0">
         {items.map((t) => (
           <div
             key={t.id}

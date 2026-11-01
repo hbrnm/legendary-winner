@@ -156,6 +156,19 @@ function AuthScreen() {
             {info}
           </p>
         )}
+        {mode === "cont" && (
+          <p className="text-center text-xs text-ink-2">
+            Prin crearea contului, confirmi că ești de acord cu{" "}
+            <Link href="/termeni" className="underline underline-offset-2 hover:text-ink">
+              Termenii de utilizare
+            </Link>{" "}
+            și{" "}
+            <Link href="/confidentialitate" className="underline underline-offset-2 hover:text-ink">
+              Politica de confidențialitate
+            </Link>
+            .
+          </p>
+        )}
         <Button type="submit" block size="lg" disabled={busy}>
           {mode === "intrare" ? "Intră" : mode === "cont" ? "Creează contul" : mode === "resetare" ? "Trimite linkul" : "Salvează parola"}
         </Button>
@@ -171,6 +184,16 @@ function AuthScreen() {
           Înapoi la intrare
         </button>
       )}
+
+      <footer className="mt-8 flex justify-center gap-4 text-xs text-ink-2">
+        <Link href="/confidentialitate" className="hover:underline">
+          Confidențialitate
+        </Link>
+        <span>·</span>
+        <Link href="/termeni" className="hover:underline">
+          Termeni
+        </Link>
+      </footer>
     </main>
   );
 }

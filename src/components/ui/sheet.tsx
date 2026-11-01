@@ -94,7 +94,11 @@ export function ConfirmSheet({
       title={title}
       footer={
         <div className="flex gap-2">
-          <button type="button" onClick={onClose} className="h-11 flex-1 rounded-lg border border-line bg-surface-2 font-medium">
+          <button
+            type="button"
+            onClick={onClose}
+            className="h-11 flex-1 rounded-lg border border-line bg-surface-2 font-medium transition-colors duration-150 ease-out hover:bg-surface focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand active:scale-[0.98]"
+          >
             Renunță
           </button>
           <button
@@ -103,7 +107,7 @@ export function ConfirmSheet({
               onConfirm();
               onClose();
             }}
-            className="h-11 flex-1 rounded-lg bg-accent font-medium text-brand-ink"
+            className="h-11 flex-1 rounded-lg bg-accent font-medium text-brand-ink transition-opacity duration-150 ease-out hover:opacity-90 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand active:scale-[0.98]"
           >
             {confirmLabel}
           </button>

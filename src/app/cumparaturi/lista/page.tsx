@@ -327,7 +327,7 @@ function ListScreen() {
       {totals && totals.item_count > 0 && <div aria-hidden className={allIn ? "h-28 lg:h-20" : "h-24 lg:h-16"} />}
 
       {totals && totals.item_count > 0 && (
-        <div className="pb-safe fixed inset-x-0 bottom-16 z-30 border-t border-line bg-surface px-4 py-3 lg:bottom-0 lg:left-60">
+        <div className="bottom-nav-safe fixed inset-x-0 z-30 border-t border-line bg-surface px-4 py-3 lg:bottom-0 lg:left-60">
           <div className="mx-auto flex max-w-3xl items-center gap-3">
             <div className="min-w-0 flex-1 tabular">
               <div className="flex flex-wrap items-baseline gap-x-3">

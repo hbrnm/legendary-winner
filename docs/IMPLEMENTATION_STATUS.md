@@ -1,5 +1,7 @@
 # Starea implementării
 
+Verificare locală mai recentă: [28 octombrie 2026](VERIFICARE_2026-10-28.md). Secțiunile de mai jos păstrează auditul istoric din 11 octombrie; nu descriu integral codul actual.
+
 Actualizat: 11 octombrie 2026, seara, `main` la `a9b26a3` (auditul 0.1.1).
 
 ## Criteriile de acceptanță 1–22

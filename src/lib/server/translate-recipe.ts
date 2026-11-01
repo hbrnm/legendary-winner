@@ -7,6 +7,7 @@
 
 import { quotaViaRest } from "./import-recipe";
 import { googleReason, noThinking } from "./gemini";
+import { readJsonBody } from "./edge-body";
 
 export { quotaViaRest };
 
@@ -159,7 +160,12 @@ export function geminiTranslator(fetchFn: typeof fetch, apiKey: string, model = 
     const candidate = body.candidates?.[0];
     const text = candidate?.content?.parts?.map((p) => (typeof p.text === "string" ? p.text : "")).join("");
     if (!text || (candidate?.finishReason && candidate.finishReason !== "STOP")) throw new Error(`Gemini: ${candidate?.finishReason ?? "fără text"}`);
-    return JSON.parse(text);
+    try {
+      return JSON.parse(text);
+    } catch {
+      // Mesajul lui JSON.parse citează din textul traducerii: nu ajunge în jurnal (F12).
+      throw new Error("răspunsul AI nu are forma cerută");
+    }
   };
 }
 
@@ -170,14 +176,9 @@ export async function handleTranslateRequest(req: Request, deps: TranslateDeps, 
   const authorization = req.headers.get("authorization") ?? "";
   if (!/^Bearer \S+$/.test(authorization)) return fail("unauthorized");
 
-  if (Number(req.headers.get("content-length")) > limits.maxBody) return fail("too_large");
-  let body: unknown;
-  try {
-    body = await req.json();
-  } catch {
-    return fail("bad_request");
-  }
-  const recipe = readRecipeText((body as { recipe?: unknown } | null)?.recipe);
+  const read = await readJsonBody<{ recipe?: unknown }>(req, limits.maxBody);
+  if (!read.ok) return fail(read.error);
+  const recipe = readRecipeText(read.data?.recipe);
   if (!recipe) return fail("bad_request");
   if (tooLarge(recipe, limits)) return fail("too_large");
 

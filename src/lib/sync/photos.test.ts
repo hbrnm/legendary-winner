@@ -9,7 +9,7 @@ import { addRecipePhoto, recipePhotoBlob, removeRecipePhoto } from "@/lib/servic
 import { exportHouseholdData, importHouseholdData } from "@/lib/services/backup";
 import { SyncEngine, serverMissingKey } from "./engine";
 import { FakeFiles, FakeRemote } from "./fake-remote";
-import { MemoryPhotoCache } from "./files";
+import { MemoryPhotoCache, clearPhotoCache } from "./files";
 import { classifyStorage } from "./supabase-remote";
 import { RemoteRejected, RemoteUnavailable } from "./remote";
 
@@ -301,5 +301,9 @@ describe("compatibilitatea", () => {
     expect(classifyStorage({ message: "Internal Server Error", status: 500 })).toBeInstanceOf(RemoteUnavailable);
     expect(classifyStorage({ message: "Invalid key", status: 400, statusCode: "InvalidKey" })).toBeInstanceOf(RemoteRejected);
     expect(classifyStorage({ message: '"exp" claim timestamp check failed', statusCode: "403" })).toBeInstanceOf(RemoteUnavailable);
+  });
+
+  it("clearPhotoCache curăță cache-ul fără eroare", async () => {
+    await expect(clearPhotoCache()).resolves.toBeUndefined();
   });
 });

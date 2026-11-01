@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 import { readFileSync } from "node:fs";
-import { handleImportRequest, isPublicAddress, parseImportUrl, quotaViaRest, type ImportDeps } from "./import-recipe";
+import { handleImportRequest, isPublicAddress, parseImportUrl, quotaViaRest, IMPORT_LIMITS, type ImportDeps } from "./import-recipe";
 
 // Funcția Edge import-recipe, fără rețea: paginile vin din fixturile etapei 1,
 // DNS-ul și limita de cereri sunt simulate.
@@ -9,7 +9,7 @@ const fixture = (name: string) => readFileSync(new URL(`../domain/__fixtures__/r
 
 type Page = { status?: number; type?: string; body?: string | Uint8Array; location?: string; length?: number };
 
-function deps(pages: Record<string, Page>, dns: Record<string, string[]> = {}, quota: boolean | null = true) {
+function deps(pages: Record<string, Page> = {}, dns: Record<string, string[]> = {}, quota: boolean | null = true) {
   const fetchFn = vi.fn(async (input: string | URL | Request, init?: RequestInit) => {
     const href = String(input);
     const page = pages[href];
@@ -145,6 +145,27 @@ describe("handleImportRequest", () => {
     const r = await call({ url: "https://exemplu.ro/lent" }, d, undefined, { timeoutMs: 20, maxBytes: 1000, maxImageBytes: 1000, maxRedirects: 3, maxUrlLength: 500 });
     expect(r).toMatchObject({ status: 504, json: { error: "timeout" } });
     expect(d.fetch).not.toHaveBeenCalled();
+  });
+
+  it("limitează corpul cererii către funcția de import chiar și fără Content-Length (F11)", async () => {
+    const { d } = deps();
+    const encoder = new TextEncoder();
+    const stream = new ReadableStream({
+      start(c) {
+        c.enqueue(encoder.encode('{"url":"https://exemplu.ro/'));
+        c.enqueue(encoder.encode("x".repeat(IMPORT_LIMITS.maxBody + 10)));
+        c.enqueue(encoder.encode('"}'));
+        c.close();
+      },
+    });
+    const req = new Request("https://f.ro/import", {
+      method: "POST",
+      // @ts-expect-error duplex
+      duplex: "half",
+      headers: { authorization: "Bearer token-ana", "content-type": "application/json" },
+      body: stream,
+    });
+    expect((await handleImportRequest(req, d)).status).toBe(413);
   });
 
   it("codarea din <meta charset>, când antetul nu o spune; fără Content-Type, pagina e HTML", async () => {

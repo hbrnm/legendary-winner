@@ -1,5 +1,7 @@
 # Ce urmează
 
+Pentru rezultatele locale și pregătirea lansării la 28 octombrie 2026, vezi [raportul de verificare](VERIFICARE_2026-10-28.md) și lucrările [018 — lansare](../.tasks/018-lansare.md), [019 — ghid](../.tasks/019-ghid.md). Etapele istorice de mai jos nu reprezintă integral codul actual.
+
 Ordinea o decide proprietarul. Stările: **implementat** (în `main`), **verificat local** (teste unitare și E2E demonstrativ), **verificat pe Supabase local** (`test:db`, `test:e2e:cloud`), **verificat în producție**, **planificat**, **blocat** (de o decizie a proprietarului).
 
 ## 0.1.0 — publicată (11 oct. 2026)

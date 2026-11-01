@@ -31,6 +31,8 @@ export interface SyncOptions {
   /** Fișierele fotografiilor gospodăriei; fără ele, rândurile cu fișier netrimis rămân în outbox. */
   files?: RemoteFiles;
   cache?: PhotoCache | null;
+  /** Callback executat înainte de tragere (ex. reconcilierea apartenenței la gospodării - F02/F03). */
+  onBeforePull?: () => Promise<void>;
 }
 
 /** În `meta`: true dacă serverul nu are (încă) tabelul opțional, false după ce l-a confirmat. */
@@ -73,6 +75,7 @@ export class SyncEngine {
   private pageSize: number;
   private files: RemoteFiles | null;
   private cache: PhotoCache | null;
+  private onBeforePull: (() => Promise<void>) | null;
 
   constructor(
     private db: CamaraDB,
@@ -83,6 +86,7 @@ export class SyncEngine {
     this.pageSize = opts.pageSize ?? 500;
     this.files = opts.files ?? null;
     this.cache = opts.cache ?? null;
+    this.onBeforePull = opts.onBeforePull ?? null;
   }
 
   getStatus(): SyncStatus {
@@ -252,6 +256,13 @@ export class SyncEngine {
   }
 
   async pull(): Promise<void> {
+    if (this.onBeforePull) {
+      try {
+        await this.onBeforePull();
+      } catch {
+        // Ignorăm erorile pasagere la verificarea dinaintea tragerii
+      }
+    }
     // Ora serverului înainte de prima pagină: tot ce e mai vechi decât ea
     // minus fereastra era confirmat când am citit. Fără ea (funcția încă
     // lipsește de pe server), re-citim fereastra de la cursor, ca înainte.

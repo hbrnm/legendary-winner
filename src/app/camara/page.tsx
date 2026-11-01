@@ -51,9 +51,9 @@ function LocationFilter({ active, onClick, children }: { active: boolean; onClic
       type="button"
       aria-pressed={active}
       onClick={onClick}
-      className={`h-11 min-w-0 rounded-lg border px-1 text-[13px] font-medium transition-colors ${active ? "border-brand bg-brand text-brand-ink" : "border-line bg-surface text-ink-2 hover:text-ink"}`}
+      className={`h-11 min-w-0 rounded-lg border px-1.5 text-[13px] font-medium transition duration-150 ease-out active:scale-[0.98] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand ${active ? "border-brand bg-brand text-brand-ink" : "border-line bg-surface text-ink-2 hover:text-ink"}`}
     >
-      {children}
+      <span className="truncate">{children}</span>
     </button>
   );
 }
@@ -100,7 +100,7 @@ function PantryScreen() {
       useSoon: recipesUsingProducts(recipes, ingredients, soonProducts).slice(0, 4),
       lists: lists.filter((l) => !l.archived_at),
     };
-  });
+  }, [today]);
 
   const filtered = useMemo(() => {
     if (!data) return [];

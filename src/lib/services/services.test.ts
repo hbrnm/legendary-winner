@@ -3,8 +3,8 @@ import { CamaraDB } from "@/lib/db/database";
 import { setClock } from "@/lib/clock";
 import { seedCatalog } from "./bootstrap";
 import type { AppCtx } from "./context";
-import { addItem, createList, deleteList, duplicateList, finalizeShopping, moveItem, restoreDeletedList, setActualPrice, setChecked, updateList } from "./shopping";
-import { addMeal, addPantryItem, addRecipeToList, cookRecipe, generateListFromPlan, saveRecipe, toggleFavorite } from "./kitchen";
+import { addItem, createList, deleteList, duplicateList, finalizeShopping, moveItem, restoreDeletedList, restoreList, setActualPrice, setChecked, updateList } from "./shopping";
+import { addMeal, addPantryItem, addRecipeToList, adjustPantry, cookRecipe, generateListFromPlan, saveRecipe, toggleFavorite } from "./kitchen";
 import { createBudget, recordPrice } from "./money";
 import { createProduct, productSearchIndex } from "./catalog";
 import { listItems, owned, priceIndex, spendRecords } from "./queries";
@@ -104,6 +104,58 @@ describe("de la plan la buget (experiența centrală)", () => {
     expect(paid).toMatchObject([{ product_id: "piept-pui", amount: 19.5, quantity: 600, unit: "g", observed_on: "2026-03-08" }]);
     const pantry = await owned(ctx.db, "pantry_items", ctx.householdId);
     expect(pantry.filter((p) => p.product_id === "piept-pui").map((p) => p.location_id).sort()).toEqual(["congelator", "frigider"]);
+  });
+
+  it("readucerea unei liste finalizate nu dublează cheltuiala în buget (F05)", async () => {
+    const listId = await createList(ctx, { name: "Profi", is_recurring: false });
+    const id = await addItem(ctx, listId, { name: "Brânză", product_id: null, quantity: 1 });
+    await setActualPrice(ctx, id, 10);
+    await setChecked(ctx, id, true);
+
+    const categories = new Map((await ctx.db.product_categories.toArray()).map((c) => [c.id, c]));
+    const bId = await createBudget(ctx, { name: "Lunar", period: "lunar", scope: { kind: "total" }, amount: 100 });
+    const budget = (await ctx.db.budgets.get(bId))!;
+
+    let status = budgetStatus(budget, await spendRecords(ctx.db, ctx.householdId), categories, "2026-03-08");
+    expect(status.spent).toBe(10);
+
+    await finalizeShopping(ctx, listId, { addToPantry: false });
+    status = budgetStatus(budget, await spendRecords(ctx.db, ctx.householdId), categories, "2026-03-08");
+    expect(status.spent).toBe(10);
+
+    // Readucere listă finalizată („Reactivează” / „Scoate înapoi”)
+    await restoreList(ctx, listId);
+
+    // F05: Bugetul trebuie să rămână 10 RON, fără dublarea cu produsele rămase bifate
+    status = budgetStatus(budget, await spendRecords(ctx.db, ctx.householdId), categories, "2026-03-08");
+    expect(status.spent).toBe(10);
+
+    const items = await listItems(ctx.db, listId);
+    expect(items[0]).toMatchObject({ checked: false, actual_price: null });
+  });
+
+  it("finalizarea este atomică și face rollback complet în caz de eroare (F06)", async () => {
+    const listId = await createList(ctx, { name: "Penny" });
+    const id = await addItem(ctx, listId, { product_id: "rosii", quantity: 1 });
+    await setActualPrice(ctx, id, 10);
+    await setChecked(ctx, id, true);
+
+    const hook = () => {
+      throw new Error("Eroare simulată la actualizarea ciclului listei");
+    };
+    ctx.db.shopping_lists.hook("updating", hook);
+
+    try {
+      await expect(finalizeShopping(ctx, listId, { addToPantry: true })).rejects.toThrow("Eroare simulată");
+      const txs = await ctx.db.shopping_transactions.toArray();
+      const txItems = await ctx.db.shopping_transaction_items.toArray();
+      const prices = (await ctx.db.product_prices.toArray()).filter((p) => p.price_type === "platit");
+      expect(txs).toHaveLength(0);
+      expect(txItems).toHaveLength(0);
+      expect(prices).toHaveLength(0);
+    } finally {
+      ctx.db.shopping_lists.hook("updating").unsubscribe(hook);
+    }
   });
 
   it("dacă doi membri finalizează aceeași tură, cheltuiala apare o singură dată", async () => {
@@ -270,6 +322,27 @@ describe("rețete și cămară", () => {
     expect(await toggleFavorite(ctx, "sarmale")).toBe(false);
     expect(await toggleFavorite(ctx, "sarmale")).toBe(true);
     expect(await ctx.db.favorite_recipes.count()).toBe(1);
+  });
+
+  it("actualizările concurente ale cantităților în cămară nu pierd operații (F07)", async () => {
+    const id = await addPantryItem(ctx, { name: "Orez", quantity: 1, unit: "buc", location_id: "camara" });
+
+    await Promise.all([
+      adjustPantry(ctx, id, 1),
+      adjustPantry(ctx, id, 1),
+      adjustPantry(ctx, id, 1),
+    ]);
+
+    let item = await ctx.db.pantry_items.get(id);
+    expect(item?.quantity).toBe(4);
+
+    await Promise.all([
+      adjustPantry(ctx, id, -1),
+      adjustPantry(ctx, id, -1),
+    ]);
+
+    item = await ctx.db.pantry_items.get(id);
+    expect(item?.quantity).toBe(2);
   });
 });
 
