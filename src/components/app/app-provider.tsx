@@ -9,7 +9,7 @@ import { isCloudConfigured, supabase } from "@/lib/supabase/client";
 import { SyncEngine, serverMissingKey, type SyncStatus } from "@/lib/sync/engine";
 import { useLiveQuery } from "dexie-react-hooks";
 import { SupabaseFiles, SupabaseRemote } from "@/lib/sync/supabase-remote";
-import { browserPhotoCache, type PhotoCache, type RemoteFiles } from "@/lib/sync/files";
+import { browserPhotoCache, clearPhotoCache, type PhotoCache, type RemoteFiles } from "@/lib/sync/files";
 import type { Role } from "@/lib/domain/types";
 
 export interface HouseholdInfo {
@@ -256,6 +256,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     const current = db;
     await supabase().auth.signOut();
     // Datele gospodăriei nu rămân pe dispozitiv după deconectare.
+    await clearPhotoCache();
     if (current) {
       current.close();
       await current.delete();

@@ -26,6 +26,13 @@ export interface PhotoCache {
 const CACHE_NAME = "fotografii-retete";
 const PREFIX = "/__fotografii/";
 
+/** Golește cache-ul fotografiilor (la deconectarea din cont). */
+export async function clearPhotoCache(): Promise<void> {
+  if (typeof caches !== "undefined") {
+    await caches.delete(CACHE_NAME).catch(() => {});
+  }
+}
+
 export function browserPhotoCache(): PhotoCache | null {
   if (typeof caches === "undefined") return null;
   const open = () => caches.open(CACHE_NAME);
