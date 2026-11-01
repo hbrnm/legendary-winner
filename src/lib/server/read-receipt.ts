@@ -9,6 +9,7 @@
 
 import { quotaViaRest } from "./import-recipe";
 import { googleReason, noThinking } from "./gemini";
+import { readJsonBody } from "./edge-body";
 import { RECEIPT_CATEGORIES, readReceiptJson, type ReceiptJson } from "../domain/receipt-json";
 
 export { noThinking, quotaViaRest };
@@ -175,14 +176,9 @@ export async function handleReceiptRequest(req: Request, deps: ReceiptDeps, limi
   const authorization = req.headers.get("authorization") ?? "";
   if (!/^Bearer \S+$/.test(authorization)) return fail("unauthorized");
 
-  if (Number(req.headers.get("content-length")) > limits.maxBody) return fail("too_large");
-  let body: unknown;
-  try {
-    body = await req.json();
-  } catch {
-    return fail("bad_request");
-  }
-  const raw = (body as { image?: { data?: unknown } } | null)?.image;
+  const read = await readJsonBody<{ image?: { data?: unknown } }>(req, limits.maxBody);
+  if (!read.ok) return fail(read.error);
+  const raw = read.data?.image;
   if (typeof raw?.data === "string" && raw.data.length > limits.maxImage) return fail("too_large");
   const image = readReceiptImage(raw);
   if (!image) return fail("bad_request");

@@ -68,19 +68,19 @@
 - Test: `src/lib/server/edge-body.test.ts`
 - Generated: `supabase/functions/*/core.js`
 
-- [ ] **Step 1: Scrie testele unitare pentru `readJsonBody`**
+- [x] **Step 1: Scrie testele unitare pentru `readJsonBody`**
   Creează `src/lib/server/edge-body.test.ts` cu teste pentru:
   - Corp valid sub limită -> returnează `{ ok: true, data }`.
   - Content-Length depășit -> respinge imediat cu `{ ok: false, status: 413, error: "too_large" }`.
   - Stream fără Content-Length dar cu octeți peste limită -> întrerupe stream-ul și returnează `{ ok: false, status: 413, error: "too_large" }`.
   - JSON invalid -> returnează `{ ok: false, status: 400, error: "bad_request" }`.
-- [ ] **Step 2: Implementează `readJsonBody` în `src/lib/server/edge-body.ts`**
+- [x] **Step 2: Implementează `readJsonBody` în `src/lib/server/edge-body.ts`**
   Implementează citirea pe bucăți din `req.body` (`ReadableStream<Uint8Array>`), decodarea cu `TextDecoder` și parsarea în siguranță cu plafon maxim de octeți.
-- [ ] **Step 3: Integrează `readJsonBody` în cele 3 handlere Edge**
+- [x] **Step 3: Integrează `readJsonBody` în cele 3 handlere Edge**
   Înlocuiește citirea `req.json()` cu `readJsonBody(req, limits.maxBody)` în `translate-recipe.ts`, `read-receipt.ts` și `import-recipe.ts`.
-- [ ] **Step 4: Rulează toate testele de server și actualizează bundle-urile**
+- [x] **Step 4: Rulează toate testele de server și actualizează bundle-urile**
   Rulează `npx vitest run src/lib/server/` și `npm run build:functions`. Asigură-te că `scripts/build-functions.test.ts` trece.
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
   `git commit -m "fix(security): limitare flux octeti in functiile edge fara content-length (F11)"`
 
 ---

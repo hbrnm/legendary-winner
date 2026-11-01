@@ -6,6 +6,7 @@
 // Nu păstrează paginile.
 
 import { draftFromHtml, type RecipeDraft } from "../domain/recipe-import";
+import { readJsonBody } from "./edge-body";
 
 export type ImportErrorCode =
   | "bad_request"
@@ -31,6 +32,8 @@ export interface ImportDeps {
 }
 
 export const IMPORT_LIMITS = {
+  /** Limita corpului cererii JSON (F11). */
+  maxBody: 100_000,
   /** Timpul total pentru pagină, cu tot cu redirecționări. */
   timeoutMs: 10_000,
   maxBytes: 3_000_000,
@@ -298,14 +301,10 @@ export async function handleImportRequest(req: Request, deps: ImportDeps, limits
   const authorization = req.headers.get("authorization") ?? "";
   if (!/^Bearer \S+$/.test(authorization)) return fail("unauthorized");
 
-  let body: unknown;
-  try {
-    body = await req.json();
-  } catch {
-    return fail("bad_request");
-  }
+  const read = await readJsonBody<{ url?: unknown; image?: unknown }>(req, limits.maxBody);
+  if (!read.ok) return fail(read.error);
   // `{"image": "https://…"}`: fotografia rețetei citite înainte (.tasks/013); altfel `{"url"}`: pagina.
-  const wanted = body as { url?: unknown; image?: unknown } | null;
+  const wanted = read.data;
   const image = typeof wanted?.image === "string";
   if (image && wanted?.url !== undefined) return fail("bad_request");
   const url = parseImportUrl(image ? wanted?.image : wanted?.url);

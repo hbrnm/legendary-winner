@@ -7,6 +7,7 @@
 
 import { quotaViaRest } from "./import-recipe";
 import { googleReason, noThinking } from "./gemini";
+import { readJsonBody } from "./edge-body";
 
 export { quotaViaRest };
 
@@ -175,14 +176,9 @@ export async function handleTranslateRequest(req: Request, deps: TranslateDeps, 
   const authorization = req.headers.get("authorization") ?? "";
   if (!/^Bearer \S+$/.test(authorization)) return fail("unauthorized");
 
-  if (Number(req.headers.get("content-length")) > limits.maxBody) return fail("too_large");
-  let body: unknown;
-  try {
-    body = await req.json();
-  } catch {
-    return fail("bad_request");
-  }
-  const recipe = readRecipeText((body as { recipe?: unknown } | null)?.recipe);
+  const read = await readJsonBody<{ recipe?: unknown }>(req, limits.maxBody);
+  if (!read.ok) return fail(read.error);
+  const recipe = readRecipeText(read.data?.recipe);
   if (!recipe) return fail("bad_request");
   if (tooLarge(recipe, limits)) return fail("too_large");
 
