@@ -5,7 +5,26 @@ import { forwardRef, useId, type InputHTMLAttributes, type ReactNode, type Selec
 const FIELD =
   "w-full rounded-lg border border-line bg-surface px-3.5 text-base text-ink placeholder:text-ink-3 focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/25 disabled:opacity-60";
 
-export function Field({ label, hint, error, children, htmlFor }: { label: string; hint?: string; error?: string | null; children: ReactNode; htmlFor?: string }) {
+export function Field({
+  label,
+  hint,
+  error,
+  children,
+  htmlFor,
+  hintId,
+  errorId,
+}: {
+  label: string;
+  hint?: string;
+  error?: string | null;
+  children: ReactNode;
+  htmlFor?: string;
+  hintId?: string;
+  errorId?: string;
+}) {
+  const finalErrorId = errorId ?? (htmlFor ? `${htmlFor}-error` : undefined);
+  const finalHintId = hintId ?? (htmlFor ? `${htmlFor}-hint` : undefined);
+
   return (
     <div className="flex flex-col gap-1.5">
       <label htmlFor={htmlFor} className="text-sm font-medium text-ink-2">
@@ -13,11 +32,13 @@ export function Field({ label, hint, error, children, htmlFor }: { label: string
       </label>
       {children}
       {error ? (
-        <p role="alert" className="text-sm text-accent">
+        <p id={finalErrorId} role="alert" className="text-sm text-accent">
           {error}
         </p>
       ) : hint ? (
-        <p className="text-xs text-ink-2">{hint}</p>
+        <p id={finalHintId} className="text-xs text-ink-2">
+          {hint}
+        </p>
       ) : null}
     </div>
   );
@@ -40,20 +61,53 @@ export function Select({ className = "", children, ...rest }: SelectHTMLAttribut
 }
 
 /** Câmp etichetat într-un singur rând de cod. */
-export function LabeledInput({ label, hint, error, ...rest }: InputHTMLAttributes<HTMLInputElement> & { label: string; hint?: string; error?: string | null }) {
-  const id = useId();
+export function LabeledInput({
+  label,
+  hint,
+  error,
+  id: explicitId,
+  ...rest
+}: InputHTMLAttributes<HTMLInputElement> & { label: string; hint?: string; error?: string | null }) {
+  const generatedId = useId();
+  const id = explicitId ?? generatedId;
+  const errorId = error ? `${id}-error` : undefined;
+  const hintId = !error && hint ? `${id}-hint` : undefined;
+  const describedBy = errorId ?? hintId ?? rest["aria-describedby"];
+
   return (
-    <Field label={label} hint={hint} error={error} htmlFor={id}>
-      <Input id={id} {...rest} />
+    <Field label={label} hint={hint} error={error} htmlFor={id} errorId={errorId} hintId={hintId}>
+      <Input
+        id={id}
+        aria-describedby={describedBy}
+        aria-invalid={error ? true : undefined}
+        {...rest}
+      />
     </Field>
   );
 }
 
-export function LabeledSelect({ label, hint, children, ...rest }: SelectHTMLAttributes<HTMLSelectElement> & { label: string; hint?: string }) {
-  const id = useId();
+export function LabeledSelect({
+  label,
+  hint,
+  error,
+  id: explicitId,
+  children,
+  ...rest
+}: SelectHTMLAttributes<HTMLSelectElement> & { label: string; hint?: string; error?: string | null }) {
+  const generatedId = useId();
+  const id = explicitId ?? generatedId;
+  const errorId = error ? `${id}-error` : undefined;
+  const hintId = !error && hint ? `${id}-hint` : undefined;
+  const describedBy = errorId ?? hintId ?? rest["aria-describedby"];
+
   return (
-    <Field label={label} hint={hint} htmlFor={id}>
-      <Select id={id} {...rest}>
+    <Field label={label} hint={hint} error={error} htmlFor={id} errorId={errorId} hintId={hintId}>
+      <Select
+        id={id}
+        aria-describedby={describedBy}
+        aria-invalid={error ? true : undefined}
+        {...rest}
+      >
         {children}
       </Select>
     </Field>
