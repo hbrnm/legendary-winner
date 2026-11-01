@@ -1,7 +1,21 @@
 import { expect, test } from "@playwright/test";
 import { createList, quickAdd, start } from "./helpers";
 
-const PAGES = ["/", "/cumparaturi/", "/retete/", "/retete/import/", "/plan/", "/buget/", "/buget/preturi/", "/camara/", "/gospodarie/", "/admin/", "/cumparaturi/istoric/"];
+const PAGES = [
+  "/",
+  "/cumparaturi/",
+  "/retete/",
+  "/retete/import/",
+  "/plan/",
+  "/buget/",
+  "/buget/preturi/",
+  "/camara/",
+  "/gospodarie/",
+  "/admin/",
+  "/cumparaturi/istoric/",
+  "/confidentialitate/",
+  "/termeni/",
+];
 
 for (const width of [360, 1280]) {
   test(`fără derulare orizontală la ${width}px`, async ({ page }) => {
@@ -10,7 +24,7 @@ for (const width of [360, 1280]) {
     for (const path of PAGES) {
       await page.goto(path);
       await expect(page.locator("main")).toBeVisible();
-      await page.waitForTimeout(300);
+      await page.waitForLoadState("domcontentloaded");
       const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
       expect(overflow, path).toBeLessThanOrEqual(0);
     }

@@ -19,7 +19,9 @@ export function ServiceWorker() {
       .then((reg) => {
         stopChecking = checkForUpdates(reg, document, () => navigator.onLine);
       })
-      .catch(() => {});
+      .catch((e) => {
+        console.warn("Nu s-a putut înregistra service worker-ul:", e);
+      });
     return () => {
       stopWatching();
       stopChecking();
