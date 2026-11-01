@@ -43,7 +43,24 @@ export async function archiveList(ctx: AppCtx, id: string) {
 }
 
 export async function restoreList(ctx: AppCtx, id: string) {
+  const list = await ctx.db.shopping_lists.get(id);
+  if (!list || list.deleted_at) throw new UserError("Lista nu mai există.");
   await updateRow(ctx.db, "shopping_lists", id, { archived_at: null }, w(ctx));
+  // Dacă lista a fost anterior finalizată (tura > 0), produsele se resetează pentru o tură nouă (F05)
+  if (list.cycle > 0) {
+    const items = await listItems(ctx.db, id);
+    for (const item of items) {
+      if (item.checked || item.actual_price != null || item.receipt_name) {
+        await updateRow(
+          ctx.db,
+          "shopping_list_items",
+          item.id,
+          { checked: false, checked_at: null, checked_by: null, actual_price: null, ...(item.receipt_name ? { receipt_name: null } : {}) },
+          w(ctx),
+        );
+      }
+    }
+  }
 }
 
 export async function deleteList(ctx: AppCtx, id: string) {

@@ -3,7 +3,7 @@ import { CamaraDB } from "@/lib/db/database";
 import { setClock } from "@/lib/clock";
 import { seedCatalog } from "./bootstrap";
 import type { AppCtx } from "./context";
-import { addItem, createList, deleteList, duplicateList, finalizeShopping, moveItem, restoreDeletedList, setActualPrice, setChecked, updateList } from "./shopping";
+import { addItem, createList, deleteList, duplicateList, finalizeShopping, moveItem, restoreDeletedList, restoreList, setActualPrice, setChecked, updateList } from "./shopping";
 import { addMeal, addPantryItem, addRecipeToList, cookRecipe, generateListFromPlan, saveRecipe, toggleFavorite } from "./kitchen";
 import { createBudget, recordPrice } from "./money";
 import { createProduct, productSearchIndex } from "./catalog";
@@ -104,6 +104,34 @@ describe("de la plan la buget (experiența centrală)", () => {
     expect(paid).toMatchObject([{ product_id: "piept-pui", amount: 19.5, quantity: 600, unit: "g", observed_on: "2026-03-08" }]);
     const pantry = await owned(ctx.db, "pantry_items", ctx.householdId);
     expect(pantry.filter((p) => p.product_id === "piept-pui").map((p) => p.location_id).sort()).toEqual(["congelator", "frigider"]);
+  });
+
+  it("readucerea unei liste finalizate nu dublează cheltuiala în buget (F05)", async () => {
+    const listId = await createList(ctx, { name: "Profi", is_recurring: false });
+    const id = await addItem(ctx, listId, { name: "Brânză", product_id: null, quantity: 1 });
+    await setActualPrice(ctx, id, 10);
+    await setChecked(ctx, id, true);
+
+    const categories = new Map((await ctx.db.product_categories.toArray()).map((c) => [c.id, c]));
+    const bId = await createBudget(ctx, { name: "Lunar", period: "lunar", scope: { kind: "total" }, amount: 100 });
+    const budget = (await ctx.db.budgets.get(bId))!;
+
+    let status = budgetStatus(budget, await spendRecords(ctx.db, ctx.householdId), categories, "2026-03-08");
+    expect(status.spent).toBe(10);
+
+    await finalizeShopping(ctx, listId, { addToPantry: false });
+    status = budgetStatus(budget, await spendRecords(ctx.db, ctx.householdId), categories, "2026-03-08");
+    expect(status.spent).toBe(10);
+
+    // Readucere listă finalizată („Reactivează” / „Scoate înapoi”)
+    await restoreList(ctx, listId);
+
+    // F05: Bugetul trebuie să rămână 10 RON, fără dublarea cu produsele rămase bifate
+    status = budgetStatus(budget, await spendRecords(ctx.db, ctx.householdId), categories, "2026-03-08");
+    expect(status.spent).toBe(10);
+
+    const items = await listItems(ctx.db, listId);
+    expect(items[0]).toMatchObject({ checked: false, actual_price: null });
   });
 
   it("dacă doi membri finalizează aceeași tură, cheltuiala apare o singură dată", async () => {
