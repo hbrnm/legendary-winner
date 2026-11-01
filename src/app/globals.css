@@ -157,6 +157,11 @@ h1 {
   padding-bottom: max(env(safe-area-inset-bottom), 0px);
 }
 
+/* Poziționează elementele fixate exact deasupra barei de navigare de pe mobil. */
+.bottom-nav-safe {
+  bottom: calc(4rem + max(env(safe-area-inset-bottom), 0px));
+}
+
 /* Bifa de pe listă se scrie dintr-o trăsătură (.tasks/017, etapa 2). */
 .draw-check {
   stroke-dasharray: 20;

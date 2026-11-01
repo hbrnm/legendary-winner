@@ -51,3 +51,4 @@ describe("deleteAccount", () => {
     await expect(deleteAccount()).rejects.toThrow("Nu am putut șterge contul.");
   });
 });
+
