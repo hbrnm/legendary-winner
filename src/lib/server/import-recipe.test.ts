@@ -9,7 +9,7 @@ const fixture = (name: string) => readFileSync(new URL(`../domain/__fixtures__/r
 
 type Page = { status?: number; type?: string; body?: string | Uint8Array; location?: string; length?: number };
 
-function deps(pages: Record<string, Page>, dns: Record<string, string[]> = {}, quota: boolean | null = true) {
+function deps(pages: Record<string, Page> = {}, dns: Record<string, string[]> = {}, quota: boolean | null = true) {
   const fetchFn = vi.fn(async (input: string | URL | Request, init?: RequestInit) => {
     const href = String(input);
     const page = pages[href];

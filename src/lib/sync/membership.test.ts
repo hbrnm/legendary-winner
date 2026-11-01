@@ -1,9 +1,10 @@
-import { beforeEach, describe, expect, it } from "vitest";
-import { CamaraDB, purgeHouseholdData, resetPullCursors } from "@/lib/db/database";
+import { describe, expect, it } from "vitest";
+import { CamaraDB, purgeHouseholdData, resetPullCursors, type TableName } from "@/lib/db/database";
 import { insertRow } from "@/lib/db/write";
 import { reconcileHouseholds } from "./membership";
 import { SyncEngine } from "./engine";
 import { FakeRemote } from "./fake-remote";
+import type { PullFrom } from "./remote";
 
 let dbNumber = 0;
 function makeDb() {
@@ -55,15 +56,14 @@ describe("Reconciliere apartenență gospodării (F02 & F03)", () => {
     await insertRow(db, "pantry_items", {
       id: "pantry-1",
       household_id: H_REVOKED,
-      product_id: null,
+      product_id: "prod-faina",
       name: "Făină revocată",
       quantity: 2,
       unit: "kg",
-      location_id: null,
-      expires_at: null,
-      opened_at: null,
+      location_id: "loc-1",
+      purchased_on: null,
+      expires_on: null,
       note: null,
-      sort_order: 0,
     }, { outbox: true });
 
     // Verificăm existența inițială
@@ -132,7 +132,7 @@ describe("Reconciliere apartenență gospodării (F02 & F03)", () => {
     const db = makeDb();
     class HouseholdFakeRemote extends FakeRemote {
       allowedHouseholds: string[] = [];
-      override async pull(table: any, from: any, limit: any) {
+      override async pull(table: TableName, from: PullFrom | null, limit: number) {
         const rows = await super.pull(table, from, limit);
         return rows.filter((r) => !r.household_id || this.allowedHouseholds.includes(r.household_id as string));
       }

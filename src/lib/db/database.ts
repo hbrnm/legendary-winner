@@ -282,7 +282,6 @@ export async function resetPullCursors(db: CamaraDB): Promise<void> {
 export async function purgeHouseholdData(db: CamaraDB, householdId: string): Promise<void> {
   await db.transaction("rw", [...SYNCED_TABLES.map((t) => db.table(t)), db.outbox], async () => {
     for (const table of SYNCED_TABLES) {
-      // @ts-expect-error household_id este indexat pe toate tabelele sincronizate
       await db.table(table).where("household_id").equals(householdId).delete();
     }
     const outboxRows = await db.outbox.toArray();

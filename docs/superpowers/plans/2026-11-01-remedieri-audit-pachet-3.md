@@ -121,13 +121,13 @@
 - Modify: `package.json`
 - Modify: `package-lock.json`
 
-- [ ] **Step 1: Verifică versiunea de patch Zod disponibilă**
+- [x] **Step 1: Verifică versiunea de patch Zod disponibilă**
   Verifică dacă versiunea `4.6.6` rezolvă GHSA-mrhx-c7xc-m3w5.
-- [ ] **Step 2: Actualizează dependența `zod` în mod controlat**
+- [x] **Step 2: Actualizează dependența `zod` în mod controlat**
   Rulează `npm install zod@^4.6.6 --save-exact` sau actualizează la ultima versiune compatibilă de patch, fără `--force`.
-- [ ] **Step 3: Verifică `npm audit`**
+- [x] **Step 3: Verifică `npm audit`**
   Confirmă că vulnerabilitatea Zod nu mai apare în `npm audit`.
-- [ ] **Step 4: Rulează verificarea completă a suitei de teste**
+- [x] **Step 4: Rulează verificarea completă a suitei de teste**
   Rulează `npm test`, `npm run lint`, `npm run typecheck` și `npm run build`.
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
   `git commit -m "fix(security): actualizare zod pentru eliminare vulnerabilitate colectii nesupravegheate (F14)"`

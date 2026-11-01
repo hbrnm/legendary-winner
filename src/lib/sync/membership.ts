@@ -42,3 +42,4 @@ export async function reconcileHouseholds(
   await db.meta.put({ key: "synced_household_ids", value: currentHouseholdIds });
   return result;
 }
+

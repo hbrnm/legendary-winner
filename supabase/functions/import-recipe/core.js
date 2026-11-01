@@ -542,7 +542,8 @@ async function handleImportRequest(req, deps, limits = IMPORT_LIMITS) {
   if (req.method !== "POST") return fail("bad_request");
   const authorization = req.headers.get("authorization") ?? "";
   if (!/^Bearer \S+$/.test(authorization)) return fail("unauthorized");
-  const read = await readJsonBody(req, limits.maxBody);
+  const fullLimits = { ...IMPORT_LIMITS, ...limits };
+  const read = await readJsonBody(req, fullLimits.maxBody);
   if (!read.ok) return fail(read.error);
   const wanted = read.data;
   const image = typeof wanted?.image === "string";
@@ -554,10 +555,10 @@ async function handleImportRequest(req, deps, limits = IMPORT_LIMITS) {
     if (quota === null) return fail("unauthorized");
     if (!quota) return fail("rate_limited");
     if (image) {
-      const photo = await fetchRecipeImage(url, deps, limits);
+      const photo = await fetchRecipeImage(url, deps, fullLimits);
       return new Response(photo.bytes, { status: 200, headers: { ...CORS, "content-type": photo.type, "cache-control": "no-store", "x-content-type-options": "nosniff" } });
     }
-    const page = await fetchRecipePage(url, deps, limits);
+    const page = await fetchRecipePage(url, deps, fullLimits);
     const draft = draftFromHtml(page.html, page.url.href);
     return draft ? reply({ draft }, 200) : fail("no_recipe");
   } catch (e) {
