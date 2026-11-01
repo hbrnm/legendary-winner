@@ -63,6 +63,25 @@ describe("rapoarte", () => {
     expect(csv.startsWith("﻿Data;Produs")).toBe(true);
     expect(csv).toContain("2026-03-02;Produs;1;buc;Legume;;Piață;100,00");
   });
+
+  it("neutralizează formulele spreadsheet în exportul CSV (F10)", () => {
+    const dangerousItem = txItem({
+      name: "=1+1",
+      category_id: "legume",
+      amount: 10,
+      source: "supermarket",
+      retailer_id: "ret1",
+      purchased_at: "2026-03-02T08:00:00Z",
+    });
+    const dangerousRetailers = new Map<string, Retailer>([
+      ["ret1", { id: "ret1", household_id: "h1", created_at: "", updated_at: "", deleted_at: null, name: "+Magazin", kind: "supermarket", details: null }],
+    ]);
+    const dangerousCats = new Map<string, ProductCategory>([
+      ["legume", category({ id: "legume", name: "@Categorii" })],
+    ]);
+    const csv = spendToCsv([dangerousItem], dangerousCats, dangerousRetailers);
+    expect(csv).toContain("2026-03-02;'=1+1;1;buc;'@Categorii;'+Magazin;Supermarket;10,00");
+  });
 });
 
 describe("cumpărăturile din „Diverse” (.tasks/016)", () => {
