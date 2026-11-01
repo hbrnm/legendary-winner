@@ -4,8 +4,10 @@
 // că fișierele din repo sunt la zi.
 import { build } from "esbuild";
 import { readFileSync, writeFileSync } from "node:fs";
+import { fileURLToPath, pathToFileURL } from "node:url";
+import { resolve } from "node:path";
 
-const ROOT = new URL("..", import.meta.url).pathname;
+const ROOT = fileURLToPath(new URL("..", import.meta.url));
 
 export const FUNCTIONS = [
   { entry: "src/lib/server/import-recipe.ts", out: "supabase/functions/import-recipe/core.js" },
@@ -34,7 +36,7 @@ export async function bundle(entry) {
 
 export const current = (out) => readFileSync(ROOT + out, "utf8");
 
-if (process.argv[1] && import.meta.url === new URL(process.argv[1], "file://").href) {
+if (process.argv[1] && import.meta.url === pathToFileURL(resolve(process.argv[1])).href) {
   for (const f of FUNCTIONS) {
     writeFileSync(ROOT + f.out, await bundle(f.entry));
     console.log(`${f.out} actualizat`);

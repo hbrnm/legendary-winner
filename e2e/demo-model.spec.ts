@@ -171,7 +171,9 @@ test("gospodăria model: cămară, listă, buget, plan", async ({ page }) => {
   await expect(ardei).toContainText("preț pentru 6 din 10 ingrediente");
   await expect(page.getByText(/\(parțial\)/)).toHaveCount(0);
   await ardei.click();
-  await expect(page.getByText("Preț pentru 6 din 10 ingrediente")).toBeVisible();
+  await expect(page).toHaveURL(/\/retete\/reteta\/\?id=ardei-umpluti$/);
+  await expect(page.getByRole("heading", { name: "Ardei umpluți", exact: true })).toBeVisible();
+  await expect(page.getByText("Preț pentru 6 din 10 ingrediente", { exact: true })).toBeVisible();
   await expect(page.getByText("pe porție", { exact: true })).toHaveCount(0);
 });
 

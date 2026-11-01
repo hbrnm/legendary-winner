@@ -17,6 +17,8 @@ const eslintConfig = defineConfig([
     // Fișierele OCR copiate la build (scripts/copy-ocr.mjs).
     "public/ocr/**",
     ".local-supabase/**",
+    ".npm-cache/**",
+    ".playwright-browsers/**",
     // Codul funcțiilor Edge, generat de scripts/build-functions.mjs.
     "supabase/functions/*/core.js",
   ]),
