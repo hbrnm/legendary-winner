@@ -121,3 +121,8 @@ export async function updateDisplayName(userId: string, name: string) {
   const { error } = await supabase().from("profiles").update({ display_name: name.trim() }).eq("id", userId);
   if (error) fail(error, "Nu am putut salva numele.");
 }
+
+export async function deleteAccount(): Promise<void> {
+  const { error } = await supabase().rpc("delete_my_account");
+  if (error) fail(error, "Nu am putut șterge contul.");
+}

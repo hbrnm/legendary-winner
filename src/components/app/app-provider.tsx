@@ -11,6 +11,7 @@ import { useLiveQuery } from "dexie-react-hooks";
 import { SupabaseFiles, SupabaseRemote } from "@/lib/sync/supabase-remote";
 import { browserPhotoCache, clearPhotoCache, type PhotoCache, type RemoteFiles } from "@/lib/sync/files";
 import type { Role } from "@/lib/domain/types";
+import { deleteAccount as deleteAccountService } from "@/lib/services/household";
 
 export interface HouseholdInfo {
   id: string;
@@ -41,6 +42,7 @@ export interface AppState {
   refreshHouseholds: () => Promise<void>;
   syncNow: () => Promise<void>;
   signOut: () => Promise<void>;
+  deleteAccount: () => Promise<void>;
 }
 
 const AppContext = createContext<AppState | null>(null);
@@ -263,6 +265,21 @@ export function AppProvider({ children }: { children: ReactNode }) {
     }
   }, [mode, db]);
 
+  const deleteAccount = useCallback(async () => {
+    if (mode !== "cloud") return;
+    const current = db;
+    await deleteAccountService();
+    await supabase().auth.signOut();
+    await clearPhotoCache();
+    if (current) {
+      current.close();
+      await current.delete();
+    }
+    setDb(null);
+    setUser(null);
+    setStatus("signed_out");
+  }, [mode, db]);
+
   const value: AppState = {
     status,
     mode,
@@ -284,6 +301,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       await engineRef.current?.syncNow();
     },
     signOut,
+    deleteAccount,
   };
 
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>;
