@@ -4,7 +4,7 @@ import { setClock } from "@/lib/clock";
 import { seedCatalog } from "./bootstrap";
 import type { AppCtx } from "./context";
 import { addItem, createList, deleteList, duplicateList, finalizeShopping, moveItem, restoreDeletedList, restoreList, setActualPrice, setChecked, updateList } from "./shopping";
-import { addMeal, addPantryItem, addRecipeToList, cookRecipe, generateListFromPlan, saveRecipe, toggleFavorite } from "./kitchen";
+import { addMeal, addPantryItem, addRecipeToList, adjustPantry, cookRecipe, generateListFromPlan, saveRecipe, toggleFavorite } from "./kitchen";
 import { createBudget, recordPrice } from "./money";
 import { createProduct, productSearchIndex } from "./catalog";
 import { listItems, owned, priceIndex, spendRecords } from "./queries";
@@ -322,6 +322,27 @@ describe("rețete și cămară", () => {
     expect(await toggleFavorite(ctx, "sarmale")).toBe(false);
     expect(await toggleFavorite(ctx, "sarmale")).toBe(true);
     expect(await ctx.db.favorite_recipes.count()).toBe(1);
+  });
+
+  it("actualizările concurente ale cantităților în cămară nu pierd operații (F07)", async () => {
+    const id = await addPantryItem(ctx, { name: "Orez", quantity: 1, unit: "buc", location_id: "camara" });
+
+    await Promise.all([
+      adjustPantry(ctx, id, 1),
+      adjustPantry(ctx, id, 1),
+      adjustPantry(ctx, id, 1),
+    ]);
+
+    let item = await ctx.db.pantry_items.get(id);
+    expect(item?.quantity).toBe(4);
+
+    await Promise.all([
+      adjustPantry(ctx, id, -1),
+      adjustPantry(ctx, id, -1),
+    ]);
+
+    item = await ctx.db.pantry_items.get(id);
+    expect(item?.quantity).toBe(2);
   });
 });
 

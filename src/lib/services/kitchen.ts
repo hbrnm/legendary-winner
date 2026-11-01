@@ -229,11 +229,14 @@ export async function updatePantryItem(ctx: AppCtx, id: string, patch: Partial<z
   await updateRow(ctx.db, "pantry_items", id, clean as Partial<PantryItem>, w(ctx));
 }
 
-/** Scade (sau adaugă, cu delta pozitiv) din cantitate; nu coboară sub zero. */
+/** Scade (sau adaugă, cu delta pozitiv) din cantitate; nu coboară sub zero (tranzacție atomică F07). */
 export async function adjustPantry(ctx: AppCtx, id: string, delta: number) {
-  const item = await ctx.db.pantry_items.get(id);
-  if (!item) throw new UserError("Produsul nu mai e în cămară.");
-  await updateRow(ctx.db, "pantry_items", id, { quantity: Math.max(0, Math.round((item.quantity + delta) * 1000) / 1000) }, w(ctx));
+  await ctx.db.transaction("rw", [ctx.db.pantry_items, ctx.db.outbox], async () => {
+    const item = await ctx.db.pantry_items.get(id);
+    if (!item || item.deleted_at) throw new UserError("Produsul nu mai e în cămară.");
+    const next = Math.max(0, Math.round((item.quantity + delta) * 1000) / 1000);
+    await updateRow(ctx.db, "pantry_items", id, { quantity: next }, w(ctx));
+  });
 }
 
 export async function removePantryItem(ctx: AppCtx, id: string) {
