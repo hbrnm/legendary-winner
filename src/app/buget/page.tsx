@@ -73,7 +73,7 @@ function BudgetScreen() {
       openEstimate: sumMoney(open.map((t) => t.remaining_estimate)),
       openUnknown: open.reduce((n, t) => n + t.remaining_unknown_count, 0),
       // Produsele din „Diverse” ale cumpărăturilor încheiate, de mutat (.tasks/016).
-      diverse: (await diverseToSort(ctx)).length,
+      diverse: (await diverseToSort(ctx, spend)).length,
     };
   });
 

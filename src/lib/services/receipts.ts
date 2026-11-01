@@ -1,5 +1,5 @@
 import { z } from "zod";
-import type { ISODate, PurchaseSource, UnitCode } from "@/lib/domain/types";
+import type { ISODate, PurchaseSource, ShoppingTransactionItem, UnitCode } from "@/lib/domain/types";
 import { insertRow, updateRow, upsertRow } from "@/lib/db/write";
 import { newId, stableId } from "@/lib/db/ids";
 import { localDateOf } from "@/lib/domain/dates";
@@ -205,8 +205,11 @@ export async function applyReceipt(ctx: AppCtx, input: ReceiptApplyInput): Promi
  * produse ale gospodăriei sau fără produs. Produsele din catalogul comun aflate
  * în „Diverse” (baterii, becuri) sunt acolo pe bună dreptate și nu se arată.
  */
-export async function diverseToSort(ctx: AppCtx): Promise<DiverseGroup[]> {
-  const [spend, own] = await Promise.all([spendRecords(ctx.db, ctx.householdId), owned(ctx.db, "products", ctx.householdId)]);
+export async function diverseToSort(ctx: AppCtx, preloadedSpend?: ShoppingTransactionItem[]): Promise<DiverseGroup[]> {
+  const [spend, own] = await Promise.all([
+    preloadedSpend ? Promise.resolve(preloadedSpend) : spendRecords(ctx.db, ctx.householdId),
+    owned(ctx.db, "products", ctx.householdId),
+  ]);
   const mine = new Set(own.map((p) => p.id));
   return diverseGroups(
     spend.filter((i) => !i.transaction_id.startsWith("in-curs") && (!i.product_id || mine.has(i.product_id))),

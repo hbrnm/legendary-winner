@@ -31,3 +31,4 @@ execFileSync(process.execPath, [join(ROOT, "scripts", "build-sw.mjs")], {
 if (existsSync(out)) {
   renameSync(out, outCloud);
 }
+

@@ -100,7 +100,7 @@ function PantryScreen() {
       useSoon: recipesUsingProducts(recipes, ingredients, soonProducts).slice(0, 4),
       lists: lists.filter((l) => !l.archived_at),
     };
-  });
+  }, [today]);
 
   const filtered = useMemo(() => {
     if (!data) return [];

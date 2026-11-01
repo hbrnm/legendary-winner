@@ -61,8 +61,11 @@ export function ProductSearch({
     inputRef.current?.focus();
   }
 
-  const found = hits.map((h) => data!.products.get(h.doc.id)).filter((p): p is Product => Boolean(p));
-  const options: (Product | null)[] = allowNew ? [...found, null] : found;
+  const options: (Product | null)[] = useMemo(() => {
+    if (!data) return [];
+    const found = hits.map((h) => data.products.get(h.doc.id)).filter((p): p is Product => Boolean(p));
+    return allowNew ? [...found, null] : found;
+  }, [hits, data, allowNew]);
 
   useEffect(() => {
     if (!enterPending.current || !data) return;
