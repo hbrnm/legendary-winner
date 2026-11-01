@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { averageTrip, budgetStatus, byCategory, diverseGroups, monthlyTotals, spendToCsv, weeklyTotals } from "./budget";
+import { averageTrip, budgetStatus, byCategory, diverseGroups, monthlyTotals, sanitizeCsvFormula, spendToCsv, weeklyTotals } from "./budget";
 import { normalize } from "./search";
 import { budget, category, txItem } from "@/test/factories";
 import type { ProductCategory, Retailer } from "./types";
@@ -64,8 +64,27 @@ describe("rapoarte", () => {
     expect(csv).toContain("2026-03-02;Produs;1;buc;Legume;;Piață;100,00");
   });
 
-  it("neutralizează formulele spreadsheet în exportul CSV (F10)", () => {
-    const dangerousItem = txItem({
+  it("neutralizează caracterele periculoase de formulă (=, +, -, @) prin sanitizeCsvFormula (F10)", () => {
+    // Verificare directă pe toate cele 4 caractere periculoase cerute de F10
+    expect(sanitizeCsvFormula("=1+1")).toBe("'=1+1");
+    expect(sanitizeCsvFormula("+SUM(A1:A10)")).toBe("'+SUM(A1:A10)");
+    expect(sanitizeCsvFormula("-2+5")).toBe("'-2+5");
+    expect(sanitizeCsvFormula("@cmd")).toBe("'@cmd");
+
+    // Cu spații albe sau tab la început
+    expect(sanitizeCsvFormula("  =2*3")).toBe("'  =2*3");
+    expect(sanitizeCsvFormula("\t+cmd")).toBe("'\t+cmd");
+    expect(sanitizeCsvFormula("   -10")).toBe("'   -10");
+    expect(sanitizeCsvFormula("\n@exec")).toBe("'\n@exec");
+
+    // Șiruri inofensive
+    expect(sanitizeCsvFormula("Lapte")).toBe("Lapte");
+    expect(sanitizeCsvFormula("123")).toBe("123");
+    expect(sanitizeCsvFormula("")).toBe("");
+  });
+
+  it("neutralizează formulele spreadsheet în exportul CSV pentru toate caracterele (=, +, -, @) (F10)", () => {
+    const dangerousItem1 = txItem({
       name: "=1+1",
       category_id: "legume",
       amount: 10,
@@ -73,14 +92,24 @@ describe("rapoarte", () => {
       retailer_id: "ret1",
       purchased_at: "2026-03-02T08:00:00Z",
     });
+    const dangerousItem2 = txItem({
+      name: "-2+5",
+      unit: "buc",
+      category_id: "legume",
+      amount: 15,
+      source: "supermarket",
+      retailer_id: "ret1",
+      purchased_at: "2026-03-03T08:00:00Z",
+    });
     const dangerousRetailers = new Map<string, Retailer>([
       ["ret1", { id: "ret1", household_id: "h1", created_at: "", updated_at: "", deleted_at: null, name: "+Magazin", kind: "supermarket", details: null }],
     ]);
     const dangerousCats = new Map<string, ProductCategory>([
       ["legume", category({ id: "legume", name: "@Categorii" })],
     ]);
-    const csv = spendToCsv([dangerousItem], dangerousCats, dangerousRetailers);
+    const csv = spendToCsv([dangerousItem1, dangerousItem2], dangerousCats, dangerousRetailers);
     expect(csv).toContain("2026-03-02;'=1+1;1;buc;'@Categorii;'+Magazin;Supermarket;10,00");
+    expect(csv).toContain("2026-03-03;'-2+5;1;buc;'@Categorii;'+Magazin;Supermarket;15,00");
   });
 });
 
