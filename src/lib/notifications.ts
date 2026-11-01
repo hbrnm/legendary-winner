@@ -36,7 +36,7 @@ export async function notifyExpiring(names: string[], today: string): Promise<vo
   } catch {
     return;
   }
-  const body = names.length === 1 ? `${names[0]} expiră curând.` : `${names.slice(0, 3).join(", ")}${names.length > 3 ? ` și încă ${names.length - 3}` : ""} expiră curând.`;
+  const body = names.length === 1 ? `${names[0]} expiră în curând.` : `${names.slice(0, 3).join(", ")}${names.length > 3 ? ` și încă ${names.length - 3} produse` : ""} expiră în curând.`;
   const reg = "serviceWorker" in navigator ? await navigator.serviceWorker.getRegistration() : undefined;
   if (reg) await reg.showNotification("Cămara", { body, tag: "expirare", icon: "/icons/icon-192.png", data: { url: "/camara/" } });
   else new Notification("Cămara", { body, tag: "expirare" });

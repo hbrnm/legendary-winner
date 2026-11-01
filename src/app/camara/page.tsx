@@ -286,7 +286,7 @@ function PantryScreen() {
                 onClick={async () => {
                   const id = draft.id!;
                   setDraft(null);
-                  await run((ctx) => removePantryItem(ctx, id), "Produsul a fost scos din cămară.");
+                  await run((ctx) => removePantryItem(ctx, id), "Am scos produsul din cămară.");
                 }}
               />
             )}
@@ -299,7 +299,7 @@ function PantryScreen() {
                   if (item) void toShoppingList(item);
                 }}
               >
-                În listă
+                Pune pe listă
               </Button>
             )}
             <Button block onClick={saveDraft} disabled={busy}>
@@ -310,7 +310,7 @@ function PantryScreen() {
       >
         {draft && (
           <div className="flex flex-col gap-4">
-            {!draft.product_id && <LabeledInput label="Denumire" value={draft.name} onChange={(e) => setDraft({ ...draft, name: e.target.value })} maxLength={120} />}
+            {!draft.product_id && <LabeledInput label="Numele produsului" value={draft.name} onChange={(e) => setDraft({ ...draft, name: e.target.value })} maxLength={120} />}
             <Field label="Cantitate">
               <div className="flex gap-2">
                 <Input inputMode="decimal" value={draft.quantity} onChange={(e) => setDraft({ ...draft, quantity: e.target.value })} className="flex-1 tabular" aria-label="Cantitate" />
@@ -323,7 +323,7 @@ function PantryScreen() {
                 </select>
               </div>
             </Field>
-            <LabeledSelect label="Unde e" value={draft.location_id} onChange={(e) => setDraft({ ...draft, location_id: e.target.value })}>
+            <LabeledSelect label="Unde îl ții" value={draft.location_id} onChange={(e) => setDraft({ ...draft, location_id: e.target.value })}>
               {data.locations.map((l) => (
                 <option key={l.id} value={l.id}>
                   {l.name}
@@ -342,7 +342,7 @@ function PantryScreen() {
                 onChange={(e) => setDraft({ ...draft, auto_consume_on: e.target.value })}
                 // De mâine încolo: o zi trecută l-ar scoate din cămară imediat.
                 min={addDays(today, 1)}
-                hint="Apoi îl scot singur din cămară. Golește data ca să rămână."
+                hint="După această dată, îl scot automat din cămară. Șterge data dacă vrei să-l păstrezi."
               />
             )}
             <LabeledInput label="Observații" value={draft.note} onChange={(e) => setDraft({ ...draft, note: e.target.value })} maxLength={300} placeholder="ex. deschis, de folosit în 3 zile" />

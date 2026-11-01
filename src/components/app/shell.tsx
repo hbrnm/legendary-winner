@@ -117,7 +117,7 @@ function RejectedNotice() {
  * Cadrul paginilor aplicației: verifică autentificarea și gospodăria, apoi
  * afișează navigația (jos pe telefon, lateral pe ecrane mari).
  */
-export function AppShell({ children, wide = false }: { children: ReactNode; wide?: boolean }) {
+export function AppShell({ children, wide = false, hideMobileNav = false }: { children: ReactNode; wide?: boolean; hideMobileNav?: boolean }) {
   const app = useApp();
   const pathname = usePathname();
   const router = useRouter();
@@ -147,7 +147,7 @@ export function AppShell({ children, wide = false }: { children: ReactNode; wide
         Sari la conținutul principal
       </a>
       <nav aria-label="Navigare principală" className="sticky top-0 hidden h-dvh w-60 shrink-0 flex-col border-r border-line bg-surface px-3 py-5 lg:flex">
-        <Link href="/" className="mb-6 flex items-center gap-2 px-3 font-serif text-xl font-semibold tracking-tight">
+        <Link href="/" className="mb-6 flex items-center gap-2 px-3 font-serif text-xl font-semibold tracking-tight focus-visible:outline-2 focus-visible:outline-brand focus-visible:outline-offset-2 rounded-md">
           <span className="inline-flex h-8 w-8 items-center justify-center rounded-md bg-brand text-brand-ink">
             <Warehouse size={18} />
           </span>
@@ -158,18 +158,18 @@ export function AppShell({ children, wide = false }: { children: ReactNode; wide
             key={n.href}
             href={n.href}
             aria-current={n.match(pathname) ? "page" : undefined}
-            className={`mb-1 flex h-11 items-center gap-3 rounded-md border-l-2 px-3 text-[15px] transition-colors duration-150 ease-out ${n.match(pathname) ? "border-brand font-medium text-brand" : "border-transparent text-ink-2 hover:bg-surface-2 hover:text-ink"}`}
+            className={`mb-1 flex h-11 items-center gap-3 rounded-md border-l-2 px-3 text-[15px] transition-colors duration-150 ease-out focus-visible:outline-2 focus-visible:outline-brand focus-visible:outline-offset-2 ${n.match(pathname) ? "border-brand font-medium text-brand" : "border-transparent text-ink-2 hover:bg-surface-2 hover:text-ink"}`}
           >
             <n.icon size={20} strokeWidth={1.75} />
             {n.label}
           </Link>
         ))}
-        <Link href="/plan/" className={`mb-1 flex h-11 items-center gap-3 rounded-md border-l-2 px-3 text-[15px] transition-colors duration-150 ease-out ${pathname.startsWith("/plan") ? "border-brand font-medium text-brand" : "border-transparent text-ink-2 hover:bg-surface-2 hover:text-ink"}`}>
+        <Link href="/plan/" className={`mb-1 flex h-11 items-center gap-3 rounded-md border-l-2 px-3 text-[15px] transition-colors duration-150 ease-out focus-visible:outline-2 focus-visible:outline-brand focus-visible:outline-offset-2 ${pathname.startsWith("/plan") ? "border-brand font-medium text-brand" : "border-transparent text-ink-2 hover:bg-surface-2 hover:text-ink"}`}>
           <CalendarDays size={20} strokeWidth={1.75} />
           Planul meselor
         </Link>
         <div className="mt-auto">
-          <Link href="/gospodarie/" className="flex h-11 items-center gap-3 rounded-md border-l-2 border-transparent px-3 text-[15px] text-ink-2 transition-colors duration-150 ease-out hover:bg-surface-2 hover:text-ink">
+          <Link href="/gospodarie/" className="flex h-11 items-center gap-3 rounded-md border-l-2 border-transparent px-3 text-[15px] text-ink-2 transition-colors duration-150 ease-out hover:bg-surface-2 hover:text-ink focus-visible:outline-2 focus-visible:outline-brand focus-visible:outline-offset-2">
             <Settings size={20} strokeWidth={1.75} />
             Gospodărie și setări
           </Link>
@@ -180,13 +180,13 @@ export function AppShell({ children, wide = false }: { children: ReactNode; wide
         <header className="sticky top-0 z-30 border-b border-line bg-bg">
           <div className={`mx-auto flex h-14 items-center justify-between gap-2 px-4 ${wide ? "max-w-5xl" : "max-w-3xl"}`}>
             {/* Doar numele gospodăriei, fără iconiță (decizia proprietarului, 23 oct. 2026). */}
-            <Link href="/" className="flex min-h-11 min-w-0 items-center font-serif text-[17px] font-semibold tracking-tight lg:hidden">
+            <Link href="/" className="flex min-h-11 min-w-0 items-center font-serif text-[17px] font-semibold tracking-tight focus-visible:outline-2 focus-visible:outline-brand rounded-md lg:hidden">
               {app.household?.name ?? "Cămara"}
             </Link>
-            <span className="hidden font-serif text-[17px] font-semibold tracking-tight lg:block">{app.household?.name}</span>
+            <span className="hidden font-serif text-[17px] font-semibold tracking-tight lg:block">{app.household?.name ?? "Cămara"}</span>
             <div className="flex items-center gap-1">
               <SyncIndicator />
-              <Link href="/gospodarie/" aria-label="Gospodărie și setări" className="inline-flex h-11 w-11 items-center justify-center rounded-lg text-ink-2 transition-colors duration-150 ease-out hover:bg-surface-2 lg:hidden">
+              <Link href="/gospodarie/" aria-label="Gospodărie și setări" className="inline-flex h-11 w-11 items-center justify-center rounded-lg text-ink-2 transition-colors duration-150 ease-out hover:bg-surface-2 focus-visible:outline-2 focus-visible:outline-brand lg:hidden">
                 <Settings size={20} strokeWidth={1.75} />
               </Link>
             </div>
@@ -205,25 +205,27 @@ export function AppShell({ children, wide = false }: { children: ReactNode; wide
         </main>
       </div>
 
-      <nav aria-label="Navigare principală" className="pb-safe fixed inset-x-0 bottom-0 z-40 border-t border-line bg-surface lg:hidden">
-        <div className="mx-auto flex max-w-lg">
-          {NAV.map((n) => {
-            const active = n.match(pathname);
-            return (
-              <Link
-                key={n.href}
-                href={n.href}
-                aria-current={active ? "page" : undefined}
-                className={`relative flex h-16 flex-1 flex-col items-center justify-center gap-1 text-[11px] font-medium transition-colors duration-150 ease-out ${active ? "text-brand" : "text-ink-2 active:text-ink"}`}
-              >
-                {active && <span aria-hidden className="absolute inset-x-5 top-0 h-0.5 rounded-b-full bg-brand" />}
-                <n.icon size={22} strokeWidth={active ? 2 : 1.75} />
-                {n.label}
-              </Link>
-            );
-          })}
-        </div>
-      </nav>
+      {!hideMobileNav && (
+        <nav aria-label="Navigare principală" className="pb-safe fixed inset-x-0 bottom-0 z-40 border-t border-line bg-surface lg:hidden">
+          <div className="mx-auto flex max-w-lg">
+            {NAV.map((n) => {
+              const active = n.match(pathname);
+              return (
+                <Link
+                  key={n.href}
+                  href={n.href}
+                  aria-current={active ? "page" : undefined}
+                  className={`relative flex h-16 flex-1 flex-col items-center justify-center gap-1 text-[11px] font-medium transition-colors duration-150 ease-out focus-visible:outline-2 focus-visible:outline-brand ${active ? "text-brand" : "text-ink-2 active:text-ink"}`}
+                >
+                  {active && <span aria-hidden className="absolute inset-x-5 top-0 h-0.5 rounded-b-full bg-brand" />}
+                  <n.icon size={22} strokeWidth={active ? 2 : 1.75} />
+                  {n.label}
+                </Link>
+              );
+            })}
+          </div>
+        </nav>
+      )}
     </div>
   );
 }

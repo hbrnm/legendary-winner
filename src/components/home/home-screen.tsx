@@ -111,7 +111,7 @@ export function HomeScreen() {
   }
 
   const LABEL = "text-xs font-semibold uppercase tracking-wider text-ink-2";
-  const ROW = "transition-colors duration-150 ease-out hover:bg-surface-2 active:bg-surface-2";
+  const ROW = "transition-colors duration-150 ease-out hover:bg-surface-2 active:bg-surface-2 focus-visible:outline-2 focus-visible:outline-brand focus-visible:outline-offset-2";
 
   return (
     <>
@@ -168,7 +168,7 @@ export function HomeScreen() {
         </Link>
       </Card>
 
-      <SectionTitle action={<Link href="/plan/" className="text-sm font-medium text-brand">Planul</Link>}>Azi la masă</SectionTitle>
+      <SectionTitle action={<Link href="/plan/" className="inline-flex min-h-11 items-center px-2 text-sm font-medium text-brand hover:underline focus-visible:outline-2 focus-visible:outline-brand focus-visible:outline-offset-2 rounded-md">Planul</Link>}>Azi la masă</SectionTitle>
       {data.todayMeals.length === 0 ? (
         <Link href="/plan/" className="flex min-h-14 items-center gap-3 rounded-lg border border-dashed border-line px-4 text-[15px] text-ink-2 transition-colors duration-150 ease-out hover:bg-surface">
           <CalendarDays size={20} strokeWidth={1.75} /> Nimic planificat azi. Planifică mesele săptămânii.
@@ -192,7 +192,7 @@ export function HomeScreen() {
 
       {data.expiring.length > 0 && (
         <>
-          <SectionTitle action={<Link href="/camara/" className="text-sm font-medium text-brand">Cămara</Link>}>Expiră curând</SectionTitle>
+          <SectionTitle action={<Link href="/camara/" className="inline-flex min-h-11 items-center px-2 text-sm font-medium text-brand hover:underline focus-visible:outline-2 focus-visible:outline-brand focus-visible:outline-offset-2 rounded-md">Cămara</Link>}>Expiră curând</SectionTitle>
           {/* Etichete de borcan: chenar punctat terracotta, termenul ca o ștampilă (decizia proprietarului, 18 oct. 2026). */}
           <ul className="flex flex-col gap-2">
             {data.expiring.map((i) => {
@@ -210,7 +210,7 @@ export function HomeScreen() {
 
       {data.suggestions.length > 0 && (
         <>
-          <SectionTitle action={<Link href="/retete/" className="text-sm font-medium text-brand">Toate rețetele</Link>}>{MEAL_TITLES[meal]}</SectionTitle>
+          <SectionTitle action={<Link href="/retete/" className="inline-flex min-h-11 items-center px-2 text-sm font-medium text-brand hover:underline focus-visible:outline-2 focus-visible:outline-brand focus-visible:outline-offset-2 rounded-md">Toate rețetele</Link>}>{MEAL_TITLES[meal]}</SectionTitle>
           <Card as="section" aria-label={MEAL_TITLES[meal]} className="divide-y divide-line overflow-hidden">
             {data.suggestions.map(({ recipe, why }) => (
               <Link key={recipe.id} href={`/retete/reteta/?id=${recipe.id}`} className={`flex items-center gap-3 px-3 py-3 ${ROW}`}>
@@ -228,7 +228,7 @@ export function HomeScreen() {
 
       {data.recent.length > 0 && (
         <>
-          <SectionTitle action={<Link href="/cumparaturi/istoric/" className="text-sm font-medium text-brand">Istoric</Link>}>Cheltuieli recente</SectionTitle>
+          <SectionTitle action={<Link href="/cumparaturi/istoric/" className="inline-flex min-h-11 items-center px-2 text-sm font-medium text-brand hover:underline focus-visible:outline-2 focus-visible:outline-brand focus-visible:outline-offset-2 rounded-md">Istoric</Link>}>Cheltuieli recente</SectionTitle>
           {/* Registru: magazinul, data și numărul de produse, suma aliniată la dreapta. */}
           <Card className="divide-y divide-dashed divide-line overflow-hidden">
             {data.recent.map((t) => (

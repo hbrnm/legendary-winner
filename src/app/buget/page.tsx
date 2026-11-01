@@ -150,7 +150,7 @@ function BudgetScreen() {
       if (editing === "nou") await createBudget(ctx, input);
       else await updateBudget(ctx, (editing as Budget).id, input);
       return true;
-    }, "Bugetul a fost salvat.");
+    }, "Am salvat bugetul.");
     if (ok) setEditing(null);
   }
 
@@ -344,7 +344,7 @@ function BudgetScreen() {
                 variant="danger"
                 icon={<Trash2 size={18} />}
                 onClick={async () => {
-                  await run((ctx) => deleteBudget(ctx, (editing as Budget).id), "Bugetul a fost șters.");
+                  await run((ctx) => deleteBudget(ctx, (editing as Budget).id), "Am șters bugetul.");
                   setEditing(null);
                 }}
               >

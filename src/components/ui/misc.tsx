@@ -89,7 +89,7 @@ export function DualBudgetBar({ spent, pending, total, label }: { spent: number;
     >
       <div data-part="cheltuit" className={`h-full ${spent > total ? "bg-accent" : "bg-brand"}`} style={{ width: pct(spent) }} />
       <div data-part="cos" className="h-full bg-warn" style={{ width: pct(pending) }} />
-      {over && total > 0 && <div aria-hidden className="absolute inset-y-0 w-0.5 bg-ink" style={{ left: pct(total) }} />}
+      {over && total > 0 && <div aria-hidden className="absolute inset-y-0 w-1 -translate-x-1/2 bg-surface shadow-card ring-1 ring-ink/30" style={{ left: pct(total) }} />}
     </div>
   );
 }

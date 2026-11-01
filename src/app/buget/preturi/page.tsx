@@ -132,7 +132,7 @@ function PricesScreen() {
       }
       await recordPrice(ctx, { product_id: product.id, amount: a, quantity: q, unit, source, retailer_id: rid, price_type: type, observed_on: date, variant_id: variantsEnabled ? variantId : null });
       return true;
-    }, "Prețul a fost salvat.");
+    }, "Am salvat prețul.");
     if (ok) setAdding(false);
   }
 

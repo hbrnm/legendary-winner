@@ -1,6 +1,7 @@
 "use client";
 
 import { forwardRef, useId, useRef, type InputHTMLAttributes, type KeyboardEvent, type ReactNode, type SelectHTMLAttributes, type TextareaHTMLAttributes } from "react";
+import { ChevronDown } from "lucide-react";
 
 const FIELD =
   "w-full rounded-lg border border-line bg-surface px-3.5 text-base text-ink placeholder:text-ink-3 focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/25 disabled:opacity-60";
@@ -54,9 +55,12 @@ export function TextArea({ className = "", ...rest }: TextareaHTMLAttributes<HTM
 
 export function Select({ className = "", children, ...rest }: SelectHTMLAttributes<HTMLSelectElement>) {
   return (
-    <select className={`${FIELD} h-11 appearance-none bg-[length:16px] pr-9 ${className}`} {...rest}>
-      {children}
-    </select>
+    <div className="relative w-full">
+      <select className={`${FIELD} h-11 appearance-none pr-9 ${className}`} {...rest}>
+        {children}
+      </select>
+      <ChevronDown size={18} strokeWidth={1.75} aria-hidden className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-ink-3" />
+    </div>
   );
 }
 

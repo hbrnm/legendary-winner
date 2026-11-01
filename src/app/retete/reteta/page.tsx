@@ -178,7 +178,7 @@ function RecipeScreen() {
         <div className="p-3">
           <Users size={18} strokeWidth={1.75} className="mx-auto text-ink-2" />
           <div className="mt-1 flex items-center justify-center gap-1">
-            <button type="button" aria-label="Mai puține porții" onClick={() => setServings(Math.max(1, servings - 1))} className="group inline-flex h-11 w-8 items-center justify-center">
+            <button type="button" aria-label="Mai puține porții" onClick={() => setServings(Math.max(1, servings - 1))} className="group inline-flex h-11 w-11 items-center justify-center">
               <span className="inline-flex h-7 w-7 items-center justify-center rounded-full bg-surface-2 transition-colors duration-150 ease-out group-active:bg-line">
                 <Minus size={14} />
               </span>
@@ -186,7 +186,7 @@ function RecipeScreen() {
             <span className="w-6 text-sm font-semibold" aria-live="polite">
               {servings}
             </span>
-            <button type="button" aria-label="Mai multe porții" onClick={() => setServings(Math.min(50, servings + 1))} className="group inline-flex h-11 w-8 items-center justify-center">
+            <button type="button" aria-label="Mai multe porții" onClick={() => setServings(Math.min(50, servings + 1))} className="group inline-flex h-11 w-11 items-center justify-center">
               <span className="inline-flex h-7 w-7 items-center justify-center rounded-full bg-surface-2 transition-colors duration-150 ease-out group-active:bg-line">
                 <Plus size={14} />
               </span>
@@ -285,10 +285,10 @@ function RecipeScreen() {
               Fără: {view.nutrition.missing.map((m) => `${data.products.get(m.product_id)?.name ?? m.product_id}${m.frying ? " (pentru prăjit)" : ""}`).join(", ")}.
             </p>
           )}
-          <p className="mt-2 text-xs text-ink-3">Din CIQUAL (Franța) și USDA (SUA), pentru ingredientele crude.</p>
+          <p className="mt-2 text-xs text-ink-2">Din CIQUAL (Franța) și USDA (SUA), pentru ingredientele crude.</p>
         </Card>
       ) : (
-        <p className="text-xs text-ink-3">Valorile nutriționale nu sunt disponibile pentru această rețetă.</p>
+        <p className="text-xs text-ink-2">Valorile nutriționale nu sunt disponibile pentru această rețetă.</p>
       )}
 
       <SectionTitle>Mod de preparare</SectionTitle>
@@ -324,7 +324,7 @@ function RecipeScreen() {
             block
             disabled={busy}
             onClick={async () => {
-              const ok = await run((ctx) => addMeal(ctx, { date: planDate, slot: planSlot, recipe_id: id, servings }), "Rețeta a intrat în plan.");
+              const ok = await run((ctx) => addMeal(ctx, { date: planDate, slot: planSlot, recipe_id: id, servings }), "Am pus rețeta în plan.");
               if (ok) setPlanOpen(false);
             }}
           >
@@ -375,7 +375,7 @@ function RecipeScreen() {
         message={r.household_id ? "Rețeta dispare pentru toată gospodăria. Mesele deja planificate cu ea rămân în istoric." : "Rețeta dispare din catalogul comun, pentru toți utilizatorii."}
         confirmLabel="Șterge"
         onConfirm={async () => {
-          await run((ctx) => deleteRecipe(ctx, id), "Rețeta a fost ștearsă.");
+          await run((ctx) => deleteRecipe(ctx, id), "Am șters rețeta.");
           router.push("/retete/");
         }}
       />

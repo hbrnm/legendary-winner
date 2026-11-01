@@ -215,7 +215,7 @@ function HistoryScreen() {
         onConfirm={async () => {
           const id = openId!;
           setOpenId(null);
-          await run((ctx) => deleteTransaction(ctx, id), "Cumpărătura a fost ștearsă din istoric.");
+          await run((ctx) => deleteTransaction(ctx, id), "Am șters cumpărătura din istoric.");
         }}
       />
     </>

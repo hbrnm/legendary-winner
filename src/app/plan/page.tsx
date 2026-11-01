@@ -7,6 +7,7 @@ import { ChevronLeft, ChevronRight, Copy, Plus, Search, ShoppingBasket, Trash2 }
 import { AppShell } from "@/components/app/shell";
 import { useAction, useData } from "@/components/app/hooks";
 import { Button, IconButton } from "@/components/ui/button";
+import { RecipeBookIcon } from "@/components/ui/icons";
 import { Card, PageHeader, Spinner } from "@/components/ui/misc";
 import { Sheet } from "@/components/ui/sheet";
 import { LabeledInput, LabeledSelect, Toggle } from "@/components/ui/fields";
@@ -114,6 +115,12 @@ function PlanScreen() {
                 ` · ${partialCostLabel(data.weekPriced, data.weekCostable)}`
               ))}
           </span>
+        }
+        action={
+          <Link href="/retete/" className="inline-flex h-11 items-center gap-2 rounded-lg border border-line bg-surface px-3 text-[15px] font-medium transition-colors duration-150 ease-out hover:bg-surface-2 focus-visible:outline-2 focus-visible:outline-brand">
+            <RecipeBookIcon size={18} strokeWidth={1.75} />
+            <span>Rețete</span>
+          </Link>
         }
       />
 
@@ -258,7 +265,7 @@ function PlanScreen() {
               <Button
                 variant="secondary"
                 onClick={async () => {
-                  await run((ctx) => moveMeal(ctx, editing.id, moveDate, moveSlot), "Masa a fost mutată.");
+                  await run((ctx) => moveMeal(ctx, editing.id, moveDate, moveSlot), "Am mutat masa.");
                   setEditing(null);
                   if (moveDate < week || moveDate > addDays(week, 6)) setWeek(startOfWeek(moveDate));
                 }}
@@ -268,11 +275,11 @@ function PlanScreen() {
               <Button
                 variant="secondary"
                 onClick={async () => {
-                  await run((ctx) => duplicateMeal(ctx, editing.id, moveDate, moveSlot), "Masa a fost duplicată.");
+                  await run((ctx) => duplicateMeal(ctx, editing.id, moveDate, moveSlot), "Am copiat masa.");
                   setEditing(null);
                 }}
               >
-                Duplică aici
+                Copiază aici
               </Button>
             </div>
             <div className="flex gap-2">

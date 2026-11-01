@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useId, useState } from "react";
 import { useRouter } from "next/navigation";
 import { ArrowLeft, Plus, Trash2 } from "lucide-react";
 import { useApp } from "@/components/app/app-provider";
@@ -54,6 +54,7 @@ export function RecipeEditor({ id, isGlobal, source, imported, onBack }: { id: s
   const router = useRouter();
   const { isAppAdmin } = useApp();
   const { run, busy } = useAction();
+  const descId = useId();
   const r = source.recipe;
   const d = imported?.draft;
   const [name, setName] = useState(r?.name ?? d?.name ?? "");
@@ -161,8 +162,8 @@ export function RecipeEditor({ id, isGlobal, source, imported, onBack }: { id: s
 
       <div className="flex flex-col gap-4">
         <LabeledInput label="Numele rețetei" value={name} onChange={(e) => setName(e.target.value)} maxLength={120} required />
-        <Field label="Descriere scurtă">
-          <TextArea value={description} onChange={(e) => setDescription(e.target.value)} maxLength={1000} className="min-h-16" />
+        <Field label="Descriere scurtă" htmlFor={descId}>
+          <TextArea id={descId} value={description} onChange={(e) => setDescription(e.target.value)} maxLength={1000} className="min-h-16" />
         </Field>
         <Field label="Categorii">
           <div className="flex flex-wrap gap-2">
@@ -222,7 +223,7 @@ export function RecipeEditor({ id, isGlobal, source, imported, onBack }: { id: s
               <div className="flex items-center gap-2">
                 <span className="min-w-0 flex-1">
                   <span className="font-medium">{i.name}</span>
-                  {i.text && <span className="block truncate text-xs text-ink-3">din rețetă: {i.text}</span>}
+                  {i.text && <span className="block truncate text-xs text-ink-2">din rețetă: {i.text}</span>}
                 </span>
                 {i.text && (
                   <button type="button" onClick={() => patch(i.key, { product_id: "", name: "" })} className="h-11 shrink-0 rounded-lg px-2 text-sm text-brand hover:bg-surface-2">

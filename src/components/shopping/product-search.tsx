@@ -103,8 +103,9 @@ export function ProductSearch({
           placeholder={placeholder}
           aria-label="Caută sau adaugă un produs"
           role="combobox"
-          aria-expanded={text.length > 0}
-          aria-controls="rezultate-produse"
+          aria-expanded={Boolean(text.trim() && options.length > 0)}
+          aria-controls={text.trim() && options.length > 0 ? "rezultate-produse" : undefined}
+          aria-activedescendant={text.trim() && options.length > 0 && options[active] !== undefined ? `produs-opt-${active}` : undefined}
           aria-autocomplete="list"
           enterKeyHint="done"
           autoComplete="off"
@@ -119,25 +120,26 @@ export function ProductSearch({
       {text.trim() && options.length > 0 && (
         <ul id="rezultate-produse" role="listbox" className={`${inline ? "" : "absolute inset-x-0 top-full z-20 shadow-card"} mt-1 overflow-hidden rounded-lg border border-line bg-surface`}>
           {options.map((p, i) => (
-            <li key={p?.id ?? "_nou"} role="option" aria-selected={i === active}>
-              <button
-                type="button"
-                onMouseEnter={() => setActive(i)}
-                onClick={() => pick(p)}
-                className={`flex min-h-12 w-full items-center justify-between gap-3 px-4 py-2 text-left ${i === active ? "bg-surface-2" : ""}`}
-              >
-                {p ? (
-                  <>
-                    <span className="text-[15px] text-ink">{p.name}</span>
-                    <span className="shrink-0 text-xs text-ink-2">{parsed.quantity ? formatQuantity(parsed.quantity, parsed.unit ?? p.default_unit) : ""}</span>
-                  </>
-                ) : (
-                  <span className="flex items-center gap-2 text-[15px] text-brand">
-                    <Plus size={16} />
-                    Adaugă „{parsed.text}” ca produs nou
-                  </span>
-                )}
-              </button>
+            <li
+              key={p?.id ?? "_nou"}
+              id={`produs-opt-${i}`}
+              role="option"
+              aria-selected={i === active}
+              onMouseEnter={() => setActive(i)}
+              onClick={() => pick(p)}
+              className={`flex min-h-12 w-full cursor-pointer items-center justify-between gap-3 px-4 py-2 text-left transition-colors duration-150 ease-out select-none ${i === active ? "bg-surface-2" : "hover:bg-surface-2/60"}`}
+            >
+              {p ? (
+                <>
+                  <span className="text-[15px] text-ink">{p.name}</span>
+                  <span className="shrink-0 text-xs text-ink-2">{parsed.quantity ? formatQuantity(parsed.quantity, parsed.unit ?? p.default_unit) : ""}</span>
+                </>
+              ) : (
+                <span className="flex items-center gap-2 text-[15px] font-medium text-brand">
+                  <Plus size={16} />
+                  Adaugă „{parsed.text}” ca produs nou
+                </span>
+              )}
             </li>
           ))}
         </ul>

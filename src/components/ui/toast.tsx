@@ -32,7 +32,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
             {t.action && (
               <button
                 type="button"
-                className="font-semibold underline underline-offset-2"
+                className="inline-flex min-h-11 items-center px-2 font-semibold underline underline-offset-2 rounded focus-visible:outline-2 focus-visible:outline-brand-ink"
                 onClick={() => {
                   t.action!.run();
                   setItems((xs) => xs.filter((x) => x.id !== t.id));

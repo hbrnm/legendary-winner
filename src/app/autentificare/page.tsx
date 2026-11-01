@@ -124,8 +124,8 @@ function AuthScreen() {
           ]}
         />
       )}
-      {mode === "resetare" && <h2 className="text-lg font-semibold">Ai uitat parola?</h2>}
-      {mode === "parola-noua" && <h2 className="text-lg font-semibold">Alege o parolă nouă</h2>}
+      {mode === "resetare" && <h2 className="font-serif text-xl font-semibold text-ink">Ai uitat parola?</h2>}
+      {mode === "parola-noua" && <h2 className="font-serif text-xl font-semibold text-ink">Alege o parolă nouă</h2>}
 
       <form
         className="mt-5 flex flex-col gap-4"
@@ -175,22 +175,22 @@ function AuthScreen() {
       </form>
 
       {mode === "intrare" && (
-        <button type="button" onClick={() => setMode("resetare")} className="mt-4 text-sm text-ink-2 underline underline-offset-2">
+        <button type="button" onClick={() => setMode("resetare")} className="mt-4 inline-flex min-h-11 items-center px-2 text-sm text-ink-2 underline underline-offset-2 hover:text-ink focus-visible:outline-2 focus-visible:outline-brand rounded">
           Am uitat parola
         </button>
       )}
       {mode === "resetare" && (
-        <button type="button" onClick={() => setMode("intrare")} className="mt-4 text-sm text-ink-2 underline underline-offset-2">
+        <button type="button" onClick={() => setMode("intrare")} className="mt-4 inline-flex min-h-11 items-center px-2 text-sm text-ink-2 underline underline-offset-2 hover:text-ink focus-visible:outline-2 focus-visible:outline-brand rounded">
           Înapoi la intrare
         </button>
       )}
 
-      <footer className="mt-8 flex justify-center gap-4 text-xs text-ink-2">
-        <Link href="/confidentialitate" className="hover:underline">
+      <footer className="mt-8 flex justify-center items-center gap-4 text-xs text-ink-2">
+        <Link href="/confidentialitate" className="inline-flex min-h-11 items-center px-2 hover:underline focus-visible:outline-2 focus-visible:outline-brand rounded">
           Confidențialitate
         </Link>
-        <span>·</span>
-        <Link href="/termeni" className="hover:underline">
+        <span aria-hidden>·</span>
+        <Link href="/termeni" className="inline-flex min-h-11 items-center px-2 hover:underline focus-visible:outline-2 focus-visible:outline-brand rounded">
           Termeni
         </Link>
       </footer>

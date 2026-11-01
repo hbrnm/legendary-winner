@@ -53,3 +53,6 @@ next-env.d.ts
 
 # fișierele OCR, copiate la build (scripts/copy-ocr.mjs)
 /public/ocr/
+
+# agenți și unelte locale
+/.agents/

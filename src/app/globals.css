@@ -27,6 +27,7 @@
   --sprout-ink: #fbfaf6;
   --wood: #7a5a3c;
   --shadow: 0 1px 2px rgb(28 36 30 / 0.06);
+  --backdrop-overlay: rgb(28 36 30 / 0.45);
   color-scheme: light;
 }
 
@@ -54,6 +55,7 @@
     --sprout-ink: #10180f;
     --wood: #c9a57e;
     --shadow: 0 1px 2px rgb(0 0 0 / 0.3);
+    --backdrop-overlay: rgb(0 0 0 / 0.65);
     color-scheme: dark;
   }
 }
@@ -81,6 +83,7 @@
   --sprout-ink: #10180f;
   --wood: #c9a57e;
   --shadow: 0 1px 2px rgb(0 0 0 / 0.3);
+  --backdrop-overlay: rgb(0 0 0 / 0.65);
   color-scheme: dark;
 }
 
@@ -105,6 +108,7 @@
   --color-sprout: var(--sprout);
   --color-sprout-ink: var(--sprout-ink);
   --color-wood: var(--wood);
+  --color-backdrop-overlay: var(--backdrop-overlay);
   --shadow-card: var(--shadow);
   /* Fonturile vin din src/app/fonts.ts (fișiere locale, licență OFL); fiecare are
      două subseturi: latin și latin-ext (ă, ș, ț), puse unul după altul. */

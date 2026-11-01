@@ -1,10 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useId, useState } from "react";
 import { Minus, Plus, Trash2 } from "lucide-react";
 import { Sheet } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
-import { Field, Input, LabeledSelect, Segmented, TextArea } from "@/components/ui/fields";
+import { Field, Input, LabeledInput, LabeledSelect, Segmented, TextArea } from "@/components/ui/fields";
 import type { ProductCategory, ProductVariant, PurchaseSource, Retailer, ShoppingList, ShoppingListItem, UnitCode } from "@/lib/domain/types";
 import { VariantPicker, type NewVariant } from "./variant-picker";
 import { SHOPPING_UNITS, unitLabel } from "@/lib/domain/units";
@@ -80,6 +80,7 @@ function ItemSheetForm({ item, estimate, categories, retailers, lists, focusPric
   const [priority, setPriority] = useState<"normala" | "ridicata">(item.priority);
   const [note, setNote] = useState(item.note ?? "");
   const [name, setName] = useState(item.name);
+  const noteId = useId();
   const [error, setError] = useState<string | null>(null);
   const [atShelf, setAtShelf] = useState(false);
   const [shelf, setShelf] = useState<Pick<Shelf, "price" | "basis">>({ price: "", basis: defaultShelfBasis(item.unit) });
@@ -259,12 +260,10 @@ function ItemSheetForm({ item, estimate, categories, retailers, lists, focusPric
           </LabeledSelect>
         </div>
 
-        <Field label="Denumire">
-          <Input value={name} onChange={(e) => setName(e.target.value)} maxLength={120} />
-        </Field>
+        <LabeledInput label="Numele produsului" value={name} onChange={(e) => setName(e.target.value)} maxLength={120} />
 
-        <Field label="Observații">
-          <TextArea value={note} onChange={(e) => setNote(e.target.value)} maxLength={500} placeholder="ex. cel de 3,5% grăsime" className="min-h-16" />
+        <Field label="Observații" htmlFor={noteId}>
+          <TextArea id={noteId} value={note} onChange={(e) => setNote(e.target.value)} maxLength={500} placeholder="ex. cel de 3,5% grăsime" className="min-h-16" />
         </Field>
 
         {lists.length > 0 && (

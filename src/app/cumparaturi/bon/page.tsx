@@ -450,9 +450,9 @@ function ReceiptScreen() {
                 <span className="text-sm text-ink-2">lei</span>
               </div>
             )}
-            <label className="flex min-h-11 items-center gap-2 text-sm text-ink-2">
-              <input type="checkbox" className="h-5 w-5" checked={!l.keep} onChange={(e) => update(l.key, { keep: !e.target.checked })} />
-              {typed ? "Nu e un produs (scris greșit)" : "Nu e un produs (reducere, garanție, citit greșit)"}
+            <label className="flex min-h-11 items-center gap-2 text-sm text-ink-2 cursor-pointer select-none">
+              <input type="checkbox" className="h-5 w-5 rounded border-line text-brand focus:ring-brand" checked={l.keep} onChange={(e) => update(l.key, { keep: e.target.checked })} />
+              <span>{l.keep ? "Păstrează pe bon" : (typed ? "Exclus (nu e un produs)" : "Exclus (reducere, garanție sau citit greșit)")}</span>
             </label>
           </li>
         ))}

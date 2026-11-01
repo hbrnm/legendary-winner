@@ -140,12 +140,12 @@ function Members() {
                       label="Copiază linkul"
                       onClick={async () => {
                         await navigator.clipboard?.writeText(hh.invitationLink(i.token));
-                        toast("Linkul a fost copiat.");
+                        toast("Am copiat linkul.");
                       }}
                     >
                       <Copy size={16} />
                     </IconButton>
-                    <IconButton label="Anulează invitația" onClick={() => act(() => hh.revokeInvitation(i.id), "Invitația a fost anulată.")}>
+                    <IconButton label="Anulează invitația" onClick={() => act(() => hh.revokeInvitation(i.id), "Am anulat invitația.")}>
                       <Trash2 size={16} />
                     </IconButton>
                   </li>
@@ -172,7 +172,7 @@ function Members() {
                 icon={<Copy size={18} />}
                 onClick={async () => {
                   await navigator.clipboard?.writeText(hh.invitationLink(created.token));
-                  toast("Linkul a fost copiat.");
+                  toast("Am copiat linkul.");
                 }}
               >
                 Copiază
@@ -248,7 +248,7 @@ function MemberSheet({ member, onClose, onAct }: { member: hh.Member | null; onC
         <div className="flex flex-col gap-2">
           <p className="mb-2 text-sm text-ink-2">{ROLE_LABELS[member.role]}</p>
           {iAmOwner && !self && member.role !== "owner" && (
-            <Button variant="secondary" onClick={() => onAct(() => hh.setMemberRole(household.id, member.user_id, member.role === "admin" ? "member" : "admin"), "Rolul a fost schimbat.").then(onClose)}>
+            <Button variant="secondary" onClick={() => onAct(() => hh.setMemberRole(household.id, member.user_id, member.role === "admin" ? "member" : "admin"), "Am schimbat rolul.").then(onClose)}>
               {member.role === "admin" ? "Fă-l membru simplu" : "Fă-l administrator"}
             </Button>
           )}
@@ -287,9 +287,9 @@ function MemberSheet({ member, onClose, onAct }: { member: hh.Member | null; onC
             await onAct(() => hh.removeMember(household.id, member.user_id), "Ai părăsit gospodăria.");
             await app.refreshHouseholds();
             router.push("/");
-          } else if (confirm === "remove") await onAct(() => hh.removeMember(household.id, member.user_id), "Membrul a fost scos.");
+          } else if (confirm === "remove") await onAct(() => hh.removeMember(household.id, member.user_id), "Am scos membrul din gospodărie.");
           else {
-            await onAct(() => hh.transferOwnership(household.id, member.user_id), "Gospodăria a fost predată.");
+            await onAct(() => hh.transferOwnership(household.id, member.user_id), "Ai predat gospodăria cu succes.");
             await app.refreshHouseholds();
           }
           onClose();
@@ -547,12 +547,12 @@ function HouseholdScreen() {
   );
 
   const legalFooter = (
-    <footer className="mt-8 mb-4 flex justify-center gap-4 text-xs text-ink-2">
-      <Link href="/confidentialitate" className="hover:underline">
+    <footer className="mt-8 mb-4 flex justify-center items-center gap-4 text-xs text-ink-2">
+      <Link href="/confidentialitate" className="inline-flex min-h-11 items-center px-2 hover:underline focus-visible:outline-2 focus-visible:outline-brand rounded">
         Politica de confidențialitate
       </Link>
-      <span>·</span>
-      <Link href="/termeni" className="hover:underline">
+      <span aria-hidden>·</span>
+      <Link href="/termeni" className="inline-flex min-h-11 items-center px-2 hover:underline focus-visible:outline-2 focus-visible:outline-brand rounded">
         Termeni și condiții
       </Link>
     </footer>
@@ -701,7 +701,7 @@ function HouseholdScreen() {
               onClick={async () => {
                 try {
                   await hh.updateDisplayName(app.userId!, profileName);
-                  toast("Numele a fost salvat.");
+                  toast("Am salvat numele.");
                 } catch (e) {
                   toast(e instanceof UserError ? e.message : "Nu a mers.", { tone: "error" });
                 }

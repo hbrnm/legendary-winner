@@ -53,7 +53,7 @@ export function Sheet({ open, onClose, title, children, footer }: { open: boolea
       }}
       aria-label={title}
       style={keyboardStyle}
-      className="m-0 mt-auto max-h-[92dvh] w-full max-w-none rounded-t-xl border border-line bg-surface p-0 text-ink shadow-card backdrop:bg-ink/40 sm:m-auto sm:max-w-lg sm:rounded-xl"
+      className="m-0 mt-auto max-h-[92dvh] w-full max-w-none rounded-t-xl border border-line bg-surface p-0 text-ink shadow-card backdrop:bg-backdrop-overlay sm:m-auto sm:max-w-lg sm:rounded-xl"
     >
       {open && (
         <div className="flex max-h-[inherit] flex-col">

@@ -52,7 +52,7 @@ function validateRow(table: TableName, row: Row): void {
   if (!schema) return;
   const result = schema.safeParse(row);
   if (!result.success) {
-    throw new UserError(`Datele din tabela ${table} nu sunt valide (${result.error.issues[0]?.message ?? "format incorect"}).`);
+    throw new UserError(`Datele din tabela ${table} nu sunt valide. Te rugăm să folosești o copie de siguranță neschimbată.`);
   }
 }
 

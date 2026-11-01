@@ -180,7 +180,11 @@ function ListScreen() {
         >
           <CheckMark checked={item.checked} animate={lingering.has(item.id)} />
         </button>
-        <button type="button" onClick={() => setEditing({ id: item.id, focusPrice: false })} className="flex min-h-14 min-w-0 flex-1 flex-col justify-center py-2 pr-2 text-left">
+        <button
+          type="button"
+          onClick={() => setEditing({ id: item.id, focusPrice: false })}
+          className="flex min-h-14 min-w-0 flex-1 flex-col justify-center py-2 pr-2 text-left transition-colors duration-150 ease-out hover:bg-surface-2/60 active:bg-surface-2 rounded-l-md focus-visible:outline-2 focus-visible:outline-brand focus-visible:outline-offset-2"
+        >
           <span className={`text-[15px] leading-tight ${item.checked ? "text-ink-3 line-through" : "text-ink"}`}>
             {item.name}
             {item.priority === "ridicata" && !item.checked && (
@@ -197,17 +201,17 @@ function ListScreen() {
           type="button"
           onClick={() => setEditing({ id: item.id, focusPrice: true })}
           aria-label={`Prețul pentru ${item.name}`}
-          className="flex w-24 shrink-0 flex-col items-end justify-center pr-4 text-right"
+          className="flex w-24 shrink-0 flex-col items-end justify-center pr-4 text-right transition-colors duration-150 ease-out hover:bg-surface-2/60 active:bg-surface-2 rounded-r-md focus-visible:outline-2 focus-visible:outline-brand focus-visible:outline-offset-2"
         >
           {item.actual_price != null ? (
             <span className="text-sm font-medium text-ink">{formatRon(item.actual_price)}</span>
           ) : est.amount != null ? (
             <>
               <span className="text-[13px] text-ink-2">~{formatRon(est.amount)}</span>
-              {flag && <span className="font-sans text-[11px] leading-tight text-ink-3">{flag}</span>}
+              {flag && <span className="font-sans text-[11px] leading-tight text-ink-2">{flag}</span>}
             </>
           ) : (
-            <span className="font-sans text-xs text-ink-3">{item.checked ? "cât a costat?" : "preț?"}</span>
+            <span className="font-sans text-xs text-ink-2">{item.checked ? "cât a costat?" : "preț?"}</span>
           )}
         </button>
       </li>
@@ -324,15 +328,15 @@ function ListScreen() {
       )}
 
       {/* Loc pentru bara cu totalul, fixată jos, ca ultimele rânduri să nu rămână sub ea. */}
-      {totals && totals.item_count > 0 && <div aria-hidden className={allIn ? "h-28 lg:h-20" : "h-24 lg:h-16"} />}
+      {totals && totals.item_count > 0 && <div aria-hidden className={allIn ? "h-36 lg:h-20" : "h-32 lg:h-16"} />}
 
       {totals && totals.item_count > 0 && (
-        <div className="bottom-nav-safe fixed inset-x-0 z-30 border-t border-line bg-surface px-4 py-3 lg:bottom-0 lg:left-60">
+        <div className="fixed inset-x-0 bottom-0 pb-safe z-30 border-t border-line bg-surface px-4 py-3 lg:left-60">
           <div className="mx-auto flex max-w-3xl items-center gap-3">
             <div className="min-w-0 flex-1 tabular">
               <div className="flex flex-wrap items-baseline gap-x-3">
                 <span className="text-lg font-medium">{formatRon(totals.spent)}</span>
-                <span className="text-xs text-ink-2">dați până acum{totals.projected_total > totals.spent ? ` · cam ${formatRon(totals.projected_total)} în total` : ""}</span>
+                <span className="text-xs text-ink-2">plătiți până acum{totals.projected_total > totals.spent ? ` · cam ${formatRon(totals.projected_total)} în total` : ""}</span>
               </div>
               <div className="text-xs text-ink-2">
                 {totals.unknown_price_count > 0 && <span>{totals.unknown_price_count} încă fără preț · </span>}
@@ -389,14 +393,14 @@ function ListScreen() {
           setEditing(null);
         }}
         onMove={async (to) => {
-          await run((ctx) => shop.moveItem(ctx, editingItem!.id, to), "Produsul a fost mutat.");
+          await run((ctx) => shop.moveItem(ctx, editingItem!.id, to), "Am mutat produsul.");
           setEditing(null);
         }}
         onDelete={async () => {
           const item = editingItem!;
           setEditing(null);
           await run((ctx) => shop.deleteItem(ctx, item.id));
-          toast(`„${item.name}” a fost scos din listă.`, {
+          toast(`Am scos „${item.name}” din listă.`, {
             action: {
               label: "Anulează",
               run: () => void run((ctx) => shop.restoreItem(ctx, item.id)),
@@ -428,7 +432,7 @@ function ListScreen() {
               },
             },
             list.archived_at
-              ? { icon: Archive, label: "Scoate înapoi", run: () => run((ctx) => shop.restoreList(ctx, id), "Am scos lista înapoi.") }
+              ? { icon: Archive, label: "Pune la loc", run: () => run((ctx) => shop.restoreList(ctx, id), "Lista e din nou activă.") }
               : { icon: Archive, label: "Pune deoparte", run: archive },
             { icon: Trash2, label: "Șterge lista", run: () => setConfirmDelete(true), danger: true },
           ].map((o) => (
@@ -439,7 +443,7 @@ function ListScreen() {
                 setMenu(false);
                 void o.run();
               }}
-              className={`flex min-h-12 items-center gap-3 rounded-lg px-2 text-left text-[15px] hover:bg-surface-2 ${"danger" in o && o.danger ? "text-accent" : "text-ink"}`}
+              className={`flex min-h-12 items-center gap-3 rounded-lg px-2 text-left text-[15px] ${"danger" in o && o.danger ? "text-accent hover:bg-accent-soft" : "text-ink hover:bg-surface-2"}`}
             >
               <o.icon size={20} />
               {o.label}
@@ -502,7 +506,7 @@ function ListScreen() {
               const r = await run((ctx) => shop.finalizeShopping(ctx, id, { addToPantry: data.pantrySetting === "mereu" || (data.pantrySetting === "intreaba" && addToPantry) }));
               setFinishing(false);
               if (r) {
-                toast(`Gata! Ai dat ${formatRon(r.total)}.${r.added_to_pantry ? ` Am pus ${r.added_to_pantry === 1 ? "un produs" : count(r.added_to_pantry, "produs", "produse")} în cămară.` : ""}`);
+                toast(`Gata! Ai plătit ${formatRon(r.total)}.${r.added_to_pantry ? ` Am pus ${r.added_to_pantry === 1 ? "un produs" : count(r.added_to_pantry, "produs", "produse")} în cămară.` : ""}`);
                 if (!list.is_recurring) router.push("/cumparaturi/");
               }
             }}
@@ -550,7 +554,7 @@ const QUICK_GROUPS = [
 
 export default function Page() {
   return (
-    <AppShell>
+    <AppShell wide hideMobileNav>
       <Suspense fallback={<Spinner />}>
         <ListScreen />
       </Suspense>

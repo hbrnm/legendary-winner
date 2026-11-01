@@ -130,8 +130,8 @@ function ListsScreen() {
                     <span className="line-clamp-2 text-[15px] leading-snug">{list.name}</span>
                     <span className="text-xs text-ink-2 tabular">{formatRon(totals.spent)} cheltuit</span>
                   </Link>
-                  <Button variant="secondary" size="sm" onClick={() => run((ctx) => restoreList(ctx, list.id), "Am scos lista înapoi.")}>
-                    Reactivează
+                  <Button variant="secondary" size="sm" onClick={() => run((ctx) => restoreList(ctx, list.id), "Lista e din nou activă.")}>
+                    Pune la loc
                   </Button>
                 </li>
               ))}

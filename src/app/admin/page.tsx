@@ -125,7 +125,7 @@ function AdminScreen() {
         await createProduct(ctx, input, { global: true, id: slug || undefined });
       }
       return true;
-    }, "Produsul a fost salvat.");
+    }, "Am salvat produsul.");
     if (ok) setDraft(null);
   }
 
@@ -301,7 +301,7 @@ function AdminScreen() {
             <Button
               variant="danger"
               onClick={async () => {
-                await run((ctx) => deleteProduct(ctx, draft.id!), "Produsul a fost scos din catalog.");
+                await run((ctx) => deleteProduct(ctx, draft.id!), "Am scos produsul din catalog.");
                 setDraft(null);
               }}
             >
@@ -315,7 +315,7 @@ function AdminScreen() {
       }>
         {draft && (
           <div className="flex flex-col gap-4">
-            <LabeledInput label="Denumire" value={draft.name} onChange={(e) => setDraft({ ...draft, name: e.target.value })} maxLength={120} />
+            <LabeledInput label="Numele produsului" value={draft.name} onChange={(e) => setDraft({ ...draft, name: e.target.value })} maxLength={120} />
             <div className="grid grid-cols-2 gap-2">
               <LabeledSelect label="Categorie" value={draft.category_id} onChange={(e) => setDraft({ ...draft, category_id: e.target.value })}>
                 {data.categories.map((c) => (
