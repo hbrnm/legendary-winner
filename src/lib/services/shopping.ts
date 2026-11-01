@@ -267,6 +267,7 @@ export async function addPurchaseToPantry(
   txItemId: string,
   product: Product,
   line: { name: string; quantity: number | null; unit: UnitCode | null; purchased_at: string },
+  precomputedId?: string,
 ): Promise<void> {
   const purchasedOn = localDateOf(line.purchased_at);
   const consumeOn = autoConsumeOn(product.category_id, purchasedOn, CONSUME_DAYS);
@@ -274,7 +275,7 @@ export async function addPurchaseToPantry(
     ctx.db,
     "pantry_items",
     {
-      id: await stableId("camara", txItemId),
+      id: precomputedId ?? (await stableId("camara", txItemId)),
       household_id: ctx.householdId,
       product_id: product.id,
       name: line.name,
@@ -317,75 +318,111 @@ export async function finalizeShopping(ctx: AppCtx, listId: string, opts: { addT
 
   const txId = await stableId("tura", listId, String(list.cycle));
   const startedAt = checked.map((i) => i.checked_at ?? nowIso()).sort()[0];
-  await upsertRow(
-    ctx.db,
-    "shopping_transactions",
-    { id: txId, household_id: ctx.householdId, list_id: listId, list_cycle: list.cycle, started_at: startedAt, completed_at: nowIso(), note: null },
-    w(ctx),
+
+  // Pre-calculăm toate id-urile stabile înainte de tranzacția Dexie
+  const itemsData = await Promise.all(
+    checked.map(async (item) => {
+      const txItemId = await stableId("tura-produs", txId, item.id);
+      const purchasedAt = item.checked_at ?? nowIso();
+      const product = item.product_id ? products.get(item.product_id) : undefined;
+      const priceId = product && item.actual_price != null ? await stableId("pret", txItemId) : null;
+      const shouldAddToPantry = opts.addToPantry && product && categories.get(product.category_id)?.is_food !== false;
+      const pantryItemId = shouldAddToPantry ? await stableId("camara", txItemId) : null;
+      return { item, txItemId, purchasedAt, product, priceId, shouldAddToPantry, pantryItemId };
+    }),
   );
 
   let added = 0;
-  for (const item of checked) {
-    const txItemId = await stableId("tura-produs", txId, item.id);
-    const purchasedAt = item.checked_at ?? nowIso();
-    await upsertRow(
-      ctx.db,
-      "shopping_transaction_items",
-      {
-        id: txItemId,
-        household_id: ctx.householdId,
-        transaction_id: txId,
-        list_item_id: item.id,
-        product_id: item.product_id,
-        name: item.name,
-        quantity: item.quantity,
-        unit: item.unit,
-        category_id: item.category_id,
-        amount: item.actual_price,
-        retailer_id: item.retailer_id,
-        source: item.source,
-        purchased_at: purchasedAt,
-        ...(item.variant_id ? { variant_id: item.variant_id } : {}),
-        ...(item.receipt_name ? { receipt_name: item.receipt_name } : {}),
-      },
-      w(ctx),
-    );
-    const product = item.product_id ? products.get(item.product_id) : undefined;
-    if (product && item.actual_price != null) {
+
+  // Tranzacție atomică pe toate tabelele: dacă o scriere eșuează sau este întreruptă,
+  // baza de date și outbox-ul fac rollback complet, fără stări parțiale (F06).
+  await ctx.db.transaction(
+    "rw",
+    [
+      ctx.db.shopping_transactions,
+      ctx.db.shopping_transaction_items,
+      ctx.db.product_prices,
+      ctx.db.pantry_items,
+      ctx.db.shopping_lists,
+      ctx.db.shopping_list_items,
+      ctx.db.outbox,
+    ],
+    async () => {
       await upsertRow(
         ctx.db,
-        "product_prices",
-        {
-          id: await stableId("pret", txItemId),
-          household_id: ctx.householdId,
-          product_id: product.id,
-          retailer_id: item.retailer_id,
-          source: item.source,
-          amount: item.actual_price,
-          currency: "RON",
-          quantity: item.quantity ?? 1,
-          unit: item.unit ?? product.default_unit,
-          price_type: "platit",
-          confidence: item.quantity == null ? "medie" : "ridicata",
-          observed_on: localDateOf(purchasedAt),
-          transaction_item_id: txItemId,
-          ...(item.variant_id ? { variant_id: item.variant_id } : {}),
-        },
+        "shopping_transactions",
+        { id: txId, household_id: ctx.householdId, list_id: listId, list_cycle: list.cycle, started_at: startedAt, completed_at: nowIso(), note: null },
         w(ctx),
       );
-    }
-    if (opts.addToPantry && product && categories.get(product.category_id)?.is_food !== false) {
-      await addPurchaseToPantry(ctx, txItemId, product, { name: item.receipt_name || item.name, quantity: item.quantity, unit: item.unit, purchased_at: purchasedAt });
-      added++;
-    }
-  }
 
-  await updateRow(ctx.db, "shopping_lists", listId, list.is_recurring ? { cycle: list.cycle + 1 } : { cycle: list.cycle + 1, archived_at: nowIso() }, w(ctx));
-  if (list.is_recurring) {
-    for (const item of checked) {
-      await updateRow(ctx.db, "shopping_list_items", item.id, { checked: false, checked_at: null, checked_by: null, actual_price: null, ...(item.receipt_name ? { receipt_name: null } : {}) }, w(ctx));
-    }
-  }
+      for (const d of itemsData) {
+        await upsertRow(
+          ctx.db,
+          "shopping_transaction_items",
+          {
+            id: d.txItemId,
+            household_id: ctx.householdId,
+            transaction_id: txId,
+            list_item_id: d.item.id,
+            product_id: d.item.product_id,
+            name: d.item.name,
+            quantity: d.item.quantity,
+            unit: d.item.unit,
+            category_id: d.item.category_id,
+            amount: d.item.actual_price,
+            retailer_id: d.item.retailer_id,
+            source: d.item.source,
+            purchased_at: d.purchasedAt,
+            ...(d.item.variant_id ? { variant_id: d.item.variant_id } : {}),
+            ...(d.item.receipt_name ? { receipt_name: d.item.receipt_name } : {}),
+          },
+          w(ctx),
+        );
+
+        if (d.product && d.priceId && d.item.actual_price != null) {
+          await upsertRow(
+            ctx.db,
+            "product_prices",
+            {
+              id: d.priceId,
+              household_id: ctx.householdId,
+              product_id: d.product.id,
+              retailer_id: d.item.retailer_id,
+              source: d.item.source,
+              amount: d.item.actual_price,
+              currency: "RON",
+              quantity: d.item.quantity ?? 1,
+              unit: d.item.unit ?? d.product.default_unit,
+              price_type: "platit",
+              confidence: d.item.quantity == null ? "medie" : "ridicata",
+              observed_on: localDateOf(d.purchasedAt),
+              transaction_item_id: d.txItemId,
+              ...(d.item.variant_id ? { variant_id: d.item.variant_id } : {}),
+            },
+            w(ctx),
+          );
+        }
+
+        if (d.shouldAddToPantry && d.product && d.pantryItemId) {
+          await addPurchaseToPantry(
+            ctx,
+            d.txItemId,
+            d.product,
+            { name: d.item.receipt_name || d.item.name, quantity: d.item.quantity, unit: d.item.unit, purchased_at: d.purchasedAt },
+            d.pantryItemId,
+          );
+          added++;
+        }
+      }
+
+      await updateRow(ctx.db, "shopping_lists", listId, list.is_recurring ? { cycle: list.cycle + 1 } : { cycle: list.cycle + 1, archived_at: nowIso() }, w(ctx));
+      if (list.is_recurring) {
+        for (const item of checked) {
+          await updateRow(ctx.db, "shopping_list_items", item.id, { checked: false, checked_at: null, checked_by: null, actual_price: null, ...(item.receipt_name ? { receipt_name: null } : {}) }, w(ctx));
+        }
+      }
+    },
+  );
 
   return {
     transaction_id: txId,

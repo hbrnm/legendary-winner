@@ -134,6 +134,30 @@ describe("de la plan la buget (experiența centrală)", () => {
     expect(items[0]).toMatchObject({ checked: false, actual_price: null });
   });
 
+  it("finalizarea este atomică și face rollback complet în caz de eroare (F06)", async () => {
+    const listId = await createList(ctx, { name: "Penny" });
+    const id = await addItem(ctx, listId, { product_id: "rosii", quantity: 1 });
+    await setActualPrice(ctx, id, 10);
+    await setChecked(ctx, id, true);
+
+    const hook = () => {
+      throw new Error("Eroare simulată la actualizarea ciclului listei");
+    };
+    ctx.db.shopping_lists.hook("updating", hook);
+
+    try {
+      await expect(finalizeShopping(ctx, listId, { addToPantry: true })).rejects.toThrow("Eroare simulată");
+      const txs = await ctx.db.shopping_transactions.toArray();
+      const txItems = await ctx.db.shopping_transaction_items.toArray();
+      const prices = (await ctx.db.product_prices.toArray()).filter((p) => p.price_type === "platit");
+      expect(txs).toHaveLength(0);
+      expect(txItems).toHaveLength(0);
+      expect(prices).toHaveLength(0);
+    } finally {
+      ctx.db.shopping_lists.hook("updating").unsubscribe(hook);
+    }
+  });
+
   it("dacă doi membri finalizează aceeași tură, cheltuiala apare o singură dată", async () => {
     const listId = await createList(ctx, { name: "Lidl" });
     const id = await addItem(ctx, listId, { product_id: "lapte-integral", quantity: 2, unit: "l" });
