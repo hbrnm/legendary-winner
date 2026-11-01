@@ -194,6 +194,21 @@ describe("invitații și roluri", () => {
     );
   });
 
+  it("un administrator nu poate transforma o invitație în administrator prin UPDATE (F01)", async () => {
+    const h = await createHousehold(ana, "Casa de vacanță 2");
+    const admin = await createUser("Admin2");
+    await addMember(ana, h, admin, "admin");
+    const inv = await asUser(admin, async (q) =>
+      (await q("insert into household_invitations (household_id, role) values ($1, 'member') returning id", [h])).rows[0],
+    );
+    await expect(
+      asUser(admin, (q) => q("update household_invitations set role = 'admin' where id = $1", [inv.id])),
+    ).rejects.toThrow();
+    await expect(
+      asUser(admin, (q) => q("update household_invitations set expires_at = now() + interval '100 years' where id = $1", [inv.id])),
+    ).rejects.toThrow();
+  });
+
   it("doar proprietarul schimbă rolurile și nu poate exista un al doilea proprietar", async () => {
     const h = await createHousehold(ana, "Roluri");
     const m = await createUser("Mihai");
