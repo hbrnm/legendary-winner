@@ -93,13 +93,13 @@
 - Modify: `src/components/app/app-provider.tsx`
 - Test: `src/lib/sync/membership.test.ts`
 
-- [ ] **Step 1: Scrie testul de regresie pentru cursori și reconciliere apartenență (F02 & F03)**
+- [x] **Step 1: Scrie testul de regresie pentru cursori și reconciliere apartenență (F02 & F03)**
   Creează `src/lib/sync/membership.test.ts`:
   - Test F02: Când apare o gospodărie nouă în lista utilizatorului, cursorii de pull sunt resetați pentru a asigura importul complet al istoricului noii gospodării.
   - Test F03: Când un utilizator este revocat dintr-o gospodărie (nu mai apare în `household_members`), rândurile locale aparținând acelei gospodării sunt șterse din tabelele sincronizate Dexie.
-- [ ] **Step 2: Rulează testul și confirmă eșecul**
+- [x] **Step 2: Rulează testul și confirmă eșecul**
   Confirmă că în prezent cursorii nu sunt invalidați și rândurile orfane rămân în baza de date locală.
-- [ ] **Step 3: Implementează `resetPullCursors` și `purgeHouseholdData`**
+- [x] **Step 3: Implementează `resetPullCursors` și `purgeHouseholdData`**
   - În `src/lib/db/database.ts`:
     - Adaugă `resetPullCursors(db: CamaraDB): Promise<void>`.
     - Adaugă `purgeHouseholdData(db: CamaraDB, householdId: string): Promise<void>`.
@@ -108,9 +108,9 @@
       - Dacă există ID-uri noi -> apelează `resetPullCursors(db)`.
       - Dacă există ID-uri revocate -> apelează `purgeHouseholdData(db, revokedId)`.
       - Actualizează `synced_households` în meta.
-- [ ] **Step 4: Rulează testul și confirmă trecerea**
+- [x] **Step 4: Rulează testul și confirmă trecerea**
   Rulează `npx vitest run src/lib/sync/membership.test.ts` și asigură-te că toate testele trec.
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
   `git commit -m "fix(sync): resetare cursori la gospodarie noua si curatare date la revocare (F02, F03)"`
 
 ---

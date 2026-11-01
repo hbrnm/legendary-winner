@@ -12,6 +12,7 @@ import { SupabaseFiles, SupabaseRemote } from "@/lib/sync/supabase-remote";
 import { browserPhotoCache, clearPhotoCache, type PhotoCache, type RemoteFiles } from "@/lib/sync/files";
 import type { Role } from "@/lib/domain/types";
 import { deleteAccount as deleteAccountService } from "@/lib/services/household";
+import { reconcileHouseholds } from "@/lib/sync/membership";
 
 export interface HouseholdInfo {
   id: string;
@@ -145,6 +146,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       const d = openDatabase(`camara-${userId}`);
       await seedCatalog(d);
       const list = await loadHouseholds(userId, d);
+      await reconcileHouseholds(d, list.map((h) => h.id));
       let preferred = (await getMeta<string>(d, "active_household")) ?? null;
       try {
         const [{ data: prefs }, { data: admin }, { data: profile }] = await Promise.all([
@@ -208,7 +210,22 @@ export function AppProvider({ children }: { children: ReactNode }) {
   // Sincronizarea: la pornire, la revenirea conexiunii, la revenirea în aplicație, periodic și la notificări în timp real.
   useEffect(() => {
     if (mode !== "cloud" || !db || !activeId) return;
-    const engine = new SyncEngine(db, new SupabaseRemote(supabase()), { files: photoStore.files ?? undefined, cache: photoStore.cache });
+    const engine = new SyncEngine(db, new SupabaseRemote(supabase()), {
+      files: photoStore.files ?? undefined,
+      cache: photoStore.cache,
+      onBeforePull: async () => {
+        if (!user) return;
+        const list = await loadHouseholds(user.id, db);
+        const { revoked } = await reconcileHouseholds(db, list.map((h) => h.id));
+        setHouseholds(list);
+        if (activeId && revoked.includes(activeId)) {
+          const nextActive = list[0]?.id ?? null;
+          await setMeta(db, "active_household", nextActive);
+          setActiveId(nextActive);
+          setStatus(nextActive ? "ready" : "no_household");
+        }
+      },
+    });
     engineRef.current = engine;
     const off = engine.onStatus(setSync);
     let timer: ReturnType<typeof setTimeout> | null = null;
@@ -235,7 +252,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       if (timer) clearTimeout(timer);
       engineRef.current = null;
     };
-  }, [mode, db, activeId, photoStore]);
+  }, [mode, db, activeId, photoStore, user]);
 
   // Pe producție, butonul de fotografie apare abia după ce serverul are tabelul (migrația aplicată).
   const photosMissing = useLiveQuery(async () => (db ? ((await getMeta<boolean>(db, serverMissingKey("recipe_photos"))) ?? null) : null), [db]);
@@ -254,8 +271,14 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const refreshHouseholds = useCallback(async () => {
     if (mode !== "cloud" || !db || !user) return;
     const list = await loadHouseholds(user.id, db);
+    const { revoked } = await reconcileHouseholds(db, list.map((h) => h.id));
     setHouseholds(list);
-    const active = list.find((h) => h.id === activeId) ?? list[0] ?? null;
+    let nextActiveId = activeId;
+    if (activeId && revoked.includes(activeId)) {
+      nextActiveId = list[0]?.id ?? null;
+      await setMeta(db, "active_household", nextActiveId);
+    }
+    const active = list.find((h) => h.id === nextActiveId) ?? list[0] ?? null;
     setActiveId(active?.id ?? null);
     setStatus(active ? "ready" : "no_household");
     await engineRef.current?.syncNow();

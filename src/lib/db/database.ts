@@ -264,3 +264,34 @@ export async function getMeta<T>(db: CamaraDB, key: string): Promise<T | undefin
 export async function setMeta(db: CamaraDB, key: string, value: unknown): Promise<void> {
   await db.meta.put({ key, value });
 }
+
+/**
+ * Șterge cursorii de pull (`cursor:<tabel>`) din meta pentru a forța descărcarea completă
+ * a istoricului din cloud (ex. când utilizatorul primește acces la o gospodărie nouă - F02).
+ */
+export async function resetPullCursors(db: CamaraDB): Promise<void> {
+  const keys = SYNCED_TABLES.map((t) => `cursor:${t}`);
+  await db.meta.bulkDelete(keys);
+}
+
+/**
+ * Curăță toate datele locale aparținând unei gospodării revocate (F03).
+ * Șterge rândurile din toate tabelele sincronizate unde household_id === householdId,
+ * precum și operațiunile nesincronizate din outbox.
+ */
+export async function purgeHouseholdData(db: CamaraDB, householdId: string): Promise<void> {
+  await db.transaction("rw", [...SYNCED_TABLES.map((t) => db.table(t)), db.outbox], async () => {
+    for (const table of SYNCED_TABLES) {
+      // @ts-expect-error household_id este indexat pe toate tabelele sincronizate
+      await db.table(table).where("household_id").equals(householdId).delete();
+    }
+    const outboxRows = await db.outbox.toArray();
+    const toDelete = outboxRows
+      .filter((e) => (e.payload as { household_id?: unknown })?.household_id === householdId)
+      .map((e) => e.seq!)
+      .filter((seq) => typeof seq === "number");
+    if (toDelete.length > 0) {
+      await db.outbox.bulkDelete(toDelete);
+    }
+  });
+}
