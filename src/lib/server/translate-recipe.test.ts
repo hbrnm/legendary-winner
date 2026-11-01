@@ -145,6 +145,28 @@ describe("geminiTranslator", () => {
     await expect(t(answer('{"name":"Ch', "MAX_TOKENS"))).rejects.toThrow("MAX_TOKENS");
     await expect(t(new Response(JSON.stringify({ candidates: [] })))).rejects.toThrow();
   });
+
+  it("nu include textul rețetei sau citate din răspunsul AI în mesajul de eroare la JSON invalid (F12)", async () => {
+    const errorSpy = vi.spyOn(console, "error").mockImplementation(() => {});
+    const t = geminiTranslator((async () => answer('{"secret_payload": "TOP_SECRET_12345"')) as unknown as typeof fetch, "k");
+    let caughtError: unknown;
+    try {
+      await t(recipe);
+    } catch (e) {
+      caughtError = e;
+    }
+    expect(caughtError).toBeInstanceOf(Error);
+    expect((caughtError as Error).message).not.toContain("TOP_SECRET_12345");
+    expect((caughtError as Error).message).toBe("răspunsul AI nu are forma cerută");
+
+    await handleTranslateRequest(post({ recipe }), {
+      takeQuota: async () => true,
+      translate: async () => { throw caughtError; },
+    });
+    const logged = errorSpy.mock.calls.map((c) => c.join(" ")).join("\n");
+    expect(logged).not.toContain("TOP_SECRET_12345");
+    errorSpy.mockRestore();
+  });
 });
 
 describe("quotaViaRest pentru traducere", () => {

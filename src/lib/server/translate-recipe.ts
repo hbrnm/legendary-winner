@@ -159,7 +159,12 @@ export function geminiTranslator(fetchFn: typeof fetch, apiKey: string, model = 
     const candidate = body.candidates?.[0];
     const text = candidate?.content?.parts?.map((p) => (typeof p.text === "string" ? p.text : "")).join("");
     if (!text || (candidate?.finishReason && candidate.finishReason !== "STOP")) throw new Error(`Gemini: ${candidate?.finishReason ?? "fără text"}`);
-    return JSON.parse(text);
+    try {
+      return JSON.parse(text);
+    } catch {
+      // Mesajul lui JSON.parse citează din textul traducerii: nu ajunge în jurnal (F12).
+      throw new Error("răspunsul AI nu are forma cerută");
+    }
   };
 }
 

@@ -246,7 +246,11 @@ function geminiTranslator(fetchFn, apiKey, model = GEMINI_DEFAULT_MODEL) {
     const candidate = body.candidates?.[0];
     const text = candidate?.content?.parts?.map((p) => typeof p.text === "string" ? p.text : "").join("");
     if (!text || candidate?.finishReason && candidate.finishReason !== "STOP") throw new Error(`Gemini: ${candidate?.finishReason ?? "fără text"}`);
-    return JSON.parse(text);
+    try {
+      return JSON.parse(text);
+    } catch {
+      throw new Error("răspunsul AI nu are forma cerută");
+    }
   };
 }
 async function handleTranslateRequest(req, deps, limits = TRANSLATE_LIMITS) {
