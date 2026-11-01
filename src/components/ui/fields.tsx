@@ -1,6 +1,6 @@
 "use client";
 
-import { forwardRef, useId, type InputHTMLAttributes, type ReactNode, type SelectHTMLAttributes, type TextareaHTMLAttributes } from "react";
+import { forwardRef, useId, useRef, type InputHTMLAttributes, type KeyboardEvent, type ReactNode, type SelectHTMLAttributes, type TextareaHTMLAttributes } from "react";
 
 const FIELD =
   "w-full rounded-lg border border-line bg-surface px-3.5 text-base text-ink placeholder:text-ink-3 focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/25 disabled:opacity-60";
@@ -114,22 +114,57 @@ export function LabeledSelect({
   );
 }
 
-/** Butoane de tip „segment” (ex. Lunar / Săptămânal). */
-export function Segmented<T extends string>({ value, options, onChange, label }: { value: T; options: { value: T; label: string }[]; onChange: (v: T) => void; label: string }) {
+/** Butoane de tip „segment” (ex. Lunar / Săptămânal) conforme WAI-ARIA radio group cu navigare tastatură (F13). */
+export function Segmented<T extends string>({
+  value,
+  options,
+  onChange,
+  label,
+}: {
+  value: T;
+  options: { value: T; label: string }[];
+  onChange: (v: T) => void;
+  label: string;
+}) {
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  const handleKeyDown = (e: KeyboardEvent<HTMLButtonElement>, currentIndex: number) => {
+    let nextIndex = -1;
+    if (e.key === "ArrowRight" || e.key === "ArrowDown") {
+      e.preventDefault();
+      nextIndex = (currentIndex + 1) % options.length;
+    } else if (e.key === "ArrowLeft" || e.key === "ArrowUp") {
+      e.preventDefault();
+      nextIndex = (currentIndex - 1 + options.length) % options.length;
+    }
+
+    if (nextIndex >= 0) {
+      const nextOption = options[nextIndex];
+      onChange(nextOption.value);
+      const buttons = containerRef.current?.querySelectorAll<HTMLButtonElement>('button[role="radio"]');
+      buttons?.[nextIndex]?.focus();
+    }
+  };
+
   return (
-    <div role="radiogroup" aria-label={label} className="flex rounded-lg bg-surface-2 p-1">
-      {options.map((o) => (
-        <button
-          key={o.value}
-          type="button"
-          role="radio"
-          aria-checked={value === o.value}
-          onClick={() => onChange(o.value)}
-          className={`h-11 min-w-0 flex-1 rounded-md px-1.5 text-sm font-medium leading-tight transition-colors duration-150 ease-out focus-visible:outline-2 focus-visible:outline-brand ${value === o.value ? "bg-surface text-ink shadow-card" : "text-ink-2 hover:text-ink"}`}
-        >
-          {o.label}
-        </button>
-      ))}
+    <div ref={containerRef} role="radiogroup" aria-label={label} className="flex rounded-lg bg-surface-2 p-1">
+      {options.map((o, idx) => {
+        const isSelected = value === o.value;
+        return (
+          <button
+            key={o.value}
+            type="button"
+            role="radio"
+            aria-checked={isSelected}
+            tabIndex={isSelected ? 0 : -1}
+            onClick={() => onChange(o.value)}
+            onKeyDown={(e) => handleKeyDown(e, idx)}
+            className={`h-11 min-w-0 flex-1 rounded-md px-1.5 text-sm font-medium leading-tight transition-colors duration-150 ease-out focus-visible:outline-2 focus-visible:outline-brand ${isSelected ? "bg-surface text-ink shadow-card" : "text-ink-2 hover:text-ink"}`}
+          >
+            {o.label}
+          </button>
+        );
+      })}
     </div>
   );
 }

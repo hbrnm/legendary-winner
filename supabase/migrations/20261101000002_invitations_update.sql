@@ -34,3 +34,4 @@ create policy "administratorii revocă" on public.household_invitations for upda
     and accepted_at is null
     and revoked_at is not null
   );
+
