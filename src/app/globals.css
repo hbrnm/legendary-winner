@@ -1,93 +1,182 @@
 @import "tailwindcss";
 
-/* Tokenii de culoare ai Cămarei. Componentele folosesc DOAR aceste nume
-   (bg-bg, text-ink, bg-brand...), niciodată culori scrise direct. */
-/* ::backdrop (fundalul ferestrelor <dialog>) nu moștenește variabilele pe
-   toate browserele, deci primește tokenii direct. */
+/* Ritm: warm graphite surfaces, apricot actions, lavender shopping and blue pantry. */
 :root,
 ::backdrop {
-  --bg: #f6f4ee;
-  --surface: #fbfaf6;
-  --surface-2: #efece4;
-  --ink: #1c241e;
-  --ink-2: #565d55;
-  --ink-3: #767b70;
-  --line: #e2dec9;
-  --brand: #1e3f2b;
-  --brand-strong: #152e1f;
-  --brand-ink: #fbfaf6;
-  --brand-soft: #e2eadf;
-  --accent: #a8553c;
-  --accent-soft: #faefe9;
-  --warn: #855610;
-  --warn-soft: #f7eed8;
-  --info: #2c5d8a;
-  --info-soft: #e1ebf5;
-  --sprout: #557a1f;
-  --sprout-ink: #fbfaf6;
-  --wood: #7a5a3c;
-  --shadow: 0 1px 2px rgb(28 36 30 / 0.06);
-  --backdrop-overlay: rgb(28 36 30 / 0.45);
+  --bg: #f6f4f1;
+  --surface: #ffffff;
+  --surface-2: #ece9e5;
+  --ink: #211f25;
+  --ink-2: #6d6773;
+  --ink-3: #746e7b;
+  --line: #dfdad5;
+  --brand: #934a25;
+  --brand-strong: #78391b;
+  --brand-ink: #ffffff;
+  --brand-soft: #f1e2d7;
+  --accent: #9f303b;
+  --accent-soft: #ffe1e4;
+  --warn: #795300;
+  --warn-soft: #f7e9c8;
+  --info: #315b9a;
+  --info-soft: #e2ebff;
+  --sprout: #315b9a;
+  --sprout-ink: #ffffff;
+  --wood: #934a25;
+  --primary: #934a25;
+  --on-primary: #ffffff;
+  --primary-container: #f1e2d7;
+  --on-primary-container: #53290f;
+  --secondary: #6c50ac;
+  --on-secondary: #ffffff;
+  --secondary-container: #ede5fb;
+  --on-secondary-container: #3b2368;
+  --tertiary: #315b9a;
+  --on-tertiary: #ffffff;
+  --surface-container-low: #ffffff;
+  --surface-container: #ece9e5;
+  --surface-container-high: #e5e1dd;
+  --on-surface: #211f25;
+  --on-surface-variant: #625b68;
+  --outline: #807884;
+  --error: #9f303b;
+  --on-error: #ffffff;
+  --error-container: #ffe1e4;
+  --on-error-container: #650d20;
+  --atmosphere-start: #ebdef0;
+  --atmosphere-mid: #f0e2dc;
+  --nav-surface: #ffffff;
+  --shadow: 0 2px 8px rgb(35 24 36 / 0.04);
+  --shadow-panel: 0 8px 32px rgb(35 24 36 / 0.16);
+  --backdrop-overlay: rgb(0 0 0 / 0.4);
   color-scheme: light;
 }
 
 @media (prefers-color-scheme: dark) {
-  :root:not([data-theme="luminos"]),
-  :root:not([data-theme="luminos"]) ::backdrop {
-    --bg: #16170f;
-    --surface: #1e1f16;
-    --surface-2: #27291e;
-    --ink: #eceadf;
-    --ink-2: #b3b3a3;
-    --ink-3: #8a8c7e;
-    --line: #35372a;
-    --brand: #93c29f;
-    --brand-strong: #a9d1b2;
-    --brand-ink: #10180f;
-    --brand-soft: #233223;
-    --accent: #e8957a;
-    --accent-soft: #3b2419;
-    --warn: #e2b15b;
-    --warn-soft: #3a2f1a;
-    --info: #8db8e0;
-    --info-soft: #1c2a38;
-    --sprout: #a3c46a;
-    --sprout-ink: #10180f;
-    --wood: #c9a57e;
-    --shadow: 0 1px 2px rgb(0 0 0 / 0.3);
-    --backdrop-overlay: rgb(0 0 0 / 0.65);
-    color-scheme: dark;
-  }
+:root:not([data-theme="luminos"]),
+:root:not([data-theme="luminos"]) ::backdrop {
+  --bg: #090a0d;
+  --surface: #202125;
+  --surface-2: #2b2c32;
+  --ink: #f8f6f2;
+  --ink-2: #aaa9b2;
+  --ink-3: #a5a0ab;
+  --line: #3a3a40;
+  --brand: #f3b68e;
+  --brand-strong: #ffd0ae;
+  --brand-ink: #362015;
+  --brand-soft: #352b28;
+  --accent: #ffabb2;
+  --accent-soft: #51252f;
+  --warn: #edcd85;
+  --warn-soft: #413620;
+  --info: #a5c8ff;
+  --info-soft: #243450;
+  --sprout: #a5c8ff;
+  --sprout-ink: #172c4b;
+  --wood: #f3b68e;
+  --primary: #f3b68e;
+  --on-primary: #362015;
+  --primary-container: #352b28;
+  --on-primary-container: #ffd8bd;
+  --secondary: #bdb2f4;
+  --on-secondary: #30234d;
+  --secondary-container: #302b43;
+  --on-secondary-container: #e5dcff;
+  --tertiary: #a5c8ff;
+  --on-tertiary: #172c4b;
+  --surface-container-low: #202125;
+  --surface-container: #2b2c32;
+  --surface-container-high: #303138;
+  --on-surface: #f8f6f2;
+  --on-surface-variant: #c1bbc8;
+  --outline: #908b96;
+  --error: #ffabb2;
+  --on-error: #501625;
+  --error-container: #51252f;
+  --on-error-container: #ffdae0;
+  --atmosphere-start: #30304e;
+  --atmosphere-mid: #332b35;
+  --nav-surface: #25262b;
+  --shadow: 0 2px 8px rgb(0 0 0 / 0.08);
+  --shadow-panel: 0 8px 32px rgb(0 0 0 / 0.4);
+  --backdrop-overlay: rgb(0 0 0 / 0.6);
+  color-scheme: dark;
 }
-
+}
 :root[data-theme="intunecat"],
 :root[data-theme="intunecat"] ::backdrop {
-  --bg: #16170f;
-  --surface: #1e1f16;
-  --surface-2: #27291e;
-  --ink: #eceadf;
-  --ink-2: #b3b3a3;
-  --ink-3: #8a8c7e;
-  --line: #35372a;
-  --brand: #93c29f;
-  --brand-strong: #a9d1b2;
-  --brand-ink: #10180f;
-  --brand-soft: #233223;
-  --accent: #e8957a;
-  --accent-soft: #3b2419;
-  --warn: #e2b15b;
-  --warn-soft: #3a2f1a;
-  --info: #8db8e0;
-  --info-soft: #1c2a38;
-  --sprout: #a3c46a;
-  --sprout-ink: #10180f;
-  --wood: #c9a57e;
-  --shadow: 0 1px 2px rgb(0 0 0 / 0.3);
-  --backdrop-overlay: rgb(0 0 0 / 0.65);
+  --bg: #090a0d;
+  --surface: #202125;
+  --surface-2: #2b2c32;
+  --ink: #f8f6f2;
+  --ink-2: #aaa9b2;
+  --ink-3: #a5a0ab;
+  --line: #3a3a40;
+  --brand: #f3b68e;
+  --brand-strong: #ffd0ae;
+  --brand-ink: #362015;
+  --brand-soft: #352b28;
+  --accent: #ffabb2;
+  --accent-soft: #51252f;
+  --warn: #edcd85;
+  --warn-soft: #413620;
+  --info: #a5c8ff;
+  --info-soft: #243450;
+  --sprout: #a5c8ff;
+  --sprout-ink: #172c4b;
+  --wood: #f3b68e;
+  --primary: #f3b68e;
+  --on-primary: #362015;
+  --primary-container: #352b28;
+  --on-primary-container: #ffd8bd;
+  --secondary: #bdb2f4;
+  --on-secondary: #30234d;
+  --secondary-container: #302b43;
+  --on-secondary-container: #e5dcff;
+  --tertiary: #a5c8ff;
+  --on-tertiary: #172c4b;
+  --surface-container-low: #202125;
+  --surface-container: #2b2c32;
+  --surface-container-high: #303138;
+  --on-surface: #f8f6f2;
+  --on-surface-variant: #c1bbc8;
+  --outline: #908b96;
+  --error: #ffabb2;
+  --on-error: #501625;
+  --error-container: #51252f;
+  --on-error-container: #ffdae0;
+  --atmosphere-start: #30304e;
+  --atmosphere-mid: #332b35;
+  --nav-surface: #25262b;
+  --shadow: 0 2px 8px rgb(0 0 0 / 0.08);
+  --shadow-panel: 0 8px 32px rgb(0 0 0 / 0.4);
+  --backdrop-overlay: rgb(0 0 0 / 0.6);
   color-scheme: dark;
 }
 
 @theme inline {
+  --color-primary: var(--primary);
+  --color-on-primary: var(--on-primary);
+  --color-primary-container: var(--primary-container);
+  --color-on-primary-container: var(--on-primary-container);
+  --color-secondary: var(--secondary);
+  --color-on-secondary: var(--on-secondary);
+  --color-secondary-container: var(--secondary-container);
+  --color-on-secondary-container: var(--on-secondary-container);
+  --color-tertiary: var(--tertiary);
+  --color-on-tertiary: var(--on-tertiary);
+  --color-surface-container-low: var(--surface-container-low);
+  --color-surface-container: var(--surface-container);
+  --color-surface-container-high: var(--surface-container-high);
+  --color-on-surface: var(--on-surface);
+  --color-on-surface-variant: var(--on-surface-variant);
+  --color-outline: var(--outline);
+  --color-error: var(--error);
+  --color-on-error: var(--on-error);
+  --color-error-container: var(--error-container);
+  --color-on-error-container: var(--on-error-container);
+
   --color-bg: var(--bg);
   --color-surface: var(--surface);
   --color-surface-2: var(--surface-2);
@@ -110,10 +199,11 @@
   --color-wood: var(--wood);
   --color-backdrop-overlay: var(--backdrop-overlay);
   --shadow-card: var(--shadow);
-  /* Fonturile vin din src/app/fonts.ts (fișiere locale, licență OFL); fiecare are
+  /* DM Sans vine din src/app/fonts.ts (fișiere locale, licență OFL); are
      două subseturi: latin și latin-ext (ă, ș, ț), puse unul după altul. */
-  --font-sans: var(--font-dm-sans), var(--font-dm-sans-ext), ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
-  --font-serif: var(--font-fraunces), var(--font-fraunces-ext), Georgia, "Times New Roman", serif;
+  --font-sans: -apple-system, BlinkMacSystemFont, var(--font-dm-sans), var(--font-dm-sans-ext), ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+  --font-serif: var(--font-sans);
+  --shadow-elevated: var(--shadow-panel);
 }
 
 html {
@@ -146,9 +236,9 @@ body {
   min-height: 100dvh;
 }
 
-/* Titlurile paginilor, în serif. */
+/* Shared typography, with the native Apple system face on iPhone. */
 h1 {
-  font-family: var(--font-serif);
+  font-family: var(--font-sans);
   font-optical-sizing: auto;
 }
 
@@ -163,7 +253,7 @@ h1 {
 
 /* Poziționează elementele fixate exact deasupra barei de navigare de pe mobil. */
 .bottom-nav-safe {
-  bottom: calc(4rem + max(env(safe-area-inset-bottom), 0px));
+  bottom: var(--app-nav-bottom);
 }
 
 /* Bifa de pe listă se scrie dintr-o trăsătură (.tasks/017, etapa 2). */
@@ -187,3 +277,50 @@ h1 {
     transition-duration: 0.01ms !important;
   }
 }
+
+/* Layout follows window size, including tablets in landscape. */
+:root { --app-nav-bottom: calc(96px + env(safe-area-inset-bottom, 0px)); }
+.app-main { width: 100%; max-width: 960px; padding: 24px 20px calc(var(--app-nav-bottom) + 24px); }
+.app-main-wide { max-width: 1200px; }
+.app-layout, .ritm-standalone { min-height: 100dvh; isolation: isolate; position: relative; }
+.app-layout::before, .ritm-standalone::before { content: ""; position: absolute; z-index: -1; inset: 0 0 auto; height: 340px; pointer-events: none; background: linear-gradient(165deg, var(--atmosphere-start), var(--atmosphere-mid) 45%, var(--bg)); }
+.app-sidebar { display: none; }
+.app-topbar { background: var(--atmosphere-start); }
+/* The fixed bar floats above the safe area; reserved space includes its lower gap. */
+.app-mobile-nav { left: 16px; right: 16px; bottom: calc(12px + env(safe-area-inset-bottom, 0px)); max-width: 440px; margin-inline: auto; height: 72px; padding: 5px; border: 1px solid var(--line); border-radius: 999px; background: var(--nav-surface); box-shadow: var(--shadow-panel); }
+.app-mobile-item { height: 60px; min-width: 0; border-radius: 999px; font-size: 9px; gap: 3px; }
+.app-mobile-indicator { display: flex; height: 25px; align-items: center; justify-content: center; }
+.app-mobile-item[aria-current="page"] { color: var(--secondary); }
+.app-mobile-item[aria-current="page"] .app-mobile-indicator { color: var(--brand); }
+.app-mobile-item:focus-visible { outline-offset: -2px; }
+.recipe-navigation { display: flex; gap: 4px; padding: 4px; margin: 0 0 24px; border-radius: 999px; background: var(--surface-2); }
+.recipe-navigation a { min-height: 48px; flex: 1; display: flex; justify-content: center; align-items: center; padding: 0 12px; color: var(--ink-2); border-radius: 999px; }
+.recipe-navigation a[aria-current="page"] { color: var(--secondary); background: var(--surface); font-weight: 600; }
+@media (min-width: 600px) {
+  :root { --app-nav-bottom: 0px; }
+  .app-layout { display: flex; }
+  .app-main { padding: 32px 24px 48px; }
+  .app-sidebar { display: flex; position: sticky; top: 0; width: 96px; height: 100dvh; flex-shrink: 0; flex-direction: column; align-items: stretch; gap: 8px; padding: 24px 8px; background: var(--surface-container); overflow-y: auto; }
+  .app-sidebar-brand { justify-content: center; margin-bottom: 24px; }
+  .app-sidebar-brand-name { display: none; }
+  .app-sidebar-link { display: flex; min-height: 72px; flex-shrink: 0; flex-direction: column; justify-content: center; align-items: center; gap: 5px; border-radius: 20px; font-size: 11px; color: var(--ink-2); }
+  .app-sidebar-link[aria-current="page"] { background: var(--secondary-container); color: var(--on-secondary-container); font-weight: 600; }
+  .app-sidebar-link:hover { background: var(--surface-container-high); }
+  .app-mobile-nav { display: none; }
+  .bottom-nav-safe { bottom: 24px; }
+  .app-toast { left: 96px; }
+}
+@media (min-width: 1200px) {
+  .app-sidebar { width: 256px; padding: 32px 16px; }
+  .app-sidebar-brand { justify-content: flex-start; padding: 0 16px; }
+  .app-sidebar-brand-name { display: inline; }
+  .app-sidebar-link { flex-direction: row; justify-content: flex-start; min-height: 56px; gap: 16px; padding: 0 24px; font-size: 14px; border-radius: 999px; }
+  .app-main { padding-left: 32px; padding-right: 32px; }
+  .app-toast { left: 256px; }
+}
+
+/* Dense information still has generous touch targets. */
+button { min-height: 48px; }
+input:not([type="checkbox"]):not([type="radio"]):not([type="file"]), select { min-height: 56px; }
+.recipe-navigation a:focus-visible { outline: 2px solid var(--brand); outline-offset: -2px; }
+input[type="checkbox"], input[type="radio"] { accent-color: var(--brand); }

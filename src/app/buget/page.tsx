@@ -187,7 +187,7 @@ function BudgetScreen() {
             <Card key={s.budget.id} className="p-4">
               <div className="flex items-start justify-between gap-2">
                 <div className="min-w-0">
-                  <p className="font-serif text-lg font-semibold leading-snug">{s.budget.name}</p>
+                  <p className="font-sans text-lg font-semibold leading-snug">{s.budget.name}</p>
                   <p className="text-xs text-ink-2">
                     {scopeLabel(s.budget.scope, names)} · {s.budget.period === "lunar" ? formatMonth(s.period.from) : `${formatShortDate(s.period.from)} – ${formatShortDate(s.period.to)}`}
                   </p>
@@ -229,7 +229,7 @@ function BudgetScreen() {
 
       {data.openEstimate > 0 || data.openUnknown > 0 ? (
         // Toată caseta duce la liste (decizia proprietarului, 18 oct. 2026).
-        <Link href="/cumparaturi/" className="mt-3 flex items-center gap-3 rounded-lg border border-line bg-surface p-4 transition-colors duration-150 ease-out hover:bg-surface-2 active:bg-surface-2">
+        <Link href="/cumparaturi/" className="mt-3 flex items-center gap-3 rounded-full border border-line bg-surface p-4 transition-colors duration-150 ease-out hover:bg-surface-2 active:bg-surface-2">
           <span className="min-w-0 flex-1">
             <span className="block text-xs font-semibold uppercase tracking-wider text-ink-2">Înainte de cumpărături</span>
             <span className="mt-1 block text-[15px]">
@@ -261,7 +261,7 @@ function BudgetScreen() {
         <IconButton label="Luna anterioară" onClick={() => setMonth(startOfMonth(addDays(month, -1)))} className="border border-line bg-surface-2">
           <ChevronLeft size={20} />
         </IconButton>
-        <h2 className="font-serif text-xl font-semibold">{capitalizeFirst(formatMonth(month))}</h2>
+        <h2 className="font-sans text-xl font-semibold">{capitalizeFirst(formatMonth(month))}</h2>
         <IconButton label="Luna următoare" disabled={isCurrentMonth} onClick={() => setMonth(startOfMonth(addDays(month, 32)))} className="border border-line bg-surface-2">
           <ChevronRight size={20} />
         </IconButton>
@@ -315,14 +315,14 @@ function BudgetScreen() {
         {view.noAmount > 0 && <p className="mt-3 text-xs text-ink-2">{view.noAmount === 1 ? "Un produs fără preț nu apare" : `${view.noAmount} produse fără preț nu apar`} în împărțire.</p>}
       </Card>
       {data.diverse > 0 && (
-        <Link href="/buget/diverse/" className="mt-2 inline-flex h-11 w-full items-center justify-center gap-2 rounded-lg border border-line font-medium transition duration-150 ease-out hover:bg-surface-2 active:scale-[0.99]">
+        <Link href="/buget/diverse/" className="mt-2 inline-flex h-12 w-full items-center justify-center gap-2 rounded-full border border-line font-medium transition duration-150 ease-out hover:bg-surface-2 active:scale-[0.99]">
           <Shapes size={18} /> Mută din Diverse ({data.diverse})
         </Link>
       )}
 
       {/* Fără flex-1 în coloană: butoanele își păstrează înălțimea de 44 px. */}
       <div className="mt-6 grid grid-cols-2 gap-2">
-        <Link href="/buget/preturi/" className="col-span-2 inline-flex h-11 w-full items-center justify-center gap-2 rounded-lg border border-line bg-surface-2 font-medium transition duration-150 ease-out hover:border-ink-3 active:scale-[0.99]">
+        <Link href="/buget/preturi/" className="col-span-2 inline-flex h-12 w-full items-center justify-center gap-2 rounded-full border border-line bg-surface-2 font-medium transition duration-150 ease-out hover:border-ink-3 active:scale-[0.99]">
           <Tags size={18} /> Prețuri și comparații
         </Link>
         <Button variant="secondary" block className="px-2" icon={<Download size={18} />} onClick={() => exportCsv(false)} disabled={view.monthSpend.length === 0}>

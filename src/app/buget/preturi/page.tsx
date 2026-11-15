@@ -141,10 +141,10 @@ function PricesScreen() {
   return (
     <>
       <div className="mb-4 flex items-center gap-1">
-        <Link href="/buget/" aria-label="Înapoi la buget" className="-ml-2 inline-flex h-11 w-11 items-center justify-center rounded-lg text-ink-2 transition-colors duration-150 ease-out hover:bg-surface-2">
+        <Link href="/buget/" aria-label="Înapoi la buget" className="-ml-2 inline-flex h-12 w-12 shrink-0 items-center justify-center rounded-full text-ink-2 transition-colors duration-150 ease-out hover:bg-surface-2">
           <ArrowLeft size={20} />
         </Link>
-        <h1 className="text-2xl font-semibold tracking-tight">Prețuri</h1>
+        <h1 className="min-w-0 break-words text-[32px] font-bold leading-tight tracking-tight">Prețuri</h1>
       </div>
       <p className="mb-3 text-sm text-ink-2">
         Prețurile sunt cele plătite sau văzute de gospodăria ta. Aplicația nu preia prețuri din magazine și nu afișează prețuri oficiale.
@@ -156,7 +156,7 @@ function PricesScreen() {
         <>
           <div className="mt-4 flex items-center justify-between gap-2">
             <div>
-              <h2 className="font-serif text-xl font-semibold leading-snug">{product.name}</h2>
+              <h2 className="font-sans text-xl font-semibold leading-snug">{product.name}</h2>
               <p className="text-xs text-ink-2">Comparație pe {unitLabel(product.default_unit, 1)}</p>
             </div>
             <div className="flex gap-2">
@@ -178,7 +178,7 @@ function PricesScreen() {
               {view.brands.length > 0 && (
                 <>
                   <SectionTitle>{view.brands.every((r) => r.unit === "l") ? "Prețul pe litru, pe mărci" : "Prețul pe kg, pe mărci"}</SectionTitle>
-                  <ul className="divide-y divide-line overflow-hidden rounded-lg border border-line bg-surface">
+                  <ul className="divide-y divide-line overflow-hidden rounded-[28px] bg-surface">
                     {view.brands.map((r) => {
                       const p = data.prices.find((x) => x.id === r.price_id)!;
                       return (
@@ -199,7 +199,7 @@ function PricesScreen() {
                 </>
               )}
               <SectionTitle>Cel mai recent preț, pe locuri</SectionTitle>
-              <ul className="divide-y divide-line overflow-hidden rounded-lg border border-line bg-surface">
+              <ul className="divide-y divide-line overflow-hidden rounded-[28px] bg-surface">
                 {view.compare.map(({ p, unitPrice }, k) => (
                   <li key={p.id} className="flex items-center gap-3 px-4 py-3">
                     <div className="min-w-0 flex-1">
@@ -219,7 +219,7 @@ function PricesScreen() {
                 ))}
               </ul>
               <SectionTitle>Istoric</SectionTitle>
-              <ul className="divide-y divide-line overflow-hidden rounded-lg border border-line bg-surface">
+              <ul className="divide-y divide-line overflow-hidden rounded-[28px] bg-surface">
                 {view.history.map((p) => (
                   <li key={p.id} className="flex items-center gap-3 px-4 py-2.5">
                     <div className="min-w-0 flex-1 text-sm">
@@ -255,7 +255,7 @@ function PricesScreen() {
               Caută un produs mai sus ca să-i notezi prețul. Prețurile plătite în magazin se salvează singure când finalizezi cumpărăturile.
             </EmptyState>
           ) : (
-            <ul className="divide-y divide-line overflow-hidden rounded-lg border border-line bg-surface">
+            <ul className="divide-y divide-line overflow-hidden rounded-[28px] bg-surface">
               {view.recent.map((p) => {
                 const prod = data.products.get(p.product_id);
                 return (

@@ -21,18 +21,18 @@ export function ToastProvider({ children }: { children: ReactNode }) {
   return (
     <ToastContext.Provider value={show}>
       {children}
-      <div aria-live="polite" className="pointer-events-none bottom-nav-safe fixed inset-x-0 z-50 mb-3 flex flex-col items-center gap-2 px-4 lg:bottom-6 lg:mb-0">
+      <div aria-live="polite" className="app-toast pointer-events-none bottom-nav-safe fixed inset-x-0 z-50 mb-3 flex flex-col items-center gap-2 px-4 min-[600px]:mb-0">
         {items.map((t) => (
           <div
             key={t.id}
             role={t.tone === "error" ? "alert" : "status"}
-            className={`pointer-events-auto flex max-w-md items-center gap-3 rounded-lg px-4 py-3 text-sm shadow-card ${t.tone === "error" ? "bg-accent text-brand-ink" : "bg-ink text-bg"}`}
+            className={`pointer-events-auto flex max-w-md items-center gap-3 rounded-2xl px-4 py-3 text-sm shadow-card ${t.tone === "error" ? "bg-error text-on-error" : "bg-ink text-bg"}`}
           >
             <span>{t.message}</span>
             {t.action && (
               <button
                 type="button"
-                className="inline-flex min-h-11 items-center px-2 font-semibold underline underline-offset-2 rounded focus-visible:outline-2 focus-visible:outline-brand-ink"
+                className="inline-flex min-h-12 items-center px-2 font-semibold underline underline-offset-2 rounded focus-visible:outline-2 focus-visible:outline-brand-ink"
                 onClick={() => {
                   t.action!.run();
                   setItems((xs) => xs.filter((x) => x.id !== t.id));

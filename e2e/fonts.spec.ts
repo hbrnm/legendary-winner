@@ -8,9 +8,9 @@ test("fonturile Cămarei se încarcă, cu diacriticele românești", async ({ pa
   await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
   await page.evaluate(() => document.fonts.ready);
   const loaded = await page.evaluate(() => [...document.fonts].filter((f) => f.status === "loaded").map((f) => f.family.replace(/['"]/g, "")));
-  expect(loaded).toEqual(expect.arrayContaining(["dmSans", "dmSansExt", "fraunces", "frauncesExt"]));
+  expect(loaded).toEqual(expect.arrayContaining(["dmSans", "dmSansExt"]));
   const h1 = await page.getByRole("heading", { level: 1 }).evaluate((el) => getComputedStyle(el).fontFamily);
-  expect(h1).toMatch(/^"?fraunces/);
+  expect(h1).toMatch(/^-apple-system, BlinkMacSystemFont, "?dmSans/);
   const body = await page.evaluate(() => getComputedStyle(document.body).fontFamily);
-  expect(body).toMatch(/^"?dmSans/);
+  expect(body).toMatch(/^-apple-system, BlinkMacSystemFont, "?dmSans/);
 });

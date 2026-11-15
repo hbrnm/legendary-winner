@@ -67,13 +67,13 @@ describe("RecipePhotoCredit", () => {
 });
 
 describe("RecipeAvatar", () => {
-  it("în liste, rețeta fără fotografie are un pătrat uniform de 64 px, cu inițiala în serif pe kraft", () => {
+  it("în liste, rețeta fără fotografie are un pătrat uniform de 64 px, cu inițiala în DM Sans pe suprafață tonală", () => {
     const { getByTestId } = render(<RecipeAvatar recipe={{ name: "Sarmale în foi de varză" }} />);
     const el = getByTestId("avatar-reteta");
     expect(el.className).toContain("h-16 w-16");
     expect(el.className).toContain("bg-surface-2");
     expect(el.className).toContain("border-line");
-    expect(el.className).toContain("font-serif");
+    expect(el.className).toContain("font-sans");
     expect(el.textContent).toBe("S");
   });
 

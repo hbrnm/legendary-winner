@@ -139,10 +139,10 @@ export function RecipeEditor({ id, isGlobal, source, imported, onBack }: { id: s
       }}
     >
       <div className="mb-4 flex items-center gap-1">
-        <button type="button" onClick={() => (onBack ? onBack() : router.back())} aria-label="Înapoi" className="-ml-2 inline-flex h-11 w-11 items-center justify-center rounded-lg text-ink-2 hover:bg-surface-2">
+        <button type="button" onClick={() => (onBack ? onBack() : router.back())} aria-label="Înapoi" className="-ml-2 inline-flex h-12 w-12 shrink-0 items-center justify-center rounded-full text-ink-2 hover:bg-surface-2">
           <ArrowLeft size={20} />
         </button>
-        <h1 className="text-2xl font-semibold tracking-tight">{imported ? "Verifică rețeta" : id ? "Modifică rețeta" : "Rețetă nouă"}</h1>
+        <h1 className="min-w-0 break-words text-[32px] font-bold leading-tight tracking-tight">{imported ? "Verifică rețeta" : id ? "Modifică rețeta" : "Rețetă nouă"}</h1>
         {isGlobal && <span className="ml-2 rounded-full bg-info-soft px-2 py-0.5 text-xs text-info">catalog comun</span>}
       </div>
       {imported && (
@@ -155,7 +155,7 @@ export function RecipeEditor({ id, isGlobal, source, imported, onBack }: { id: s
         <ImportedPhoto imageUrl={d.image_url} site={new URL(d.source_url ?? d.image_url).hostname.replace(/^www\./, "")} onChange={setPhoto} />
       )}
       {imported?.translation === "failed" && (
-        <p role="note" className="mb-4 rounded-lg bg-warn-soft px-3 py-2 text-sm text-ink">
+        <p role="note" className="mb-4 rounded-2xl bg-warn-soft px-3 py-2 text-sm text-ink">
           Nu am putut traduce rețeta, așa că am păstrat textul original. Îl poți corecta aici.
         </p>
       )}
@@ -193,7 +193,7 @@ export function RecipeEditor({ id, isGlobal, source, imported, onBack }: { id: s
       <SectionTitle>Ingrediente</SectionTitle>
       <p className="mb-2 text-sm text-ink-2">Alege din catalog, ca rețeta să poată calcula costul și lista de cumpărături. Lasă cantitatea goală pentru „după gust”.</p>
       {pending > 0 && (
-        <p role="status" className="mb-2 rounded-lg bg-warn-soft px-3 py-2 text-sm text-warn">
+        <p role="status" className="mb-2 rounded-2xl bg-warn-soft px-3 py-2 text-sm text-warn">
           {pending === 1 ? "Un ingredient nu are încă produsul ales." : `${pending} ingrediente nu au încă produsul ales.`}
         </p>
       )}
@@ -219,14 +219,14 @@ export function RecipeEditor({ id, isGlobal, source, imported, onBack }: { id: s
       <ul className="mt-3 flex flex-col gap-2">
         {ingredients.map((i) =>
           i.product_id ? (
-            <li key={i.key} className="rounded-lg border border-line bg-surface p-3">
+            <li key={i.key} className="rounded-[28px] bg-surface p-4">
               <div className="flex items-center gap-2">
                 <span className="min-w-0 flex-1">
                   <span className="font-medium">{i.name}</span>
                   {i.text && <span className="block truncate text-xs text-ink-2">din rețetă: {i.text}</span>}
                 </span>
                 {i.text && (
-                  <button type="button" onClick={() => patch(i.key, { product_id: "", name: "" })} className="h-11 shrink-0 rounded-lg px-2 text-sm text-brand hover:bg-surface-2">
+                  <button type="button" onClick={() => patch(i.key, { product_id: "", name: "" })} className="h-12 shrink-0 rounded-xl px-2 text-sm text-brand hover:bg-surface-2">
                     Schimbă
                   </button>
                 )}
@@ -236,7 +236,7 @@ export function RecipeEditor({ id, isGlobal, source, imported, onBack }: { id: s
               </div>
               <div className="mt-2 grid grid-cols-[1fr_8rem] gap-2">
                 <Input inputMode="decimal" placeholder="după gust" aria-label={`Cantitate ${i.name}`} value={i.quantity} onChange={(e) => patch(i.key, { quantity: e.target.value })} />
-                <select aria-label={`Unitate ${i.name}`} value={i.unit} onChange={(e) => patch(i.key, { unit: e.target.value as UnitCode })} className="h-11 rounded-lg border border-line bg-surface px-2">
+                <select aria-label={`Unitate ${i.name}`} value={i.unit} onChange={(e) => patch(i.key, { unit: e.target.value as UnitCode })} className="h-14 rounded-2xl border border-outline bg-surface px-2">
                   <option value="">—</option>
                   {UNIT_CODES.map((u) => (
                     <option key={u} value={u}>
@@ -297,7 +297,7 @@ function PendingIngredient({ item, onChoose, onRemove }: { item: IngredientDraft
   }
 
   return (
-    <li className="rounded-lg border border-warn bg-warn-soft p-3">
+    <li className="rounded-[28px] bg-warn-soft p-4">
       <div className="flex items-start gap-2">
         <p className="min-w-0 flex-1 text-sm">
           <span className="font-medium">De ales:</span> {item.text}
@@ -340,7 +340,7 @@ function PendingIngredient({ item, onChoose, onRemove }: { item: IngredientDraft
             setNewName(item.parsedName ?? "");
             setCreating(true);
           }}
-          className="mt-1 h-11 rounded-lg px-2 text-sm font-medium text-brand hover:bg-surface-2"
+          className="mt-1 h-12 rounded-xl px-2 text-sm font-medium text-brand hover:bg-surface-2"
         >
           Nu e în catalog? Creează produsul
         </button>

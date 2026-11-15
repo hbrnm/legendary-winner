@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { CalendarDays, ChevronRight } from "lucide-react";
+import { CalendarDays, ChevronRight, Wallet, ShoppingBasket, Archive } from "lucide-react";
 import { useApp } from "@/components/app/app-provider";
 import { useAction, useData } from "@/components/app/hooks";
 import { ProductSearch } from "@/components/shopping/product-search";
@@ -94,6 +94,7 @@ export function HomeScreen() {
       budget: main ? budgetStatus(main, spend, catMap, today) : null,
       todayMeals,
       expiring: expiringSoon(pantry, today, 3).slice(0, 4),
+      expiringCount: expiringSoon(pantry, today, 3).length,
       suggestions,
       recent,
     };
@@ -110,29 +111,24 @@ export function HomeScreen() {
     if (res) toast(`Adăugat în „${data!.next?.list.name ?? "Cumpărături săptămânale"}”.`);
   }
 
-  const LABEL = "text-xs font-semibold uppercase tracking-wider text-ink-2";
+  const LABEL = "text-xs font-semibold tracking-wide text-ink-2";
   const ROW = "transition-colors duration-150 ease-out hover:bg-surface-2 active:bg-surface-2 focus-visible:outline-2 focus-visible:outline-brand focus-visible:outline-offset-2";
 
   return (
     <>
-      <header className="mb-5">
-        <p className="text-xs uppercase tracking-wider text-ink-2">{capitalizeFirst(formatLongDate(today))}</p>
-        <h1 className="mt-1 text-[32px] font-semibold leading-tight tracking-tight">
-          {greeting()}
-          {displayName ? `, ${displayName}` : ""}!
-        </h1>
+      <header className="mb-6">
+        <p className="text-xs font-medium uppercase tracking-wider text-ink-2">{capitalizeFirst(formatLongDate(today))}</p>
+        <h1 className="mt-2 text-[34px] font-bold leading-tight tracking-tight">Acasă</h1>
+        <p className="mt-1 text-sm text-ink-2">{greeting()}{displayName ? `, ${displayName}` : ""}!</p>
       </header>
 
-      <ProductSearch placeholder="Adaugă rapid pe listă: ex. lapte" onPick={({ product, parsed }) => quickAdd(product?.id ?? null, parsed.text, parsed.quantity, parsed.unit)} />
-
-      {/* Registrul: bugetul și următoarea listă pe aceeași foaie (decizia proprietarului, 18 oct. 2026). */}
-      <Card className="mt-4 grid divide-y divide-line overflow-hidden sm:grid-cols-2 sm:divide-x sm:divide-y-0">
-        <Link href="/buget/" className={`block p-4 ${ROW}`}>
-          <p className={LABEL}>Bugetul lunii</p>
+      <Card className="overflow-hidden">
+        <Link href="/buget/" className={`block p-5 ${ROW}`}>
+          <p className="flex items-center gap-2 text-sm font-semibold text-brand"><Wallet size={19} aria-hidden /> Bugetul lunii</p>
           {data.budget ? (
             <>
-              <p className="mt-1.5 flex items-baseline justify-between gap-3">
-                <span className={`text-[26px] font-medium leading-none tracking-tight ${data.budget.over ? "text-accent" : "text-ink"}`}>
+              <p className="mt-3 flex flex-wrap items-baseline gap-x-3 gap-y-1">
+                <span className={`text-[32px] font-bold leading-tight tracking-tight ${data.budget.over ? "text-accent" : "text-ink"}`}>
                   {data.budget.over ? `−${formatRon(-data.budget.remaining)}` : formatRon(data.budget.remaining)}
                 </span>
                 <span className="text-sm text-ink-2">{data.budget.over ? "peste buget" : "rămași"}</span>
@@ -143,45 +139,47 @@ export function HomeScreen() {
               <BudgetBar pct={data.budget.used_pct} label="Bugetul lunii folosit" />
             </>
           ) : (
-            <p className="mt-1.5 text-[15px]">Setează cât vrei să cheltui pe lună →</p>
+            <p className="mt-3 text-[15px]">Setează cât vrei să cheltui pe lună →</p>
           )}
-        </Link>
-
-        <Link href={data.next ? `/cumparaturi/lista/?id=${data.next.list.id}` : "/cumparaturi/"} className={`flex items-center gap-3 p-4 ${ROW}`}>
-          <span className="min-w-0 flex-1">
-            <span className={`block ${LABEL}`}>Următoarea listă</span>
-            {data.next ? (
-              <>
-                <span className="mt-1 line-clamp-2 font-serif text-xl font-semibold leading-snug">{data.next.list.name}</span>
-                <span className="block text-sm text-ink-2">
-                  {count(data.next.totals.item_count - data.next.totals.checked_count, "produs", "produse")} de luat
-                  {data.next.totals.remaining_estimate > 0 && ` · încă ~${formatRon(data.next.totals.remaining_estimate)}`}
-                  {data.next.totals.unknown_price_count > 0 && ` · ${data.next.totals.unknown_price_count} fără preț`}
-                </span>
-                {data.listCount > 1 && <span className="mt-1 block text-xs text-ink-2">și încă {data.listCount - 1} {data.listCount === 2 ? "listă" : "liste"}</span>}
-              </>
-            ) : (
-              <span className="mt-1.5 block text-[15px]">Începe o listă →</span>
-            )}
-          </span>
-          <ChevronRight size={18} strokeWidth={1.75} className="shrink-0 text-ink-3" />
         </Link>
       </Card>
 
-      <SectionTitle action={<Link href="/plan/" className="inline-flex min-h-11 items-center px-2 text-sm font-medium text-brand hover:underline focus-visible:outline-2 focus-visible:outline-brand focus-visible:outline-offset-2 rounded-md">Planul</Link>}>Azi la masă</SectionTitle>
+      <div className="mt-4 grid grid-cols-2 gap-3">
+        <Link
+          href={data.next ? `/cumparaturi/lista/?id=${data.next.list.id}` : "/cumparaturi/"}
+          aria-label="Cumpărături"
+          className={`min-w-0 rounded-[28px] bg-surface p-4 ${ROW}`}
+        >
+          <span className="flex items-center gap-2 text-xs font-semibold text-secondary"><ShoppingBasket size={18} className="shrink-0" aria-hidden /> Cumpărături</span>
+          <span data-dashboard-count className="mt-3 block text-4xl font-bold tracking-tight">{data.next ? data.next.totals.item_count - data.next.totals.checked_count : 0}</span>
+          <span className="mt-1 block text-xs text-ink-2">{data.next ? count(data.next.totals.item_count - data.next.totals.checked_count, "produs", "produse") : "0 produse"} de luat</span>
+          <span className="mt-3 line-clamp-2 break-words text-xs font-medium leading-relaxed text-secondary">{data.next?.list.name ?? "Începe o listă →"}</span>
+          {data.next && data.next.totals.remaining_estimate > 0 && <span className="mt-1 block text-xs text-ink-2">încă ~{formatRon(data.next.totals.remaining_estimate)}</span>}
+          {data.next && data.next.totals.unknown_price_count > 0 && <span className="mt-1 block text-xs text-ink-2">{data.next.totals.unknown_price_count} fără preț</span>}
+          {data.listCount > 1 && <span className="mt-1 block text-xs text-ink-2">și încă {data.listCount - 1} {data.listCount === 2 ? "listă" : "liste"}</span>}
+        </Link>
+        <Link href="/camara/" aria-label="Cămară" className={`min-w-0 rounded-[28px] bg-surface p-4 ${ROW}`}>
+          <span className="flex items-center gap-2 text-xs font-semibold text-info"><Archive size={18} className="shrink-0" aria-hidden /> Cămară</span>
+          <span data-dashboard-count className="mt-3 block text-4xl font-bold tracking-tight">{data.expiringCount}</span>
+          <span className="mt-1 block text-xs text-ink-2">Expiră curând</span>
+          <span className="mt-3 flex items-center gap-1 text-xs font-medium text-info">Cămară și frigider <ChevronRight size={14} className="shrink-0" aria-hidden /></span>
+        </Link>
+      </div>
+
+      <SectionTitle action={<Link href="/plan/" className="inline-flex min-h-12 items-center px-2 text-sm font-medium text-brand hover:underline focus-visible:outline-2 focus-visible:outline-brand focus-visible:outline-offset-2 rounded-md">Planul</Link>}>Azi la masă</SectionTitle>
       {data.todayMeals.length === 0 ? (
-        <Link href="/plan/" className="flex min-h-14 items-center gap-3 rounded-lg border border-dashed border-line px-4 text-[15px] text-ink-2 transition-colors duration-150 ease-out hover:bg-surface">
+        <Link href="/plan/" className="flex min-h-24 items-center gap-3 rounded-[28px] bg-surface px-5 py-4 text-[15px] text-ink-2 transition-colors duration-150 ease-out hover:bg-surface-2">
           <CalendarDays size={20} strokeWidth={1.75} /> Nimic planificat azi. Planifică mesele săptămânii.
         </Link>
       ) : (
-        <ul className="divide-y divide-line border-y border-line">
+        <ul className="divide-y divide-line overflow-hidden rounded-[28px] bg-surface">
           {data.todayMeals.map(({ meal, recipe }) => (
             <li key={meal.id}>
-              <Link href={recipe ? `/retete/reteta/?id=${recipe.id}` : "/plan/"} className={`flex items-center gap-3 py-3 ${ROW}`}>
+              <Link href={recipe ? `/retete/reteta/?id=${recipe.id}` : "/plan/"} className={`flex items-center gap-3 px-5 py-4 ${ROW}`}>
                 {recipe && <RecipeImage recipe={recipe} size="sm" avatar />}
                 <span className="min-w-0 flex-1">
                   <span className={`block ${LABEL}`}>{SLOT_LABELS[meal.slot]}</span>
-                  <span className="mt-0.5 line-clamp-2 font-serif text-lg font-medium leading-snug">{recipe?.name ?? "Rețetă ștearsă"}</span>
+                  <span className="mt-0.5 line-clamp-2 font-sans text-lg font-medium leading-snug">{recipe?.name ?? "Rețetă ștearsă"}</span>
                 </span>
                 <span className="shrink-0 text-xs text-ink-2">{meal.servings} porții</span>
               </Link>
@@ -190,15 +188,19 @@ export function HomeScreen() {
         </ul>
       )}
 
+      <div className="mt-6">
+        <ProductSearch placeholder="Adaugă rapid pe listă: ex. lapte" onPick={({ product, parsed }) => quickAdd(product?.id ?? null, parsed.text, parsed.quantity, parsed.unit)} />
+      </div>
+
       {data.expiring.length > 0 && (
         <>
-          <SectionTitle action={<Link href="/camara/" className="inline-flex min-h-11 items-center px-2 text-sm font-medium text-brand hover:underline focus-visible:outline-2 focus-visible:outline-brand focus-visible:outline-offset-2 rounded-md">Cămara</Link>}>Expiră curând</SectionTitle>
+          <SectionTitle action={<Link href="/camara/" className="inline-flex min-h-12 items-center px-2 text-sm font-medium text-brand hover:underline focus-visible:outline-2 focus-visible:outline-brand focus-visible:outline-offset-2 rounded-md">Cămara</Link>}>Expiră curând</SectionTitle>
           {/* Etichete de borcan: chenar punctat terracotta, termenul ca o ștampilă (decizia proprietarului, 18 oct. 2026). */}
           <ul className="flex flex-col gap-2">
             {data.expiring.map((i) => {
               const d = daysBetween(today, i.expires_on!);
               return (
-                <li key={i.id} className={`flex items-center gap-3 rounded-md border border-dashed border-accent px-3.5 py-2.5 ${d < 0 ? "bg-accent-soft" : "bg-surface"}`}>
+                <li key={i.id} className={`flex items-center gap-3 rounded-2xl border border-error/30 px-4 py-3 ${d < 0 ? "bg-error-container" : "bg-surface"}`}>
                   <span className="min-w-0 flex-1 text-[15px] text-ink">{i.name}</span>
                   <span className="shrink-0 text-xs font-medium uppercase tracking-wider text-accent">{d < 0 ? "expirat" : d === 0 ? "azi" : d === 1 ? "mâine" : `în ${d} zile`}</span>
                 </li>
@@ -210,13 +212,13 @@ export function HomeScreen() {
 
       {data.suggestions.length > 0 && (
         <>
-          <SectionTitle action={<Link href="/retete/" className="inline-flex min-h-11 items-center px-2 text-sm font-medium text-brand hover:underline focus-visible:outline-2 focus-visible:outline-brand focus-visible:outline-offset-2 rounded-md">Toate rețetele</Link>}>{MEAL_TITLES[meal]}</SectionTitle>
+          <SectionTitle action={<Link href="/retete/" className="inline-flex min-h-12 items-center px-2 text-sm font-medium text-brand hover:underline focus-visible:outline-2 focus-visible:outline-brand focus-visible:outline-offset-2 rounded-md">Toate rețetele</Link>}>{MEAL_TITLES[meal]}</SectionTitle>
           <Card as="section" aria-label={MEAL_TITLES[meal]} className="divide-y divide-line overflow-hidden">
             {data.suggestions.map(({ recipe, why }) => (
               <Link key={recipe.id} href={`/retete/reteta/?id=${recipe.id}`} className={`flex items-center gap-3 px-3 py-3 ${ROW}`}>
                 <RecipeImage recipe={recipe} size="sm" avatar />
                 <span className="min-w-0 flex-1">
-                  <span className="line-clamp-2 font-serif text-[17px] font-medium leading-snug">{recipe.name}</span>
+                  <span className="line-clamp-2 font-sans text-[17px] font-medium leading-snug">{recipe.name}</span>
                   <span className="text-xs text-ink-2">{why}</span>
                 </span>
                 <ChevronRight size={16} strokeWidth={1.75} className="shrink-0 text-ink-3" />
@@ -228,7 +230,7 @@ export function HomeScreen() {
 
       {data.recent.length > 0 && (
         <>
-          <SectionTitle action={<Link href="/cumparaturi/istoric/" className="inline-flex min-h-11 items-center px-2 text-sm font-medium text-brand hover:underline focus-visible:outline-2 focus-visible:outline-brand focus-visible:outline-offset-2 rounded-md">Istoric</Link>}>Cheltuieli recente</SectionTitle>
+          <SectionTitle action={<Link href="/cumparaturi/istoric/" className="inline-flex min-h-12 items-center px-2 text-sm font-medium text-brand hover:underline focus-visible:outline-2 focus-visible:outline-brand focus-visible:outline-offset-2 rounded-md">Istoric</Link>}>Cheltuieli recente</SectionTitle>
           {/* Registru: magazinul, data și numărul de produse, suma aliniată la dreapta. */}
           <Card className="divide-y divide-dashed divide-line overflow-hidden">
             {data.recent.map((t) => (

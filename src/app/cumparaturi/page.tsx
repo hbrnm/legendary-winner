@@ -66,14 +66,14 @@ function ListsScreen() {
           Una pentru săptămână, una pentru piață, sau câte una pe magazin, cum îți vine mai la îndemână.
         </EmptyState>
       ) : (
-        <ul className="flex flex-col gap-3">
+        <ul className="grid gap-4 min-[900px]:grid-cols-2">
           {active.map(({ list, totals }) => (
             <li key={list.id}>
               <Link href={`/cumparaturi/lista/?id=${list.id}`} className="block">
-                <Card className="flex items-center gap-3 p-4 transition-colors hover:bg-surface-2">
+                <Card className="flex items-center gap-3 p-5 transition-colors hover:bg-surface-container-high">
                   <div className="min-w-0 flex-1">
                     <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
-                      <span className="line-clamp-2 break-words font-serif text-lg font-semibold leading-snug">{list.name}</span>
+                      <span className="line-clamp-2 break-words font-sans text-lg font-semibold leading-snug">{list.name}</span>
                       {list.is_recurring && (
                         <Badge tone="brand">
                           <AgainIcon size={12} strokeWidth={2} /> se reia
@@ -123,7 +123,7 @@ function ListsScreen() {
             Puse deoparte
           </SectionTitle>
           {showArchived && (
-            <ul className="flex flex-col divide-y divide-line overflow-hidden rounded-lg border border-line bg-surface">
+            <ul className="flex flex-col divide-y divide-line overflow-hidden rounded-[28px] bg-surface">
               {archived.map(({ list, totals }) => (
                 <li key={list.id} className="flex items-center gap-2 px-4 py-2">
                   <Link href={`/cumparaturi/lista/?id=${list.id}`} className="min-w-0 flex-1 py-1">
@@ -160,7 +160,7 @@ function ListsScreen() {
           <LabeledInput label="Numele listei" value={name} onChange={(e) => setName(e.target.value)} maxLength={80} placeholder="ex. Piața de sâmbătă" autoFocus />
           <div className="flex flex-wrap gap-2">
             {SUGGESTED_NAMES.map((s) => (
-              <button key={s} type="button" onClick={() => setName(s)} className="h-11 rounded-full border border-line px-3 text-sm text-ink-2 transition-colors duration-150 ease-out hover:text-ink active:bg-surface-2">
+              <button key={s} type="button" onClick={() => setName(s)} className="h-12 rounded-full border border-line px-3 text-sm text-ink-2 transition-colors duration-150 ease-out hover:text-ink active:bg-surface-2">
                 {s}
               </button>
             ))}

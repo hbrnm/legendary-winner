@@ -130,7 +130,7 @@ function RecipeScreen() {
   return (
     <>
       <div className="mb-3 flex items-center justify-between gap-1">
-        <button type="button" onClick={() => router.back()} aria-label="Înapoi" className="-ml-2 inline-flex h-11 w-11 items-center justify-center rounded-lg text-ink-2 transition-colors duration-150 ease-out hover:bg-surface-2">
+        <button type="button" onClick={() => router.back()} aria-label="Înapoi" className="-ml-2 inline-flex h-12 w-12 shrink-0 items-center justify-center rounded-full text-ink-2 transition-colors duration-150 ease-out hover:bg-surface-2">
           <ArrowLeft size={20} />
         </button>
         <div className="flex items-center">
@@ -139,7 +139,7 @@ function RecipeScreen() {
           </IconButton>
           {canEdit && (
             <>
-              <Link href={`/retete/editare/?id=${id}`} aria-label="Modifică rețeta" className="inline-flex h-11 w-11 items-center justify-center rounded-lg text-ink-2 transition-colors duration-150 ease-out hover:bg-surface-2">
+              <Link href={`/retete/editare/?id=${id}`} aria-label="Modifică rețeta" className="inline-flex h-12 w-12 shrink-0 items-center justify-center rounded-full text-ink-2 transition-colors duration-150 ease-out hover:bg-surface-2">
                 <Pencil size={20} />
               </Link>
               <IconButton label="Șterge rețeta" onClick={() => setConfirmDelete(true)}>
@@ -151,7 +151,7 @@ function RecipeScreen() {
       </div>
 
       <RecipePhotoPanel recipe={r} />
-      <h1 className="mt-4 text-2xl font-semibold tracking-tight">{r.name}</h1>
+      <h1 className="mt-4 min-w-0 break-words text-[32px] font-bold leading-tight tracking-tight">{r.name}</h1>
       <p className="mt-1 text-[15px] text-ink-2">{r.description}</p>
       {r.source_url && <RecipeSource url={r.source_url} />}
       <div className="mt-3 flex flex-wrap gap-1.5">
@@ -178,7 +178,7 @@ function RecipeScreen() {
         <div className="p-3">
           <Users size={18} strokeWidth={1.75} className="mx-auto text-ink-2" />
           <div className="mt-1 flex items-center justify-center gap-1">
-            <button type="button" aria-label="Mai puține porții" onClick={() => setServings(Math.max(1, servings - 1))} className="group inline-flex h-11 w-11 items-center justify-center">
+            <button type="button" aria-label="Mai puține porții" onClick={() => setServings(Math.max(1, servings - 1))} className="group inline-flex h-12 w-12 shrink-0 items-center justify-center">
               <span className="inline-flex h-7 w-7 items-center justify-center rounded-full bg-surface-2 transition-colors duration-150 ease-out group-active:bg-line">
                 <Minus size={14} />
               </span>
@@ -186,7 +186,7 @@ function RecipeScreen() {
             <span className="w-6 text-sm font-semibold" aria-live="polite">
               {servings}
             </span>
-            <button type="button" aria-label="Mai multe porții" onClick={() => setServings(Math.min(50, servings + 1))} className="group inline-flex h-11 w-11 items-center justify-center">
+            <button type="button" aria-label="Mai multe porții" onClick={() => setServings(Math.min(50, servings + 1))} className="group inline-flex h-12 w-12 shrink-0 items-center justify-center">
               <span className="inline-flex h-7 w-7 items-center justify-center rounded-full bg-surface-2 transition-colors duration-150 ease-out group-active:bg-line">
                 <Plus size={14} />
               </span>
@@ -239,7 +239,7 @@ function RecipeScreen() {
       </div>
 
       <SectionTitle>Ingrediente</SectionTitle>
-      <ul className="divide-y divide-line overflow-hidden rounded-lg border border-line bg-surface">
+      <ul className="divide-y divide-line overflow-hidden rounded-[28px] bg-surface">
         {view.scaled.map((i) => {
           const p = data.products.get(i.product_id);
           const have = view.available.has(i.product_id);
@@ -295,7 +295,7 @@ function RecipeScreen() {
       <ol className="flex flex-col gap-3">
         {data.steps.map((s, k) => (
           <li key={s.id} className="flex gap-3">
-            <span className="w-7 shrink-0 text-right font-serif text-xl font-semibold leading-7 text-brand">{k + 1}.</span>
+            <span className="w-7 shrink-0 text-right font-sans text-xl font-semibold leading-7 text-brand">{k + 1}.</span>
             <p className="pt-0.5 text-[15px] leading-relaxed">{s.text}</p>
           </li>
         ))}

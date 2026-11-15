@@ -73,10 +73,10 @@ function Importer() {
       }}
     >
       <div className="mb-4 flex items-center gap-1">
-        <button type="button" onClick={() => router.back()} aria-label="Înapoi" className="-ml-2 inline-flex h-11 w-11 items-center justify-center rounded-lg text-ink-2 hover:bg-surface-2">
+        <button type="button" onClick={() => router.back()} aria-label="Înapoi" className="-ml-2 inline-flex h-12 w-12 shrink-0 items-center justify-center rounded-full text-ink-2 hover:bg-surface-2">
           <ArrowLeft size={20} />
         </button>
-        <h1 className="text-2xl font-semibold tracking-tight">Importă rețetă</h1>
+        <h1 className="min-w-0 break-words text-[32px] font-bold leading-tight tracking-tight">Importă rețetă</h1>
       </div>
 
       <Segmented<Mode>
@@ -95,7 +95,7 @@ function Importer() {
             <Field label="Linkul rețetei" htmlFor="import-link" hint="Merge cu site-urile de rețete. Pentru Instagram, TikTok sau Facebook, copiază descrierea și lipește-o la „Text”.">
               <Input id="import-link" type="url" inputMode="url" placeholder="https://" value={link} onChange={(e) => setLink(e.target.value)} disabled={!linkWorks} />
             </Field>
-            {!linkWorks && <p className="rounded-lg bg-info-soft px-3 py-2 text-sm text-info">Importul din link merge când ești conectat cu cont. Până atunci, lipește textul rețetei la „Text”.</p>}
+            {!linkWorks && <p className="rounded-2xl bg-info-soft px-3 py-2 text-sm text-info">Importul din link merge când ești conectat cu cont. Până atunci, lipește textul rețetei la „Text”.</p>}
           </>
         ) : (
           <Field label="Textul rețetei" htmlFor="import-text" hint="Pune numele pe primul rând, apoi ingredientele și pașii. Merge și fără internet.">

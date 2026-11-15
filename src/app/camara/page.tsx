@@ -51,7 +51,7 @@ function LocationFilter({ active, onClick, children }: { active: boolean; onClic
       type="button"
       aria-pressed={active}
       onClick={onClick}
-      className={`h-11 min-w-0 rounded-lg border px-1.5 text-[13px] font-medium transition duration-150 ease-out active:scale-[0.98] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand ${active ? "border-brand bg-brand text-brand-ink" : "border-line bg-surface text-ink-2 hover:text-ink"}`}
+      className={`h-12 min-w-0 rounded-xl border px-1.5 text-[13px] font-medium transition duration-150 ease-out active:scale-[0.98] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand ${active ? "border-brand bg-brand text-brand-ink" : "border-line bg-surface text-ink-2 hover:text-ink"}`}
     >
       <span className="truncate">{children}</span>
     </button>
@@ -181,15 +181,15 @@ function PantryScreen() {
 
       {data.soon.length > 0 && (
         // Etichetă de borcan: chenar punctat terracotta, ca „Expiră curând” de pe Acasă.
-        <section aria-label="Expiră curând" className="mb-4 rounded-md border border-dashed border-accent bg-surface p-4">
-          <p className="font-serif text-lg font-semibold text-accent">{data.soon.length === 1 ? "Un produs expiră curând" : `${data.soon.length} produse expiră curând`}</p>
+        <section aria-label="Expiră curând" className="mb-4 rounded-2xl bg-warn-soft p-5">
+          <p className="font-sans text-lg font-medium text-warn">{data.soon.length === 1 ? "Un produs expiră curând" : `${data.soon.length} produse expiră curând`}</p>
           <p className="mt-1 text-sm text-ink">{data.soon.map((i) => i.name).join(", ")}</p>
           {data.useSoon.length > 0 && (
             <div className="mt-3">
               <p className="text-xs text-ink-2">{data.soon.length === 1 ? "Rețete în care intră:" : "Le poți folosi în:"}</p>
               <div className="mt-1 flex flex-wrap gap-2">
                 {data.useSoon.map((r) => (
-                  <Link key={r.recipe.id} href={`/retete/reteta/?id=${r.recipe.id}`} className="inline-flex min-h-11 items-center rounded-md border border-line bg-surface px-3 font-serif text-[15px] font-medium text-ink transition-colors duration-150 ease-out hover:bg-surface-2 active:bg-surface-2">
+                  <Link key={r.recipe.id} href={`/retete/reteta/?id=${r.recipe.id}`} className="inline-flex min-h-12 items-center rounded-md border border-line bg-surface px-3 font-sans text-[15px] font-medium text-ink transition-colors duration-150 ease-out hover:bg-surface-2 active:bg-surface-2">
                     {r.recipe.name}
                   </Link>
                 ))}
@@ -222,9 +222,9 @@ function PantryScreen() {
       )}
 
       {data.items.length > 0 && (
-        <div className="mt-3 flex items-center gap-2 rounded-lg border border-line bg-surface-2 px-3 transition-colors duration-150 ease-out focus-within:border-brand focus-within:bg-surface">
+        <div className="mt-3 flex items-center gap-2 rounded-full border border-transparent bg-surface-container-high px-4 transition-colors duration-150 ease-out focus-within:border-brand focus-within:bg-surface">
           <Search size={16} className="text-ink-3" />
-          <input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Caută în cămară" aria-label="Caută în cămară" className="h-11 min-w-0 flex-1 bg-transparent focus:outline-none" />
+          <input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Caută în cămară" aria-label="Caută în cămară" className="h-12 min-w-0 flex-1 bg-transparent focus:outline-none" />
         </div>
       )}
 
@@ -242,7 +242,7 @@ function PantryScreen() {
             return (
               <section key={loc} className="mt-5">
                 <SectionTitle>{locName.get(loc) ?? "Alt loc"}</SectionTitle>
-                <ul className="divide-y divide-line overflow-hidden rounded-lg border border-line bg-surface">
+                <ul className="divide-y divide-line overflow-hidden rounded-[28px] bg-surface">
                   {items.map((i) => (
                     <li key={i.id} className="flex items-center gap-2 py-1.5 pl-4 pr-2">
                       <button type="button" onClick={() => startEdit(i)} className="min-w-0 flex-1 py-1 text-left">
@@ -314,7 +314,7 @@ function PantryScreen() {
             <Field label="Cantitate">
               <div className="flex gap-2">
                 <Input inputMode="decimal" value={draft.quantity} onChange={(e) => setDraft({ ...draft, quantity: e.target.value })} className="flex-1 tabular" aria-label="Cantitate" />
-                <select aria-label="Unitate" value={draft.unit} onChange={(e) => setDraft({ ...draft, unit: e.target.value as UnitCode })} className="h-11 w-32 rounded-lg border border-line bg-surface px-3">
+                <select aria-label="Unitate" value={draft.unit} onChange={(e) => setDraft({ ...draft, unit: e.target.value as UnitCode })} className="h-12 w-32 rounded-2xl border border-outline bg-surface px-3">
                   {SHOPPING_UNITS.map((u) => (
                     <option key={u} value={u}>
                       {unitLabel(u, 2)}

@@ -4,7 +4,7 @@ import { forwardRef, useId, useRef, type InputHTMLAttributes, type KeyboardEvent
 import { ChevronDown } from "lucide-react";
 
 const FIELD =
-  "w-full rounded-lg border border-line bg-surface px-3.5 text-base text-ink placeholder:text-ink-3 focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/25 disabled:opacity-60";
+  "w-full min-w-0 rounded-2xl border border-outline bg-surface px-4 text-base text-ink placeholder:text-ink-3 focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/25 disabled:opacity-60";
 
 export function Field({
   label,
@@ -46,7 +46,7 @@ export function Field({
 }
 
 export const Input = forwardRef<HTMLInputElement, InputHTMLAttributes<HTMLInputElement>>(function Input({ className = "", ...rest }, ref) {
-  return <input ref={ref} className={`${FIELD} h-11 ${className}`} {...rest} />;
+  return <input ref={ref} className={`${FIELD} h-14 ${className}`} {...rest} />;
 });
 
 export function TextArea({ className = "", ...rest }: TextareaHTMLAttributes<HTMLTextAreaElement>) {
@@ -56,7 +56,7 @@ export function TextArea({ className = "", ...rest }: TextareaHTMLAttributes<HTM
 export function Select({ className = "", children, ...rest }: SelectHTMLAttributes<HTMLSelectElement>) {
   return (
     <div className="relative w-full">
-      <select className={`${FIELD} h-11 appearance-none pr-9 ${className}`} {...rest}>
+      <select className={`${FIELD} h-14 appearance-none pr-9 ${className}`} {...rest}>
         {children}
       </select>
       <ChevronDown size={18} strokeWidth={1.75} aria-hidden className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-ink-3" />
@@ -151,7 +151,7 @@ export function Segmented<T extends string>({
   };
 
   return (
-    <div ref={containerRef} role="radiogroup" aria-label={label} className="flex rounded-lg bg-surface-2 p-1">
+    <div ref={containerRef} role="radiogroup" aria-label={label} className={`${options.length === 4 ? "grid grid-cols-2 min-[480px]:flex" : "flex"} gap-1 rounded-[28px] bg-surface-2 p-1`}>
       {options.map((o, idx) => {
         const isSelected = value === o.value;
         return (
@@ -163,7 +163,7 @@ export function Segmented<T extends string>({
             tabIndex={isSelected ? 0 : -1}
             onClick={() => onChange(o.value)}
             onKeyDown={(e) => handleKeyDown(e, idx)}
-            className={`h-11 min-w-0 flex-1 rounded-md px-1.5 text-sm font-medium leading-tight transition-colors duration-150 ease-out focus-visible:outline-2 focus-visible:outline-brand ${isSelected ? "bg-surface text-ink shadow-card" : "text-ink-2 hover:text-ink"}`}
+            className={`min-h-12 min-w-0 flex-1 break-words rounded-3xl py-2 font-medium leading-tight transition-colors duration-150 ease-out focus-visible:outline-2 focus-visible:outline-brand focus-visible:-outline-offset-2 ${options.length > 4 ? "px-1 text-xs" : "px-1.5 text-sm"} ${isSelected ? "bg-surface text-secondary" : "text-ink-2 hover:text-ink"}`}
           >
             {o.label}
           </button>
@@ -175,15 +175,15 @@ export function Segmented<T extends string>({
 
 export function Toggle({ checked, onChange, label, description }: { checked: boolean; onChange: (v: boolean) => void; label: string; description?: string }) {
   return (
-    <label className="flex min-h-11 cursor-pointer items-center justify-between gap-4">
+    <label className="flex min-h-14 cursor-pointer items-center justify-between gap-4">
       <span className="flex flex-col">
         <span className="text-[15px] text-ink">{label}</span>
         {description && <span className="text-xs text-ink-2">{description}</span>}
       </span>
       <span className="relative inline-flex">
         <input type="checkbox" className="peer sr-only" checked={checked} onChange={(e) => onChange(e.target.checked)} />
-        <span className="h-7 w-12 rounded-full bg-line transition-colors peer-checked:bg-brand peer-focus-visible:ring-2 peer-focus-visible:ring-brand/40" />
-        <span className="absolute left-1 top-1 h-5 w-5 rounded-full bg-surface shadow-card transition-transform peer-checked:translate-x-5" />
+        <span className="h-8 w-14 rounded-full border-2 border-outline bg-surface-container-high transition-colors peer-checked:bg-brand peer-focus-visible:ring-2 peer-focus-visible:ring-brand/40" />
+        <span className="absolute left-1.5 top-1.5 h-5 w-5 rounded-full bg-surface shadow-card transition-transform peer-checked:translate-x-6" />
       </span>
     </label>
   );

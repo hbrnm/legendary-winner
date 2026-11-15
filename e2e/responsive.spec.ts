@@ -6,6 +6,12 @@ const PAGES = [
   "/cumparaturi/",
   "/retete/",
   "/retete/import/",
+  "/retete/editare/",
+  "/cumparaturi/bon/",
+  "/buget/diverse/",
+  "/autentificare/",
+  "/invitatie/",
+  "/offline/",
   "/plan/",
   "/buget/",
   "/buget/preturi/",
@@ -17,7 +23,7 @@ const PAGES = [
   "/termeni/",
 ];
 
-for (const width of [360, 1280]) {
+for (const width of [360, 390, 600, 768, 1024, 1440]) {
   test(`fără derulare orizontală la ${width}px`, async ({ page }) => {
     await page.setViewportSize({ width, height: 800 });
     await start(page);
@@ -33,7 +39,7 @@ for (const width of [360, 1280]) {
 
 test("navigația principală are cele cinci secțiuni", async ({ page }) => {
   await start(page);
-  const nav = page.getByRole("navigation", { name: "Navigare principală" }).last();
+  const nav = page.locator('nav[aria-label="Navigare principală"]:visible');
   for (const label of ["Acasă", "Cumpărături", "Rețete", "Buget", "Cămară"]) await expect(nav.getByRole("link", { name: label })).toBeVisible();
 });
 
@@ -80,4 +86,58 @@ test("pagina nu se poate derula orizontal, nici când ceva iese din ecran", asyn
     document.querySelector("main")!.appendChild(wide);
   });
   expect(await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth)).toBeLessThanOrEqual(0);
+});
+
+// Tablet navigation keeps all destinations and settings reachable without a bottom bar.
+test("pe tabletă, navigația laterală permite deschiderea setărilor", async ({ page }) => {
+  await page.setViewportSize({ width: 768, height: 900 });
+  await start(page);
+  const nav = page.locator('nav[aria-label="Navigare principală"]:visible');
+  await expect(nav).toHaveCount(1);
+  expect((await nav.boundingBox())?.width).toBe(96);
+  await nav.getByRole("link", { name: "Setări", exact: true }).click();
+  await expect(page.getByRole("heading", { name: "Gospodărie și setări" })).toBeVisible();
+  await page.getByRole("radio", { name: "Întunecat", exact: true }).click();
+  await page.reload();
+  await expect(page.locator("html")).toHaveAttribute("data-theme", "intunecat");
+  await expect(page.getByRole("radio", { name: "Întunecat", exact: true })).toBeChecked();
+});
+
+test("planul și catalogul păstrează aceeași destinație principală", async ({ page }) => {
+  await start(page, "/retete/");
+  const section = page.getByRole("navigation", { name: "Rețete și plan" });
+  await section.getByRole("link", { name: "Planul meselor" }).click();
+  await expect(page.getByRole("heading", { name: "Planul meselor" })).toBeVisible();
+  await expect(section.getByRole("link", { name: "Planul meselor" })).toHaveAttribute("aria-current", "page");
+  const nav = page.locator('nav[aria-label="Navigare principală"]:visible');
+  await expect(nav.getByRole("link", { name: "Rețete", exact: true })).toHaveAttribute("aria-current", "page");
+  await section.getByRole("link", { name: "Rețete", exact: true }).click();
+  await expect(page.getByRole("heading", { name: "Rețete", exact: true })).toBeVisible();
+});
+
+test("la 360px, comenzile săptămânii rămân în zona de conținut", async ({ page }) => {
+  await page.setViewportSize({ width: 360, height: 780 });
+  await start(page, "/plan/");
+  const copy = page.getByRole("button", { name: "Copiază mesele în săptămâna următoare" });
+  await expect(copy).toBeVisible();
+  const rightEdge = await page.locator("main").evaluate(el => el.getBoundingClientRect().right - parseFloat(getComputedStyle(el).paddingRight));
+  const box = (await copy.boundingBox())!;
+  expect(box.x + box.width).toBeLessThanOrEqual(rightEdge + 1);
+});
+
+test("la 360px, etichetele surselor de preț nu se suprapun", async ({ page }) => {
+  await page.setViewportSize({ width: 360, height: 780 });
+  await start(page, "/buget/preturi/");
+  await page.getByRole("combobox").fill("roșii");
+  await page.getByRole("option").first().click();
+  await page.getByRole("button", { name: "Preț", exact: true }).click();
+  const radios = page.getByRole("dialog").getByRole("radiogroup", { name: "De unde" }).getByRole("radio");
+  await expect(radios).toHaveCount(4);
+  const overlaps = await radios.evaluateAll(nodes => nodes.flatMap(el => {
+    const bounds = el.getBoundingClientRect();
+    const range = document.createRange();
+    range.selectNodeContents(el);
+    return [...range.getClientRects()].some(r => r.left < bounds.left - 1 || r.right > bounds.right + 1) ? [el.textContent] : [];
+  }));
+  expect(overlaps).toEqual([]);
 });

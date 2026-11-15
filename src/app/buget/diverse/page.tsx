@@ -30,17 +30,17 @@ function DiverseScreen() {
   return (
     <>
       <div className="mb-4 flex items-center gap-1">
-        <Link href="/buget/" aria-label="Înapoi la buget" className="-ml-2 inline-flex h-11 w-11 items-center justify-center rounded-lg text-ink-2 transition-colors duration-150 ease-out hover:bg-surface-2">
+        <Link href="/buget/" aria-label="Înapoi la buget" className="-ml-2 inline-flex h-12 w-12 shrink-0 items-center justify-center rounded-full text-ink-2 transition-colors duration-150 ease-out hover:bg-surface-2">
           <ArrowLeft size={20} />
         </Link>
-        <h1 className="text-2xl font-semibold tracking-tight">Produse din Diverse</h1>
+        <h1 className="min-w-0 break-words text-[32px] font-bold leading-tight tracking-tight">Produse din Diverse</h1>
       </div>
       {data.groups.length === 0 ? (
         <EmptyState title="Nu mai ai nimic în Diverse." />
       ) : (
         <>
           <p className="mb-3 text-sm text-ink-2">Alege categoria potrivită. Se mută și cumpărăturile de până acum, ca bugetul să arate unde s-au dus banii.</p>
-          <ul className="divide-y divide-line overflow-hidden rounded-lg border border-line bg-surface">
+          <ul className="divide-y divide-line overflow-hidden rounded-[28px] bg-surface">
             {data.groups.map((g) => (
               <li key={g.key} className="flex flex-col gap-2 px-4 py-3">
                 <div className="flex items-start justify-between gap-3">

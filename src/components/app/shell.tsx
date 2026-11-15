@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, type ReactNode } from "react";
-import { Cloud, CloudOff, Loader2, RefreshCw, Settings, Warehouse, CalendarDays, AlertTriangle } from "lucide-react";
+import { Cloud, CloudOff, Loader2, RefreshCw, Settings, Warehouse, AlertTriangle } from "lucide-react";
 import { BasketIcon, HouseIcon, JarIcon, PurseIcon, RecipeBookIcon } from "@/components/ui/icons";
 import { useApp } from "./app-provider";
 import { Spinner } from "@/components/ui/misc";
@@ -88,7 +88,7 @@ function SyncIndicator() {
       onClick={() => void syncNow()}
       title={`${label}. Apasă pentru a sincroniza acum.`}
       aria-label={`${label}. Sincronizează acum`}
-      className={`inline-flex h-11 items-center gap-1.5 rounded-full px-3 text-xs font-medium ${state === "offline" ? "bg-warn-soft text-warn" : state === "eroare" ? "bg-accent-soft text-accent" : "bg-surface-2 text-ink-2"}`}
+      className={`inline-flex h-12 items-center gap-1.5 rounded-full px-3 text-xs font-medium ${state === "offline" ? "bg-warn-soft text-warn" : state === "eroare" ? "bg-accent-soft text-accent" : "bg-surface-2 text-ink-2"}`}
     >
       <Icon size={14} className={state === "sincronizare" ? "animate-spin" : ""} />
       <span className="hidden sm:inline">{label}</span>
@@ -101,7 +101,7 @@ function RejectedNotice() {
   if (!sync?.rejected) return null;
   const others = sync.rejected - sync.rejected_photos;
   return (
-    <div className="mb-4 space-y-1 rounded-lg bg-accent-soft px-4 py-3 text-sm text-accent" role="alert">
+    <div className="mb-4 space-y-1 rounded-2xl bg-accent-soft px-4 py-3 text-sm text-accent" role="alert">
       {sync.rejected_photos > 0 && <p>Fotografia nu a putut fi salvată. Pune-o din nou.</p>}
       {others > 0 && (
         <p>
@@ -139,65 +139,59 @@ export function AppShell({ children, wide = false, hideMobileNav = false }: { ch
   const ready = app.status === "ready" || (app.status === "no_household" && pathname.startsWith("/gospodarie"));
 
   return (
-    <div className="min-h-dvh lg:flex">
+    <div className="app-layout">
       <a
         href="#continut-principal"
-        className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-50 focus:rounded-lg focus:bg-brand focus:px-4 focus:py-2.5 focus:text-sm focus:font-medium focus:text-brand-ink focus:shadow-card focus:outline-none"
+        className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-50 focus:rounded-full focus:bg-brand focus:px-4 focus:py-2.5 focus:text-sm focus:font-medium focus:text-brand-ink focus:shadow-card focus:outline-none"
       >
         Sari la conținutul principal
       </a>
-      <nav aria-label="Navigare principală" className="sticky top-0 hidden h-dvh w-60 shrink-0 flex-col border-r border-line bg-surface px-3 py-5 lg:flex">
-        <Link href="/" className="mb-6 flex items-center gap-2 px-3 font-serif text-xl font-semibold tracking-tight focus-visible:outline-2 focus-visible:outline-brand focus-visible:outline-offset-2 rounded-md">
-          <span className="inline-flex h-8 w-8 items-center justify-center rounded-md bg-brand text-brand-ink">
-            <Warehouse size={18} />
+      <nav aria-label="Navigare principală" className="app-sidebar">
+        <Link href="/" aria-label="Cămara" className="app-sidebar-brand flex items-center gap-3 text-xl font-semibold tracking-tight rounded-full focus-visible:outline-2 focus-visible:outline-brand">
+          <span className="inline-flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-primary-container text-on-primary-container">
+            <Warehouse size={24} />
           </span>
-          Cămara
+          <span className="app-sidebar-brand-name">Cămara</span>
         </Link>
         {NAV.map((n) => (
-          <Link
-            key={n.href}
-            href={n.href}
-            aria-current={n.match(pathname) ? "page" : undefined}
-            className={`mb-1 flex h-11 items-center gap-3 rounded-md border-l-2 px-3 text-[15px] transition-colors duration-150 ease-out focus-visible:outline-2 focus-visible:outline-brand focus-visible:outline-offset-2 ${n.match(pathname) ? "border-brand font-medium text-brand" : "border-transparent text-ink-2 hover:bg-surface-2 hover:text-ink"}`}
-          >
-            <n.icon size={20} strokeWidth={1.75} />
-            {n.label}
+          <Link key={n.href} href={n.href} aria-current={n.match(pathname) ? "page" : undefined}
+            className="app-sidebar-link transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand">
+            <n.icon size={24} strokeWidth={n.match(pathname) ? 2 : 1.75} />
+            <span>{n.label}</span>
           </Link>
         ))}
-        <Link href="/plan/" className={`mb-1 flex h-11 items-center gap-3 rounded-md border-l-2 px-3 text-[15px] transition-colors duration-150 ease-out focus-visible:outline-2 focus-visible:outline-brand focus-visible:outline-offset-2 ${pathname.startsWith("/plan") ? "border-brand font-medium text-brand" : "border-transparent text-ink-2 hover:bg-surface-2 hover:text-ink"}`}>
-          <CalendarDays size={20} strokeWidth={1.75} />
-          Planul meselor
-        </Link>
-        <div className="mt-auto">
-          <Link href="/gospodarie/" className="flex h-11 items-center gap-3 rounded-md border-l-2 border-transparent px-3 text-[15px] text-ink-2 transition-colors duration-150 ease-out hover:bg-surface-2 hover:text-ink focus-visible:outline-2 focus-visible:outline-brand focus-visible:outline-offset-2">
-            <Settings size={20} strokeWidth={1.75} />
-            Gospodărie și setări
+        <div className="mt-auto pt-6">
+          <Link href="/gospodarie/" aria-current={pathname.startsWith("/gospodarie") ? "page" : undefined}
+            className="app-sidebar-link focus-visible:outline-2 focus-visible:outline-brand">
+            <Settings size={24} strokeWidth={1.75} />
+            <span className="hidden min-[1200px]:inline">Gospodărie și setări</span>
+            <span className="min-[1200px]:hidden">Setări</span>
           </Link>
         </div>
       </nav>
 
       <div className="min-w-0 flex-1">
-        <header className="sticky top-0 z-30 border-b border-line bg-bg">
-          <div className={`mx-auto flex h-14 items-center justify-between gap-2 px-4 ${wide ? "max-w-5xl" : "max-w-3xl"}`}>
+        <header className="app-topbar sticky top-0 z-30">
+          <div className={`mx-auto flex h-16 items-center justify-between gap-2 px-4 min-[600px]:px-6 ${wide ? "max-w-5xl" : "max-w-3xl"}`}>
             {/* Doar numele gospodăriei, fără iconiță (decizia proprietarului, 23 oct. 2026). */}
-            <Link href="/" className="flex min-h-11 min-w-0 items-center font-serif text-[17px] font-semibold tracking-tight focus-visible:outline-2 focus-visible:outline-brand rounded-md lg:hidden">
+            <Link href="/" className="flex min-h-12 min-w-0 items-center font-sans text-[17px] font-semibold tracking-tight focus-visible:outline-2 focus-visible:outline-brand rounded-md lg:hidden">
               {app.household?.name ?? "Cămara"}
             </Link>
-            <span className="hidden font-serif text-[17px] font-semibold tracking-tight lg:block">{app.household?.name ?? "Cămara"}</span>
+            <span className="hidden font-sans text-[17px] font-semibold tracking-tight lg:block">{app.household?.name ?? "Cămara"}</span>
             <div className="flex items-center gap-1">
               <SyncIndicator />
-              <Link href="/gospodarie/" aria-label="Gospodărie și setări" className="inline-flex h-11 w-11 items-center justify-center rounded-lg text-ink-2 transition-colors duration-150 ease-out hover:bg-surface-2 focus-visible:outline-2 focus-visible:outline-brand lg:hidden">
+              <Link href="/gospodarie/" aria-label="Gospodărie și setări" className="inline-flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-surface-2 text-ink-2 transition-colors duration-150 ease-out hover:bg-surface-container-high focus-visible:outline-2 focus-visible:outline-brand lg:hidden">
                 <Settings size={20} strokeWidth={1.75} />
               </Link>
             </div>
           </div>
         </header>
         {app.mode === "demo" && (
-          <p className="border-b border-dashed border-line px-4 py-1.5 text-center text-xs text-ink-2">
+          <p className="mx-4 rounded-xl bg-surface-container px-4 py-2 text-center text-xs text-ink-2 min-[600px]:mx-6">
             <span className="font-semibold uppercase tracking-wider text-ink">Mod demonstrativ</span>: datele rămân doar pe acest dispozitiv și nu se sincronizează.
           </p>
         )}
-        <main id="continut-principal" tabIndex={-1} className={`mx-auto px-4 pb-28 pt-5 focus:outline-none lg:pb-12 ${wide ? "max-w-5xl" : "max-w-3xl"}`}>
+        <main id="continut-principal" tabIndex={-1} className={`app-main mx-auto focus:outline-none ${wide ? "app-main-wide" : ""}`}>
           <RejectedNotice />
           {ready ? children : <Spinner />}
           {app.status === "ready" && <ExpiryNotifier />}
@@ -206,7 +200,7 @@ export function AppShell({ children, wide = false, hideMobileNav = false }: { ch
       </div>
 
       {!hideMobileNav && (
-        <nav aria-label="Navigare principală" className="pb-safe fixed inset-x-0 bottom-0 z-40 border-t border-line bg-surface lg:hidden">
+        <nav aria-label="Navigare principală" className="app-mobile-nav fixed z-40">
           <div className="mx-auto flex max-w-lg">
             {NAV.map((n) => {
               const active = n.match(pathname);
@@ -215,10 +209,9 @@ export function AppShell({ children, wide = false, hideMobileNav = false }: { ch
                   key={n.href}
                   href={n.href}
                   aria-current={active ? "page" : undefined}
-                  className={`relative flex h-16 flex-1 flex-col items-center justify-center gap-1 text-[11px] font-medium transition-colors duration-150 ease-out focus-visible:outline-2 focus-visible:outline-brand ${active ? "text-brand" : "text-ink-2 active:text-ink"}`}
+                  className={`app-mobile-item relative flex flex-1 flex-col items-center justify-center font-medium transition-colors duration-150 ease-out focus-visible:outline-2 focus-visible:outline-brand ${active ? "text-brand" : "text-ink-2 active:text-ink"}`}
                 >
-                  {active && <span aria-hidden className="absolute inset-x-5 top-0 h-0.5 rounded-b-full bg-brand" />}
-                  <n.icon size={22} strokeWidth={active ? 2 : 1.75} />
+                  <span className="app-mobile-indicator transition-colors"><n.icon size={24} strokeWidth={active ? 2 : 1.75} /></span>
                   {n.label}
                 </Link>
               );

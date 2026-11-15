@@ -53,18 +53,18 @@ export function Sheet({ open, onClose, title, children, footer }: { open: boolea
       }}
       aria-label={title}
       style={keyboardStyle}
-      className="m-0 mt-auto max-h-[92dvh] w-full max-w-none rounded-t-xl border border-line bg-surface p-0 text-ink shadow-card backdrop:bg-backdrop-overlay sm:m-auto sm:max-w-lg sm:rounded-xl"
+      className="m-0 mt-auto max-h-[92dvh] w-full max-w-none rounded-t-[28px] border-0 bg-surface-container-low p-0 text-ink shadow-elevated backdrop:bg-backdrop-overlay min-[600px]:m-auto min-[600px]:max-w-lg min-[600px]:rounded-[28px]"
     >
       {open && (
         <div className="flex max-h-[inherit] flex-col">
-          <div className="flex items-center justify-between gap-2 border-b border-line px-4 py-3">
-            <h2 className="font-serif text-xl font-semibold">{title}</h2>
-            <button type="button" onClick={onClose} aria-label="Închide" className="inline-flex h-11 w-11 items-center justify-center rounded-lg text-ink-2 transition-colors duration-150 ease-out hover:bg-surface-2 focus-visible:outline-2 focus-visible:outline-brand">
+          <div className="flex items-center justify-between gap-2 px-6 pb-2 pt-5">
+            <h2 className="min-w-0 break-words text-2xl font-bold leading-tight tracking-tight">{title}</h2>
+            <button type="button" onClick={onClose} aria-label="Închide" className="inline-flex h-12 w-12 shrink-0 items-center justify-center rounded-full text-ink-2 transition-colors duration-150 ease-out hover:bg-surface-2 focus-visible:outline-2 focus-visible:outline-brand">
               <X size={20} />
             </button>
           </div>
-          <div className="flex-1 overflow-y-auto px-4 py-4">{children}</div>
-          {footer && <div className="pb-safe border-t border-line px-4 py-3">{footer}</div>}
+          <div className="flex-1 overflow-y-auto px-6 py-4">{children}</div>
+          {footer && <div className="pb-safe border-t border-line px-6 pb-6 pt-4">{footer}</div>}
         </div>
       )}
     </dialog>
@@ -97,7 +97,7 @@ export function ConfirmSheet({
           <button
             type="button"
             onClick={onClose}
-            className="h-11 flex-1 rounded-lg border border-line bg-surface-2 font-medium transition-colors duration-150 ease-out hover:bg-surface focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand active:scale-[0.98]"
+            className="h-12 flex-1 rounded-full border border-line bg-surface-2 font-medium transition-colors duration-150 ease-out hover:bg-surface focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand active:scale-[0.98]"
           >
             Renunță
           </button>
@@ -107,7 +107,7 @@ export function ConfirmSheet({
               onConfirm();
               onClose();
             }}
-            className="h-11 flex-1 rounded-lg bg-accent font-medium text-brand-ink transition-opacity duration-150 ease-out hover:opacity-90 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand active:scale-[0.98]"
+            className="h-12 flex-1 rounded-full bg-error font-medium text-on-error transition-opacity duration-150 ease-out hover:opacity-90 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand active:scale-[0.98]"
           >
             {confirmLabel}
           </button>
