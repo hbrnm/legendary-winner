@@ -30,7 +30,7 @@ export const DIFFICULTY_LABELS = { usor: "Ușor", mediu: "Mediu", dificil: "Difi
 export type RecipeVisualSize = "sm" | "md" | "lg";
 
 /** Dimensiunile imaginii unei rețete, la fel pentru fotografia din catalog și cea a gospodăriei. */
-export const visualDims = (size: RecipeVisualSize) => (size === "lg" ? "h-44 w-full rounded-lg" : size === "sm" ? "h-12 w-12 rounded-md" : "h-16 w-16 rounded-md");
+export const visualDims = (size: RecipeVisualSize) => (size === "lg" ? "h-44 w-full rounded-xl" : size === "sm" ? "h-12 w-12 rounded-md" : "h-16 w-16 rounded-md");
 
 export function RecipeVisual({ recipe, size = "md" }: { recipe: Pick<Recipe, "image_url">; size?: RecipeVisualSize }) {
   // O poză din catalog scoasă din listă nu se mai arată, chiar dacă baza de pe server o mai are (15 oct. 2026).
@@ -54,7 +54,7 @@ export function recipeInitial(name: string): string {
 export function RecipeAvatar({ recipe, size = "md" }: { recipe: Pick<Recipe, "name">; size?: "sm" | "md" }) {
   const dims = size === "sm" ? "h-12 w-12 text-2xl" : "h-16 w-16 text-3xl";
   return (
-    <span data-testid="avatar-reteta" aria-hidden className={`${dims} inline-flex shrink-0 items-center justify-center rounded-md border border-line bg-surface-2 font-serif font-medium text-ink-2`}>
+    <span data-testid="avatar-reteta" aria-hidden className={`${dims} inline-flex shrink-0 items-center justify-center rounded-md border border-line bg-surface-2 font-sans font-medium text-ink-2`}>
       {recipeInitial(recipe.name)}
     </span>
   );

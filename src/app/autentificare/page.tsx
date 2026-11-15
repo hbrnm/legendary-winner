@@ -2,12 +2,13 @@
 
 import { Suspense, useEffect, useState } from "react";
 import Link from "next/link";
+import { StandalonePage } from "@/components/ui/standalone-page";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Warehouse } from "lucide-react";
 import { useApp } from "@/components/app/app-provider";
 import { Button } from "@/components/ui/button";
 import { LabeledInput, Segmented } from "@/components/ui/fields";
-import { Spinner } from "@/components/ui/misc";
+import { Card, Spinner } from "@/components/ui/misc";
 import { isCloudConfigured, supabase } from "@/lib/supabase/client";
 
 type Mode = "intrare" | "cont" | "resetare" | "parola-noua";
@@ -52,13 +53,15 @@ function AuthScreen() {
 
   if (!isCloudConfigured) {
     return (
-      <div className="mx-auto max-w-md px-4 py-16 text-center">
-        <p className="text-lg font-semibold">Aplicația rulează în mod demonstrativ</p>
-        <p className="mt-2 text-ink-2">Conturile și sincronizarea cer configurarea Supabase (vezi ENVIRONMENT_VARIABLES.md). Până atunci, datele rămân pe acest dispozitiv.</p>
-        <Link href="/" className="mt-6 inline-block font-medium text-brand underline">
-          Deschide aplicația
-        </Link>
-      </div>
+      <StandalonePage centered>
+        <Card className="p-6 text-center">
+          <h1 className="text-[32px] font-bold leading-tight tracking-tight">Aplicația rulează în mod demonstrativ</h1>
+          <p className="mt-2 text-ink-2">Conturile și sincronizarea cer configurarea Supabase (vezi ENVIRONMENT_VARIABLES.md). Până atunci, datele rămân pe acest dispozitiv.</p>
+          <Link href="/" className="mt-6 inline-flex min-h-12 items-center justify-center rounded-full bg-brand px-6 font-medium text-brand-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand">
+            Deschide aplicația
+          </Link>
+        </Card>
+      </StandalonePage>
     );
   }
 
@@ -101,100 +104,102 @@ function AuthScreen() {
   }
 
   return (
-    <main className="mx-auto flex min-h-dvh max-w-sm flex-col justify-center px-4 py-10">
-      <div className="mb-8 flex flex-col items-center text-center">
-        <span className="inline-flex h-14 w-14 items-center justify-center rounded-lg bg-brand text-brand-ink">
-          <Warehouse size={28} />
-        </span>
-        <h1 className="mt-3 text-2xl font-semibold tracking-tight">Cămara</h1>
-        <p className="mt-1 text-sm text-ink-2">Cumpărături, rețete și bugetul casei, împreună.</p>
-      </div>
+    <StandalonePage centered>
+      <Card className="p-6">
+        <div className="mb-8 flex flex-col items-center text-center">
+          <span className="inline-flex h-16 w-16 items-center justify-center rounded-full bg-brand-soft text-brand">
+            <Warehouse size={28} />
+          </span>
+          <h1 className="mt-3 min-w-0 break-words text-[32px] font-bold leading-tight tracking-tight">Cămara</h1>
+          <p className="mt-1 text-sm text-ink-2">Cumpărături, rețete și bugetul casei, împreună.</p>
+        </div>
 
-      {(mode === "intrare" || mode === "cont") && (
-        <Segmented<Mode>
-          label="Intrare sau cont nou"
-          value={mode}
-          onChange={(m) => {
-            setMode(m);
-            setError(null);
-          }}
-          options={[
-            { value: "intrare", label: "Intră în cont" },
-            { value: "cont", label: "Cont nou" },
-          ]}
-        />
-      )}
-      {mode === "resetare" && <h2 className="font-serif text-xl font-semibold text-ink">Ai uitat parola?</h2>}
-      {mode === "parola-noua" && <h2 className="font-serif text-xl font-semibold text-ink">Alege o parolă nouă</h2>}
-
-      <form
-        className="mt-5 flex flex-col gap-4"
-        onSubmit={(e) => {
-          e.preventDefault();
-          void submit();
-        }}
-      >
-        {mode === "cont" && <LabeledInput label="Numele tău" value={name} onChange={(e) => setName(e.target.value)} autoComplete="given-name" maxLength={60} placeholder="ex. Ana" />}
-        {mode !== "parola-noua" && <LabeledInput label="Email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} autoComplete="email" inputMode="email" />}
-        {mode !== "resetare" && (
-          <LabeledInput
-            label={mode === "parola-noua" ? "Parola nouă" : "Parola"}
-            type="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            autoComplete={mode === "intrare" ? "current-password" : "new-password"}
-            hint={mode !== "intrare" ? "Cel puțin 8 caractere." : undefined}
+        {(mode === "intrare" || mode === "cont") && (
+          <Segmented<Mode>
+            label="Intrare sau cont nou"
+            value={mode}
+            onChange={(m) => {
+              setMode(m);
+              setError(null);
+            }}
+            options={[
+              { value: "intrare", label: "Intră în cont" },
+              { value: "cont", label: "Cont nou" },
+            ]}
           />
         )}
-        {error && (
-          <p role="alert" className="rounded-lg bg-accent-soft px-3 py-2 text-sm text-accent">
-            {error}
-          </p>
-        )}
-        {info && (
-          <p role="status" className="rounded-lg bg-brand-soft px-3 py-2 text-sm text-brand">
-            {info}
-          </p>
-        )}
-        {mode === "cont" && (
-          <p className="text-center text-xs text-ink-2">
-            Prin crearea contului, confirmi că ești de acord cu{" "}
-            <Link href="/termeni" className="underline underline-offset-2 hover:text-ink">
-              Termenii de utilizare
-            </Link>{" "}
-            și{" "}
-            <Link href="/confidentialitate" className="underline underline-offset-2 hover:text-ink">
-              Politica de confidențialitate
-            </Link>
-            .
-          </p>
-        )}
-        <Button type="submit" block size="lg" disabled={busy}>
-          {mode === "intrare" ? "Intră" : mode === "cont" ? "Creează contul" : mode === "resetare" ? "Trimite linkul" : "Salvează parola"}
-        </Button>
-      </form>
+        {mode === "resetare" && <h2 className="font-sans text-xl font-semibold text-ink">Ai uitat parola?</h2>}
+        {mode === "parola-noua" && <h2 className="font-sans text-xl font-semibold text-ink">Alege o parolă nouă</h2>}
 
-      {mode === "intrare" && (
-        <button type="button" onClick={() => setMode("resetare")} className="mt-4 inline-flex min-h-11 items-center px-2 text-sm text-ink-2 underline underline-offset-2 hover:text-ink focus-visible:outline-2 focus-visible:outline-brand rounded">
-          Am uitat parola
-        </button>
-      )}
-      {mode === "resetare" && (
-        <button type="button" onClick={() => setMode("intrare")} className="mt-4 inline-flex min-h-11 items-center px-2 text-sm text-ink-2 underline underline-offset-2 hover:text-ink focus-visible:outline-2 focus-visible:outline-brand rounded">
-          Înapoi la intrare
-        </button>
-      )}
+        <form
+          className="mt-5 flex flex-col gap-4"
+          onSubmit={(e) => {
+            e.preventDefault();
+            void submit();
+          }}
+        >
+          {mode === "cont" && <LabeledInput label="Numele tău" value={name} onChange={(e) => setName(e.target.value)} autoComplete="given-name" maxLength={60} placeholder="ex. Ana" />}
+          {mode !== "parola-noua" && <LabeledInput label="Email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} autoComplete="email" inputMode="email" />}
+          {mode !== "resetare" && (
+            <LabeledInput
+              label={mode === "parola-noua" ? "Parola nouă" : "Parola"}
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              autoComplete={mode === "intrare" ? "current-password" : "new-password"}
+              hint={mode !== "intrare" ? "Cel puțin 8 caractere." : undefined}
+            />
+          )}
+          {error && (
+            <p role="alert" className="rounded-2xl bg-accent-soft px-3 py-2 text-sm text-accent">
+              {error}
+            </p>
+          )}
+          {info && (
+            <p role="status" className="rounded-2xl bg-brand-soft px-3 py-2 text-sm text-brand">
+              {info}
+            </p>
+          )}
+          {mode === "cont" && (
+            <p className="text-center text-xs text-ink-2">
+              Prin crearea contului, confirmi că ești de acord cu{" "}
+              <Link href="/termeni" className="underline underline-offset-2 hover:text-ink">
+                Termenii de utilizare
+              </Link>{" "}
+              și{" "}
+              <Link href="/confidentialitate" className="underline underline-offset-2 hover:text-ink">
+                Politica de confidențialitate
+              </Link>
+              .
+            </p>
+          )}
+          <Button type="submit" block size="lg" disabled={busy}>
+            {mode === "intrare" ? "Intră" : mode === "cont" ? "Creează contul" : mode === "resetare" ? "Trimite linkul" : "Salvează parola"}
+          </Button>
+        </form>
 
-      <footer className="mt-8 flex justify-center items-center gap-4 text-xs text-ink-2">
-        <Link href="/confidentialitate" className="inline-flex min-h-11 items-center px-2 hover:underline focus-visible:outline-2 focus-visible:outline-brand rounded">
-          Confidențialitate
-        </Link>
-        <span aria-hidden>·</span>
-        <Link href="/termeni" className="inline-flex min-h-11 items-center px-2 hover:underline focus-visible:outline-2 focus-visible:outline-brand rounded">
-          Termeni
-        </Link>
-      </footer>
-    </main>
+        {mode === "intrare" && (
+          <button type="button" onClick={() => setMode("resetare")} className="mt-4 inline-flex min-h-12 items-center px-2 text-sm text-ink-2 underline underline-offset-2 hover:text-ink focus-visible:outline-2 focus-visible:outline-brand rounded">
+            Am uitat parola
+          </button>
+        )}
+        {mode === "resetare" && (
+          <button type="button" onClick={() => setMode("intrare")} className="mt-4 inline-flex min-h-12 items-center px-2 text-sm text-ink-2 underline underline-offset-2 hover:text-ink focus-visible:outline-2 focus-visible:outline-brand rounded">
+            Înapoi la intrare
+          </button>
+        )}
+
+        <footer className="mt-8 flex justify-center items-center gap-4 text-xs text-ink-2">
+          <Link href="/confidentialitate" className="inline-flex min-h-12 items-center px-2 hover:underline focus-visible:outline-2 focus-visible:outline-brand rounded">
+            Confidențialitate
+          </Link>
+          <span aria-hidden>·</span>
+          <Link href="/termeni" className="inline-flex min-h-12 items-center px-2 hover:underline focus-visible:outline-2 focus-visible:outline-brand rounded">
+            Termeni
+          </Link>
+        </footer>
+      </Card>
+    </StandalonePage>
   );
 }
 

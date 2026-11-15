@@ -2,12 +2,12 @@
 
 import { useMemo, useState } from "react";
 import Link from "next/link";
+import { RecipeNavigation } from "@/components/recipes/navigation";
 import { useRouter } from "next/navigation";
 import { ChevronLeft, ChevronRight, Copy, Plus, Search, ShoppingBasket, Trash2 } from "lucide-react";
 import { AppShell } from "@/components/app/shell";
 import { useAction, useData } from "@/components/app/hooks";
 import { Button, IconButton } from "@/components/ui/button";
-import { RecipeBookIcon } from "@/components/ui/icons";
 import { Card, PageHeader, Spinner } from "@/components/ui/misc";
 import { Sheet } from "@/components/ui/sheet";
 import { LabeledInput, LabeledSelect, Toggle } from "@/components/ui/fields";
@@ -116,19 +116,14 @@ function PlanScreen() {
               ))}
           </span>
         }
-        action={
-          <Link href="/retete/" className="inline-flex h-11 items-center gap-2 rounded-lg border border-line bg-surface px-3 text-[15px] font-medium transition-colors duration-150 ease-out hover:bg-surface-2 focus-visible:outline-2 focus-visible:outline-brand">
-            <RecipeBookIcon size={18} strokeWidth={1.75} />
-            <span>Rețete</span>
-          </Link>
-        }
       />
+      <RecipeNavigation active="plan" />
 
       <div className="mb-4 flex items-center gap-2">
         <IconButton label="Săptămâna trecută" onClick={() => setWeek(addDays(week, -7))} className="border border-line bg-surface">
           <ChevronLeft size={20} />
         </IconButton>
-        <Button variant="secondary" onClick={() => setWeek(startOfWeek(today))} disabled={week === startOfWeek(today)}>
+        <Button variant="secondary" size="sm" onClick={() => setWeek(startOfWeek(today))} disabled={week === startOfWeek(today)}>
           Săptămâna asta
         </Button>
         <IconButton label="Săptămâna viitoare" onClick={() => setWeek(addDays(week, 7))} className="border border-line bg-surface">
@@ -155,11 +150,11 @@ function PlanScreen() {
         Generează lista de cumpărături
       </Button>
 
-      <div className="mt-5 flex flex-col gap-3">
+      <div className="mt-6 grid gap-4 min-[900px]:grid-cols-2">
         {days.map((d) => (
-          <Card key={d} as="section" aria-label={formatLongDate(d)} className={`p-3 ${d === today ? "border-brand" : ""}`}>
+          <Card key={d} as="section" aria-label={formatLongDate(d)} className={`p-4 ${d === today ? "ring-2 ring-brand" : ""}`}>
             <h2 className="mb-2 flex items-baseline gap-2 px-1">
-              <span className="font-serif text-lg font-semibold capitalize">{formatWeekdayShort(d)}</span>
+              <span className="font-sans text-lg font-semibold capitalize">{formatWeekdayShort(d)}</span>
               <span className="text-xs text-ink-2">{formatShortDate(d)}</span>
               {d === today && <span className="text-xs font-medium uppercase tracking-wider text-brand">azi</span>}
             </h2>
@@ -167,7 +162,7 @@ function PlanScreen() {
               {SLOTS.map((slot) => {
                 const meals = data.meals.filter((m) => m.date === d && m.slot === slot);
                 return (
-                  <div key={slot} className="flex min-h-16 flex-col gap-1 rounded-md bg-surface-2 p-1.5">
+                  <div key={slot} className="flex min-h-16 flex-col gap-1 rounded-2xl bg-surface-container p-3">
                     <div className="flex items-center justify-between pl-1.5">
                       <span className="text-xs text-ink-2">{SLOT_LABELS[slot]}</span>
                       <IconButton
@@ -191,9 +186,9 @@ function PlanScreen() {
                             setMoveDate(m.date);
                             setMoveSlot(m.slot);
                           }}
-                          className="flex min-h-11 items-center gap-1.5 rounded-md border border-line bg-surface px-2 py-1 text-left text-[13px] leading-tight transition-colors duration-150 ease-out active:bg-surface-2"
+                          className="flex min-h-12 items-center gap-1.5 rounded-2xl bg-surface px-3 py-2 text-left text-[13px] leading-tight transition-colors duration-150 ease-out active:bg-surface-2"
                         >
-                          <span className="min-w-0 flex-1 font-serif text-sm font-medium">{r?.name ?? "Rețetă ștearsă"}</span>
+                          <span className="min-w-0 flex-1 font-sans text-sm font-medium">{r?.name ?? "Rețetă ștearsă"}</span>
                           <span className="shrink-0 text-[11px] text-ink-2">{m.servings} p.</span>
                         </button>
                       );
@@ -207,9 +202,9 @@ function PlanScreen() {
       </div>
 
       <Sheet open={Boolean(picker)} onClose={() => setPicker(null)} title={picker ? `${SLOT_LABELS[picker.slot]}, ${formatShortDate(picker.date)}` : ""}>
-        <div className="mb-3 flex items-center gap-2 rounded-lg border border-line bg-surface-2 px-3 transition-colors duration-150 ease-out focus-within:border-brand focus-within:bg-surface">
+        <div className="mb-3 flex items-center gap-2 rounded-full border border-transparent bg-surface-container-high px-4 transition-colors duration-150 ease-out focus-within:border-brand focus-within:bg-surface">
           <Search size={16} className="text-ink-3" />
-          <input value={pickQuery} onChange={(e) => setPickQuery(e.target.value)} placeholder="Caută rețeta" aria-label="Caută rețeta" className="h-11 min-w-0 flex-1 bg-transparent focus:outline-none" autoFocus />
+          <input value={pickQuery} onChange={(e) => setPickQuery(e.target.value)} placeholder="Caută rețeta" aria-label="Caută rețeta" className="h-12 min-w-0 flex-1 bg-transparent focus:outline-none" autoFocus />
         </div>
         <ul className="flex flex-col">
           {pickResults.map((r) => (
@@ -224,7 +219,7 @@ function PlanScreen() {
                 className="flex min-h-14 w-full items-center gap-3 rounded-md px-2 text-left transition-colors duration-150 ease-out hover:bg-surface-2 active:bg-surface-2"
               >
                 <RecipeImage recipe={r} size="sm" avatar />
-                <span className="flex-1 font-serif text-[17px] font-medium leading-snug">
+                <span className="flex-1 font-sans text-[17px] font-medium leading-snug">
                   {r.name}
                   {data.favs.has(r.id) && <span className="ml-1 text-xs text-accent">♥</span>}
                 </span>
@@ -283,7 +278,7 @@ function PlanScreen() {
               </Button>
             </div>
             <div className="flex gap-2">
-              <Link href={`/retete/reteta/?id=${editing.recipe_id}`} className="inline-flex h-11 flex-1 items-center justify-center rounded-lg border border-line font-medium transition-colors duration-150 ease-out hover:bg-surface-2">
+              <Link href={`/retete/reteta/?id=${editing.recipe_id}`} className="inline-flex h-12 flex-1 items-center justify-center rounded-full border border-line font-medium transition-colors duration-150 ease-out hover:bg-surface-2">
                 Vezi rețeta
               </Link>
               <Button

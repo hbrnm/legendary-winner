@@ -228,7 +228,7 @@ test("la Prețuri, cantitățile cu zecimale se scriu cu virgulă", async ({ pag
   await expect(page.getByText(/\d\.\d+ (kg|l)\b/)).toHaveCount(0);
 });
 
-test("alergenii ca etichetă de borcan, numele gospodăriei în serif pe desktop", async ({ page }) => {
+test("alergenii ca etichetă de borcan, numele gospodăriei în DM Sans pe desktop", async ({ page }) => {
   await page.setViewportSize({ width: 1280, height: 800 });
   await startModel(page, "/retete/");
   await page.getByLabel("Caută rețete").fill("papanasi");
@@ -238,5 +238,5 @@ test("alergenii ca etichetă de borcan, numele gospodăriei în serif pe desktop
   await expect(allergens).toHaveCSS("border-top-style", "dashed");
   const name = page.locator("header").getByText("Gospodăria mea", { exact: true }).filter({ visible: true });
   await expect(name).toBeVisible();
-  expect(await name.evaluate((el) => getComputedStyle(el).fontFamily)).toMatch(/^"?fraunces/);
+  expect(await name.evaluate((el) => getComputedStyle(el).fontFamily)).toMatch(/^-apple-system, BlinkMacSystemFont, "?dmSans/);
 });

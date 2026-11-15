@@ -76,7 +76,7 @@ export function ProductSearch({
 
   return (
     <div className="relative">
-      <div className="flex items-center gap-2 rounded-lg border border-line bg-surface-2 px-3 transition-colors duration-150 ease-out focus-within:border-brand focus-within:bg-surface focus-within:ring-2 focus-within:ring-brand/25">
+      <div className="flex items-center gap-3 rounded-full border border-transparent bg-surface-container-high px-5 transition-colors duration-150 ease-out focus-within:border-brand focus-within:bg-surface focus-within:ring-2 focus-within:ring-brand/25">
         <Search size={18} className="shrink-0 text-ink-3" aria-hidden />
         <input
           ref={inputRef}
@@ -113,12 +113,12 @@ export function ProductSearch({
         />
       </div>
       {text.trim() && options.length === 0 && (
-        <p role="status" className={`${inline ? "" : "absolute inset-x-0 top-full z-20 shadow-card"} mt-1 rounded-lg border border-line bg-surface px-4 py-3 text-sm text-ink-2`}>
+        <p role="status" className={`${inline ? "" : "absolute inset-x-0 top-full z-20 shadow-card"} mt-1 rounded-2xl border border-line bg-surface px-4 py-3 text-sm text-ink-2`}>
           {data ? `Nu am găsit „${parsed.text}” în catalog.` : "Caut în catalog…"}
         </p>
       )}
       {text.trim() && options.length > 0 && (
-        <ul id="rezultate-produse" role="listbox" className={`${inline ? "" : "absolute inset-x-0 top-full z-20 shadow-card"} mt-1 overflow-hidden rounded-lg border border-line bg-surface`}>
+        <ul id="rezultate-produse" role="listbox" className={`${inline ? "" : "absolute inset-x-0 top-full z-20 shadow-card"} mt-1 overflow-hidden rounded-[28px] bg-surface`}>
           {options.map((p, i) => (
             <li
               key={p?.id ?? "_nou"}

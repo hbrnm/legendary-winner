@@ -223,11 +223,11 @@ function ListScreen() {
   return (
     <>
       <div className="mb-3 flex items-center gap-1">
-        <Link href="/cumparaturi/" aria-label="Înapoi la liste" className="-ml-2 inline-flex h-11 w-11 items-center justify-center rounded-lg text-ink-2 hover:bg-surface-2">
+        <Link href="/cumparaturi/" aria-label="Înapoi la liste" className="-ml-2 inline-flex h-12 w-12 shrink-0 items-center justify-center rounded-full text-ink-2 hover:bg-surface-2">
           <ArrowLeft size={20} />
         </Link>
         <div className="min-w-0 flex-1">
-          <h1 className="line-clamp-2 break-words text-xl font-semibold leading-snug tracking-tight">{list.name}</h1>
+          <h1 className="line-clamp-2 break-words text-2xl font-bold leading-tight tracking-tight">{list.name}</h1>
           <p className="text-xs text-ink-2 tabular">
             {totals?.checked_count ?? 0} din {totals?.item_count ?? 0} în coș
             {totals && totals.projected_total > 0 && ` · ~${formatRon(totals.projected_total)}`}
@@ -274,7 +274,7 @@ function ListScreen() {
           {groups.map((g) => (
             <section key={g.key} aria-label={g.title}>
               <h2 className="mb-1.5 px-1 text-xs font-semibold uppercase tracking-wider text-wood">{g.title}</h2>
-              <ul className="overflow-hidden rounded-lg border border-line bg-surface">
+              <ul className="overflow-hidden rounded-[28px] bg-surface">
                 {g.items.map(itemRow)}
               </ul>
             </section>
@@ -285,12 +285,12 @@ function ListScreen() {
                 type="button"
                 aria-expanded={basketOpen}
                 onClick={() => setBasketOpen((v) => !v)}
-                className="flex min-h-11 w-full items-center gap-2 px-1 text-left text-sm font-medium text-wood"
+                className="flex min-h-12 w-full items-center gap-2 px-1 text-left text-sm font-medium text-wood"
               >
                 <span className="flex-1">În coș ({basket.length})</span>
                 <ChevronDown size={18} className={`transition-transform ${basketOpen ? "rotate-180" : ""}`} />
               </button>
-              {basketOpen && <ul className="overflow-hidden rounded-lg border border-line bg-surface">{basket.map(itemRow)}</ul>}
+              {basketOpen && <ul className="overflow-hidden rounded-[28px] bg-surface">{basket.map(itemRow)}</ul>}
             </section>
           )}
         </div>
@@ -313,7 +313,7 @@ function ListScreen() {
                         type="button"
                         onClick={() => run((ctx) => shop.addItem(ctx, id, { product_id: s.product_id }))}
                         aria-label={`Adaugă ${s.name}`}
-                        className="inline-flex min-h-11 items-center gap-1.5 rounded-full border border-line bg-surface px-3.5 text-left text-sm text-ink transition duration-150 ease-out hover:bg-surface-2 active:scale-[0.98]"
+                        className="inline-flex min-h-12 items-center gap-1.5 rounded-full border border-line bg-surface px-3.5 text-left text-sm text-ink transition duration-150 ease-out hover:bg-surface-2 active:scale-[0.98]"
                       >
                         <Plus size={16} className="shrink-0 text-brand" />
                         <span>{s.name}</span>
@@ -328,10 +328,10 @@ function ListScreen() {
       )}
 
       {/* Loc pentru bara cu totalul, fixată jos, ca ultimele rânduri să nu rămână sub ea. */}
-      {totals && totals.item_count > 0 && <div aria-hidden className={allIn ? "h-36 lg:h-20" : "h-32 lg:h-16"} />}
+      {totals && totals.item_count > 0 && <div aria-hidden className={allIn ? "h-36 min-[600px]:h-24" : "h-32 min-[600px]:h-20"} />}
 
       {totals && totals.item_count > 0 && (
-        <div className="fixed inset-x-0 bottom-0 pb-safe z-30 border-t border-line bg-surface px-4 py-3 lg:left-60">
+        <div className="fixed inset-x-0 bottom-0 pb-safe z-30 border-t border-line bg-surface px-4 py-3 min-[600px]:left-24 min-[1200px]:left-64">
           <div className="mx-auto flex max-w-3xl items-center gap-3">
             <div className="min-w-0 flex-1 tabular">
               <div className="flex flex-wrap items-baseline gap-x-3">
@@ -350,7 +350,7 @@ function ListScreen() {
                   </Link>
                 )}
               </div>
-              {allIn && <p className="mt-0.5 font-serif text-[15px] font-semibold text-sprout">Ai tot! Apasă „Gata” la casă.</p>}
+              {allIn && <p className="mt-0.5 font-sans text-[15px] font-semibold text-sprout">Ai tot! Apasă „Gata” la casă.</p>}
               {data.budget && (
                 <div className="mt-1.5">
                   <BudgetBar pct={((data.budget.spent + totals.remaining_estimate) / data.budget.budget.amount) * 100} label={data.budget.budget.period === "saptamanal" ? "Bugetul săptămânii, cu lista inclusă" : "Bugetul lunii, cu lista inclusă"} />
@@ -443,7 +443,7 @@ function ListScreen() {
                 setMenu(false);
                 void o.run();
               }}
-              className={`flex min-h-12 items-center gap-3 rounded-lg px-2 text-left text-[15px] ${"danger" in o && o.danger ? "text-accent hover:bg-accent-soft" : "text-ink hover:bg-surface-2"}`}
+              className={`flex min-h-12 items-center gap-3 rounded-xl px-2 text-left text-[15px] ${"danger" in o && o.danger ? "text-accent hover:bg-accent-soft" : "text-ink hover:bg-surface-2"}`}
             >
               <o.icon size={20} />
               {o.label}
@@ -521,7 +521,7 @@ function ListScreen() {
               Ai luat <strong>{totals.checked_count}</strong> {totals.checked_count === 1 ? "produs" : "produse"} și ai plătit <strong className="tabular">{formatRon(totals.spent)}</strong>.
             </p>
             {totals.checked_without_price_count > 0 && (
-              <p className="rounded-lg bg-warn-soft px-3 py-2 text-sm text-warn">
+              <p className="rounded-2xl bg-warn-soft px-3 py-2 text-sm text-warn">
                 La {count(totals.checked_without_price_count, "produs", "produse")} n-ai pus prețul. {totals.checked_without_price_count === 1 ? "Îl pui" : "Le pui"} acum sau mai încolo, din istoric, cum îți vine.
               </p>
             )}
@@ -571,7 +571,7 @@ function CompareStores({ items, prices, retailers, today }: { items: ShoppingLis
   return (
     <div className="flex flex-col gap-3">
       <p className="text-sm text-ink-2">Doar prețurile văzute sau plătite la fiecare magazin. Produsele fără preț acolo nu intră în total.</p>
-      <ul className="overflow-hidden rounded-lg border border-line bg-surface">
+      <ul className="overflow-hidden rounded-[28px] bg-surface">
         {rows.map((r) => (
           <li key={r.retailer_id} className="flex min-h-14 flex-col justify-center border-b border-line px-4 py-2 last:border-b-0">
             <div className="flex items-baseline justify-between gap-3">

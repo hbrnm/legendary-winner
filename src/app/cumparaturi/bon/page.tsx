@@ -80,7 +80,7 @@ function CropBox({ url, aspect, crop, onChange }: { url: string; aspect: number;
     <button
       type="button"
       aria-label={label}
-      className="absolute flex h-11 w-11 -translate-x-1/2 -translate-y-1/2 touch-none items-center justify-center"
+      className="absolute flex h-12 w-12 -translate-x-1/2 -translate-y-1/2 touch-none items-center justify-center"
       style={style}
       onPointerDown={(e) => {
         (e.target as HTMLElement).setPointerCapture(e.pointerId);
@@ -100,7 +100,7 @@ function CropBox({ url, aspect, crop, onChange }: { url: string; aspect: number;
     // Marginea de 24 px ține colțurile (44 px) în pagină, fără derulare orizontală.
     <div className="p-6">
     <div ref={ref} className="relative mx-auto w-full select-none" style={{ maxWidth: `min(28rem, calc(70dvh * ${aspect}))` }}>
-      <div className="relative overflow-hidden rounded-lg">
+      <div className="relative overflow-hidden rounded-xl">
         {/* eslint-disable-next-line @next/next/no-img-element -- fotografia locală, din telefon */}
         <img src={url} alt="Fotografia bonului" className="block w-full" draggable={false} />
         <div
@@ -273,10 +273,10 @@ function ReceiptScreen() {
 
   const header = (
     <div className="mb-4 flex items-center gap-1">
-      <Link href="/cumparaturi/" aria-label="Înapoi la cumpărături" className="-ml-2 inline-flex h-11 w-11 items-center justify-center rounded-lg text-ink-2 hover:bg-surface-2">
+      <Link href="/cumparaturi/" aria-label="Înapoi la cumpărături" className="-ml-2 inline-flex h-12 w-12 shrink-0 items-center justify-center rounded-full text-ink-2 hover:bg-surface-2">
         <ArrowLeft size={20} />
       </Link>
-      <h1 className="text-2xl font-semibold tracking-tight">{step.kind === "verifica" ? (step.typed != null ? "Verifică produsele" : "Verifică bonul") : step.kind === "scrie" ? "Scrie cumpărăturile" : "Adaugă bon"}</h1>
+      <h1 className="min-w-0 break-words text-[32px] font-bold leading-tight tracking-tight">{step.kind === "verifica" ? (step.typed != null ? "Verifică produsele" : "Verifică bonul") : step.kind === "scrie" ? "Scrie cumpărăturile" : "Adaugă bon"}</h1>
     </div>
   );
 
@@ -343,7 +343,7 @@ function ReceiptScreen() {
         <p className="mb-3 text-[15px] text-ink-2">Trage colțurile ca dreptunghiul să cuprindă doar bonul.</p>
         <CropBox url={step.url} aspect={step.image.width / step.image.height} crop={step.crop} onChange={(crop) => setStep({ ...step, crop })} />
         {/* Lipite deasupra meniului de jos: pe telefoanele înalte, poza le-ar împinge sub el. */}
-        <div className="sticky bottom-[calc(4rem+1px+env(safe-area-inset-bottom))] z-30 -mx-4 mt-4 flex gap-2 border-t border-line bg-bg px-4 py-3 lg:bottom-0">
+        <div className="sticky bottom-[var(--app-nav-bottom)] z-30 -mx-4 mt-4 flex gap-2 rounded-3xl bg-surface px-4 py-3 shadow-elevated">
           <Button variant="ghost" onClick={() => setStep({ ...step, crop: FULL_CROP })}>
             Toată poza
           </Button>
@@ -416,7 +416,7 @@ function ReceiptScreen() {
         </div>
       )}
 
-      <ul className="mt-4 divide-y divide-line overflow-hidden rounded-lg border border-line bg-surface">
+      <ul className="mt-4 divide-y divide-line overflow-hidden rounded-[28px] bg-surface">
         {lines.map((l) => (
           <li key={l.key} className={`flex flex-col gap-2 px-4 py-3 ${l.keep ? "" : "opacity-60"}`}>
             <div className="flex items-start gap-2">
@@ -450,7 +450,7 @@ function ReceiptScreen() {
                 <span className="text-sm text-ink-2">lei</span>
               </div>
             )}
-            <label className="flex min-h-11 items-center gap-2 text-sm text-ink-2 cursor-pointer select-none">
+            <label className="flex min-h-12 items-center gap-2 text-sm text-ink-2 cursor-pointer select-none">
               <input type="checkbox" className="h-5 w-5 rounded border-line text-brand focus:ring-brand" checked={l.keep} onChange={(e) => update(l.key, { keep: e.target.checked })} />
               <span>{l.keep ? "Păstrează pe bon" : (typed ? "Exclus (nu e un produs)" : "Exclus (reducere, garanție sau citit greșit)")}</span>
             </label>
@@ -458,7 +458,7 @@ function ReceiptScreen() {
         ))}
       </ul>
 
-      <div className="mt-4 rounded-lg bg-surface-2 px-4 py-3 text-[15px]">
+      <div className="mt-4 rounded-[28px] bg-surface px-5 py-4 text-[15px]">
         <p className="flex justify-between">
           <span>Suma produselor</span>
           <span className="font-medium tabular">{formatRon(sum)}</span>

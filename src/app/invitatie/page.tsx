@@ -2,11 +2,12 @@
 
 import { Suspense, useEffect, useState } from "react";
 import Link from "next/link";
+import { StandalonePage } from "@/components/ui/standalone-page";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Users } from "lucide-react";
 import { useApp } from "@/components/app/app-provider";
 import { Button } from "@/components/ui/button";
-import { Spinner } from "@/components/ui/misc";
+import { Card, Spinner } from "@/components/ui/misc";
 import { acceptInvitation, previewInvitation } from "@/lib/services/household";
 import { UserError } from "@/lib/services/context";
 import { isCloudConfigured } from "@/lib/supabase/client";
@@ -33,7 +34,7 @@ function InvitationScreen() {
     return (
       <Centered title="Ai fost invitat într-o gospodărie">
         Intră în cont sau fă-ți unul, apoi acceptă invitația.
-        <Link href={`/autentificare/?inapoi=${encodeURIComponent(`/invitatie/?token=${token}`)}`} className="mt-6 inline-flex h-11 items-center rounded-lg bg-brand px-5 font-medium text-brand-ink">
+        <Link href={`/autentificare/?inapoi=${encodeURIComponent(`/invitatie/?token=${token}`)}`} className="mt-6 inline-flex h-12 items-center rounded-full bg-brand px-5 font-medium text-brand-ink">
           Continuă
         </Link>
       </Centered>
@@ -72,13 +73,15 @@ function InvitationScreen() {
 
 function Centered({ title, children }: { title: string; children: React.ReactNode }) {
   return (
-    <main className="mx-auto flex min-h-dvh max-w-md flex-col items-center justify-center px-4 text-center">
-      <span className="mb-4 inline-flex h-14 w-14 items-center justify-center rounded-lg bg-brand-soft text-brand">
-        <Users size={28} />
-      </span>
-      <h1 className="text-xl font-semibold">{title}</h1>
-      <div className="mt-2 flex flex-col items-center text-ink-2">{children}</div>
-    </main>
+    <StandalonePage centered>
+      <Card className="flex flex-col items-center p-6 text-center">
+        <span className="mb-5 inline-flex h-16 w-16 items-center justify-center rounded-full bg-brand-soft text-brand">
+          <Users size={28} />
+        </span>
+        <h1 className="min-w-0 break-words text-[32px] font-bold leading-tight tracking-tight">{title}</h1>
+        <div className="mt-2 flex flex-col items-center text-ink-2">{children}</div>
+      </Card>
+    </StandalonePage>
   );
 }
 

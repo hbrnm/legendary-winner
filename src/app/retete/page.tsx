@@ -2,7 +2,8 @@
 
 import { useMemo, useState } from "react";
 import Link from "next/link";
-import { CalendarDays, ChefHat, Clock, Download, Heart, Plus, Search } from "lucide-react";
+import { RecipeNavigation } from "@/components/recipes/navigation";
+import { ChefHat, Clock, Download, Heart, Plus, Search } from "lucide-react";
 import { AppShell } from "@/components/app/shell";
 import { useData } from "@/components/app/hooks";
 import { Button } from "@/components/ui/button";
@@ -70,16 +71,16 @@ function RecipesScreen() {
 
   if (!data) return <Spinner />;
 
-  // Rândurile stau pe o singură foaie, despărțite de filete (ca pe Acasă).
+  // Tonal recipe cards remain compact on phones and form a grid on larger screens.
   function RecipeRow({ r, extra }: { r: Recipe; extra?: React.ReactNode }) {
     const c = data!.costs.get(r.id);
     const perServing = c ? costAmount(c.per_serving, c.priced_count, c.costable_count) : null;
     return (
-      <li>
-        <Link href={`/retete/reteta/?id=${r.id}`} className="flex items-center gap-3 px-3 py-3 transition-colors duration-150 ease-out hover:bg-surface-2 active:bg-surface-2">
+      <li className="min-w-0 overflow-hidden rounded-[28px] bg-surface-container-low">
+        <Link href={`/retete/reteta/?id=${r.id}`} className="flex h-full items-center gap-4 p-4 transition-colors duration-150 ease-out hover:bg-surface-container-high active:bg-surface-2">
           <RecipeImage recipe={r} avatar />
           <div className="min-w-0 flex-1">
-            <p className="line-clamp-2 font-serif text-[17px] font-medium leading-snug">
+            <p className="line-clamp-2 font-sans text-[17px] font-medium leading-snug">
               {r.name}
               {data!.favorites.has(r.id) && <Heart size={14} className="ml-1.5 inline fill-accent text-accent" aria-label="favorită" />}
             </p>
@@ -109,21 +110,17 @@ function RecipesScreen() {
         subtitle={`${data.recipes.length} rețete`}
         action={
           <div className="flex gap-2">
-            <Link href="/plan/" className="inline-flex h-11 items-center gap-2 rounded-lg border border-line bg-surface px-3 text-[15px] font-medium transition-colors duration-150 ease-out hover:bg-surface-2">
-              <CalendarDays size={18} strokeWidth={1.75} />
-              <span className="hidden sm:inline">Planul meselor</span>
-              <span className="sm:hidden">Plan</span>
-            </Link>
-            <Link href="/retete/import/" className="inline-flex h-11 items-center gap-2 rounded-lg border border-line bg-surface px-3 text-[15px] font-medium transition-colors duration-150 ease-out hover:bg-surface-2">
+            <Link href="/retete/import/" className="inline-flex h-12 items-center gap-2 rounded-full border border-line bg-surface px-3 text-[15px] font-medium transition-colors duration-150 ease-out hover:bg-surface-2">
               <Download size={18} strokeWidth={1.75} />
               Importă
             </Link>
-            <Link href="/retete/editare/" aria-label="Rețetă nouă" className="inline-flex h-11 w-11 items-center justify-center rounded-lg bg-brand text-brand-ink">
+            <Link href="/retete/editare/" aria-label="Rețetă nouă" className="inline-flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-brand text-brand-ink">
               <Plus size={20} />
             </Link>
           </div>
         }
       />
+      <RecipeNavigation active="retete" />
 
       <Segmented<Tab>
         label="Ce rețete arăt"
@@ -146,7 +143,7 @@ function RecipesScreen() {
           ) : data.cook.length === 0 ? (
             <EmptyState title="Nicio rețetă nu se potrivește încă">Adaugă mai multe produse în cămară sau caută o rețetă și vezi ce-ți lipsește.</EmptyState>
           ) : (
-            <ul className="divide-y divide-line overflow-hidden rounded-lg border border-line bg-surface">
+            <ul className="grid gap-3 min-[900px]:grid-cols-2">
               {data.cook.slice(0, 30).map((m) => (
                 <RecipeRow
                   key={m.recipe.id}
@@ -163,7 +160,7 @@ function RecipesScreen() {
         </div>
       ) : (
         <>
-          <div className="mt-4 flex items-center gap-2 rounded-lg border border-line bg-surface-2 px-3 transition-colors duration-150 ease-out focus-within:border-brand focus-within:bg-surface focus-within:ring-2 focus-within:ring-brand/25">
+          <div className="mt-4 flex items-center gap-2 rounded-full border border-transparent bg-surface-container-high px-4 transition-colors duration-150 ease-out focus-within:border-brand focus-within:bg-surface focus-within:ring-2 focus-within:ring-brand/25">
             <Search size={18} className="text-ink-3" aria-hidden />
             <input
               value={query}
@@ -208,7 +205,7 @@ function RecipesScreen() {
               {tab === "favorite" ? "Apasă inima de pe o rețetă ca s-o găsești repede aici." : "Încearcă alt cuvânt sau alt filtru."}
             </EmptyState>
           ) : (
-            <ul className="divide-y divide-line overflow-hidden rounded-lg border border-line bg-surface">
+            <ul className="grid gap-3 min-[900px]:grid-cols-2">
               {filtered.map((r) => (
                 <RecipeRow key={r.id} r={r} />
               ))}

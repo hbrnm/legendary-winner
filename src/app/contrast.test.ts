@@ -30,6 +30,17 @@ function contrast(a: string, b: string) {
 
 // [text, fundal, prag]: 4,5 pentru text obișnuit, 3 pentru metadate mari și pictograme.
 const PAIRS: [string, string, number][] = [
+  ["outline", "surface-container-low", 3],
+  ["outline", "surface", 3],
+  ["on-primary", "primary", 4.5],
+  ["on-primary-container", "primary-container", 4.5],
+  ["on-secondary-container", "secondary-container", 4.5],
+  ["secondary", "surface", 4.5],
+  ["info", "surface", 4.5],
+  ["on-error", "error", 4.5],
+  ["on-error-container", "error-container", 4.5],
+  ["on-surface", "surface-container", 4.5],
+  ["on-surface-variant", "surface-container-high", 4.5],
   ...["bg", "surface", "surface-2"].flatMap((bg): [string, string, number][] => [
     ["ink", bg, 4.5],
     ["ink-2", bg, 4.5],

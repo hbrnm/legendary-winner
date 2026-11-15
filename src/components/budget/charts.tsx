@@ -98,7 +98,7 @@ function EmptyColumnChart({ bars, title }: { bars: Bar[]; title: string }) {
           );
         })}
       </svg>
-      <p className="absolute inset-x-0 top-1/3 mx-auto w-fit max-w-[85%] rounded-lg border border-line bg-surface px-3 py-2 text-center text-sm text-ink-2">Graficul se umple după primele cumpărături.</p>
+      <p className="absolute inset-x-0 top-1/3 mx-auto w-fit max-w-[85%] rounded-2xl border border-line bg-surface px-3 py-2 text-center text-sm text-ink-2">Graficul se umple după primele cumpărături.</p>
     </figure>
   );
 }
