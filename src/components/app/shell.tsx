@@ -3,7 +3,9 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, type ReactNode } from "react";
-import { Cloud, CloudOff, Loader2, RefreshCw, Settings, Warehouse, AlertTriangle } from "lucide-react";
+import { Cloud, CloudOff, Loader2, RefreshCw, Settings, AlertTriangle } from "lucide-react";
+import { BrandMark } from "@/components/ui/brand-mark";
+import { isCloudConfigured } from "@/lib/supabase/client";
 import { BasketIcon, HouseIcon, JarIcon, PurseIcon, RecipeBookIcon } from "@/components/ui/icons";
 import { useApp } from "./app-provider";
 import { Spinner } from "@/components/ui/misc";
@@ -148,9 +150,7 @@ export function AppShell({ children, wide = false, hideMobileNav = false }: { ch
       </a>
       <nav aria-label="Navigare principală" className="app-sidebar">
         <Link href="/" aria-label="Cămara" className="app-sidebar-brand flex items-center gap-3 text-xl font-semibold tracking-tight rounded-full focus-visible:outline-2 focus-visible:outline-brand">
-          <span className="inline-flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-primary-container text-on-primary-container">
-            <Warehouse size={24} />
-          </span>
+          <BrandMark />
           <span className="app-sidebar-brand-name">Cămara</span>
         </Link>
         {NAV.map((n) => (
@@ -187,9 +187,12 @@ export function AppShell({ children, wide = false, hideMobileNav = false }: { ch
           </div>
         </header>
         {app.mode === "demo" && (
-          <p className="mx-4 rounded-xl bg-surface-container px-4 py-2 text-center text-xs text-ink-2 min-[600px]:mx-6">
-            <span className="font-semibold uppercase tracking-wider text-ink">Mod demonstrativ</span>: datele rămân doar pe acest dispozitiv și nu se sincronizează.
-          </p>
+          <div className="mx-4 flex flex-wrap items-center justify-center gap-x-4 gap-y-2 rounded-2xl bg-surface-container px-4 py-3 text-center text-xs text-ink-2 min-[600px]:mx-6">
+            <p><span className="font-semibold uppercase tracking-wider text-ink">Mod demonstrativ</span>: datele rămân doar pe acest dispozitiv și nu se sincronizează.</p>
+            {isCloudConfigured && (
+              <a href="/autentificare/?demo=0" className="inline-flex min-h-12 items-center justify-center rounded-full bg-brand-soft px-4 font-semibold text-brand focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand">Intră în cont</a>
+            )}
+          </div>
         )}
         <main id="continut-principal" tabIndex={-1} className={`app-main mx-auto focus:outline-none ${wide ? "app-main-wide" : ""}`}>
           <RejectedNotice />

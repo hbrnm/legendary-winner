@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
+import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, useSyncExternalStore, type ReactNode } from "react";
 import type { CamaraDB } from "@/lib/db/database";
 import { getMeta, setMeta } from "@/lib/db/database";
 import type { AppCtx } from "@/lib/services/context";
@@ -13,6 +13,7 @@ import { browserPhotoCache, clearPhotoCache, type PhotoCache, type RemoteFiles }
 import type { Role } from "@/lib/domain/types";
 import { deleteAccount as deleteAccountService } from "@/lib/services/household";
 import { reconcileHouseholds } from "@/lib/sync/membership";
+import { resolveAppMode, type AppMode } from "@/lib/app-mode";
 
 export interface HouseholdInfo {
   id: string;
@@ -45,6 +46,7 @@ export async function getUnsyncedCount(db: CamaraDB | null): Promise<number> {
 export interface AppState {
   status: AppStatus;
   mode: "demo" | "cloud";
+  modeReady: boolean;
   error: string | null;
   userId: string | null;
   email: string | null;
@@ -109,8 +111,23 @@ async function loadHouseholds(userId: string, db: CamaraDB): Promise<HouseholdIn
   }
 }
 
+function modeStorage(): Storage | null {
+  try { return window.localStorage; } catch { return null; }
+}
+function browserMode(): AppMode {
+  return resolveAppMode(isCloudConfigured, window.location.search, modeStorage(), false);
+}
+function createModeSnapshot() {
+  let selected: AppMode | undefined;
+  return () => selected ??= browserMode();
+}
+// Schimbarea modului repornește pagina; nu comutăm bazele de date în timpul unei editări.
+const subscribeMode = () => () => {};
+const serverMode = () => null;
+
 export function AppProvider({ children }: { children: ReactNode }) {
-  const mode: "demo" | "cloud" = isCloudConfigured ? "cloud" : "demo";
+  const [modeSnapshot] = useState(createModeSnapshot);
+  const mode = useSyncExternalStore<AppMode | null>(subscribeMode, modeSnapshot, serverMode);
   const [status, setStatus] = useState<AppStatus>("loading");
   const [error, setError] = useState<string | null>(null);
   const [user, setUser] = useState<{ id: string; email: string | null; name: string | null } | null>(null);
@@ -120,6 +137,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [isAppAdmin, setIsAppAdmin] = useState(false);
   const [sync, setSync] = useState<SyncStatus | null>(null);
   const engineRef = useRef<SyncEngine | null>(null);
+  useEffect(() => {
+    if (mode) resolveAppMode(isCloudConfigured, window.location.search, modeStorage());
+  }, [mode]);
   // Storage și cache doar în browser, în modul cu cont.
   const photoStore = useMemo(
     () => (mode === "cloud" && typeof window !== "undefined" ? { files: new SupabaseFiles(supabase()), cache: browserPhotoCache() } : { files: null, cache: null }),
@@ -128,6 +148,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   // Pornire: modul demonstrativ sau sesiunea Supabase.
   useEffect(() => {
+    if (!mode) return;
     let cancelled = false;
     async function startDemo() {
       const d = openDatabase("camara-demo");
@@ -344,7 +365,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   const value: AppState = {
     status,
-    mode,
+    mode: mode ?? "cloud",
+    modeReady: mode !== null,
     error,
     userId: user?.id ?? null,
     email: user?.email ?? null,

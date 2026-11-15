@@ -22,13 +22,20 @@ function InvitationScreen() {
   const signedIn = app.status === "ready" || app.status === "no_household";
 
   useEffect(() => {
-    if (!signedIn || !token) return;
+    if (app.mode !== "cloud" || !signedIn || !token) return;
     previewInvitation(token)
       .then(setPreview)
       .catch((e) => setError(e instanceof UserError ? e.message : "Nu am putut verifica invitația."));
-  }, [signedIn, token]);
+  }, [app.mode, signedIn, token]);
 
-  if (!isCloudConfigured) return <Centered title="Invitațiile cer un cont">Aplicația rulează în mod demonstrativ, fără conturi.</Centered>;
+  if (!isCloudConfigured || app.mode === "demo") return (
+    <Centered title="Invitațiile cer un cont">
+      Aplicația rulează în mod demonstrativ, fără conturi.
+      {isCloudConfigured && (
+        <a href={`/autentificare/?demo=0&inapoi=${encodeURIComponent(`/invitatie/?token=${token}`)}`} className="mt-6 inline-flex min-h-12 items-center justify-center rounded-full bg-brand px-6 font-medium text-brand-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand">Intră în cont</a>
+      )}
+    </Centered>
+  );
   if (app.status === "loading") return <Spinner />;
   if (!signedIn) {
     return (
