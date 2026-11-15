@@ -4,7 +4,7 @@ import { Suspense, useEffect, useState } from "react";
 import Link from "next/link";
 import { StandalonePage } from "@/components/ui/standalone-page";
 import { useRouter, useSearchParams } from "next/navigation";
-import { Warehouse } from "lucide-react";
+import { BrandMark } from "@/components/ui/brand-mark";
 import { useApp } from "@/components/app/app-provider";
 import { Button } from "@/components/ui/button";
 import { LabeledInput, Segmented } from "@/components/ui/fields";
@@ -40,16 +40,20 @@ function AuthScreen() {
   const [busy, setBusy] = useState(false);
 
   useEffect(() => {
-    if (!isCloudConfigured) return;
+    if (!isCloudConfigured || !app.modeReady || app.mode !== "cloud") return;
     const { data } = supabase().auth.onAuthStateChange((event) => {
       if (event === "PASSWORD_RECOVERY") setMode("parola-noua");
     });
     return () => data.subscription.unsubscribe();
-  }, []);
+  }, [app.mode, app.modeReady]);
 
   useEffect(() => {
     if (mode !== "parola-noua" && (app.status === "ready" || app.status === "no_household")) router.replace(back);
   }, [app.status, back, mode, router]);
+
+  if (!app.modeReady || (isCloudConfigured && app.mode === "demo")) {
+    return <StandalonePage centered><Spinner /></StandalonePage>;
+  }
 
   if (!isCloudConfigured) {
     return (
@@ -81,12 +85,12 @@ function AuthScreen() {
         const { data, error: e } = await auth.signUp({
           email: email.trim(),
           password,
-          options: { data: { display_name: name.trim() }, emailRedirectTo: `${window.location.origin}/autentificare/?inapoi=${encodeURIComponent(back)}` },
+          options: { data: { display_name: name.trim() }, emailRedirectTo: `${window.location.origin}/autentificare/?demo=0&inapoi=${encodeURIComponent(back)}` },
         });
         if (e) throw e;
         if (!data.session) setInfo("Ți-am trimis un email de confirmare. Deschide linkul din el, apoi intră în cont.");
       } else if (mode === "resetare") {
-        const { error: e } = await auth.resetPasswordForEmail(email.trim(), { redirectTo: `${window.location.origin}/autentificare/` });
+        const { error: e } = await auth.resetPasswordForEmail(email.trim(), { redirectTo: `${window.location.origin}/autentificare/?demo=0` });
         if (e) throw e;
         setInfo("Dacă există un cont cu acest email, ai primit un link pentru o parolă nouă.");
       } else {
@@ -107,13 +111,20 @@ function AuthScreen() {
     <StandalonePage centered>
       <Card className="p-6">
         <div className="mb-8 flex flex-col items-center text-center">
-          <span className="inline-flex h-16 w-16 items-center justify-center rounded-full bg-brand-soft text-brand">
-            <Warehouse size={28} />
-          </span>
+          <BrandMark size={72} />
           <h1 className="mt-3 min-w-0 break-words text-[32px] font-bold leading-tight tracking-tight">Cămara</h1>
           <p className="mt-1 text-sm text-ink-2">Cumpărături, rețete și bugetul casei, împreună.</p>
         </div>
 
+        {(mode === "intrare" || mode === "cont") && (
+          <section aria-label="Încearcă fără cont" className="mb-6 border-b border-line pb-6 text-center">
+            {/* eslint-disable-next-line @next/next/no-html-link-for-pages -- alegerea modului repornește providerul */}
+            <a href="/?demo=1" className="flex min-h-14 items-center justify-center rounded-full bg-brand px-6 font-semibold text-brand-ink transition-colors hover:bg-brand-strong focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand">
+              Încearcă fără cont
+            </a>
+            <p className="mt-3 text-xs leading-relaxed text-ink-2">Explorează cu date de exemplu. Modificările rămân doar pe acest dispozitiv.</p>
+          </section>
+        )}
         {(mode === "intrare" || mode === "cont") && (
           <Segmented<Mode>
             label="Intrare sau cont nou"
