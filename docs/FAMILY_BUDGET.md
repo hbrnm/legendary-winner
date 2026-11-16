@@ -19,4 +19,9 @@ Migrația `supabase/migrations/20261116000001_family_budget.sql` creează tabela
 
 Migrația trebuie verificată și aplicată înainte de activarea funcției în cloud. Codul nou ascunde controalele pentru un server încă nemigrat; datele noi importate local așteaptă în coadă până când serverul acceptă tabela și scopurile. În demo, funcția este disponibilă imediat. Publicarea și comenzile pe producție necesită acord explicit separat.
 
-Nu s-au executat comenzi pe producție. În testarea pe schema din repository, migrația mai veche `20261101000002_invitations_update.sql` blochează `accept_invitation`: triggerul refuză actualizarea câmpurilor `accepted_at`/`accepted_by` chiar și din funcția de acceptare. Aceasta blochează pregătirea suitelor `rls.test.ts`, `product-variants.test.ts`, `receipt-aliases.test.ts` și `recipe-photos.test.ts`, inclusiv fără migrația bugetului (confirmat pe schema inițială). Testele RLS noi pentru cheltuieli folosesc apartenență pregătită direct în fixture și trec. Problema invitațiilor trebuie rezolvată separat înainte de a considera întregul lanț de migrații verificat pentru lansare.
+Pentru lansare sunt incluse și două migrații de corecție ale problemelor preexistente dezvăluite de suita RLS:
+
+- `20261116000002_invitation_acceptance.sql`: permite acceptarea prin funcția autorizată, păstrând interdicția de a falsifica acceptarea sau de a modifica rolul/expirarea prin UPDATE direct; elimină accesul RPC la funcția de trigger.
+- `20261116000003_delete_account_alias.sql`: corectează coliziunea dintre o variabilă și un alias SQL în funcția existentă de ștergere a contului, fără schimbarea regulilor sau a predicatelor de ștergere. Migrația definește funcția; nu șterge conturi.
+
+Suita completă de bază de date trece acum 70/70 pe Postgres temporar local. La lansare se citesc întâi istoricul și definițiile din proiectul Camara și se aplică numai migrațiile lipsă. Nu se reexecută migrațiile deja aplicate și nu se reîncarcă seed-ul.

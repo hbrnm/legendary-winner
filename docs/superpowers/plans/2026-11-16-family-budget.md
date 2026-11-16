@@ -52,3 +52,8 @@ Categorii fixe aprobate, RON, manual, offline, RLS pe gospodărie, ștergeri log
 - Build-ul standard Turbopack este blocat de mediul local (`EPERM` la portul intern). Exportul static prin Webpack, cu același loader Tailwind pentru precompilarea CSS, a trecut. CSS-ul și configurația sursă au fost restaurate; nu intră modificări de build în acest pachet.
 - Revizuire independentă: fără probleme substanțiale; formularul nou a fost inspectat vizual la360px.
 - Producția nu a fost modificată. Push și PR rămân în așteptarea acordului explicit pentru publicarea sursei în repository-ul public, cerut de respingerea automată anterioară.
+
+## Pregătirea publicării aprobate
+Utilizatorul a aprobat explicit publicarea în producție, apoi publicarea sursei din ramura `claude/family-budget` în repository-ul public și integrarea PR-ului. PR: https://github.com/hbrnm/legendary-winner/pull/117.
+
+Pentru a elimina blocajele verificării de lansare au fost adăugate migrațiile `20261116000002_invitation_acceptance.sql` și `20261116000003_delete_account_alias.sql`, cu test de regresie pentru acceptare. Cele trei eșecuri ascunse anterior (RPC de trigger pentru anon/authenticated și aliasul funcției de ștergere) au fost reproduse înaintea corecțiilor. După corecții: 70/70 teste DB, fără teste omise. Revizuire independentă focalizată: fără probleme. Accesul Vercel/Supabase pentru aplicarea în producție trebuie confirmat prin conexiunile autorizate.
