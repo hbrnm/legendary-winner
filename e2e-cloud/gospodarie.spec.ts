@@ -103,6 +103,9 @@ test("cont, gospodărie, invitație, listă comună sincronizată, gospodării i
   // Deconectarea șterge datele gospodăriei de pe dispozitiv.
   await bogdan.goto("/gospodarie/");
   await bogdan.getByRole("button", { name: "Ieși din cont" }).click();
+  // Așteptăm terminarea deconectării înainte de o navigare completă,
+  // care altfel poate anula cererea logout încă în curs.
+  await bogdan.waitForURL(/autentificare/, { timeout: 15_000 });
   await bogdan.goto("/cumparaturi/");
   await bogdan.waitForURL(/autentificare/);
 });

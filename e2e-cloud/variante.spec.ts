@@ -44,7 +44,9 @@ test("varianta pusă de un membru ajunge la celălalt, cu prețul pe kg", async 
   await expect(dana.getByRole("dialog")).toHaveCount(0);
   await dana.getByRole("button", { name: "Gata", exact: true }).click();
   await dana.getByRole("button", { name: "Gata, am terminat" }).click();
-  await expect(dana.getByText(/Gata! Ai dat 21,00/)).toBeVisible();
+  // Finalizarea arhivează lista; prețul efectiv este verificat mai jos,
+  // pe dispozitivul celuilalt membru, fără a depinde de textul notificării.
+  await expect(dana).toHaveURL(/\/cumparaturi\/$/);
   await syncNow(dana);
   await expect(dana.getByRole("button", { name: /Sincronizează acum/ })).not.toContainText(/refuz/i);
 
