@@ -4,8 +4,12 @@ import { insertRow, updateRow } from "@/lib/db/write";
 import { stableId } from "@/lib/db/ids";
 import { UserError, w, type AppCtx } from "./context";
 import { nowIso } from "@/lib/clock";
+import { EXPENSE_CATEGORY_IDS } from "@/lib/domain/expense-categories";
+import { expenseInput } from "./expenses";
 
 const budgetScopeSchema = z.discriminatedUnion("kind", [
+  z.object({ kind: z.literal("familie") }),
+  z.object({ kind: z.literal("cheltuiala"), category_id: z.enum(EXPENSE_CATEGORY_IDS) }),
   z.object({ kind: z.literal("total") }),
   z.object({ kind: z.literal("alimente") }),
   z.object({ kind: z.literal("nealimentare") }),
@@ -15,6 +19,7 @@ const budgetScopeSchema = z.discriminatedUnion("kind", [
 ]);
 
 const TABLE_SCHEMAS: Partial<Record<TableName, z.ZodTypeAny>> = {
+  manual_expenses: expenseInput,
   budgets: z.object({
     name: z.string().min(1),
     period: z.enum(["lunar", "saptamanal"]),

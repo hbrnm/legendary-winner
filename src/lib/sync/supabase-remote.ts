@@ -81,9 +81,14 @@ export class SupabaseRemote implements RemoteStore {
       .channel(`gospodarie-fotografii:${householdId}`)
       .on("postgres_changes", { event: "*", schema: "public", table: "recipe_photos", filter: `household_id=eq.${householdId}` }, () => onChange());
     photos.subscribe();
+    const expenses = this.client
+      .channel(`gospodarie-cheltuieli:${householdId}`)
+      .on("postgres_changes", { event: "*", schema: "public", table: "manual_expenses", filter: `household_id=eq.${householdId}` }, () => onChange());
+    expenses.subscribe();
     return () => {
       void this.client.removeChannel(channel);
       void this.client.removeChannel(photos);
+      void this.client.removeChannel(expenses);
     };
   }
 }

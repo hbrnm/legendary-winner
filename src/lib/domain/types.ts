@@ -1,3 +1,5 @@
+import type { ExpenseCategoryId } from "./expense-categories";
+
 // Tipurile entităților persistate. Câmpurile sunt în snake_case, identic cu
 // coloanele din Postgres, ca să nu existe un strat de conversie între
 // IndexedDB, sincronizare și Supabase.
@@ -323,6 +325,8 @@ export interface PantryItem extends SyncedRow {
 
 export type BudgetPeriod = "lunar" | "saptamanal";
 export type BudgetScope =
+  | { kind: "familie" }
+  | { kind: "cheltuiala"; category_id: ExpenseCategoryId }
   | { kind: "total" }
   | { kind: "alimente" }
   | { kind: "nealimentare" }
@@ -337,6 +341,20 @@ export interface Budget extends SyncedRow {
   amount: number;
   active: boolean;
 }
+
+/** O plată făcută în afara fluxului listelor/bonurilor. */
+export interface ManualExpense extends SyncedRow {
+  description: string;
+  amount: number;
+  category_id: ExpenseCategoryId;
+  spent_on: ISODate;
+}
+
+/** Proiecție de citire comună; rândurile manuale nu se scriu în tabelele de cumpărături. */
+export type SpendRecord = ShoppingTransactionItem & {
+  manual_expense_id?: string;
+  expense_category_id?: ExpenseCategoryId;
+};
 
 export type PantryOnPurchase = "intreaba" | "mereu" | "niciodata";
 

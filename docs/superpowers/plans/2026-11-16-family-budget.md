@@ -23,23 +23,32 @@ Categorii fixe aprobate, RON, manual, offline, RLS pe gospodărie, ștergeri log
 `createExpense(ctx,input): Promise<string>`, `updateExpense(ctx,id,patch): Promise<void>`, `deleteExpense(ctx,id): Promise<void>`; input {description:string,amount:number,category_id:ExpenseCategoryId,spent_on:string}.
 `householdSpendRecords(db,householdId): Promise<SpendRecord[]>`; `byExpenseCategory(records,productCategories): Breakdown[]`; scopurile noi `{kind:"familie"}` și `{kind:"cheltuiala",category_id:ExpenseCategoryId}`.
 - [x] Baseline `npm test`: 671 trecute; ramură separată `claude/family-budget` din `origin/main`.
-- [ ] Scrie teste RED: familie 100 cumpărături + 800 școală = 900; vechiul total = 100; școală = 800; transport = 0; manualele nu intră în media ieșirilor; perioade/ștergeri/export corecte.
-- [ ] Scrie teste RED pentru creare/editare/ștergere, outbox, acces la altă gospodărie, sume zero/negative/zecimale excesive, date inexistente/viitoare, backup și import repetat.
-- [ ] Implementează tipurile, tabela Dexie v5, serviciile și proiecția fără a modifica `spendRecords` folosit de istoric/bonuri.
-- [ ] Extinde schema bugetelor și backup-ul; pune `manual_expenses` în sincronizare și tabele opționale; păstrează în coadă scopurile noi dacă serverul nu este pregătit.
-- [ ] Scrie testele RLS și migrația pentru tabela nouă, scopurile suplimentare, triggere și grant-uri identice cu modelul gospodăriei. Rulează `npm run test:db` doar pe Postgres temporar.
-- [ ] Rulează testele focalizate, apoi `npm test`; verifică upgrade Dexie și cursa bifare/finalizare.
+- [x] Scrie teste RED: familie 100 cumpărături + 800 școală = 900; vechiul total = 100; școală = 800; transport = 0; manualele nu intră în media ieșirilor; perioade/ștergeri/export corecte.
+- [x] Scrie teste RED pentru creare/editare/ștergere, outbox, acces la altă gospodărie, sume zero/negative/zecimale excesive, date inexistente/viitoare, backup și import repetat.
+- [x] Implementează tipurile, tabela Dexie v5, serviciile și proiecția fără a modifica `spendRecords` folosit de istoric/bonuri.
+- [x] Extinde schema bugetelor și backup-ul; pune `manual_expenses` în sincronizare și tabele opționale; păstrează în coadă scopurile noi dacă serverul nu este pregătit.
+- [x] Scrie testele RLS și migrația pentru tabela nouă, scopurile suplimentare, triggere și grant-uri identice cu modelul gospodăriei. Rulează `npm run test:db` doar pe Postgres temporar.
+- [x] Rulează testele focalizate, apoi `npm test`; verifică upgrade Dexie și cursa bifare/finalizare.
 
 ## Task 2: Interfață și integrarea rapoartelor
 **Files:** `src/app/buget/page.tsx`; `src/components/budget/expenses.tsx`; `src/components/app/app-provider.tsx`; `src/components/home/home-screen.tsx`; `src/app/cumparaturi/lista/page.tsx`; `e2e/family-budget.spec.ts`.
 **Interfaces:** cele din Task 1; `useApp().familyBudgetEnabled: boolean` este true în demo sau după confirmarea tabelei pe server. Componenta `ManualExpenses({month:string})` încarcă manualele gospodăriei pentru luna aleasă, oferă adăugare/editare/ștergere și confirmă ștergerea.
-- [ ] Adaugă formularul „Cheltuială nouă”: „Descriere”, „Suma (lei)”, „Data plății”, „Categoria”; listează plățile lunii, cu modificare și ștergere confirmată.
-- [ ] Adaugă scopurile „Toate cheltuielile familiei” și „O categorie de cheltuieli”; păstrează scopurile pentru produse/magazine. Noul buget implicit este al familiei când funcția este disponibilă.
-- [ ] Folosește totalul combinat în rapoarte/grafice/export; împarte implicit pe categoriile familiei, cu acces separat la categoriile produselor și magazine. Estimarea coșului nu se scade din bugetul școlii.
-- [ ] Folosește bugetul familiei pe Acasă și lângă lista de cumpărături când este ales ca principal; calculează folosind totalul combinat.
-- [ ] Rulează testul browser pentru școală, haine, transport, buget de categorie, totaluri, persistență, editare/ștergere, export și viewport 360px. Rulează testele existente afectate, apoi suita E2E.
+- [x] Adaugă formularul „Cheltuială nouă”: „Descriere”, „Suma (lei)”, „Data plății”, „Categoria”; listează plățile lunii, cu modificare și ștergere confirmată.
+- [x] Adaugă scopurile „Toate cheltuielile familiei” și „O categorie de cheltuieli”; păstrează scopurile pentru produse/magazine. Noul buget implicit este al familiei când funcția este disponibilă.
+- [x] Folosește totalul combinat în rapoarte/grafice/export; împarte implicit pe categoriile familiei, cu acces separat la categoriile produselor și magazine. Estimarea coșului nu se scade din bugetul școlii.
+- [x] Folosește bugetul familiei pe Acasă și lângă lista de cumpărături când este ales ca principal; calculează folosind totalul combinat.
+- [x] Rulează testul browser pentru școală, haine, transport, buget de categorie, totaluri, persistență, editare/ștergere, export și viewport 360px. Rulează testele existente afectate, apoi suita E2E.
 
 ## Task 3: Validare și livrare locală
-- [ ] Revizuire independentă unică; corectează problemele relevante cu teste de regresie.
-- [ ] `npm test`, `npm run typecheck`, verificări RLS și E2E; build standard sau raportarea limitei mediului și build alternativ fără schimbări persistente de configurație.
-- [ ] Documentează migrația necesară și comportamentul bugetelor existente. Commit și patch local pentru revizuire. Push/PR rămân în așteptarea aprobării explicite cerute de verificarea automată anterioară.
+- [x] Revizuire independentă unică; corectează problemele relevante cu teste de regresie.
+- [x] `npm test`, `npm run typecheck`, verificări RLS și E2E; build standard sau raportarea limitei mediului și build alternativ fără schimbări persistente de configurație.
+- [x] Documentează migrația necesară și comportamentul bugetelor existente. Commit și patch local pentru revizuire. Push/PR rămân în așteptarea aprobării explicite cerute de verificarea automată anterioară.
+
+## Rezultatul verificărilor
+- `npm test`: 694/694; `npm run typecheck`: trecut; ESLint pe fișierele modificate: trecut.
+- `npm run test:e2e`: 72/72; scenariul nou verifică școală, haine, transport, totalul, bugetul de categorie, indicatorul de pe Acasă, editarea, ștergerea confirmată, lunile anterioare, persistența, CSV și lățimea de 360px.
+- Teste noi RLS `manual-expenses.test.ts`: 4/4 pe Postgres temporar local. Suita DB completă are 14 teste trecute și 55 omise deoarece patru suite existente eșuează la pregătire: `rls`, `product-variants`, `receipt-aliases`, `recipe-photos`. Triggerul vechi al invitațiilor blochează `accept_invitation`; problema este reprodusă și fără migrația nouă. Nu este o regresie a funcției de buget și nu a fost modificată în această ramură.
+- Migrația nouă a fost verificată RED pe schema veche, apoi GREEN cu noua schemă. Sincronizarea a fost verificată și prin test de regresie care eșuează când protecția față de un server nemigrat este eliminată.
+- Build-ul standard Turbopack este blocat de mediul local (`EPERM` la portul intern). Exportul static prin Webpack, cu același loader Tailwind pentru precompilarea CSS, a trecut. CSS-ul și configurația sursă au fost restaurate; nu intră modificări de build în acest pachet.
+- Revizuire independentă: fără probleme substanțiale; formularul nou a fost inspectat vizual la360px.
+- Producția nu a fost modificată. Push și PR rămân în așteptarea acordului explicit pentru publicarea sursei în repository-ul public, cerut de respingerea automată anterioară.

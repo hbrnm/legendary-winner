@@ -2,13 +2,17 @@ import { z } from "zod";
 import type { Budget, BudgetScope, PriceConfidence, PriceType, PurchaseSource } from "@/lib/domain/types";
 import { insertRow, softDelete, updateRow } from "@/lib/db/write";
 import { newId } from "@/lib/db/ids";
-import { type AppCtx, w } from "./context";
+import { type AppCtx, UserError, w } from "./context";
 import { variantField } from "./catalog";
+import { requireFamilyBudget } from "./expenses";
+import { EXPENSE_CATEGORY_IDS } from "@/lib/domain/expense-categories";
 import { parse, parsePatch, zDate, zMoney, zName, zQuantity, zSource, zUnit } from "./validation";
 
 // Bugete și prețuri introduse de gospodărie.
 
 const scopeSchema: z.ZodType<BudgetScope> = z.discriminatedUnion("kind", [
+  z.object({ kind: z.literal("familie") }),
+  z.object({ kind: z.literal("cheltuiala"), category_id: z.enum(EXPENSE_CATEGORY_IDS) }),
   z.object({ kind: z.literal("total") }),
   z.object({ kind: z.literal("alimente") }),
   z.object({ kind: z.literal("nealimentare") }),
@@ -27,6 +31,7 @@ const budgetInput = z.object({
 
 export async function createBudget(ctx: AppCtx, input: z.input<typeof budgetInput>): Promise<string> {
   const v = parse(budgetInput, input);
+  if (v.scope.kind === "familie" || v.scope.kind === "cheltuiala") await requireFamilyBudget(ctx);
   const id = newId();
   await insertRow(ctx.db, "budgets", { id, household_id: ctx.householdId, ...v }, w(ctx));
   return id;
@@ -34,6 +39,10 @@ export async function createBudget(ctx: AppCtx, input: z.input<typeof budgetInpu
 
 export async function updateBudget(ctx: AppCtx, id: string, patch: Partial<z.input<typeof budgetInput>>) {
   const v = parsePatch(budgetInput, patch);
+  const current = await ctx.db.budgets.get(id);
+  if (!current || current.deleted_at || current.household_id !== ctx.householdId) throw new UserError("Bugetul nu este disponibil în această gospodărie.");
+  const scope = v.scope ?? current.scope;
+  if (scope.kind === "familie" || scope.kind === "cheltuiala") await requireFamilyBudget(ctx);
   await updateRow(ctx.db, "budgets", id, Object.fromEntries(Object.entries(v).filter(([, x]) => x !== undefined)) as Partial<Budget>, w(ctx));
 }
 
