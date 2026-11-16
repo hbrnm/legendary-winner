@@ -8,7 +8,7 @@ Fluxul: **plan → rețete → listă → cumpărături reale → buget → anal
 - **Liste de cumpărături** comune gospodăriei: adăugare rapidă („2 kg cartofi”), grupare pe raioane sau magazine, bifare în magazin, prețul plătit, finalizarea turei și istoricul.
 - **Rețete** (86 în catalog și rețetele gospodăriei): porții, ingrediente trimise în listă, „am gătit” scade din cămară.
 - **Planul săptămânii**: mese pe zile, copiere de săptămână, lista generată din plan (scade ce e deja în cămară).
-- **Buget**: bugete pe lună, sursă, categorie sau magazin; cheltuiala reală vine doar din cumpărături, fără dublă numărare.
+- **Bugetul familiei**: bugete lunare și plăți introduse manual pentru școală, haine, transport, locuință și alte cheltuieli; total comun cu cumpărăturile, fără dublă numărare. Bugetele existente pentru produse și magazine rămân disponibile.
 - **Prețuri**: doar cele introduse de gospodărie (plătite, văzute, promoții). Aplicația nu inventează prețuri.
 - **Cămara**: ce ai acasă, unde stă, când expiră.
 - **Gospodării cu membri și roluri** (proprietar, administrator, membru), invitații prin link, sincronizare între telefoane.
@@ -35,6 +35,7 @@ Cu Supabase: vezi [`docs/ENVIRONMENT_VARIABLES.md`](docs/ENVIRONMENT_VARIABLES.m
 | `npm run lint`, `npm run typecheck` | ESLint, TypeScript |
 
 ## Documentație
+- [Bugetul familiei: utilizare și activare](docs/FAMILY_BUDGET.md)
 - [Verificarea locală și pregătirea lansării — 28 octombrie 2026](docs/VERIFICARE_2026-10-28.md)
 - [Arhitectura](docs/ARCHITECTURE.md)
 - [Schema bazei de date](docs/DATABASE_SCHEMA.md)

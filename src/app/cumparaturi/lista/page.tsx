@@ -15,7 +15,7 @@ import { Badge, BudgetBar, EmptyState, Spinner } from "@/components/ui/misc";
 import { ConfirmSheet, Sheet } from "@/components/ui/sheet";
 import { LabeledInput, Segmented, Toggle } from "@/components/ui/fields";
 import { useToast } from "@/components/ui/toast";
-import { listItems, owned, priceIndex, spendRecords, visible } from "@/lib/services/queries";
+import { listItems, owned, priceIndex, householdSpendRecords, visible } from "@/lib/services/queries";
 import * as shop from "@/lib/services/shopping";
 import { createVariant } from "@/lib/services/catalog";
 import { variantLabel, variantsOf } from "@/lib/domain/variants";
@@ -61,13 +61,13 @@ function ListScreen() {
         priceIndex(ctx.db, ctx.householdId),
         owned(ctx.db, "shopping_lists", ctx.householdId),
         owned(ctx.db, "budgets", ctx.householdId),
-        spendRecords(ctx.db, ctx.householdId),
+        householdSpendRecords(ctx.db, ctx.householdId),
         ctx.db.household_settings.get(ctx.householdId),
         owned(ctx.db, "pantry_items", ctx.householdId),
         visible(ctx.db, "product_variants", ctx.householdId),
         visible(ctx.db, "brands", ctx.householdId),
       ]);
-      const mainBudget = budgets.find((b) => b.active && b.period === "lunar" && (b.scope.kind === "total" || b.scope.kind === "alimente")) ?? budgets.find((b) => b.active && b.scope.kind === "total");
+      const mainBudget = budgets.find((b) => b.active && b.period === "lunar" && b.scope.kind === "familie") ?? budgets.find((b) => b.active && b.period === "lunar" && (b.scope.kind === "total" || b.scope.kind === "alimente")) ?? budgets.find((b) => b.active && b.scope.kind === "total");
       const catMap = new Map(categories.map((c) => [c.id, c]));
       const budget = mainBudget ? budgetStatus(mainBudget, spend, catMap, toISODate(now())) : null;
       return {

@@ -61,6 +61,7 @@ export interface AppState {
   photos: { files: RemoteFiles | null; cache: PhotoCache | null; enabled: boolean };
   /** Variantele comerciale: în modul demonstrativ mereu, pe producție după ce serverul are tabelul. */
   variantsEnabled: boolean;
+  familyBudgetEnabled: boolean;
   switchHousehold: (id: string) => Promise<void>;
   refreshHouseholds: () => Promise<void>;
   syncNow: () => Promise<void>;
@@ -281,6 +282,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
   // La fel pentru variante: tabelul și coloanele variant_id vin în aceeași migrație.
   const variantsMissing = useLiveQuery(async () => (db ? ((await getMeta<boolean>(db, serverMissingKey("product_variants"))) ?? null) : null), [db]);
   const variantsEnabled = mode === "demo" || variantsMissing === false;
+  const expensesMissing = useLiveQuery(async () => (db ? ((await getMeta<boolean>(db, serverMissingKey("manual_expenses"))) ?? null) : null), [db]);
+  const familyBudgetEnabled = mode === "demo" || expensesMissing === false;
 
   const household = households.find((h) => h.id === activeId) ?? null;
 
@@ -379,6 +382,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     sync,
     photos,
     variantsEnabled,
+    familyBudgetEnabled,
     switchHousehold,
     refreshHouseholds,
     syncNow: async () => {

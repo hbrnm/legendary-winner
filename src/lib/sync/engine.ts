@@ -140,12 +140,17 @@ export class SyncEngine {
   async push(): Promise<void> {
     // Tabelele opționale care încă lipsesc pe server: rândurile lor așteaptă migrația.
     const missing = new Set<TableName>();
+    const familyReady = (await getMeta<boolean>(this.db, serverMissingKey("manual_expenses"))) === false;
     for (;;) {
       // Rândurile fotografiilor al căror fișier n-a ajuns încă în Storage așteaptă.
       const waiting = new Set(await this.db.photo_uploads.toCollection().primaryKeys());
       const entry = await this.db.outbox
         .orderBy("seq")
-        .filter((e) => !missing.has(e.table) && !(e.table === "recipe_photos" && waiting.has(e.row_id)))
+        .filter((e) => {
+          const scope = e.payload.scope as { kind?: string } | undefined;
+          const familyBudget = e.table === "budgets" && (scope?.kind === "familie" || scope?.kind === "cheltuiala");
+          return !missing.has(e.table) && !(familyBudget && (!familyReady || missing.has("manual_expenses"))) && !(e.table === "recipe_photos" && waiting.has(e.row_id));
+        })
         .first();
       if (!entry) return;
       // Marcăm intrarea ca „în zbor”, ca scrierile noi să nu se comaseze în ea.

@@ -9,7 +9,7 @@ import { BudgetBar, Card, SectionTitle, Spinner } from "@/components/ui/misc";
 import { useToast } from "@/components/ui/toast";
 import { SLOT_LABELS } from "@/components/recipes/recipe-visual";
 import { RecipeImage } from "@/components/recipes/recipe-photo";
-import { listItems, owned, priceIndex, spendRecords, visible } from "@/lib/services/queries";
+import { listItems, owned, priceIndex, householdSpendRecords, visible } from "@/lib/services/queries";
 import { addItem, createList } from "@/lib/services/shopping";
 import { SOURCE_LABELS, budgetStatus } from "@/lib/domain/budget";
 import { listTotals } from "@/lib/domain/shopping";
@@ -45,7 +45,7 @@ export function HomeScreen() {
       owned(ctx.db, "shopping_lists", ctx.householdId),
       priceIndex(ctx.db, ctx.householdId),
       owned(ctx.db, "budgets", ctx.householdId),
-      spendRecords(ctx.db, ctx.householdId),
+      householdSpendRecords(ctx.db, ctx.householdId),
       visible(ctx.db, "product_categories", ctx.householdId),
       owned(ctx.db, "meal_plan_items", ctx.householdId),
       visible(ctx.db, "recipes", ctx.householdId),
@@ -60,7 +60,7 @@ export function HomeScreen() {
     // „Următoarea listă”: cea cu cele mai multe produse de luat (la egalitate, cea mai recentă).
     const next = active.sort((a, b) => b.totals.item_count - b.totals.checked_count - (a.totals.item_count - a.totals.checked_count) || b.list.updated_at.localeCompare(a.list.updated_at))[0] ?? null;
     const catMap = new Map(categories.map((c) => [c.id, c]));
-    const main = budgets.find((b) => b.active && b.period === "lunar" && (b.scope.kind === "total" || b.scope.kind === "alimente")) ?? budgets.find((b) => b.active);
+    const main = budgets.find((b) => b.active && b.period === "lunar" && b.scope.kind === "familie") ?? budgets.find((b) => b.active && b.period === "lunar" && (b.scope.kind === "total" || b.scope.kind === "alimente")) ?? budgets.find((b) => b.active);
     const recipeMap = new Map(recipes.map((r) => [r.id, r]));
     const todayMeals = meals
       .filter((m) => m.date === today)

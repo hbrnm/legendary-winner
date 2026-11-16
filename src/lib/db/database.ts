@@ -5,6 +5,7 @@ import type {
   FavoriteRecipe,
   HouseholdSettings,
   MealPlanItem,
+  ManualExpense,
   PantryItem,
   PantryLocation,
   Product,
@@ -51,6 +52,7 @@ export interface SyncedTables {
   meal_plan_items: MealPlanItem;
   pantry_items: PantryItem;
   budgets: Budget;
+  manual_expenses: ManualExpense;
 }
 
 export type TableName = keyof SyncedTables;
@@ -83,6 +85,7 @@ export const SYNCED_TABLES: TableName[] = [
   "meal_plan_items",
   "pantry_items",
   "budgets",
+  "manual_expenses",
 ];
 
 /** Tabele cu date de catalog (pot avea household_id NULL). */
@@ -124,7 +127,7 @@ export interface SyncError {
  * Tabele adăugate după prima publicare: pot lipsi pe server până se aplică
  * migrația lor pe producție. Tragerea le sare atunci, fără eroare.
  */
-export const OPTIONAL_TABLES = new Set<TableName>(["recipe_photos", "product_variants", "receipt_aliases"]);
+export const OPTIONAL_TABLES = new Set<TableName>(["recipe_photos", "product_variants", "receipt_aliases", "manual_expenses"]);
 
 /**
  * Fișierul unei fotografii a gospodăriei, ținut local până ajunge în
@@ -200,6 +203,7 @@ export class CamaraDB extends Dexie {
   meal_plan_items!: Table<MealPlanItem, string>;
   pantry_items!: Table<PantryItem, string>;
   budgets!: Table<Budget, string>;
+  manual_expenses!: Table<ManualExpense, string>;
   outbox!: Table<OutboxEntry, number>;
   sync_errors!: Table<SyncError, number>;
   meta!: Table<MetaEntry, string>;
@@ -247,6 +251,9 @@ export class CamaraDB extends Dexie {
     // Potrivirile învățate de pe bonuri (.tasks/005, etapa 3).
     this.version(4).stores({
       receipt_aliases: "&id, household_id",
+    });
+    this.version(5).stores({
+      manual_expenses: "&id, household_id, spent_on",
     });
   }
 

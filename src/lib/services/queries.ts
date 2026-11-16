@@ -1,5 +1,6 @@
 import type { CamaraDB, SyncedTables, TableName } from "@/lib/db/database";
-import type { Product, ShoppingListItem, ShoppingTransactionItem } from "@/lib/domain/types";
+import type { Product, ShoppingListItem, ShoppingTransactionItem, SpendRecord } from "@/lib/domain/types";
+import { manualExpenseRecord } from "@/lib/domain/budget";
 import { buildPriceIndex, type PriceIndex } from "@/lib/domain/pricing";
 import { productUnitsOf } from "@/lib/domain/quantities";
 
@@ -93,4 +94,10 @@ export async function spendRecords(db: CamaraDB, householdId: string): Promise<S
     }
   }
   return [...done, ...pending];
+}
+
+/** Totalul familiei; plățile manuale sunt proiectate numai la citire. */
+export async function householdSpendRecords(db: CamaraDB, householdId: string): Promise<SpendRecord[]> {
+  const [shopping, manual] = await Promise.all([spendRecords(db, householdId), owned(db, "manual_expenses", householdId)]);
+  return [...shopping, ...manual.map(manualExpenseRecord)];
 }

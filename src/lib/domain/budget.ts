@@ -1,26 +1,31 @@
-import type { Budget, ISODate, ProductCategory, PurchaseSource, Retailer, ShoppingTransactionItem } from "./types";
+import type { Budget, ISODate, ManualExpense, ProductCategory, PurchaseSource, Retailer, SpendRecord } from "./types";
+import { expenseCategoryName, type ExpenseCategoryId } from "./expense-categories";
 import { addDays, inPeriod, localDateOf, monthPeriod, startOfMonth, weekPeriod, type Period } from "./dates";
 import { roundMoney, sumMoney } from "./money";
 
-// Cheltuiala reală vine DOAR din liniile de tranzacție (produse bifate la
+// Cheltuiala reală vine din plăți manuale și din liniile de tranzacție (produse bifate la
 // cumpărături). Bugetul planificat e o altă entitate. O linie de listă mutată
 // în altă listă își păstrează id-ul, iar linia de tranzacție e unică per
 // (tranzacție, linie de listă), deci nu se numără de două ori.
 
-export function liveSpend(items: ShoppingTransactionItem[]): ShoppingTransactionItem[] {
+export function liveSpend(items: SpendRecord[]): SpendRecord[] {
   return items.filter((i) => !i.deleted_at);
 }
 
-export function spendInPeriod(items: ShoppingTransactionItem[], period: Period): ShoppingTransactionItem[] {
+export function spendInPeriod(items: SpendRecord[], period: Period): SpendRecord[] {
   return liveSpend(items).filter((i) => inPeriod(localDateOf(i.purchased_at), period));
 }
 
-export function sumAmounts(items: ShoppingTransactionItem[]): number {
+export function sumAmounts(items: SpendRecord[]): number {
   return sumMoney(items.map((i) => i.amount ?? 0));
 }
 
-export function matchesScope(item: ShoppingTransactionItem, budget: Budget, categories: Map<string, ProductCategory>): boolean {
+export function matchesScope(item: SpendRecord, budget: Budget, categories: Map<string, ProductCategory>): boolean {
   const s = budget.scope;
+  if (s.kind === "familie") return true;
+  if (s.kind === "cheltuiala") return expenseCategoryOf(item, categories) === s.category_id;
+  // Scopurile istorice rămân exclusiv pentru cumpărături.
+  if (item.manual_expense_id) return false;
   switch (s.kind) {
     case "total":
       return true;
@@ -35,6 +40,28 @@ export function matchesScope(item: ShoppingTransactionItem, budget: Budget, cate
     case "magazin":
       return item.retailer_id === s.retailer_id;
   }
+}
+
+export function expenseCategoryOf(item: SpendRecord, categories: Map<string, ProductCategory>): ExpenseCategoryId {
+  if (item.expense_category_id) return item.expense_category_id;
+  if (item.category_id === "igiena" || item.category_id === "curatenie") return "ingrijire";
+  return categories.get(item.category_id)?.is_food ? "alimentatie" : "altele";
+}
+
+export function manualExpenseRecord(expense: ManualExpense): SpendRecord {
+  return {
+    ...expense, id: `manual:${expense.id}`, manual_expense_id: expense.id,
+    expense_category_id: expense.category_id, category_id: `cheltuiala:${expense.category_id}`,
+    name: expense.description, transaction_id: `manual:${expense.id}`,
+    list_item_id: null, product_id: null, quantity: null, unit: null,
+    retailer_id: null, source: "alta",
+    // Data manuală este o zi calendaristică, nu un instant UTC.
+    purchased_at: `${expense.spent_on}T12:00:00`,
+  };
+}
+
+export function byExpenseCategory(items: SpendRecord[], categories: Map<string, ProductCategory>): Breakdown[] {
+  return breakdownBy(items, (i) => expenseCategoryOf(i, categories), expenseCategoryName);
 }
 
 /** Piața și producătorul local se tratează împreună la buget („piață”). */
@@ -62,7 +89,7 @@ export interface BudgetStatus {
 
 export function budgetStatus(
   budget: Budget,
-  items: ShoppingTransactionItem[],
+  items: SpendRecord[],
   categories: Map<string, ProductCategory>,
   today: ISODate,
 ): BudgetStatus {
@@ -100,8 +127,8 @@ export interface Breakdown {
 }
 
 export function breakdownBy(
-  items: ShoppingTransactionItem[],
-  keyOf: (i: ShoppingTransactionItem) => string,
+  items: SpendRecord[],
+  keyOf: (i: SpendRecord) => string,
   labelOf: (key: string) => string,
 ): Breakdown[] {
   const sums = new Map<string, number[]>();
@@ -117,13 +144,13 @@ export function breakdownBy(
     .sort((a, b) => b.amount - a.amount);
 }
 
-export function byCategory(items: ShoppingTransactionItem[], categories: Map<string, ProductCategory>): Breakdown[] {
+export function byCategory(items: SpendRecord[], categories: Map<string, ProductCategory>): Breakdown[] {
   return breakdownBy(items, (i) => i.category_id, (k) => categories.get(k)?.name ?? "Altele");
 }
 
-export function byRetailer(items: ShoppingTransactionItem[], retailers: Map<string, Retailer>): Breakdown[] {
+export function byRetailer(items: SpendRecord[], retailers: Map<string, Retailer>): Breakdown[] {
   return breakdownBy(
-    items,
+    items.filter((i) => !i.manual_expense_id),
     (i) => i.retailer_id ?? `sursa:${sourceGroup(i.source)}`,
     (k) => retailers.get(k)?.name ?? SOURCE_LABELS[k.replace("sursa:", "") as PurchaseSource] ?? "Nespecificat",
   );
@@ -142,7 +169,7 @@ export interface PeriodTotal {
 }
 
 /** Totalurile pe ultimele `count` luni (cea curentă ultima). */
-export function monthlyTotals(items: ShoppingTransactionItem[], today: ISODate, count: number): PeriodTotal[] {
+export function monthlyTotals(items: SpendRecord[], today: ISODate, count: number): PeriodTotal[] {
   const out: PeriodTotal[] = [];
   let anchor = startOfMonth(today);
   for (let k = 0; k < count; k++) {
@@ -153,7 +180,7 @@ export function monthlyTotals(items: ShoppingTransactionItem[], today: ISODate, 
   return out;
 }
 
-export function weeklyTotals(items: ShoppingTransactionItem[], today: ISODate, count: number): PeriodTotal[] {
+export function weeklyTotals(items: SpendRecord[], today: ISODate, count: number): PeriodTotal[] {
   const out: PeriodTotal[] = [];
   let anchor = weekPeriod(today).from;
   for (let k = 0; k < count; k++) {
@@ -165,9 +192,10 @@ export function weeklyTotals(items: ShoppingTransactionItem[], today: ISODate, c
 }
 
 /** Valoarea medie a unei ieșiri la cumpărături (tranzacții cu cel puțin o sumă). */
-export function averageTrip(items: ShoppingTransactionItem[]): number | null {
+export function averageTrip(items: SpendRecord[]): number | null {
   const byTx = new Map<string, number[]>();
   for (const i of liveSpend(items)) {
+    if (i.manual_expense_id) continue;
     if (i.amount == null) continue;
     const list = byTx.get(i.transaction_id) ?? [];
     list.push(i.amount);
@@ -184,7 +212,7 @@ export function sanitizeCsvFormula(v: string): string {
 
 /** Export CSV (separator „;”, cum îl deschide Excel în română; BOM pentru diacritice). */
 export function spendToCsv(
-  items: ShoppingTransactionItem[],
+  items: SpendRecord[],
   categories: Map<string, ProductCategory>,
   retailers: Map<string, Retailer>,
 ): string {
@@ -192,17 +220,19 @@ export function spendToCsv(
     const safe = sanitizeCsvFormula(v);
     return /[";\r\n]/.test(safe) ? `"${safe.replace(/"/g, '""')}"` : safe;
   };
-  const rows = [["Data", "Produs", "Cantitate", "Unitate", "Categorie", "Magazin", "Sursă", "Sumă (RON)"]];
+  const rows = [["Data", "Produs", "Cantitate", "Unitate", "Categorie", "Magazin", "Sursă", "Sumă (RON)", "Categorie de cheltuieli", "Tip"]];
   for (const i of [...liveSpend(items)].sort((a, b) => a.purchased_at.localeCompare(b.purchased_at))) {
     rows.push([
       localDateOf(i.purchased_at),
       i.name,
       i.quantity == null ? "" : String(i.quantity).replace(".", ","),
       i.unit ?? "",
-      categories.get(i.category_id)?.name ?? "",
+      i.expense_category_id ? expenseCategoryName(i.expense_category_id) : categories.get(i.category_id)?.name ?? "",
       i.retailer_id ? retailers.get(i.retailer_id)?.name ?? "" : "",
-      SOURCE_LABELS[i.source],
+      i.manual_expense_id ? "" : SOURCE_LABELS[i.source],
       i.amount == null ? "" : i.amount.toFixed(2).replace(".", ","),
+      expenseCategoryName(expenseCategoryOf(i, categories)),
+      i.manual_expense_id ? "Cheltuială manuală" : "Cumpărături",
     ]);
   }
   return "﻿" + rows.map((r) => r.map(esc).join(";")).join("\r\n") + "\r\n";
@@ -220,7 +250,7 @@ export interface DiverseGroup {
   last_bought: ISODate;
 }
 
-export function diverseGroups(items: ShoppingTransactionItem[], normalizeName: (s: string) => string): DiverseGroup[] {
+export function diverseGroups(items: SpendRecord[], normalizeName: (s: string) => string): DiverseGroup[] {
   const map = new Map<string, DiverseGroup>();
   // Cele mai vechi întâi, ca eticheta și data să rămână ale celei mai recente cumpărături.
   for (const i of liveSpend(items).sort((a, b) => a.purchased_at.localeCompare(b.purchased_at))) {
