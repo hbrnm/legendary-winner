@@ -39,8 +39,10 @@ test("bugetul familiei: cheltuieli, categorii, luni, persistență și export pe
   await budget.getByLabel("Suma (lei)", { exact: true }).fill("2000");
   await budget.getByLabel("Nume (opțional)", { exact: true }).fill("Bugetul familiei");
   await budget.getByRole("button", { name: "Salvează", exact: true }).click();
+  await expect(budget).not.toBeVisible();
+  await expect(page.getByRole("button", {name:"Modifică bugetul Bugetul familiei",exact:true})).toBeVisible();
   await page.goto("/");
-  await expect(page.getByRole("link", { name: /1[.]?030,00 RON rămași din 2[.]?000,00 RON/ })).toBeVisible();
+  await expect(page.getByRole("link", { name: /1[.]?030,00\s+RON\s+rămași\s+din\s+2[.]?000,00\s+RON/ })).toBeVisible();
   await expect(page.getByRole("progressbar", { name: "Bugetul lunii folosit" })).toHaveAttribute("aria-valuenow", "49");
   await page.goto("/buget/");
   await page.getByRole("button", { name: "Modifică cheltuiala Autobuz", exact: true }).click();
