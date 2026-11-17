@@ -33,12 +33,12 @@ export type RecipeVisualSize = "sm" | "md" | "lg";
 /** Dimensiunile imaginii unei rețete, la fel pentru fotografia din catalog și cea a gospodăriei. */
 export const visualDims = (size: RecipeVisualSize) => (size === "lg" ? "h-44 w-full rounded-xl" : size === "sm" ? "h-12 w-12 rounded-md" : "h-16 w-16 rounded-md");
 
-export function RecipeVisual({ recipe, size = "md" }: { recipe: Pick<Recipe, "image_url">; size?: RecipeVisualSize }) {
+export function RecipeVisual({ recipe, size = "md", priority = false }: { recipe: Pick<Recipe, "image_url">; size?: RecipeVisualSize; priority?: boolean }) {
   // O poză din catalog scoasă din listă nu se mai arată, chiar dacă baza de pe server o mai are (15 oct. 2026).
   if (!recipe.image_url || !hasRecipeVisual(recipe)) return null;
   const dims = visualDims(size);
   // eslint-disable-next-line @next/next/no-img-element
-  return <img src={recipe.image_url} alt="" className={`${dims} shrink-0 object-cover`} loading="lazy" />;
+  return <img src={recipe.image_url} alt="" className={`${dims} shrink-0 object-cover`} loading={priority ? "eager" : "lazy"} fetchPriority={priority ? "high" : undefined} />;
 }
 
 /** Inițiala numelui rețetei, cu majusculă românească (ș → Ș). */

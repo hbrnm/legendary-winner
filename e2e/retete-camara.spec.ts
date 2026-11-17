@@ -45,7 +45,7 @@ test("cămara: expirare, „ce pot găti”, doar ingredientele lipsă", async (
     await box.fill(text);
     await expect(page.getByRole("listbox")).toBeVisible();
     await box.press("Enter");
-    if (expires) await page.getByLabel("Expiră pe").fill(expires);
+    if (expires) { await page.getByText("Detalii opționale (expirare, observații)", {exact:true}).click(); await page.getByLabel("Expiră pe").fill(expires); }
     await page.getByRole("button", { name: "Salvează" }).click();
     // Fișa se închide după salvare; abia apoi căutăm produsul următor.
     await expect(page.getByRole("button", { name: "Salvează" })).toHaveCount(0);
@@ -124,18 +124,18 @@ test("prețuri de la piață și comparație", async ({ page }) => {
   await expect(rows.nth(1)).toContainText("~24,00 RON");
 });
 
-test("prima pagină: trei sugestii de cel mult 30 minute, cu alegerea mesei", async ({ page }) => {
+test("prima pagină: o sugestie de cel mult 30 minute, cu alegerea mesei", async ({ page }) => {
   await start(page);
   await expect(page.getByRole("heading", { name: "Azi la masă" })).toBeVisible();
   const recipes = page.locator('main a[href*="/retete/reteta"]');
-  await expect(recipes).toHaveCount(3);
+  await expect(recipes).toHaveCount(1);
   for (const recipe of await recipes.all()) {
     const minutes = (await recipe.innerText()).match(/(\d+) min/);
     expect(minutes).not.toBeNull();
     expect(Number(minutes![1])).toBeGreaterThan(0);
     expect(Number(minutes![1])).toBeLessThanOrEqual(30);
   }
-  await expect(page.getByRole("button", { name: "Alege", exact: true })).toHaveCount(3);
+  await expect(page.getByRole("button", { name: "Alege", exact: true })).toHaveCount(1);
 });
 
 test("Prețuri: un produs care nu e în catalog primește un mesaj, nu „ca produs nou”", async ({ page }) => {

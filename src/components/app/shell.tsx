@@ -202,7 +202,7 @@ export function AppShell({ children, wide = false, hideMobileNav = false }: { ch
         </main>
       </div>
 
-      {app.status === "ready" && <CaptureHost />}
+      {app.status === "ready" && <CaptureHost key={`${app.mode}:${app.userId}:${app.ctx?.householdId}`} />}
       {!hideMobileNav && <div aria-hidden="true" className="app-nav-fade" />}
       {!hideMobileNav && (
         <nav aria-label="Navigare principală" className="app-mobile-nav fixed z-40">

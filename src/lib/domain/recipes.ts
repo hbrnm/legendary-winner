@@ -212,3 +212,9 @@ export function mealForHour(hour: number): SuggestedMeal {
 export function recipesForMeal<R extends Pick<Recipe, "categories">>(recipes: R[], meal: SuggestedMeal): R[] {
   return recipes.filter((r) => r.categories.includes(meal === "gustare" ? "gustari" : meal));
 }
+
+/** Fully stocked for standard servings; unknown quantities cannot establish readiness. */
+export function readyToCook(recipes: Recipe[], ingredients: RecipeIngredient[], stock: Stock[], pieces?: ProductUnitsMap): Set<string> {
+  const unknown = new Set(ingredients.filter(i=>!i.deleted_at && !i.optional && !STAPLE_PRODUCT_IDS.has(i.product_id) && (i.quantity==null || !i.unit)).map(i=>i.recipe_id));
+  return new Set(whatCanICook(recipes,ingredients,stock,1,pieces).filter(m=>m.missing.length===0 && !unknown.has(m.recipe.id)).map(m=>m.recipe.id));
+}

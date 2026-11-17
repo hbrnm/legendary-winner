@@ -29,3 +29,10 @@ describe("combined recipe filters", () => {
     expect(filterRecipes(recipes, { time: "meal_prep" }, context).map((r) => r.id)).toEqual(["c"]);
   });
 });
+
+it('combines ready-only with other filters without accepting partial pantry matches', () => {
+  const rows = [recipe({id:'full',name:'Supă completă'}),recipe({id:'half',name:'Supă parțială'})];
+  const context = {searchText:new Map(), favorites:new Set(['full']),pantryRecipeIds:new Set(['full','half']),readyRecipeIds:new Set(['full'])};
+  expect(filterRecipes(rows,{readyOnly:true},context).map(r=>r.id)).toEqual(['full']);
+  expect(filterRecipes(rows,{readyOnly:true,favoritesOnly:true,query:'completă'},context).map(r=>r.id)).toEqual(['full']);
+});

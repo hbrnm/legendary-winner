@@ -19,6 +19,8 @@ test("fotografia ta: adaugi, se micșorează, apare în listă, rămâne după r
   await page.getByTestId("fotografie-fisier").setInputFiles({ name: "ciorba.jpg", mimeType: "image/jpeg", buffer: JPEG });
   await expect(page.getByText("Am pus fotografia.")).toBeVisible();
   await expect(big).toHaveAttribute("src", /^blob:/);
+  await expect(big).toHaveAttribute("loading", "eager");
+  await expect(big).toHaveAttribute("fetchpriority", "high");
   // Latura mare max. 1280 px.
   await expect.poll(() => big.evaluate((img: HTMLImageElement) => [img.naturalWidth, img.naturalHeight])).toEqual([1280, 960]);
   await expect(page.getByText(/^Foto: /)).toHaveCount(0);

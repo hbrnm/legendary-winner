@@ -50,7 +50,7 @@ export const Input = forwardRef<HTMLInputElement, InputHTMLAttributes<HTMLInputE
 });
 
 export function TextArea({ className = "", ...rest }: TextareaHTMLAttributes<HTMLTextAreaElement>) {
-  return <textarea className={`${FIELD} min-h-24 py-2.5 ${className}`} {...rest} />;
+  return <textarea className={`${FIELD} growing-textarea min-h-24 py-2.5 ${className}`} {...rest} />;
 }
 
 export function Select({ className = "", children, ...rest }: SelectHTMLAttributes<HTMLSelectElement>) {

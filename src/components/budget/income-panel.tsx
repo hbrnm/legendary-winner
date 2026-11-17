@@ -1,6 +1,6 @@
 "use client";
 
-import {useId,useRef,useState} from "react";
+import {useEffect,useId,useRef,useState} from "react";
 import {Pencil,Plus,Trash2} from "lucide-react";
 import {useAction} from "@/components/app/hooks";
 import {Button,IconButton} from "@/components/ui/button";
@@ -20,13 +20,25 @@ export function IncomePanel({budget}:{budget:Budget|undefined}){
  const [sources,setSources]=useState<DraftSource[]>([]);
  const [allocation,setAllocation]=useState("");
  const [error,setError]=useState<string|null>(null);
- const serial=useRef(0),submitting=useRef(false);
+ const serial=useRef(0),submitting=useRef(false),fromFab=useRef(false);
  const summary=incomeSummary(budget?.income_sources,budget?.amount??0);
  const draft=incomeSummary(sources.map(source=>({name:source.name,amount:parseMoney(source.amount)??0})),parseMoney(allocation)??0);
- function openForm(add:boolean){
+ function openForm(add:boolean,fab=false){
+  fromFab.current=fab;
   const existing=(budget?.income_sources??[]).map(source=>({key:serial.current++,name:source.name,amount:source.amount.toFixed(2).replace(".",",")}));
   setSources(add||existing.length===0?[...existing,{key:serial.current++,name:"",amount:""}]:existing);
   setAllocation(budget?budget.amount.toFixed(2).replace(".",","):"");setError(null);setOpen(true);
+ }
+ useEffect(()=>{
+  const open=()=>openForm(true,true);
+  window.addEventListener('camara:income',open);
+  return ()=>window.removeEventListener('camara:income',open);
+  // openForm reads only the current budget and stable setters/serial ref.
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+ },[budget]);
+ function closeForm(){
+  setOpen(false);
+  if(fromFab.current)requestAnimationFrame(()=>document.querySelector<HTMLButtonElement>('.capture-fab')?.focus());
  }
  function update(key:number,patch:Partial<DraftSource>){setSources(previous=>previous.map(source=>source.key===key?{...source,...patch}:source));setError(null);}
  async function save(){
@@ -43,7 +55,7 @@ export function IncomePanel({budget}:{budget:Budget|undefined}){
     else await createBudget(ctx,{...input,name:"Bugetul lunii"});
     return true;
    },"Am salvat veniturile și bugetul pentru cheltuieli.");
-   if(ok)setOpen(false);
+   if(ok)closeForm();
   }finally{submitting.current=false;}
  }
  return <>
@@ -60,7 +72,7 @@ export function IncomePanel({budget}:{budget:Budget|undefined}){
     </>:<p className="mt-2 text-sm text-ink-2">Adaugă salarii sau alte venituri și alege separat cât aloci cheltuielilor.</p>}
    </Card>
   </section>
-  <Sheet open={open} onClose={()=>{if(!busy)setOpen(false);}} title="Venituri și alocare" footer={<Button block type="submit" form={formId} disabled={busy} aria-busy={busy}>{busy?"Se salvează…":"Salvează veniturile"}</Button>}>
+  <Sheet open={open} onClose={()=>{if(!busy)closeForm();}} title="Venituri și alocare" footer={<Button block type="submit" form={formId} disabled={busy} aria-busy={busy}>{busy?"Se salvează…":"Salvează veniturile"}</Button>}>
    <form id={formId} onSubmit={event=>{event.preventDefault();void save();}} className="space-y-4">
     <p className="text-sm text-ink-2">Sume lunare recurente. Totalul veniturilor și plafonul de cheltuieli se aleg separat.</p>
     {sources.map((source,index)=><fieldset key={source.key} className="space-y-3 rounded-2xl border border-line p-3"><legend className="text-sm font-medium">Venit {index+1}</legend><div className="flex justify-end"><IconButton label={`Elimină venitul ${index+1}`} onClick={()=>setSources(previous=>previous.filter(item=>item.key!==source.key))}><Trash2 size={17}/></IconButton></div><LabeledInput label={`Numele venitului ${index+1}`} maxLength={60} placeholder="ex. Salariu soț" value={source.name} onChange={event=>update(source.key,{name:event.target.value})}/><LabeledInput label={`Venitul ${index+1} (RON)`} inputMode="decimal" placeholder="ex. 3000" value={source.amount} onChange={event=>update(source.key,{amount:event.target.value})}/></fieldset>)}

@@ -13,7 +13,7 @@ vi.mock("@/components/app/hooks", () => ({ useData: () => {
     recipe({ id: "main", name: "Pilaf", categories: ["cina", "vegetariene"], prep_minutes: 15, cook_minutes: 30 }),
     recipe({ id: "prep", name: "Tocană", categories: ["pranz", "carne", "meal_prep"], prep_minutes: 20, cook_minutes: 60 }),
   ];
-  return { recipes, searchText: new Map(recipes.map((r) => [r.id, r.name])), favorites: new Set(["main"]), costs: new Map(), cook: [{ recipe: recipes[1], missing: [] }], pantryCount: 1 };
+  return { recipes, searchText: new Map(recipes.map((r) => [r.id, r.name])), favorites: new Set(["main"]), costs: new Map(), ready: new Set(["main"]), cook: [{ recipe: recipes[1], missing: [] }], pantryCount: 1 };
 } }));
 
 afterEach(cleanup);
@@ -22,7 +22,7 @@ describe("recipe collection controls", () => {
   it("shows the seven meal categories and routes collection and plan", () => {
     render(<RecipesPage />);
     const strip = screen.getByLabelText("Categoria mesei");
-    expect([...strip.querySelectorAll("button")].map((b) => b.textContent)).toEqual(["Toate", "Mic dejun", "Supe & Ciorbe", "Fel principal", "Salate & Garnituri", "Deserturi", "Gustări"]);
+    expect([...strip.querySelectorAll("button")].map((b) => b.textContent)).toEqual(["Toate", "Gata de gătit", "Mic dejun", "Supe & Ciorbe", "Fel principal", "Salate & Garnituri", "Deserturi", "Gustări"]);
     expect(screen.getByRole("link", { name: "Colecție" }).getAttribute("href")).toMatch(/^\/retete\/?$/);
     expect(screen.getByRole("link", { name: "Plan" }).getAttribute("href")).toMatch(/^\/plan\/?$/);
     fireEvent.click(screen.getByRole("button", { name: "Fel principal" }));

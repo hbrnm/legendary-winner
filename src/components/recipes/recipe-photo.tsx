@@ -52,12 +52,12 @@ export function useHouseholdPhoto(recipeId: string): { photo: RecipePhoto | null
  * Imaginea rețetei în liste și pe pagina ei: a gospodăriei, altfel cea din
  * catalog. Fără fotografie nu afișează un substitut.
  */
-export function RecipeImage({ recipe, size = "md", avatar = false }: { recipe: Pick<Recipe, "id" | "image_url"> & Partial<Pick<Recipe, "name">>; size?: RecipeVisualSize; avatar?: boolean }) {
+export function RecipeImage({ recipe, size = "md", avatar = false, priority = false }: { recipe: Pick<Recipe, "id" | "image_url"> & Partial<Pick<Recipe, "name">>; size?: RecipeVisualSize; avatar?: boolean; priority?: boolean }) {
   const { src } = useHouseholdPhoto(recipe.id);
   // eslint-disable-next-line @next/next/no-img-element
-  if (src) return <img src={src} alt="" className={`${visualDims(size)} shrink-0 object-cover`} />;
+  if (src) return <img src={src} alt="" className={`${visualDims(size)} shrink-0 object-cover`} loading={priority ? "eager" : "lazy"} fetchPriority={priority ? "high" : undefined} />;
   void avatar;
-  return <RecipeVisual recipe={recipe} size={size} />;
+  return <RecipeVisual recipe={recipe} size={size} priority={priority} />;
 }
 
 function subscribeOnline(fn: () => void) {
@@ -95,7 +95,7 @@ export function RecipePhotoPanel({ recipe }: { recipe: Pick<Recipe, "id" | "imag
 
   return (
     <>
-      <RecipeImage recipe={recipe} size="lg" />
+      <RecipeImage recipe={recipe} size="lg" priority />
       {!src && <RecipePhotoCredit recipe={recipe} />}
       {photo && pending && (
         <p className="mt-1 text-xs text-ink-2" role="status">

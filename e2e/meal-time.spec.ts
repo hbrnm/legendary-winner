@@ -12,9 +12,9 @@ test("sugestiile urmează ora locală și alegerea mesei, chiar dacă altă mas�
   ] as const) {
     await page.clock.setFixedTime(new Date(`2026-03-08T${String(hour).padStart(2,"0")}:00:00+02:00`));
     await page.evaluate(() => window.dispatchEvent(new Event("focus")));
-    await expect(page.getByText(`Sugestii · ${label}`, { exact: true })).toBeVisible();
+    await expect(page.getByTestId("home-meal").getByText(new RegExp(label))).toBeVisible();
     const choices = page.getByRole("button", {name:"Alege",exact:true});
-    await expect(choices).toHaveCount(3);
+    await expect(choices).toHaveCount(1);
     // Verificăm categoria reală, nu doar eticheta afișată în interfață.
     for (const choice of await choices.all()) {
       const href = await choice.locator("..").getByRole("link").getAttribute("href");
@@ -30,10 +30,10 @@ test("sugestiile urmează ora locală și alegerea mesei, chiar dacă altă mas�
     if (slot === "mic_dejun") {
       await sheet.getByRole("button",{name:"Programează azi"}).click();
       await expect(sheet).not.toBeVisible();
-      await expect(page.getByText("Sugestii · Mic dejun",{exact:true})).not.toBeVisible();
+      await expect(page.getByTestId("home-meal").getByRole("button",{name:"Am gătit",exact:true})).toBeVisible();
     } else {
       await sheet.getByRole("button",{name:"Închide",exact:true}).click();
-      await expect(page.getByRole("button",{name:"Am gătit",exact:true})).toHaveCount(1);
+      await expect(page.getByTestId("home-meal").getByRole("button",{name:"Am gătit",exact:true})).toHaveCount(0);
     }
   }
 });

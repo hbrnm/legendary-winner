@@ -17,7 +17,8 @@ Mod de preparare
 
 test("import din text: ciorna, ingredientul de ales, produsul nou, salvarea", async ({ page }) => {
   await start(page, "/retete/");
-  await page.getByRole("link", { name: "Importă" }).click();
+  await page.getByRole("button", { name: "Acțiuni rețete", exact: true }).click();
+  await page.getByRole("button", { name: "Importă rețetă", exact: true }).click();
   await expect(page.getByRole("heading", { name: "Importă rețetă" })).toBeVisible();
 
   // Fără cont, linkul nu se poate citi.

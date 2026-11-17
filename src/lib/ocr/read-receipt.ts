@@ -1,4 +1,5 @@
-import { detectReceipt, fitArea, sharpen, stretchContrast, type Crop } from "@/lib/domain/receipt-crop";
+import { prepareReceipt } from "./prepare-receipt";
+import { detectReceipt, fitArea, type Crop } from "@/lib/domain/receipt-crop";
 import { parseReceipt, type ParsedReceipt } from "@/lib/domain/receipt";
 import { readReceiptJson, receiptFromJson } from "@/lib/domain/receipt-json";
 
@@ -10,8 +11,7 @@ import { readReceiptJson, receiptFromJson } from "@/lib/domain/receipt-json";
 /** Versiunea tesseract.js din package.json; un test verifică potrivirea. */
 export const OCR_VERSION = "7.0.0";
 const BASE = `/ocr/${OCR_VERSION}`;
-/** Lățimea la care se citește (în probă, 1800 px a dat cel mai bun rezultat). */
-const READ_WIDTH = 1800;
+
 
 export interface ReadProgress {
   /** 0–1 */
@@ -61,33 +61,13 @@ function toGray(rgba: Uint8ClampedArray): Uint8ClampedArray {
   return g;
 }
 
-/** Bonul decupat, în gri, cu contrastul întins și accentuat, la lățimea de citire. */
-function prepare(image: ImageBitmap, crop: Crop): OffscreenCanvas {
-  const sx = Math.round(crop.x * image.width);
-  const sy = Math.round(crop.y * image.height);
-  const sw = Math.max(1, Math.round(crop.width * image.width));
-  const sh = Math.max(1, Math.round(crop.height * image.height));
-  const { width: w, height: h } = fitArea(READ_WIDTH, Math.max(1, Math.round((sh / sw) * READ_WIDTH)));
-  const canvas = new OffscreenCanvas(w, h);
-  const ctx = canvas.getContext("2d")!;
-  ctx.drawImage(image, sx, sy, sw, sh, 0, 0, w, h);
-  const data = ctx.getImageData(0, 0, w, h);
-  const flat = toGray(data.data);
-  stretchContrast(flat);
-  const gray = sharpen(flat, w, h);
-  for (let i = 0; i < gray.length; i++) data.data.set([gray[i], gray[i], gray[i], 255], i * 4);
-  ctx.putImageData(data, 0, 0);
-  return canvas;
-}
-
 /** Textul bonului. Prima dată descarcă fișierele OCR (câțiva MB); apoi merge și fără internet. */
 export async function readReceipt(image: ImageBitmap, crop: Crop, onProgress: (p: ReadProgress) => void = () => {}): Promise<string> {
   if (globalThis.__camaraOcrText != null) {
     onProgress({ progress: 1, stage: "citire" });
     return globalThis.__camaraOcrText;
   }
-  const canvas = prepare(image, crop);
-  const blob = await canvas.convertToBlob({ type: "image/png" });
+  const blob = await prepareReceipt(image, crop);
   const { createWorker } = await import("tesseract.js");
   const worker = await createWorker("ron", 1, {
     workerPath: `${BASE}/worker.min.js`,

@@ -5,3 +5,10 @@ export function quickMealSuggestions(recipes: Recipe[], today: ISODate, meal: Su
   const offset = quick.length ? Number(today.replaceAll("-", "")) % quick.length : 0;
   return [...quick.slice(offset), ...quick.slice(0,offset)].slice(0,3);
 }
+
+export function selectHomeMeal(meals: {meal:{slot:SuggestedMeal;servings:number};recipe:Recipe|undefined}[], suggestions:Recipe[], currentMeal:SuggestedMeal): {recipe:Recipe;servings:number;planned:boolean}|null {
+  const planned=meals.find(entry=>entry.meal.slot===currentMeal&&entry.recipe&&!entry.recipe.deleted_at);
+  if(planned?.recipe)return {recipe:planned.recipe,servings:planned.meal.servings,planned:true};
+  const suggested=suggestions.find(r=>!r.deleted_at);
+  return suggested?{recipe:suggested,servings:suggested.servings,planned:false}:null;
+}

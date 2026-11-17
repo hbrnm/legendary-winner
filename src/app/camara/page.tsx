@@ -5,7 +5,6 @@ import Link from "next/link";
 import { Minus, MoreHorizontal, Plus, Search, ShoppingBasket, Trash2, Warehouse } from "lucide-react";
 import { AppShell } from "@/components/app/shell";
 import { useAction, useData } from "@/components/app/hooks";
-import { ProductSearch } from "@/components/shopping/product-search";
 import { Button, IconButton } from "@/components/ui/button";
 import { Chip, EmptyState, PageHeader, SectionTitle, Spinner } from "@/components/ui/misc";
 import { Sheet } from "@/components/ui/sheet";
@@ -21,7 +20,7 @@ import { addDays, daysBetween, formatShortDate, toISODate } from "@/lib/domain/d
 import { formatQuantity, SHOPPING_UNITS, unitLabel } from "@/lib/domain/units";
 import { normalize } from "@/lib/domain/search";
 import { now } from "@/lib/clock";
-import type { PantryItem, Product, UnitCode } from "@/lib/domain/types";
+import type { PantryItem, UnitCode } from "@/lib/domain/types";
 
 const STEP: Partial<Record<UnitCode, number>> = { kg: 0.25, g: 100, l: 0.25, ml: 100 };
 
@@ -81,7 +80,6 @@ function PantryScreen() {
   const today = toISODate(now());
   const [location, setLocation] = useState<string | null>(null);
   const [query, setQuery] = useState("");
-  const [adding, setAdding] = useState(false);
   const [revealed, setRevealed] = useState<string | null>(null);
   const touchStart = useRef<{ id: string; x: number; y: number } | null>(null);
   const [draft, setDraft] = useState<Draft | null>(null);
@@ -115,23 +113,6 @@ function PantryScreen() {
   if (!data) return <Spinner />;
   const locName = new Map(data.locations.map((l) => [l.id, l.name]));
   const emptyCount = data.items.filter((i) => i.quantity <= 0).length;
-
-  function startAdd(product: Product | null, text: string, quantity: number | null, unit: UnitCode | null) {
-    const cold = product && ["lactate", "branzeturi", "carne", "peste", "mezeluri", "oua"].includes(product.category_id);
-    setDraft({
-      id: null,
-      product_id: product?.id ?? null,
-      name: product?.name ?? text,
-      quantity: String(quantity ?? 1).replace(".", ","),
-      unit: unit ?? product?.default_unit ?? "buc",
-      location_id: location ?? (product?.category_id === "congelate" ? "congelator" : cold ? "frigider" : "camara"),
-      expires_on: "",
-      purchased_on: today,
-      note: "",
-      auto_consume_on: "",
-      had_auto: false,
-    });
-  }
 
   function startEdit(i: PantryItem) {
     setDraft({
@@ -181,7 +162,7 @@ function PantryScreen() {
 
   return (
     <>
-      <PageHeader title="Cămară și frigider" subtitle={`${data.items.filter((i) => i.quantity > 0).length} produse acasă`} action={<Button icon={<Plus size={18} />} onClick={() => setAdding(true)}>Adaugă în cămară</Button>} />
+      <PageHeader title="Cămară și frigider" subtitle={`${data.items.filter((i) => i.quantity > 0).length} produse acasă`} />
       <div className="mb-4 flex items-center gap-2 rounded-xl bg-surface-2 px-4">
         <Search size={18} className="text-ink-3" aria-hidden />
         <input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Caută în cămară" aria-label="Caută în cămară" className="h-12 min-w-0 flex-1 bg-transparent focus:outline-none" />
@@ -284,9 +265,6 @@ function PantryScreen() {
         </>
       )}
 
-      <Sheet open={adding} onClose={() => setAdding(false)} title="Alege un produs">
-        <ProductSearch inline autoFocus placeholder="Adaugă: ex. 1 kg făină" onPick={({ product, parsed }) => { setAdding(false); startAdd(product, parsed.text, parsed.quantity, parsed.unit); }} />
-      </Sheet>
       <Sheet
         open={draft !== null}
         onClose={() => setDraft(null)}

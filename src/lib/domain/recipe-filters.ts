@@ -19,6 +19,7 @@ export interface RecipeFilters {
   category?: MealCategory;
   favoritesOnly?: boolean;
   pantryOnly?: boolean;
+  readyOnly?: boolean;
   time?: RecipeTimeFilter | null;
   style?: RecipeStyle | null;
 }
@@ -36,11 +37,13 @@ export function filterRecipes(recipes: Recipe[], filters: RecipeFilters, context
   searchText: Map<string, string>;
   favorites: Set<string>;
   pantryRecipeIds: Set<string>;
+  readyRecipeIds?: Set<string>;
 }): Recipe[] {
   const words = normalize(filters.query ?? "").split(" ").filter(Boolean);
   return recipes.filter((r) => {
     if (!matchesMealCategory(r, filters.category ?? "toate")) return false;
     if (filters.favoritesOnly && !context.favorites.has(r.id)) return false;
+    if (filters.readyOnly && !context.readyRecipeIds?.has(r.id)) return false;
     if (filters.pantryOnly && !context.pantryRecipeIds.has(r.id)) return false;
     if (filters.style && !r.categories.includes(filters.style)) return false;
     if (filters.time === "meal_prep" && !r.categories.includes("meal_prep")) return false;

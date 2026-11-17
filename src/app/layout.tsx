@@ -2,8 +2,10 @@ import type { Metadata, Viewport } from "next";
 import type { ReactNode } from "react";
 import "./globals.css";
 import { fontVariables } from "./fonts";
+import { ActiveShoppingListProvider } from "@/components/shopping/active-list-provider";
 import { AppProvider } from "@/components/app/app-provider";
 import { ToastProvider } from "@/components/ui/toast";
+import { InstallAppProvider } from "@/components/app/install-app";
 import { ServiceWorker } from "@/components/app/service-worker";
 
 export const metadata: Metadata = {
@@ -36,7 +38,9 @@ export default function RootLayout({ children }: { children: ReactNode }) {
       </head>
       <body className="antialiased">
         <ToastProvider>
-          <AppProvider>{children}</AppProvider>
+          <InstallAppProvider>
+            <AppProvider><ActiveShoppingListProvider>{children}</ActiveShoppingListProvider></AppProvider>
+          </InstallAppProvider>
         </ToastProvider>
         <ServiceWorker />
       </body>

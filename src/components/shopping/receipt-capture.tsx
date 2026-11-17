@@ -115,13 +115,13 @@ function CropBox({ url, aspect, crop, onChange }: { url: string; aspect: number;
   );
 }
 
-export function ReceiptCapture({ initialListId, onSaved, embedded = false }: { initialListId?: string; onSaved?: (listId: string | null) => void; embedded?: boolean }) {
+export function ReceiptCapture({ initialListId, onSaved, embedded = false, initialFile, autoRead = false }: { initialListId?: string; onSaved?: (listId: string | null) => void; embedded?: boolean; initialFile?: File; autoRead?: boolean }) {
   const router = useRouter();
   const { mode } = useApp();
   // Cu cont, bonul decupat se citește pe server (Gemini); fără cont sau fără internet, pe telefon.
   const serverWorks = mode === "cloud";
   const { run, busy } = useAction();
-  const [step, setStep] = useState<Step>({ kind: "alege" });
+  const [step, setStep] = useState<Step>(initialFile && autoRead ? {kind:"citeste",progress:null} : { kind: "alege" });
   const [lines, setLines] = useState<Line[]>([]);
   const [retailerId, setRetailerId] = useState("");
   const [date, setDate] = useState(toISODate(now()));
@@ -156,6 +156,24 @@ export function ReceiptCapture({ initialListId, onSaved, embedded = false }: { i
   useEffect(() => () => void (url && URL.revokeObjectURL(url)), [url]);
   const image = step.kind === "incadreaza" ? step.image : null;
   const reading = useRef<ImageBitmap | null>(null);
+  const consumedFile = useRef<File | null>(null);
+  const mounted = useRef(false);
+  useEffect(()=>{mounted.current=true;return ()=>{mounted.current=false;};},[]);
+  const dataReady = Boolean(data);
+  useEffect(()=>{
+    if(!initialFile || !dataReady || consumedFile.current===initialFile)return;
+    let cancelled=false;
+    void loadImage(initialFile).then(bitmap=>{
+      if(cancelled){bitmap.close();return;}
+      consumedFile.current=initialFile;
+      const crop=proposeCrop(bitmap);
+      if(autoRead)void read(bitmap,crop);
+      else setStep({kind:'incadreaza',image:bitmap,url:URL.createObjectURL(initialFile),crop});
+    }).catch(()=>{if(!cancelled){setStep({kind:'alege'});setError('Nu am putut deschide fotografia. Încearcă alta.');}});
+    return ()=>{cancelled=true;};
+    // Consume a file once when query data first becomes available; read uses that ready snapshot.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  },[initialFile,autoRead,dataReady]);
   useEffect(
     () => () => {
       if (image && image !== reading.current) image.close();
@@ -196,13 +214,15 @@ export function ReceiptCapture({ initialListId, onSaved, embedded = false }: { i
       }));
     } catch {
       image.close();
+      reading.current=null;
+      if(!mounted.current)return;
       setStep({ kind: "alege" });
       setError("Nu am putut citi bonul. Verifică internetul (prima dată se descarcă cititorul) și încearcă din nou.");
       return;
     }
     image.close();
     reading.current = null;
-    await review(receipt, fallback, null);
+    if(mounted.current)await review(receipt, fallback, null);
   }
 
   async function review(receipt: ParsedReceipt, fallback: boolean, typed: string | null) {
@@ -235,6 +255,7 @@ export function ReceiptCapture({ initialListId, onSaved, embedded = false }: { i
       );
       return true;
     });
+    if(!mounted.current)return;
     if (ok) setStep({ kind: "verifica", receipt, fallback, typed });
     else setStep(typed != null ? { kind: "scrie", text: typed } : { kind: "alege" });
   }
@@ -395,6 +416,7 @@ export function ReceiptCapture({ initialListId, onSaved, embedded = false }: { i
         {typed ? "Am găsit" : "Am citit"} {lines.length === 1 ? "un produs" : `${lines.length} produse`}. Verifică fiecare linie: produsul, suma.{typed ? "" : " Cele marcate „de verificat” pot fi citite greșit."}
       </p>
 
+      {initialFile && !typed && <Button variant="secondary" className="mb-3" onClick={()=>void pick(initialFile)}>Reîncadrează bonul</Button>}
       <div className="mb-4 grid grid-cols-2 gap-2">
         <LabeledSelect label="Magazinul" value={retailerId} onChange={(e) => setRetailerId(e.target.value)}>
           <option value="">Nu știu</option>

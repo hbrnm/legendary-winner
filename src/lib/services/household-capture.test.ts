@@ -92,3 +92,18 @@ it("keeps finalized item amounts and declared adjustment in the same purchase mo
  expect(budget.monthlyTotals(records,"2026-11-01",2).map(m=>m.amount)).toEqual([0,80]);
  expect((await ctx.db.shopping_transaction_items.toArray())[0].purchased_at).toContain("2026-10-31");
 });
+
+it('refuses quick-add into another household list without writing rows or outbox',async()=>{
+ const foreign={...ctx,householdId:'h2',userId:'u2'};
+ const list=await createList(foreign,{name:'Other household'});
+ const before=await ctx.db.outbox.count();
+ await expect(addItem(ctx,list,{name:'Must not be added'})).rejects.toThrow();
+ expect(await ctx.db.shopping_list_items.count()).toBe(0);
+ expect(await ctx.db.outbox.count()).toBe(before);
+});
+it('refuses quick-add into a list archived after the picker opened',async()=>{
+ const list=await createList(ctx,{name:'Archived'});
+ await ctx.db.shopping_lists.update(list,{archived_at:'2026-11-16T10:00:00Z'});
+ await expect(addItem(ctx,list,{name:'Must not be added'})).rejects.toThrow();
+ expect(await ctx.db.shopping_list_items.count()).toBe(0);
+});

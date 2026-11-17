@@ -10,9 +10,9 @@ export function Card({ children, className = "", as: Tag = "div", ...rest }: { c
   );
 }
 
-export function SectionTitle({ children, action }: { children: ReactNode; action?: ReactNode }) {
+export function SectionTitle({ children, action, className = "" }: { children: ReactNode; action?: ReactNode; className?: string }) {
   return (
-    <div className="mb-2 mt-7 flex items-center gap-3 first:mt-0">
+    <div className={`mb-2 mt-7 flex items-center gap-3 first:mt-0 ${className}`}>
       <h2 className="min-w-0 text-xl font-semibold tracking-tight text-ink">{children}</h2>
       <span aria-hidden className="flex-1" />
       {action}

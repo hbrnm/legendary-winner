@@ -100,6 +100,7 @@ export function ProductSearch({
           ref={inputRef}
           value={text}
           autoFocus={autoFocus}
+          data-autofocus={autoFocus || undefined}
           onChange={(e) => {
             setText(e.target.value);
             setActive(0);

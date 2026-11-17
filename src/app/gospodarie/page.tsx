@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Bell, Check, Copy, Crown, Download, LogOut, MapPin, Plus, Share2, Shield, Trash2, Upload, UserMinus, Users } from "lucide-react";
+import { InstallApp } from "@/components/app/install-app";
 import { AppShell } from "@/components/app/shell";
 import { useApp } from "@/components/app/app-provider";
 import { useAction, useData } from "@/components/app/hooks";
@@ -404,6 +405,7 @@ function Settings() {
   const settings = useData(async (ctx) => (await ctx.db.household_settings.get(ctx.householdId)) ?? null);
   return (
     <Card className="flex flex-col gap-4 p-4">
+      <InstallApp />
       <div>
         <p className="mb-2 text-sm text-ink-2">Aspect</p>
         <Segmented<Theme>

@@ -73,7 +73,12 @@ self.addEventListener("fetch", (event) => {
     event.respondWith(
       caches.match(req).then(
         (hit) =>
-          hit ||
+          // A cached Response carries its original URL, without the worker's
+          // bootstrap fragment. An empty response URL preserves the requested
+          // worker URL in WorkerGlobalScope.location (including that fragment).
+          (hit && req.destination === "worker"
+            ? new Response(hit.body, { status: hit.status, statusText: hit.statusText, headers: hit.headers })
+            : hit) ||
           fetch(req).then((res) => {
             if (res.ok) {
               const copy = res.clone();

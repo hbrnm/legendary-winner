@@ -25,3 +25,9 @@ export function capturePlaces(retailers: Retailer[], expenses: ManualExpense[]):
   for (const r of live) add(r.name, r.id, sourceOfRetailer(r.kind));
   return places;
 }
+
+export type ActionContext = 'home' | 'recipes' | 'pantry' | 'shopping' | 'budget';
+export function actionContext(pathname: string): ActionContext | null {
+  const path = pathname.split(/[?#]/)[0].replace(/\/+$/, '') || '/';
+  return ({'/':'home','/retete':'recipes','/camara':'pantry','/cumparaturi':'shopping','/cumparaturi/lista':'shopping','/buget':'budget'} as Record<string,ActionContext>)[path] ?? null;
+}

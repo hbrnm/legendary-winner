@@ -155,3 +155,13 @@ describe("valorile nutriționale ale rețetei (.tasks/016, etapa 4)", () => {
     expect(n.missing).toEqual([{ product_id: "ulei", frying: true }]);
   });
 });
+
+it('ready recipes require sufficient known quantities, compatible units, and skip optional staples', async () => {
+ const {readyToCook}=await import('./recipes');
+ const recipes=[recipe({id:'r',servings:2}),recipe({id:'empty'})];
+ const rows=[ingredient({recipe_id:'r',product_id:'faina',quantity:1,unit:'kg'}),ingredient({recipe_id:'r',product_id:'sare',quantity:null,unit:null}),ingredient({recipe_id:'r',product_id:'unt',quantity:10,unit:'g',optional:true})];
+ expect([...readyToCook(recipes,rows,[{product_id:'faina',quantity:1000,unit:'g'}])]).toEqual(['r']);
+ expect([...readyToCook(recipes,rows,[{product_id:'faina',quantity:500,unit:'g'}])]).toEqual([]);
+ expect([...readyToCook(recipes,rows,[{product_id:'faina',quantity:1,unit:'buc'}])]).toEqual([]);
+ expect([...readyToCook(recipes,[{...rows[0],quantity:null}], [{product_id:'faina',quantity:1000,unit:'g'}])]).toEqual([]);
+});

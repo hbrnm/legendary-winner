@@ -8,8 +8,8 @@ test("IA: captură universală, categorie școală, sold și disponibil zilnic",
   const cap=page.getByRole("dialog",{name:"Buget nou"});
   await cap.getByLabel("Suma (lei)",{exact:true}).fill("1000");
   await cap.getByRole("button",{name:"Salvează",exact:true}).click();
-  await page.getByRole("button",{name:"Adaugă rapid",exact:true}).click();
-  await page.getByRole("dialog",{name:"Adaugă rapid"}).getByRole("button",{name:"Adaugă cheltuială",exact:true}).click();
+  await page.getByRole("button",{name:"Acțiuni buget",exact:true}).click();
+  await page.getByRole("dialog",{name:"Buget",exact:true}).getByRole("button",{name:"Adaugă cheltuială",exact:true}).click();
   const sheet=page.getByRole("dialog",{name:"Cheltuială",exact:true});
   await expect(sheet.getByLabel("Sumă (RON)")).toBeFocused();
   expect(await sheet.getByLabel("Sumă (RON)").evaluate(el => parseFloat(getComputedStyle(el).fontSize))).toBeGreaterThanOrEqual(32);

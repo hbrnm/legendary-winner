@@ -66,7 +66,7 @@ export function Sheet({ open, onClose, title, children, footer }: { open: boolea
               <X size={20} />
             </button>
           </div>
-          <div className="flex-1 overflow-y-auto px-6 py-4">{children}</div>
+          <div className="flex-1 overflow-y-auto overscroll-contain px-6 py-4">{children}</div>
           {footer && <div className="pb-safe border-t border-line px-6 pb-6 pt-4">{footer}</div>}
         </div>
       )}

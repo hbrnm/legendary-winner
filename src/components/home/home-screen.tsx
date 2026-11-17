@@ -2,7 +2,8 @@
 
 import Link from "next/link";
 import { useRef, useState } from "react";
-import { Archive, Check, Plus, Receipt, ShoppingBasket } from "lucide-react";
+import { Archive, Check, ShoppingBasket } from "lucide-react";
+import { useApp } from "@/components/app/app-provider";
 import { useAction, useData } from "@/components/app/hooks";
 import { ProductSearch } from "@/components/shopping/product-search";
 import { BudgetBar, Card, SectionTitle, Spinner } from "@/components/ui/misc";
@@ -11,7 +12,7 @@ import { LabeledInput, LabeledSelect } from "@/components/ui/fields";
 import { Sheet } from "@/components/ui/sheet";
 import { RecipeImage } from "@/components/recipes/recipe-photo";
 import { SLOT_LABELS } from "@/components/recipes/recipe-visual";
-import { dispatchCapture } from "@/components/capture/events";
+import { useActiveShoppingList } from "@/components/shopping/active-list-provider";
 import { projectTransactions } from "@/components/budget/transactions";
 import { listItems, owned, priceIndex, householdSpendRecords, visible } from "@/lib/services/queries";
 import { addItem, createList } from "@/lib/services/shopping";
@@ -23,12 +24,14 @@ import { totalMinutes } from "@/lib/domain/recipes";
 import { formatShortDate, localDateOf } from "@/lib/domain/dates";
 import { formatRon } from "@/lib/domain/money";
 import type { MealSlot, Recipe, UnitCode } from "@/lib/domain/types";
-import { quickMealSuggestions } from "./home-model";
+import { quickMealSuggestions, selectHomeMeal } from "./home-model";
 import { useMealTime } from "./use-meal-time";
 
 const SLOT_ORDER: MealSlot[] = ["mic_dejun", "pranz", "gustare", "cina"];
 export function HomeScreen() {
   const { run, busy } = useAction();
+  const {ctx}=useApp();
+  const {activeListId,selectList,ready} = useActiveShoppingList();
   const { today, meal: currentMeal } = useMealTime();
   const [mealAction, setMealAction] = useState<{kind:"plan"|"cook";recipe:Recipe}|null>(null);
   const [slot, setSlot] = useState<MealSlot>("pranz");
@@ -41,24 +44,25 @@ export function HomeScreen() {
       visible(ctx.db,"recipes",ctx.householdId),owned(ctx.db,"pantry_items",ctx.householdId),owned(ctx.db,"shopping_transactions",ctx.householdId),visible(ctx.db,"retailers",ctx.householdId),
     ]);
     const active = await Promise.all(lists.filter(l=>!l.archived_at).map(async list=>({list,totals:listTotals(await listItems(ctx.db,list.id),prices)})));
-    const next = active.sort((a,b)=>(b.totals.item_count-b.totals.checked_count)-(a.totals.item_count-a.totals.checked_count)||b.list.updated_at.localeCompare(a.list.updated_at))[0] ?? null;
+    const next = active.find(a=>a.list.id===activeListId) ?? active.sort((a,b)=>(b.totals.item_count-b.totals.checked_count)-(a.totals.item_count-a.totals.checked_count)||b.list.updated_at.localeCompare(a.list.updated_at))[0] ?? null;
     const main=budgets.find(b=>b.active&&b.period==="lunar"&&b.scope.kind==="familie")??budgets.find(b=>b.active&&b.period==="lunar"&&(b.scope.kind==="total"||b.scope.kind==="alimente"));
     const recipesById=new Map(recipes.map(r=>[r.id,r]));
     const recent=projectTransactions(spend,txs).filter(t=>!t.pending)[0];
     return {
-      next, remainingItems:active.reduce((n,a)=>n+a.totals.item_count-a.totals.checked_count,0),
+      householdId:ctx.householdId, next, remainingItems:active.reduce((n,a)=>n+a.totals.item_count-a.totals.checked_count,0),
       budget:main?budgetStatus(main,spend,new Map(categories.map(c=>[c.id,c])),today):null,
       meals:meals.filter(m=>m.date===today).sort((a,b)=>SLOT_ORDER.indexOf(a.slot)-SLOT_ORDER.indexOf(b.slot)).map(meal=>({meal,recipe:recipesById.get(meal.recipe_id)})),
       suggestions:quickMealSuggestions(recipes,today,currentMeal),stockCount:pantry.filter(p=>p.quantity>0).length,
       expiringCount:expiringSoon(pantry.filter(p=>p.quantity>0),today,3).length,
       recent:recent?{...recent,title:recent.retailerId?retailers.find(r=>r.id===recent.retailerId)?.name??recent.title:recent.title}:null,
     };
-  },[today,currentMeal]);
-  if(!data)return <Spinner />;
+  },[today,currentMeal,activeListId]);
+  if(!data || !ready || data.householdId!==ctx?.householdId)return <Spinner />;
+  const selectedMeal=selectHomeMeal(data.meals,data.suggestions,currentMeal);
 
   async function quickAdd(productId:string|null,text:string,quantity:number|null,unit:string|null){
     if(submitting.current)return;submitting.current=true;
-    try{await run(async ctx=>{const id=data!.next?.list.id??await createList(ctx,{name:"Cumpărături"});await addItem(ctx,id,{product_id:productId,name:productId?undefined:text,quantity,unit:unit as UnitCode|null});return true;},"Am adăugat produsul pe listă.");}finally{submitting.current=false;}
+    try{const id=await run(async ctx=>{const id=data!.next?.list.id??await createList(ctx,{name:"Cumpărături"});await addItem(ctx,id,{product_id:productId,name:productId?undefined:text,quantity,unit:unit as UnitCode|null});return id;},"Am adăugat produsul pe listă.");if(id)selectList(id);}finally{submitting.current=false;}
   }
   function openMeal(kind:"plan"|"cook",recipe:Recipe,plannedServings?:number){setMealAction({kind,recipe});setServings(plannedServings??recipe.servings);setSlot(currentMeal);}
   async function confirmMeal(){
@@ -77,35 +81,29 @@ export function HomeScreen() {
     }finally{submitting.current=false;}
   }
   return <>
-    <SectionTitle action={<Link href="/plan/" className="inline-flex min-h-12 items-center text-sm font-medium text-brand">Planul săptămânii →</Link>}>Azi la masă</SectionTitle>
-    <Card className="divide-y divide-line overflow-hidden">
-      {data.meals.map(({meal,recipe})=><div key={meal.id} className="flex items-center gap-3 p-3">
-        {recipe&&<RecipeImage recipe={recipe} size="sm" />}
-        <Link href={recipe?`/retete/reteta/?id=${recipe.id}`:"/plan/"} className="min-w-0 flex-1"><span className="block text-xs text-ink-2">{SLOT_LABELS[meal.slot]} · {meal.servings} porții</span><span className="line-clamp-2 font-medium">{recipe?.name??"Rețetă indisponibilă"}</span></Link>
-        {recipe&&<Button size="sm" onClick={()=>openMeal("cook",recipe,meal.servings)}>Am gătit</Button>}
-      </div>)}
-      {!data.meals.some(({meal})=>meal.slot===currentMeal)&&<>
-      <p className="px-3 pb-1 pt-3 text-xs font-medium text-ink-2">Sugestii · {SLOT_LABELS[currentMeal]}</p>
-      {data.suggestions.length?data.suggestions.map(recipe=><div key={recipe.id} className="flex items-center gap-3 p-3">
-        <RecipeImage recipe={recipe} size="sm" /><Link href={`/retete/reteta/?id=${recipe.id}`} className="min-w-0 flex-1"><span className="line-clamp-2 font-medium">{recipe.name}</span><span className="block text-xs text-ink-2">{totalMinutes(recipe)} min · {recipe.servings} porții</span></Link><Button size="sm" onClick={()=>openMeal("plan",recipe)}>Alege</Button>
-      </div>):<p className="p-4 text-sm text-ink-2">Nu ai rețete de maximum 30 min pentru {SLOT_LABELS[currentMeal].toLocaleLowerCase("ro")}. <Link href="/retete/" className="font-medium text-brand">Adaugă o rețetă</Link> sau <Link href="/plan/" className="font-medium text-brand">planifică masa de azi →</Link></p>}
-      </>}
+    <SectionTitle className="mt-0! mb-1!" action={<Link href="/plan/" className="inline-flex min-h-11 items-center text-sm font-medium text-brand">Planul săptămânii →</Link>}>Azi la masă</SectionTitle>
+    <Card className="overflow-hidden" data-testid="home-meal">
+      {selectedMeal?<div className="flex items-center gap-3 p-3">
+        <RecipeImage recipe={selectedMeal.recipe} size="sm" />
+        <Link href={`/retete/reteta/?id=${selectedMeal.recipe.id}`} className="min-w-0 flex-1"><span className="block text-xs text-ink-2">{SLOT_LABELS[currentMeal]} · {selectedMeal.servings} porții</span><span className="line-clamp-2 font-medium">{selectedMeal.recipe.name}</span><span className="block text-xs text-ink-2">{totalMinutes(selectedMeal.recipe)} min</span></Link>
+        <Button size="sm" onClick={()=>openMeal(selectedMeal.planned?'cook':'plan',selectedMeal.recipe,selectedMeal.servings)}>{selectedMeal.planned?'Am gătit':'Alege'}</Button>
+      </div>:<p className="p-3 text-sm text-ink-2">Nu ai o recomandare pentru această masă. <Link href="/plan/" className="font-medium text-brand">Planifică masa de azi →</Link></p>}
     </Card>
-    <SectionTitle>Cumpărături & Cămară</SectionTitle>
+    <SectionTitle className="mt-3! mb-1!">Cumpărături & Cămară</SectionTitle>
     <ProductSearch placeholder="Adaugă pe listă: ex. lapte" onPick={({product,parsed})=>void quickAdd(product?.id??null,parsed.text,parsed.quantity,parsed.unit)} />
-    <div className="mt-3 grid grid-cols-2 gap-3">
-      <Card className="min-w-0 p-3"><Link href={data.next?`/cumparaturi/lista/?id=${data.next.list.id}`:"/cumparaturi/"} className="block"><span className="flex items-center gap-1.5 text-sm font-medium"><ShoppingBasket size={17}/> Cumpărături</span>{data.remainingItems>0?<p className="mt-2 text-2xl font-semibold tabular-nums">{data.remainingItems}<span className="ml-2 text-xs font-normal text-ink-2">de luat</span></p>:<p className="mt-2 flex items-center gap-1 text-sm text-info"><Check size={17}/> Nimic de luat</p>}</Link><Link href="/cumparaturi/?nou=1" className="mt-1 inline-flex min-h-11 items-center text-sm font-medium text-brand">+ Listă</Link></Card>
+    <div className="mt-2 grid grid-cols-2 gap-3" data-testid="home-shopping-pantry">
+      <Card className="min-w-0 p-3"><Link href={data.next?`/cumparaturi/lista/?id=${data.next.list.id}`:"/cumparaturi/"} className="block"><span className="flex items-center gap-1.5 text-sm font-medium"><ShoppingBasket size={17}/> Cumpărături</span>{data.remainingItems>0?<p className="mt-2 text-2xl font-semibold tabular-nums">{data.remainingItems}<span className="ml-2 text-xs font-normal text-ink-2">de luat</span></p>:<p className="mt-2 flex items-center gap-1 text-sm text-info"><Check size={17}/> Nimic de luat</p>}</Link></Card>
       <Card className="min-w-0 p-3"><Link href="/camara/" className="block"><span className="flex items-center gap-1.5 text-sm font-medium"><Archive size={17}/> Cămară</span><p className="mt-2 text-lg font-semibold tabular-nums">{data.stockCount} în stoc</p><p className={`mt-1 text-xs ${data.expiringCount?"text-accent":"text-info"}`}>{data.expiringCount?`${data.expiringCount} expiră curând`:"Totul e în termen"}</p></Link></Card>
     </div>
-    <SectionTitle>Bugetul lunii</SectionTitle>
-    <Card className="p-4">
+    <SectionTitle className="mt-3! mb-1!" action={<Link href="/buget/#tranzactii" className="inline-flex min-h-11 items-center text-sm font-medium text-brand">Istoric →</Link>}>Bugetul lunii</SectionTitle>
+    <Card className="p-3" data-testid="home-budget">
       {data.budget?<>
         <Link href="/buget/" className="block"><p className={`text-2xl font-semibold tabular-nums ${data.budget.over?"text-accent":""}`}>{formatRon(Math.abs(data.budget.remaining))} <span className="text-sm font-normal">{data.budget.over?"peste buget":"rămași"}</span></p><p className="mt-1 text-xs text-ink-2">din {formatRon(data.budget.budget.amount)}</p></Link>
         {data.budget.remaining>=0&&<p className="mb-3 mt-2 text-sm text-ink-2">~{formatRon(dailyBudgetAvailable(data.budget.remaining,today))}/zi disponibili până la finalul lunii</p>}
         <BudgetBar pct={data.budget.used_pct} label="Bugetul lunii folosit" />
       </>:<Link href="/buget/" className="inline-flex min-h-12 items-center text-brand">Setează plafonul lunar →</Link>}
-      <div className="mt-4 grid grid-cols-2 gap-2"><Button className="px-2! text-sm" icon={<Plus size={17}/>} onClick={()=>dispatchCapture({mode:"manual"})}>Cheltuială</Button><Button className="px-2! text-sm" variant="secondary" icon={<Receipt size={17}/>} onClick={()=>dispatchCapture({mode:"scan"})}>Scanează bon</Button></div>
-      <div className="mt-3 flex min-h-11 items-center gap-2 border-t border-line pt-2 text-xs"><p className="min-w-0 flex-1 truncate text-ink-2">{data.recent?`${data.recent.title} · ${data.recent.amount==null?"sumă neprecizată":formatRon(data.recent.amount)} · ${localDateOf(data.recent.date)===today?"azi":formatShortDate(localDateOf(data.recent.date))}`:"Încă nu ai tranzacții înregistrate"}</p><Link href="/buget/#tranzactii" className="inline-flex min-h-11 items-center font-medium text-brand">Istoric →</Link></div>
+
+      <div className="mt-2 flex min-h-11 items-center gap-2 border-t border-line pr-16 pt-2 text-xs"><p className="min-w-0 flex-1 truncate text-ink-2">{data.recent?`${data.recent.title} · ${data.recent.amount==null?"sumă neprecizată":formatRon(data.recent.amount)} · ${localDateOf(data.recent.date)===today?"azi":formatShortDate(localDateOf(data.recent.date))}`:"Încă nu ai tranzacții înregistrate"}</p></div>
     </Card>
     <Sheet open={mealAction!==null} onClose={()=>{if(!busy)setMealAction(null);}} title={mealAction?.kind==="cook"?"Am gătit":"Alege masa de azi"} footer={<Button block disabled={busy||!Number.isInteger(servings)||servings<1||servings>50} onClick={confirmMeal}>{mealAction?.kind==="cook"?"Scade ingredientele":"Programează azi"}</Button>}>
       <p className="mb-4 font-medium">{mealAction?.recipe.name}</p><div className="space-y-4">

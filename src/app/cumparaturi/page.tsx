@@ -1,11 +1,12 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ChevronRight, Plus } from "lucide-react";
 import { AgainIcon, BasketIcon } from "@/components/ui/icons";
 import { AppShell } from "@/components/app/shell";
+import { useActiveShoppingList } from "@/components/shopping/active-list-provider";
 import { useAction, useData } from "@/components/app/hooks";
 import { Button } from "@/components/ui/button";
 import { Badge, Card, EmptyState, PageHeader, SectionTitle, Spinner } from "@/components/ui/misc";
@@ -20,13 +21,18 @@ const SUGGESTED_NAMES = ["Cumpărături săptămânale", "Piață", "Lidl", "Kau
 
 function ListsScreen() {
   const router = useRouter();
+  const {selectList} = useActiveShoppingList();
   const { run, busy } = useAction();
   const [creating, setCreating] = useState(false);
+  const fromFab = useRef(false);
+  function closeCreation(){setCreating(false);if(fromFab.current)requestAnimationFrame(()=>document.querySelector<HTMLButtonElement>(".capture-fab")?.focus());fromFab.current=false;}
   useEffect(() => {
+    const open=()=>{fromFab.current=true;setCreating(true);};
+    window.addEventListener('camara:list-new',open);
     if (new URLSearchParams(window.location.search).get("nou") === "1") {
-      // eslint-disable-next-line react-hooks/set-state-in-effect -- apply the URL action after hydration
-      setCreating(true);
+      open();
     }
+    return ()=>window.removeEventListener("camara:list-new",open);
   }, []);
   const [name, setName] = useState("");
   const [recurring, setRecurring] = useState(false);
@@ -49,6 +55,8 @@ function ListsScreen() {
   async function submit() {
     const id = await run((ctx) => createList(ctx, { name, is_recurring: recurring, default_retailer_id: retailerId || null }));
     if (id) {
+      selectList(id);
+      fromFab.current=false;
       setCreating(false);
       setName("");
       router.push(`/cumparaturi/lista/?id=${id}`);
@@ -73,7 +81,7 @@ function ListsScreen() {
         <ul className="grid gap-4 min-[900px]:grid-cols-2">
           {active.map(({ list, totals }) => (
             <li key={list.id}>
-              <Link href={`/cumparaturi/lista/?id=${list.id}`} className="block">
+              <Link href={`/cumparaturi/lista/?id=${list.id}`} className="block" onClick={()=>selectList(list.id)}>
                 <Card className="flex items-center gap-3 p-5 transition-colors hover:bg-surface-container-high">
                   <div className="min-w-0 flex-1">
                     <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
@@ -133,7 +141,7 @@ function ListsScreen() {
 
       <Sheet
         open={creating}
-        onClose={() => setCreating(false)}
+        onClose={closeCreation}
         title="Listă nouă"
         footer={
           <Button block onClick={submit} disabled={busy}>

@@ -123,7 +123,7 @@ export type ItemInput = z.input<typeof itemInput>;
 export async function addItem(ctx: AppCtx, listId: string, input: ItemInput, opts: { merge?: boolean } = {}): Promise<string> {
   const v = parse(itemInput, input);
   const list = await ctx.db.shopping_lists.get(listId);
-  if (!list || list.deleted_at) throw new UserError("Lista nu mai există.");
+  if (!list || list.deleted_at || list.archived_at || list.household_id !== ctx.householdId) throw new UserError("Lista nu mai este disponibilă. Alege o listă activă.");
   const product = v.product_id ? await ctx.db.products.get(v.product_id) : undefined;
   if (v.product_id && !product) throw new UserError("Produsul nu există în catalog.");
   const name = v.name ?? product?.name;

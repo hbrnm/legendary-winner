@@ -8,6 +8,8 @@ export default function manifest(): MetadataRoute.Manifest {
     short_name: "Cămara",
     description: "Liste de cumpărături comune, rețete, planul meselor, cămara și bugetul gospodăriei.",
     lang: "ro",
+    // Matches the previous implicit identity derived from start_url.
+    id: "/",
     start_url: "/",
     scope: "/",
     display: "standalone",

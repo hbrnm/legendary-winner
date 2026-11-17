@@ -329,3 +329,15 @@ input[type="checkbox"], input[type="radio"] { accent-color: var(--brand); }
 .app-nav-fade { position: fixed; z-index: 35; bottom: 0; inset-inline: 0; height: calc(112px + env(safe-area-inset-bottom, 0px)); pointer-events: none; background: linear-gradient(transparent, var(--bg) 72%); }
 .capture-fab { position: fixed; z-index: 39; right: max(20px, calc((100vw - 960px) / 2)); bottom: calc(104px + env(safe-area-inset-bottom, 0px)); width: 56px; height: 56px; border-radius: 50%; background: var(--brand); color: var(--brand-ink); box-shadow: var(--shadow-panel); display: flex; align-items: center; justify-content: center; }
 @media (min-width: 600px) { .app-nav-fade { display: none; } .capture-fab { bottom: 24px; } .app-main { padding-bottom: 112px; } }
+
+/* Progressive enhancement: older browsers retain a scrollable text field. */
+.growing-textarea {
+  field-sizing: content;
+  height: auto;
+  max-height: max(16rem, 50dvh);
+  overflow-y: auto;
+}
+
+/* Keep sheet gestures within the modal. Backdrop containment is browser-dependent. */
+dialog:modal { overscroll-behavior: contain; }
+dialog::backdrop { overflow: hidden; overscroll-behavior: contain; }

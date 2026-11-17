@@ -24,3 +24,12 @@ describe("sugestii compacte pentru azi", () => {
     expect(quickMealSuggestions(recipes,"2026-11-16","mic_dejun")).toEqual([]);
   });
 });
+
+it('selects one current planned meal before suggestions, ignoring unavailable recipes', async () => {
+ const {selectHomeMeal}=await import('./home-model');
+ const breakfast=recipe({id:'breakfast'}), lunch=recipe({id:'lunch'}), suggested=recipe({id:'suggested'});
+ const entries=[{meal:{id:'one',slot:'mic_dejun' as const,servings:2},recipe:breakfast},{meal:{id:'two',slot:'pranz' as const,servings:4},recipe:lunch}];
+ expect(selectHomeMeal(entries,[suggested],'pranz')).toMatchObject({recipe:lunch,servings:4,planned:true});
+ expect(selectHomeMeal(entries,[suggested],'cina')).toMatchObject({recipe:suggested,planned:false});
+ expect(selectHomeMeal([],[],'cina')).toBeNull();
+});

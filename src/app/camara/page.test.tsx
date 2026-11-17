@@ -16,8 +16,8 @@ it("keeps pantry search separate from the add-product control", () => {
   render(<Page />);
   expect(screen.getByRole("textbox", { name: "Caută în cămară" })).toBeTruthy();
   expect(screen.queryByLabelText("Alege produs pentru cămară")).toBeNull();
-  fireEvent.click(screen.getByRole("button", { name: "Adaugă în cămară" }));
-  expect(screen.getByLabelText("Alege produs pentru cămară")).toBeTruthy();
+  // The only add action is owned by CaptureHost, tested separately.
+  expect(screen.queryByRole("button", { name: "Adaugă în cămară" })).toBeNull();
 });
 it("offers the finish-to-list operation through an accessible row action", async () => {
   actions.finish.mockResolvedValue("list"); render(<Page />);

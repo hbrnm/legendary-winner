@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Archive, ArrowLeft, ChevronDown, Copy, MoreHorizontal, Pencil, Plus, Scale, Store, Trash2 } from "lucide-react";
 import { AgainIcon, NotebookIcon, ReceiptIcon } from "@/components/ui/icons";
+import { useActiveShoppingList } from "@/components/shopping/active-list-provider";
 import { AppShell } from "@/components/app/shell";
 import { useAction, useData } from "@/components/app/hooks";
 import { useApp } from "@/components/app/app-provider";
@@ -31,6 +32,7 @@ import type { Retailer, ShoppingListItem } from "@/lib/domain/types";
 import type { PriceIndex } from "@/lib/domain/pricing";
 
 function ListScreen() {
+  const {activeListId,selectList,ready}=useActiveShoppingList();
   const id = useSearchParams().get("id") ?? "";
   const router = useRouter();
   const toast = useToast();
@@ -105,6 +107,10 @@ function ListScreen() {
     },
     [id],
   );
+  useEffect(()=>{
+    if(ready && data?.list && !data.list.archived_at && activeListId!==data.list.id)selectList(data.list.id);
+  },[ready,data?.list,activeListId,selectList]);
+
 
   const today = toISODate(now());
   const totals = useMemo(() => (data?.list ? listTotals(data.items, data.prices, today) : null), [data, today]);
