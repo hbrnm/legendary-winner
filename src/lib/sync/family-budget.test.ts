@@ -75,3 +75,29 @@ it("holds new capture fields and dependent writes until server columns are migra
   remote.migrated=true;await engine.syncNow();expect(await local.outbox.count()).toBe(0);
   expect(remote.tables.get("shopping_transactions")?.get("trip")).toMatchObject({declared_total:25});
 });
+
+it("păstrează veniturile în coadă pe serverul vechi și le sincronizează ulterior pe al doilea dispozitiv",async()=>{
+ const first=db(),second=db();
+ class LegacyIncomeRemote extends FakeRemote{
+  migrated=false;
+  override async upsert(table:Parameters<FakeRemote["upsert"]>[0],row:Record<string,unknown>){
+   if(!this.migrated&&table==="budgets"&&"income_sources" in row){const {RemoteRejected}=await import("./remote");throw new RemoteRejected("missing income_sources","PGRST204");}
+   return super.upsert(table,row);
+  }
+ }
+ const remote=new LegacyIncomeRemote();
+ await setMeta(first,"server_missing:manual_expenses",false);
+ const {createBudget,updateBudget}=await import("@/lib/services/money");
+ const ctx={db:first,householdId:"h1",userId:"u1",sync:true};
+ const sources=[{name:"Soț",amount:3000},{name:"Soție",amount:2000}];
+ const id=await createBudget(ctx,{name:"Buget",scope:{kind:"familie"},period:"lunar",amount:4000,income_sources:sources});
+ const a=new SyncEngine(first,remote),b=new SyncEngine(second,remote);
+ await a.syncNow();
+ expect((await first.budgets.get(id))?.income_sources).toEqual(sources);
+ expect(await first.outbox.count()).toBe(1);expect(await first.sync_errors.count()).toBe(0);
+ remote.migrated=true;await a.syncNow();await b.syncNow();
+ expect(await second.budgets.get(id)).toMatchObject({amount:4000,income_sources:sources});
+ await updateBudget(ctx,id,{income_sources:[{name:"Soț",amount:3500}]});
+ await a.syncNow();await b.syncNow();
+ expect(await second.budgets.get(id)).toMatchObject({amount:4000,income_sources:[{name:"Soț",amount:3500}]});
+});

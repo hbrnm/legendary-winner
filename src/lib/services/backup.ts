@@ -6,6 +6,7 @@ import { UserError, w, type AppCtx } from "./context";
 import { nowIso } from "@/lib/clock";
 import { EXPENSE_CATEGORY_IDS } from "@/lib/domain/expense-categories";
 import { expenseInput } from "./expenses";
+import { incomeSourcesSchema } from "./money";
 
 const budgetScopeSchema = z.discriminatedUnion("kind", [
   z.object({ kind: z.literal("familie") }),
@@ -25,6 +26,7 @@ const TABLE_SCHEMAS: Partial<Record<TableName, z.ZodTypeAny>> = {
     period: z.enum(["lunar", "saptamanal"]),
     scope: budgetScopeSchema,
     amount: z.number().positive(),
+    income_sources: incomeSourcesSchema.optional(),
   }),
   shopping_lists: z.object({
     name: z.string().min(1),
