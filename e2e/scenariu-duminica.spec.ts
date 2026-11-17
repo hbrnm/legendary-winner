@@ -43,10 +43,12 @@ test("de la planul săptămânii la buget", async ({ page }) => {
   await expect(page.getByText(/Mai ai .* luna asta/)).toBeVisible();
 
   await page.getByRole("checkbox", { name: /Bifează Morcovi/ }).click();
-  await page.getByRole("button", { name: "Gata", exact: true }).click();
-  await expect(page.getByText("La 1 produs n-ai pus prețul")).toBeVisible();
-  await page.getByRole("button", { name: "Gata, am terminat" }).click();
-  await page.waitForURL(/\/cumparaturi\/$/);
+  await page.getByRole("button", { name: "Am plătit", exact: true }).click();
+  await expect(page.getByText("1 produs fără preț individual. Poți completa doar totalul acum.")).toBeVisible();
+  await page.getByRole("button", { name: "Finalizează cumpărăturile" }).click();
+  // A partial purchase keeps the unchecked ingredients available on this list.
+  await expect(page.getByRole("dialog", { name: "Am plătit" })).toHaveCount(0);
+  await expect(page.getByRole("checkbox", { name: /Bifează/ }).first()).toBeVisible();
 
   // Bugetul reflectă cheltuiala reală, o singură dată.
   await page.goto("/buget/");

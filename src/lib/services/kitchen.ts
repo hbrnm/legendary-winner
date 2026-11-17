@@ -69,12 +69,16 @@ export async function addRecipeToList(ctx: AppCtx, input: { recipeId: string; se
 
 /** „Am gătit rețeta” — scade ingredientele din cămară, întâi ce expiră primul. */
 export async function cookRecipe(ctx: AppCtx, recipeId: string, servings: number): Promise<{ updated: number; shortfall: Need[] }> {
-  const { recipe, ingredients } = await recipeWithIngredients(ctx, recipeId);
-  const pantry = await owned(ctx.db, "pantry_items", ctx.householdId);
-  const pieces = productUnitsOf((await productMap(ctx.db, ctx.householdId)).values());
-  const { ops, shortfall } = planConsumption(pantry, aggregateNeeds(recipeNeeds(recipe, ingredients, servings)), pieces);
-  for (const op of ops) await updateRow(ctx.db, "pantry_items", op.item_id, { quantity: op.new_quantity }, w(ctx));
-  return { updated: ops.length, shortfall };
+  const portions = parse(z.number().int().min(1).max(50), servings);
+  return ctx.db.transaction("rw", [ctx.db.recipes, ctx.db.recipe_ingredients, ctx.db.products, ctx.db.pantry_items, ctx.db.outbox], async () => {
+    const { recipe, ingredients } = await recipeWithIngredients(ctx, recipeId);
+    if (recipe.household_id && recipe.household_id !== ctx.householdId) throw new UserError("Rețeta nu mai există.");
+    const pantry = await owned(ctx.db, "pantry_items", ctx.householdId);
+    const pieces = productUnitsOf((await productMap(ctx.db, ctx.householdId)).values());
+    const { ops, shortfall } = planConsumption(pantry, aggregateNeeds(recipeNeeds(recipe, ingredients, portions)), pieces);
+    for (const op of ops) await updateRow(ctx.db, "pantry_items", op.item_id, { quantity: op.new_quantity }, w(ctx));
+    return { updated: ops.length, shortfall };
+  });
 }
 
 // --- Rețete proprii ---------------------------------------------------------
@@ -82,7 +86,7 @@ export async function cookRecipe(ctx: AppCtx, recipeId: string, servings: number
 const recipeInput = z.object({
   name: zName(120, "Numele rețetei"),
   description: z.string().trim().max(1000).default(""),
-  categories: z.array(z.enum(["mic_dejun", "pranz", "cina", "gustari", "supe_ciorbe", "traditionale", "carne", "peste", "vegetariene", "salate", "deserturi", "rapide", "meal_prep"])).min(1, "Alege cel puțin o categorie."),
+  categories: z.array(z.enum(["mic_dejun", "pranz", "cina", "gustari", "supe_ciorbe", "traditionale", "carne", "peste", "vegetariene", "de_post", "salate", "deserturi", "rapide", "meal_prep"])).min(1, "Alege cel puțin o categorie."),
   cuisine: z.enum(["romaneasca", "internationala"]).default("romaneasca"),
   servings: z.number().int().min(1, "Rețeta trebuie să aibă cel puțin o porție.").max(50),
   prep_minutes: z.number().int().min(0).max(2880),

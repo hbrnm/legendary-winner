@@ -1,16 +1,16 @@
 @import "tailwindcss";
 
-/* Ritm: warm graphite surfaces, apricot actions, lavender shopping and blue pantry. */
+/* Household palette: warm sand, terracotta and sage, including dark mode. */
 :root,
 ::backdrop {
-  --bg: #f6f4f1;
+  --bg: #F7F3EE;
   --surface: #ffffff;
-  --surface-2: #ece9e5;
-  --ink: #211f25;
-  --ink-2: #6d6773;
-  --ink-3: #746e7b;
-  --line: #dfdad5;
-  --brand: #934a25;
+  --surface-2: #EAE2D8;
+  --ink: #2C221E;
+  --ink-2: #706157;
+  --ink-3: #786A60;
+  --line: #DDD3C7;
+  --brand: #9A4B26;
   --brand-strong: #78391b;
   --brand-ink: #ffffff;
   --brand-soft: #f1e2d7;
@@ -18,33 +18,33 @@
   --accent-soft: #ffe1e4;
   --warn: #795300;
   --warn-soft: #f7e9c8;
-  --info: #315b9a;
-  --info-soft: #e2ebff;
-  --sprout: #315b9a;
+  --info: #426F50;
+  --info-soft: #E6EFE5;
+  --sprout: #426F50;
   --sprout-ink: #ffffff;
-  --wood: #934a25;
-  --primary: #934a25;
+  --wood: #9A4B26;
+  --primary: #9A4B26;
   --on-primary: #ffffff;
   --primary-container: #f1e2d7;
   --on-primary-container: #53290f;
-  --secondary: #6c50ac;
+  --secondary: #8B4513;
   --on-secondary: #ffffff;
-  --secondary-container: #ede5fb;
-  --on-secondary-container: #3b2368;
-  --tertiary: #315b9a;
+  --secondary-container: #EAE2D8;
+  --on-secondary-container: #2C221E;
+  --tertiary: #4A7C59;
   --on-tertiary: #ffffff;
   --surface-container-low: #ffffff;
-  --surface-container: #ece9e5;
-  --surface-container-high: #e5e1dd;
-  --on-surface: #211f25;
-  --on-surface-variant: #625b68;
-  --outline: #807884;
+  --surface-container: #EAE2D8;
+  --surface-container-high: #DDD3C7;
+  --on-surface: #2C221E;
+  --on-surface-variant: #68584E;
+  --outline: #89786A;
   --error: #9f303b;
   --on-error: #ffffff;
   --error-container: #ffe1e4;
   --on-error-container: #650d20;
-  --atmosphere-start: #ebdef0;
-  --atmosphere-mid: #f0e2dc;
+  --atmosphere-start: #F7F3EE;
+  --atmosphere-mid: #F7F3EE;
   --nav-surface: #ffffff;
   --shadow: 0 2px 8px rgb(35 24 36 / 0.04);
   --shadow-panel: 0 8px 32px rgb(35 24 36 / 0.16);
@@ -55,13 +55,13 @@
 @media (prefers-color-scheme: dark) {
 :root:not([data-theme="luminos"]),
 :root:not([data-theme="luminos"]) ::backdrop {
-  --bg: #090a0d;
-  --surface: #202125;
-  --surface-2: #2b2c32;
+  --bg: #191410;
+  --surface: #29211C;
+  --surface-2: #352B24;
   --ink: #f8f6f2;
-  --ink-2: #aaa9b2;
-  --ink-3: #a5a0ab;
-  --line: #3a3a40;
+  --ink-2: #C6B7A9;
+  --ink-3: #BBAB9C;
+  --line: #514235;
   --brand: #f3b68e;
   --brand-strong: #ffd0ae;
   --brand-ink: #362015;
@@ -70,34 +70,34 @@
   --accent-soft: #51252f;
   --warn: #edcd85;
   --warn-soft: #413620;
-  --info: #a5c8ff;
-  --info-soft: #243450;
-  --sprout: #a5c8ff;
-  --sprout-ink: #172c4b;
+  --info: #A7CEAA;
+  --info-soft: #2B3D2E;
+  --sprout: #A7CEAA;
+  --sprout-ink: #1A301E;
   --wood: #f3b68e;
   --primary: #f3b68e;
   --on-primary: #362015;
   --primary-container: #352b28;
   --on-primary-container: #ffd8bd;
-  --secondary: #bdb2f4;
-  --on-secondary: #30234d;
-  --secondary-container: #302b43;
-  --on-secondary-container: #e5dcff;
-  --tertiary: #a5c8ff;
-  --on-tertiary: #172c4b;
-  --surface-container-low: #202125;
-  --surface-container: #2b2c32;
-  --surface-container-high: #303138;
+  --secondary: #EBC5A7;
+  --on-secondary: #302218;
+  --secondary-container: #4B392B;
+  --on-secondary-container: #F8E4D3;
+  --tertiary: #A7CEAA;
+  --on-tertiary: #1A301E;
+  --surface-container-low: #29211C;
+  --surface-container: #352B24;
+  --surface-container-high: #42352B;
   --on-surface: #f8f6f2;
-  --on-surface-variant: #c1bbc8;
-  --outline: #908b96;
+  --on-surface-variant: #C6B7A9;
+  --outline: #A8917D;
   --error: #ffabb2;
   --on-error: #501625;
   --error-container: #51252f;
   --on-error-container: #ffdae0;
-  --atmosphere-start: #30304e;
-  --atmosphere-mid: #332b35;
-  --nav-surface: #25262b;
+  --atmosphere-start: #191410;
+  --atmosphere-mid: #191410;
+  --nav-surface: #29211C;
   --shadow: 0 2px 8px rgb(0 0 0 / 0.08);
   --shadow-panel: 0 8px 32px rgb(0 0 0 / 0.4);
   --backdrop-overlay: rgb(0 0 0 / 0.6);
@@ -106,13 +106,13 @@
 }
 :root[data-theme="intunecat"],
 :root[data-theme="intunecat"] ::backdrop {
-  --bg: #090a0d;
-  --surface: #202125;
-  --surface-2: #2b2c32;
+  --bg: #191410;
+  --surface: #29211C;
+  --surface-2: #352B24;
   --ink: #f8f6f2;
-  --ink-2: #aaa9b2;
-  --ink-3: #a5a0ab;
-  --line: #3a3a40;
+  --ink-2: #C6B7A9;
+  --ink-3: #BBAB9C;
+  --line: #514235;
   --brand: #f3b68e;
   --brand-strong: #ffd0ae;
   --brand-ink: #362015;
@@ -121,34 +121,34 @@
   --accent-soft: #51252f;
   --warn: #edcd85;
   --warn-soft: #413620;
-  --info: #a5c8ff;
-  --info-soft: #243450;
-  --sprout: #a5c8ff;
-  --sprout-ink: #172c4b;
+  --info: #A7CEAA;
+  --info-soft: #2B3D2E;
+  --sprout: #A7CEAA;
+  --sprout-ink: #1A301E;
   --wood: #f3b68e;
   --primary: #f3b68e;
   --on-primary: #362015;
   --primary-container: #352b28;
   --on-primary-container: #ffd8bd;
-  --secondary: #bdb2f4;
-  --on-secondary: #30234d;
-  --secondary-container: #302b43;
-  --on-secondary-container: #e5dcff;
-  --tertiary: #a5c8ff;
-  --on-tertiary: #172c4b;
-  --surface-container-low: #202125;
-  --surface-container: #2b2c32;
-  --surface-container-high: #303138;
+  --secondary: #EBC5A7;
+  --on-secondary: #302218;
+  --secondary-container: #4B392B;
+  --on-secondary-container: #F8E4D3;
+  --tertiary: #A7CEAA;
+  --on-tertiary: #1A301E;
+  --surface-container-low: #29211C;
+  --surface-container: #352B24;
+  --surface-container-high: #42352B;
   --on-surface: #f8f6f2;
-  --on-surface-variant: #c1bbc8;
-  --outline: #908b96;
+  --on-surface-variant: #C6B7A9;
+  --outline: #A8917D;
   --error: #ffabb2;
   --on-error: #501625;
   --error-container: #51252f;
   --on-error-container: #ffdae0;
-  --atmosphere-start: #30304e;
-  --atmosphere-mid: #332b35;
-  --nav-surface: #25262b;
+  --atmosphere-start: #191410;
+  --atmosphere-mid: #191410;
+  --nav-surface: #29211C;
   --shadow: 0 2px 8px rgb(0 0 0 / 0.08);
   --shadow-panel: 0 8px 32px rgb(0 0 0 / 0.4);
   --backdrop-overlay: rgb(0 0 0 / 0.6);
@@ -280,22 +280,22 @@ h1 {
 
 /* Layout follows window size, including tablets in landscape. */
 :root { --app-nav-bottom: calc(96px + env(safe-area-inset-bottom, 0px)); }
-.app-main { width: 100%; max-width: 960px; padding: 24px 20px calc(var(--app-nav-bottom) + 24px); }
+.app-main { width: 100%; max-width: 960px; padding: 16px 20px calc(160px + env(safe-area-inset-bottom, 0px)); }
 .app-main-wide { max-width: 1200px; }
 .app-layout, .ritm-standalone { min-height: 100dvh; isolation: isolate; position: relative; }
-.app-layout::before, .ritm-standalone::before { content: ""; position: absolute; z-index: -1; inset: 0 0 auto; height: 340px; pointer-events: none; background: linear-gradient(165deg, var(--atmosphere-start), var(--atmosphere-mid) 45%, var(--bg)); }
+.app-layout::before, .ritm-standalone::before { content: ""; position: absolute; z-index: -1; inset: 0 0 auto; height: 340px; pointer-events: none; background: var(--bg); }
 .app-sidebar { display: none; }
-.app-topbar { background: var(--atmosphere-start); }
+.app-topbar { background: var(--bg); }
 /* The fixed bar floats above the safe area; reserved space includes its lower gap. */
 .app-mobile-nav { left: 16px; right: 16px; bottom: calc(12px + env(safe-area-inset-bottom, 0px)); max-width: 440px; margin-inline: auto; height: 72px; padding: 5px; border: 1px solid var(--line); border-radius: 999px; background: var(--nav-surface); box-shadow: var(--shadow-panel); }
 .app-mobile-item { height: 60px; min-width: 0; border-radius: 999px; font-size: 9px; gap: 3px; }
 .app-mobile-indicator { display: flex; height: 25px; align-items: center; justify-content: center; }
-.app-mobile-item[aria-current="page"] { color: var(--secondary); }
-.app-mobile-item[aria-current="page"] .app-mobile-indicator { color: var(--brand); }
+.app-mobile-item[aria-current="page"] { color: var(--brand-ink); background: var(--brand); }
+.app-mobile-item[aria-current="page"] .app-mobile-indicator { color: inherit; }
 .app-mobile-item:focus-visible { outline-offset: -2px; }
 .recipe-navigation { display: flex; gap: 4px; padding: 4px; margin: 0 0 24px; border-radius: 999px; background: var(--surface-2); }
 .recipe-navigation a { min-height: 48px; flex: 1; display: flex; justify-content: center; align-items: center; padding: 0 12px; color: var(--ink-2); border-radius: 999px; }
-.recipe-navigation a[aria-current="page"] { color: var(--secondary); background: var(--surface); font-weight: 600; }
+.recipe-navigation a[aria-current="page"] { color: var(--brand-ink); background: var(--brand); font-weight: 600; }
 @media (min-width: 600px) {
   :root { --app-nav-bottom: 0px; }
   .app-layout { display: flex; }
@@ -324,3 +324,8 @@ button { min-height: 48px; }
 input:not([type="checkbox"]):not([type="radio"]):not([type="file"]), select { min-height: 56px; }
 .recipe-navigation a:focus-visible { outline: 2px solid var(--brand); outline-offset: -2px; }
 input[type="checkbox"], input[type="radio"] { accent-color: var(--brand); }
+
+/* A non-interactive fade separates the content from floating navigation. */
+.app-nav-fade { position: fixed; z-index: 35; bottom: 0; inset-inline: 0; height: calc(112px + env(safe-area-inset-bottom, 0px)); pointer-events: none; background: linear-gradient(transparent, var(--bg) 72%); }
+.capture-fab { position: fixed; z-index: 39; right: max(20px, calc((100vw - 960px) / 2)); bottom: calc(104px + env(safe-area-inset-bottom, 0px)); width: 56px; height: 56px; border-radius: 50%; background: var(--brand); color: var(--brand-ink); box-shadow: var(--shadow-panel); display: flex; align-items: center; justify-content: center; }
+@media (min-width: 600px) { .app-nav-fade { display: none; } .capture-fab { bottom: 24px; } .app-main { padding-bottom: 112px; } }

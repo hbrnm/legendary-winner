@@ -99,7 +99,7 @@ describe("de la plan la buget (experiența centrală)", () => {
     status = budgetStatus(budget, await spendRecords(ctx.db, ctx.householdId), categories, "2026-03-08");
     expect(status.spent).toBe(19.5);
     expect(status.remaining).toBe(980.5);
-    expect((await ctx.db.shopping_lists.get(listId))?.archived_at).not.toBeNull();
+    expect((await ctx.db.shopping_lists.get(listId))?.archived_at).toBeNull(); // unchecked recipe ingredients remain accessible
     const paid = (await owned(ctx.db, "product_prices", ctx.householdId)).filter((p) => p.price_type === "platit");
     expect(paid).toMatchObject([{ product_id: "piept-pui", amount: 19.5, quantity: 600, unit: "g", observed_on: "2026-03-08" }]);
     const pantry = await owned(ctx.db, "pantry_items", ctx.householdId);
@@ -166,8 +166,8 @@ describe("de la plan la buget (experiența centrală)", () => {
     // Al doilea telefon încă vede tura 1 (offline): repetă finalizarea pe aceeași tură.
     await updateList(ctx, listId, {});
     await ctx.db.shopping_lists.update(listId, { cycle: 1, archived_at: null });
-    const second = await finalizeShopping(ctx, listId, { addToPantry: false });
-    expect(second.transaction_id).toBe(first.transaction_id);
+    await expect(finalizeShopping(ctx, listId, { addToPantry: false })).rejects.toThrow("deja finalizată");
+    expect((await ctx.db.shopping_transactions.toArray())[0].id).toBe(first.transaction_id);
     const spend = await spendRecords(ctx.db, ctx.householdId);
     expect(spend.filter((s) => s.amount === 15)).toHaveLength(1);
   });

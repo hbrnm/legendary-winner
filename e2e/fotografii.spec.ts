@@ -40,3 +40,16 @@ test("fotografia ta: adaugi, se micșorează, apare în listă, rămâne după r
   await expect(big).toHaveAttribute("src", "/retete/ciorba-de-perisoare.webp");
   await expect(page.getByRole("button", { name: "Adaugă fotografia ta" })).toBeVisible();
 });
+
+test("catalogul fără fotografie reală nu afișează imagini AI sau inițiale", async ({ page }) => {
+  await start(page, "/retete/");
+  await page.getByLabel("Caută rețete").fill("papanasi");
+  const recipe = page.getByRole("link", { name: /Papanași/ });
+  await expect(recipe).toBeVisible();
+  await expect(recipe.locator("img")).toHaveCount(0);
+  await expect(recipe.getByTestId("avatar-reteta")).toHaveCount(0);
+  await recipe.click();
+  await expect(page.getByRole("heading", { name: "Papanași" })).toBeVisible();
+  await expect(page.locator("main img")).toHaveCount(0);
+  await expect(page.getByRole("button", { name: "Adaugă fotografia ta" })).toBeVisible();
+});

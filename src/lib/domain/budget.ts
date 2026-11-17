@@ -24,6 +24,7 @@ export function matchesScope(item: SpendRecord, budget: Budget, categories: Map<
   const s = budget.scope;
   if (s.kind === "familie") return true;
   if (s.kind === "cheltuiala") return expenseCategoryOf(item, categories) === s.category_id;
+  if (item.unallocated) return s.kind === "total" || (s.kind === "magazin" && item.retailer_id === s.retailer_id);
   // Scopurile istorice rămân exclusiv pentru cumpărături.
   if (item.manual_expense_id) return false;
   switch (s.kind) {
@@ -42,7 +43,8 @@ export function matchesScope(item: SpendRecord, budget: Budget, categories: Map<
   }
 }
 
-export function expenseCategoryOf(item: SpendRecord, categories: Map<string, ProductCategory>): ExpenseCategoryId {
+export function expenseCategoryOf(item: SpendRecord, categories: Map<string, ProductCategory>): ExpenseCategoryId | null {
+  if (item.unallocated) return null;
   if (item.expense_category_id) return item.expense_category_id;
   if (item.category_id === "igiena" || item.category_id === "curatenie") return "ingrijire";
   return categories.get(item.category_id)?.is_food ? "alimentatie" : "altele";
@@ -54,14 +56,14 @@ export function manualExpenseRecord(expense: ManualExpense): SpendRecord {
     expense_category_id: expense.category_id, category_id: `cheltuiala:${expense.category_id}`,
     name: expense.description, transaction_id: `manual:${expense.id}`,
     list_item_id: null, product_id: null, quantity: null, unit: null,
-    retailer_id: null, source: "alta",
+    retailer_id: expense.retailer_id ?? null, source: expense.source ?? "alta",
     // Data manuală este o zi calendaristică, nu un instant UTC.
     purchased_at: `${expense.spent_on}T12:00:00`,
   };
 }
 
 export function byExpenseCategory(items: SpendRecord[], categories: Map<string, ProductCategory>): Breakdown[] {
-  return breakdownBy(items, (i) => expenseCategoryOf(i, categories), expenseCategoryName);
+  return breakdownBy(items, (i) => expenseCategoryOf(i, categories) ?? "nealocat", key => key === "nealocat" ? "Nealocat" : expenseCategoryName(key));
 }
 
 /** Piața și producătorul local se tratează împreună la buget („piață”). */
@@ -231,7 +233,7 @@ export function spendToCsv(
       i.retailer_id ? retailers.get(i.retailer_id)?.name ?? "" : "",
       i.manual_expense_id ? "" : SOURCE_LABELS[i.source],
       i.amount == null ? "" : i.amount.toFixed(2).replace(".", ","),
-      expenseCategoryName(expenseCategoryOf(i, categories)),
+      i.unallocated ? "Nealocat" : expenseCategoryName(expenseCategoryOf(i, categories)!),
       i.manual_expense_id ? "Cheltuială manuală" : "Cumpărături",
     ]);
   }
@@ -264,4 +266,9 @@ export function diverseGroups(items: SpendRecord[], normalizeName: (s: string) =
     map.set(key, g);
   }
   return [...map.values()].sort((a, b) => b.total - a.total || a.label.localeCompare(b.label, "ro"));
+}
+
+/** Remaining funds divided by all calendar days left, including today. */
+export function dailyBudgetAvailable(remaining: number, today: ISODate): number {
+  return remaining <= 0 ? 0 : roundMoney(remaining / dayCount({ from: today, to: monthPeriod(today).to }));
 }

@@ -53,3 +53,25 @@ describe("sincronizarea plăților manuale", () => {
     expect(await householdSpendRecords(second, "h1")).toEqual([]);
   });
 });
+
+it("holds new capture fields and dependent writes until server columns are migrated", async () => {
+  const local = db();
+  class LegacyRemote extends FakeRemote {
+    migrated = false;
+    override async upsert(table: Parameters<FakeRemote["upsert"]>[0], row: Record<string,unknown>) {
+      if (!this.migrated && table === "shopping_transactions" && "declared_total" in row) {
+        const { RemoteRejected } = await import("./remote");
+        throw new RemoteRejected("Could not find declared_total column", "PGRST204");
+      }
+      return super.upsert(table,row);
+    }
+  }
+  const remote = new LegacyRemote();
+  await insertRow(local,"shopping_transactions",{id:"trip",household_id:"h1",list_id:null,list_cycle:null,started_at:"2026-03-08T09:00:00Z",completed_at:"2026-03-08T09:00:00Z",note:null,declared_total:25},{outbox:true});
+  const engine = new SyncEngine(local,remote);
+  await engine.syncNow();
+  expect(await local.shopping_transactions.get("trip")).toMatchObject({declared_total:25});
+  expect(await local.outbox.count()).toBe(1);expect(await local.sync_errors.count()).toBe(0);
+  remote.migrated=true;await engine.syncNow();expect(await local.outbox.count()).toBe(0);
+  expect(remote.tables.get("shopping_transactions")?.get("trip")).toMatchObject({declared_total:25});
+});

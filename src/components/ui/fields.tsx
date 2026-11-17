@@ -46,7 +46,7 @@ export function Field({
 }
 
 export const Input = forwardRef<HTMLInputElement, InputHTMLAttributes<HTMLInputElement>>(function Input({ className = "", ...rest }, ref) {
-  return <input ref={ref} className={`${FIELD} h-14 ${className}`} {...rest} />;
+  return <input ref={ref} data-autofocus={rest.autoFocus || undefined} className={`${FIELD} h-14 ${className}`} {...rest} />;
 });
 
 export function TextArea({ className = "", ...rest }: TextareaHTMLAttributes<HTMLTextAreaElement>) {

@@ -57,7 +57,7 @@ describe("RecipePhotoCredit", () => {
 
   it("la o imagine AI nu arată nicio mențiune", () => {
     expect(render(<RecipePhotoCredit recipe={{ image_url: "/retete/mici-la-gratar.webp" }} />).container.innerHTML).toBe("");
-    expect(render(<RecipeVisual recipe={{ image_url: "/retete/mici-la-gratar.webp" }} />).container.querySelector("img")).not.toBeNull();
+    expect(render(<RecipeVisual recipe={{ image_url: "/retete/mici-la-gratar.webp" }} />).container.querySelector("img")).toBeNull();
   });
 
   it("fără fotografie din catalog nu arată nimic", () => {
@@ -67,14 +67,8 @@ describe("RecipePhotoCredit", () => {
 });
 
 describe("RecipeAvatar", () => {
-  it("în liste, rețeta fără fotografie are un pătrat uniform de 64 px, cu inițiala în DM Sans pe suprafață tonală", () => {
-    const { getByTestId } = render(<RecipeAvatar recipe={{ name: "Sarmale în foi de varză" }} />);
-    const el = getByTestId("avatar-reteta");
-    expect(el.className).toContain("h-16 w-16");
-    expect(el.className).toContain("bg-surface-2");
-    expect(el.className).toContain("border-line");
-    expect(el.className).toContain("font-sans");
-    expect(el.textContent).toBe("S");
+  it("fără fotografie nu afișează inițiale sau pătrate goale", () => {
+    expect(render(<RecipeAvatar recipe={{ name: "Sarmale" }} />).container.innerHTML).toBe("");
   });
 
   it("inițiala are majusculă românească, fără spațiile de la început", () => {

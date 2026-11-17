@@ -3,7 +3,8 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, type ReactNode } from "react";
-import { Cloud, CloudOff, Loader2, RefreshCw, Settings, AlertTriangle } from "lucide-react";
+import { Check, Cloud, CloudOff, Loader2, RefreshCw, Settings, AlertTriangle } from "lucide-react";
+import { CaptureHost } from "@/components/capture/capture-host";
 import { BrandMark } from "@/components/ui/brand-mark";
 import { isCloudConfigured } from "@/lib/supabase/client";
 import { BasketIcon, HouseIcon, JarIcon, PurseIcon, RecipeBookIcon } from "@/components/ui/icons";
@@ -60,10 +61,10 @@ function ConsumedSweeper() {
 
 const NAV = [
   { href: "/", label: "Acasă", icon: HouseIcon, match: (p: string) => p === "/" },
-  { href: "/cumparaturi/", label: "Cumpărături", icon: BasketIcon, match: (p: string) => p.startsWith("/cumparaturi") },
   { href: "/retete/", label: "Rețete", icon: RecipeBookIcon, match: (p: string) => p.startsWith("/retete") || p.startsWith("/plan") },
-  { href: "/buget/", label: "Buget", icon: PurseIcon, match: (p: string) => p.startsWith("/buget") },
   { href: "/camara/", label: "Cămară", icon: JarIcon, match: (p: string) => p.startsWith("/camara") },
+  { href: "/cumparaturi/", label: "Cumpărături", icon: BasketIcon, match: (p: string) => p.startsWith("/cumparaturi") },
+  { href: "/buget/", label: "Buget", icon: PurseIcon, match: (p: string) => p.startsWith("/buget") },
 ];
 
 function SyncIndicator() {
@@ -92,7 +93,7 @@ function SyncIndicator() {
       aria-label={`${label}. Sincronizează acum`}
       className={`inline-flex h-12 items-center gap-1.5 rounded-full px-3 text-xs font-medium ${state === "offline" ? "bg-warn-soft text-warn" : state === "eroare" ? "bg-accent-soft text-accent" : "bg-surface-2 text-ink-2"}`}
     >
-      <Icon size={14} className={state === "sincronizare" ? "animate-spin" : ""} />
+      <span className="relative"><Icon size={20} className={state === "sincronizare" ? "animate-spin" : ""} />{pending === 0 && sync?.last_synced_at && state === "sincronizat" && <Check size={11} className="absolute -bottom-0.5 -right-1 rounded-full bg-surface text-info" strokeWidth={3} />}</span>
       <span className="hidden sm:inline">{label}</span>
     </button>
   );
@@ -173,14 +174,13 @@ export function AppShell({ children, wide = false, hideMobileNav = false }: { ch
       <div className="min-w-0 flex-1">
         <header className="app-topbar sticky top-0 z-30">
           <div className={`mx-auto flex h-16 items-center justify-between gap-2 px-4 min-[600px]:px-6 ${wide ? "max-w-5xl" : "max-w-3xl"}`}>
-            {/* Doar numele gospodăriei, fără iconiță (decizia proprietarului, 23 oct. 2026). */}
-            <Link href="/" className="flex min-h-12 min-w-0 items-center font-sans text-[17px] font-semibold tracking-tight focus-visible:outline-2 focus-visible:outline-brand rounded-md lg:hidden">
-              {app.household?.name ?? "Cămara"}
+            <Link href="/" className="flex min-h-12 min-w-0 flex-col justify-center rounded-md focus-visible:outline-2 focus-visible:outline-brand">
+              <span className="truncate font-sans text-[17px] font-semibold tracking-tight">{app.household?.name ?? "Cămara"}</span>
+              <span className="text-xs capitalize text-ink-2">{app.status === "ready" ? new Intl.DateTimeFormat("ro-RO", {weekday:"long", day:"numeric", month:"short"}).format(now()) : "\u00a0"}</span>
             </Link>
-            <span className="hidden font-sans text-[17px] font-semibold tracking-tight lg:block">{app.household?.name ?? "Cămara"}</span>
             <div className="flex items-center gap-1">
               <SyncIndicator />
-              <Link href="/gospodarie/" aria-label="Gospodărie și setări" className="inline-flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-surface-2 text-ink-2 transition-colors duration-150 ease-out hover:bg-surface-container-high focus-visible:outline-2 focus-visible:outline-brand lg:hidden">
+              <Link href="/gospodarie/" aria-label="Gospodărie și setări" className="inline-flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-surface-2 text-ink-2 transition-colors duration-150 ease-out hover:bg-surface-container-high focus-visible:outline-2 focus-visible:outline-brand">
                 <Settings size={20} strokeWidth={1.75} />
               </Link>
             </div>
@@ -202,6 +202,8 @@ export function AppShell({ children, wide = false, hideMobileNav = false }: { ch
         </main>
       </div>
 
+      {app.status === "ready" && <CaptureHost />}
+      {!hideMobileNav && <div aria-hidden="true" className="app-nav-fade" />}
       {!hideMobileNav && (
         <nav aria-label="Navigare principală" className="app-mobile-nav fixed z-40">
           <div className="mx-auto flex max-w-lg">

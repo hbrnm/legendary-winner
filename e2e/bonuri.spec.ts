@@ -18,11 +18,11 @@ test("bonul pe o listă: propune, confirmi, bifează cu prețul; al doilea bon �
 
   await page.getByRole("button", { name: "Opțiunile listei" }).click();
   await page.getByRole("button", { name: "Adaugă bon" }).click();
-  await page.waitForURL(/\/cumparaturi\/bon\//);
+  await expect(page.getByRole("dialog", { name: "Cheltuială", exact: true })).toBeVisible();
   await page.getByTestId("bon-fisier").setInputFiles("e2e/fixtures/ciorba-1600x1200.jpg");
   await page.getByRole("button", { name: "Citește bonul" }).click();
 
-  await expect(page.getByRole("heading", { name: "Verifică bonul" })).toBeVisible();
+  await expect(page.getByRole("dialog", { name: "Cheltuială", exact: true }).getByLabel("Magazinul")).toBeVisible();
   await expect(page.getByLabel("Magazinul")).toHaveValue("kaufland");
   await expect(page.getByLabel("Data")).toHaveValue("2026-03-05");
   await expect(page.getByText(/pe bon: CEAPA GALBENA/)).toBeVisible();
@@ -31,14 +31,15 @@ test("bonul pe o listă: propune, confirmi, bifează cu prețul; al doilea bon �
   // Laptele nu se recunoaște din „VDR.LAP”: îl aleg eu.
   const lapte = page.getByRole("listitem").filter({ hasText: "pe bon: VDR.LAP.3,5%1L" });
   await lapte.getByRole("button", { name: /Alege produsul|Alt produs/ }).click();
-  const box = page.getByRole("dialog").getByRole("combobox");
+  const box = page.getByRole("dialog", { name: "Alege produsul", exact: true }).getByRole("combobox");
   await box.fill("lapte integral");
   // Așteptăm un produs din catalog: până se încarcă, singura opțiune e „ca produs nou”.
-  await page.getByRole("dialog").getByRole("option").filter({ hasNotText: "ca produs nou" }).first().click();
+  await page.getByRole("dialog", { name: "Alege produsul", exact: true }).getByRole("option").filter({ hasNotText: "ca produs nou" }).first().click();
   await expect(lapte).toContainText("Lapte integral");
   await expect(page.getByText("Suma produselor")).toBeVisible();
 
   await page.getByRole("button", { name: "Salvează bonul" }).click();
+  await expect(page.getByRole("dialog", { name: "Cheltuială", exact: true })).not.toBeVisible();
   await page.waitForURL(/\/cumparaturi\/lista\//);
   await openBasket(page);
   await expect(page.getByRole("checkbox", { name: /Debifează Ceapă galbenă/ })).toBeVisible();
@@ -51,7 +52,8 @@ test("bonul pe o listă: propune, confirmi, bifează cu prețul; al doilea bon �
   await page.getByRole("button", { name: "Citește bonul" }).click();
   await expect(page.getByRole("listitem").filter({ hasText: "pe bon: VDR.LAP.3,5%1L" })).toContainText("Lapte integral");
   await page.getByRole("button", { name: "Salvează bonul" }).click();
-  await page.waitForURL(/\/cumparaturi\/istoric\//);
+  await page.waitForURL(/\/buget\//);
+  await page.getByRole("link", {name:"Istoricul cumpărăturilor",exact:true}).click();
   await expect(page.getByText(/7,61/).first()).toBeVisible();
   // În istoric, linia are numele de pe bon, cu produsul din catalog dedesubt (.tasks/016).
   await page.getByRole("button", { name: /7,61/ }).first().click();
@@ -106,7 +108,7 @@ test("fără bon: scrii cumpărăturile, le verifici, intră în istoric", async
   await page.getByRole("button", { name: "Salvează", exact: true }).click();
   // Fără listă, alimentele intră și în cămară (setarea „întreabă”, comutatorul pornit; .tasks/016).
   await expect(page.getByText("Am pus cumpărăturile. Am adăugat un produs nou în catalog. 2 produse au intrat în cămară.")).toBeVisible();
-  await page.waitForURL(/\/cumparaturi\/istoric\//);
+  await page.waitForURL(/\/buget\//);
   await expect(page.getByText(/37,89/).first()).toBeVisible();
 
   await page.goto("/buget/");

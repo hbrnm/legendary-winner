@@ -1,44 +1,46 @@
 "use client";
 
 import { useState } from "react";
-import { Pencil, Plus, Trash2 } from "lucide-react";
-import { useAction, useData } from "@/components/app/hooks";
+import { Pencil, Trash2 } from "lucide-react";
+import { useAction } from "@/components/app/hooks";
 import { Button, IconButton } from "@/components/ui/button";
 import { LabeledInput, LabeledSelect } from "@/components/ui/fields";
-import { Card, SectionTitle, Spinner } from "@/components/ui/misc";
 import { Sheet } from "@/components/ui/sheet";
 import { now } from "@/lib/clock";
-import { formatShortDate, inPeriod, monthPeriod, toISODate } from "@/lib/domain/dates";
+import { toISODate } from "@/lib/domain/dates";
 import { EXPENSE_CATEGORIES, type ExpenseCategoryId } from "@/lib/domain/expense-categories";
-import { formatRon, parseMoney } from "@/lib/domain/money";
-import type { ManualExpense } from "@/lib/domain/types";
-import { createExpense, deleteExpense, updateExpense } from "@/lib/services/expenses";
-import { owned } from "@/lib/services/queries";
+import { SOURCE_LABELS } from "@/lib/domain/budget";
+import { parseMoney } from "@/lib/domain/money";
+import type { ManualExpense, PurchaseSource, Retailer } from "@/lib/domain/types";
+import { deleteExpense, updateExpense } from "@/lib/services/expenses";
 
-export function ManualExpenses({ month }: { month: string }) {
-  const expenses = useData(async (ctx) => {
-    const rows = await owned(ctx.db, "manual_expenses", ctx.householdId);
-    return rows.filter((row) => inPeriod(row.spent_on, monthPeriod(month)))
-      .sort((a, b) => b.spent_on.localeCompare(a.spent_on) || b.created_at.localeCompare(a.created_at));
-  }, [month]);
+/** Existing manual CRUD controls, embedded in the unified transaction row. */
+export function ManualExpenseActions({ expense, retailers = [] }: { expense: ManualExpense; retailers?: Retailer[] }) {
   const { run, busy } = useAction();
   const today = toISODate(now());
-  const [editing, setEditing] = useState<ManualExpense | "nou" | null>(null);
+  const [editing, setEditing] = useState<ManualExpense | null>(null);
   const [removing, setRemoving] = useState<ManualExpense | null>(null);
   const [description, setDescription] = useState("");
   const [amount, setAmount] = useState("");
   const [date, setDate] = useState(today);
   const [category, setCategory] = useState<ExpenseCategoryId>("altele");
+  const [place, setPlace] = useState("");
+  const [retailerId, setRetailerId] = useState("");
+  const [source, setSource] = useState<PurchaseSource | "">("");
+  const [note, setNote] = useState("");
   const [error, setError] = useState<string | null>(null);
 
-  function openForm(expense: ManualExpense | "nou") {
+  function openForm(expense: ManualExpense) {
     setEditing(expense);
     setError(null);
-    setDescription(expense === "nou" ? "" : expense.description);
-    setAmount(expense === "nou" ? "" : expense.amount.toFixed(2).replace(".", ","));
-    const lastDay = monthPeriod(month).to;
-    setDate(expense === "nou" ? (lastDay < today ? lastDay : today) : expense.spent_on);
-    setCategory(expense === "nou" ? "altele" : expense.category_id);
+    setDescription(expense.description);
+    setAmount(expense.amount.toFixed(2).replace(".", ","));
+    setDate(expense.spent_on);
+    setCategory(expense.category_id);
+    setPlace(expense.place_name ?? "");
+    setRetailerId(expense.retailer_id ?? "");
+    setSource(expense.source ?? "");
+    setNote(expense.note ?? "");
   }
 
   async function save() {
@@ -46,10 +48,16 @@ export function ManualExpenses({ month }: { month: string }) {
     if (!description.trim()) return setError("Scrie descrierea cheltuielii.");
     if (value == null || value <= 0) return setError("Scrie o sumă mai mare decât zero, cu cel mult două zecimale.");
     if (!date || date > today) return setError("Alege data plății, până astăzi.");
-    const input = { description: description.trim(), amount: value, category_id: category, spent_on: date };
+    if (!editing) return;
+    // Keep absent legacy metadata and historical retailer references intact on unrelated edits.
+    const input = { description: description.trim(), amount: value, category_id: category, spent_on: date,
+      ...(place.trim() !== (editing.place_name ?? "") ? { place_name: place.trim() || null } : {}),
+      ...(retailerId !== (editing.retailer_id ?? "") ? { retailer_id: retailerId || null } : {}),
+      ...(source !== (editing.source ?? "") ? { source: source || null } : {}),
+      ...(note.trim() !== (editing.note ?? "") ? { note: note.trim() || null } : {}),
+    };
     const ok = await run(async (ctx) => {
-      if (editing === "nou") await createExpense(ctx, input);
-      else if (editing) await updateExpense(ctx, editing.id, input);
+      if (editing) await updateExpense(ctx, editing.id, input);
       return true;
     }, "Am salvat cheltuiala.");
     if (ok) setEditing(null);
@@ -57,29 +65,10 @@ export function ManualExpenses({ month }: { month: string }) {
 
   return (
     <>
-      <SectionTitle>Cheltuieli manuale</SectionTitle>
-      <Button block variant="secondary" icon={<Plus size={18} />} onClick={() => openForm("nou")}>Adaugă cheltuială</Button>
-      {!expenses ? <Spinner /> : expenses.length > 0 ? (
-        <Card className="mt-3 divide-y divide-line">
-          <ul>
-            {expenses.map((expense) => (
-              <li key={expense.id} className="border-b border-line p-3 last:border-b-0">
-                <div className="flex items-start gap-2">
-                  <div className="min-w-0 flex-1">
-                    <p className="break-words font-medium">{expense.description}</p>
-                    <p className="mt-1 break-words text-xs text-ink-2">{formatShortDate(expense.spent_on)} · {EXPENSE_CATEGORIES.find((item) => item.id === expense.category_id)?.name}</p>
-                    <p className="mt-1 text-sm font-medium tabular">{formatRon(expense.amount)}</p>
-                  </div>
-                  <IconButton label={`Modifică cheltuiala ${expense.description}`} onClick={() => openForm(expense)}><Pencil size={18} /></IconButton>
-                  <IconButton label={`Șterge cheltuiala ${expense.description}`} onClick={() => setRemoving(expense)}><Trash2 size={18} /></IconButton>
-                </div>
-              </li>
-            ))}
-          </ul>
-        </Card>
-      ) : null}
-      <Sheet open={editing !== null} onClose={() => setEditing(null)} title={editing === "nou" ? "Cheltuială nouă" : `Modifică cheltuiala ${editing?.description ?? ""}`}
-        footer={<Button block disabled={busy} onClick={save}>{editing === "nou" ? "Adaugă cheltuială" : "Salvează"}</Button>}>
+      <IconButton label={`Modifică cheltuiala ${expense.description}`} onClick={() => openForm(expense)}><Pencil size={18} /></IconButton>
+      <IconButton label={`Șterge cheltuiala ${expense.description}`} onClick={() => setRemoving(expense)}><Trash2 size={18} /></IconButton>
+      <Sheet open={editing !== null} onClose={() => setEditing(null)} title={`Modifică cheltuiala ${editing?.description ?? ""}`}
+        footer={<Button block disabled={busy} onClick={save}>Salvează</Button>}>
         <div className="flex flex-col gap-4">
           <LabeledInput label="Descriere" value={description} onChange={(event) => setDescription(event.target.value)} maxLength={120} autoFocus error={error} />
           <LabeledInput label="Suma (lei)" inputMode="decimal" value={amount} onChange={(event) => setAmount(event.target.value)} />
@@ -87,6 +76,22 @@ export function ManualExpenses({ month }: { month: string }) {
           <LabeledSelect label="Categoria" value={category} onChange={(event) => setCategory(event.target.value as ExpenseCategoryId)}>
             {EXPENSE_CATEGORIES.map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}
           </LabeledSelect>
+          <LabeledSelect label="Magazin salvat" value={retailerId} onChange={(event) => {
+            const id = event.target.value;
+            setRetailerId(id);
+            const retailer = retailers.find(item => item.id === id);
+            if (retailer) setPlace(retailer.name);
+          }}>
+            <option value="">Alt loc / fără magazin salvat</option>
+            {retailerId && !retailers.some(item => item.id === retailerId) && <option value={retailerId}>{place || "Magazin înregistrat anterior"}</option>}
+            {retailers.map(retailer => <option key={retailer.id} value={retailer.id}>{retailer.name}</option>)}
+          </LabeledSelect>
+          <LabeledInput label="Magazin / Loc" value={place} maxLength={120} onChange={(event) => { setPlace(event.target.value); setRetailerId(""); }} />
+          <LabeledSelect label="Sursa" value={source} onChange={(event) => setSource(event.target.value as PurchaseSource | "")}>
+            <option value="">Nespecificată</option>
+            {Object.entries(SOURCE_LABELS).map(([id, name]) => <option key={id} value={id}>{name}</option>)}
+          </LabeledSelect>
+          <LabeledInput label="Notă (opțional)" value={note} maxLength={500} onChange={(event) => setNote(event.target.value)} />
         </div>
       </Sheet>
       <Sheet open={removing !== null} onClose={() => setRemoving(null)} title="Ștergi această cheltuială?" footer={

@@ -64,8 +64,8 @@ test("lista recurentă rămâne pentru data viitoare", async ({ page }) => {
   await page.getByText("Cumpărături săptămânale").click();
   await quickAdd(page, "detergent vase");
   await page.getByRole("checkbox", { name: /Bifează Detergent de vase/ }).click();
-  await page.getByRole("button", { name: "Gata", exact: true }).click();
-  await page.getByRole("button", { name: "Gata, am terminat" }).click();
+  await page.getByRole("button", { name: "Am plătit", exact: true }).click();
+  await page.getByRole("button", { name: "Finalizează cumpărăturile" }).click();
   await expect(page.getByRole("checkbox", { name: /Bifează Detergent de vase/ })).toBeVisible();
 });
 
@@ -116,9 +116,9 @@ test("„În coș”: bifatele coboară strânse, „Ai tot!” la final, „Anu
   await expect(page.getByText("Ai tot!", { exact: false })).toHaveCount(0);
 
   await page.getByRole("checkbox", { name: /Bifează Lapte/ }).click();
-  await expect(page.getByText("Ai tot! Apasă „Gata” la casă.")).toBeVisible();
+  await expect(page.getByText("Ai tot! Poți înregistra plata.")).toBeVisible();
   // Confirmarea folosește DM Sans, ca toate titlurile (.tasks/017, etapa 4).
-  expect(await page.getByText("Ai tot! Apasă „Gata” la casă.").evaluate((el) => getComputedStyle(el).fontFamily)).toMatch(/^-apple-system, BlinkMacSystemFont, "?dmSans/);
+  expect(await page.getByText("Ai tot! Poți înregistra plata.").evaluate((el) => getComputedStyle(el).fontFamily)).toMatch(/^-apple-system, BlinkMacSystemFont, "?dmSans/);
   await page.getByRole("button", { name: "În coș (2)" }).click();
   await page.getByRole("checkbox", { name: /Debifează Pâine albă/ }).click();
   await expect(page.getByRole("checkbox", { name: /Bifează Pâine albă/ })).toBeVisible();

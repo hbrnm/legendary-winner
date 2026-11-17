@@ -4,8 +4,8 @@ import Link from "next/link";
 export function RecipeNavigation({ active }: { active: "retete" | "plan" }) {
   return (
     <nav aria-label="Rețete și plan" className="recipe-navigation">
-      <Link href="/retete/" aria-current={active === "retete" ? "page" : undefined}>Rețete</Link>
-      <Link href="/plan/" aria-current={active === "plan" ? "page" : undefined}>Planul meselor</Link>
+      <Link href="/retete/" aria-current={active === "retete" ? "page" : undefined}>Colecție</Link>
+      <Link href="/plan/" aria-current={active === "plan" ? "page" : undefined}>Plan</Link>
     </nav>
   );
 }

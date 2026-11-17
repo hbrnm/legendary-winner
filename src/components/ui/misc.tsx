@@ -4,7 +4,7 @@ import type { ReactNode } from "react";
 
 export function Card({ children, className = "", as: Tag = "div", ...rest }: { children: ReactNode; className?: string; as?: "div" | "section" | "article" | "li"; "aria-label"?: string }) {
   return (
-    <Tag className={`rounded-[28px] bg-surface-container-low ${className}`} {...rest}>
+    <Tag className={`rounded-[20px] bg-surface-container-low shadow-card ${className}`} {...rest}>
       {children}
     </Tag>
   );
@@ -22,7 +22,7 @@ export function SectionTitle({ children, action }: { children: ReactNode; action
 
 export function EmptyState({ icon, title, children, action }: { icon?: ReactNode; title: string; children?: ReactNode; action?: ReactNode }) {
   return (
-    <div className="flex flex-col items-center gap-2 rounded-3xl bg-surface-container-low px-6 py-10 text-center">
+    <div className="flex flex-col items-center gap-2 rounded-[20px] bg-surface-container-low px-6 py-10 text-center">
       {icon && <div className="mb-1 text-ink-3">{icon}</div>}
       <p className="font-sans text-lg font-semibold text-ink">{title}</p>
       {children && <div className="max-w-sm text-sm text-ink-2">{children}</div>}
@@ -50,7 +50,7 @@ export function Chip({ active, children, onClick }: { active?: boolean; children
       type="button"
       aria-pressed={active}
       onClick={onClick}
-      className={`inline-flex h-12 shrink-0 items-center gap-1.5 rounded-full border px-3.5 text-sm transition duration-150 ease-out active:scale-[0.98] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand ${active ? "border-transparent bg-secondary-container text-on-secondary-container" : "border-line bg-surface text-ink-2 hover:text-ink"}`}
+      className={`inline-flex h-12 shrink-0 items-center gap-1.5 rounded-full border px-3.5 text-sm transition duration-150 ease-out active:scale-[0.98] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand ${active ? "border-transparent bg-brand text-brand-ink" : "border-line bg-surface text-ink-2 hover:text-ink"}`}
     >
       {children}
     </button>
