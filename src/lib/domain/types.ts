@@ -338,12 +338,16 @@ export type BudgetScope =
   | { kind: "categorie"; category_id: string }
   | { kind: "magazin"; retailer_id: string };
 
+export interface BudgetIncomeSource { name: string; amount: number }
+
 export interface Budget extends SyncedRow {
   name: string;
   period: BudgetPeriod;
   scope: BudgetScope;
   amount: number;
   active: boolean;
+  /** Surse lunare recurente; amount rămâne plafonul ales pentru cheltuieli. */
+  income_sources?: BudgetIncomeSource[];
 }
 
 /** O plată făcută în afara fluxului listelor/bonurilor. */

@@ -21,16 +21,30 @@ const scopeSchema: z.ZodType<BudgetScope> = z.discriminatedUnion("kind", [
   z.object({ kind: z.literal("magazin"), retailer_id: z.string().min(1) }),
 ]);
 
+export const incomeSourcesSchema = z.array(z.object({
+  name: zName(60, "Numele venitului"),
+  amount: z.number().positive("Venitul trebuie să fie mai mare decât zero.").max(9_999_999)
+    .refine(v => Math.abs(v * 100 - Math.round(v * 100)) < 0.000001, "Scrie venitul cu cel mult două zecimale."),
+})).max(30, "Poți adăuga cel mult 30 de surse de venit.");
+
 const budgetInput = z.object({
   name: zName(60, "Numele bugetului"),
   period: z.enum(["lunar", "saptamanal"]),
   scope: scopeSchema,
   amount: z.number().positive("Bugetul trebuie să fie mai mare decât zero.").max(9_999_999),
   active: z.boolean().default(true),
+  income_sources: incomeSourcesSchema.optional(),
 });
+
+function requireIncomeScope(budget: Pick<Budget, "income_sources" | "period" | "scope">) {
+  if (budget.income_sources?.length && (budget.period !== "lunar" || budget.scope.kind !== "familie")) {
+    throw new UserError("Veniturile se păstrează în bugetul lunar al familiei. Elimină sursele înainte să schimbi perioada sau categoria.");
+  }
+}
 
 export async function createBudget(ctx: AppCtx, input: z.input<typeof budgetInput>): Promise<string> {
   const v = parse(budgetInput, input);
+  requireIncomeScope(v);
   if (v.scope.kind === "familie" || v.scope.kind === "cheltuiala") await requireFamilyBudget(ctx);
   const id = newId();
   await insertRow(ctx.db, "budgets", { id, household_id: ctx.householdId, ...v }, w(ctx));
@@ -42,6 +56,7 @@ export async function updateBudget(ctx: AppCtx, id: string, patch: Partial<z.inp
   const current = await ctx.db.budgets.get(id);
   if (!current || current.deleted_at || current.household_id !== ctx.householdId) throw new UserError("Bugetul nu este disponibil în această gospodărie.");
   const scope = v.scope ?? current.scope;
+  requireIncomeScope({ ...current, ...v, scope });
   if (scope.kind === "familie" || scope.kind === "cheltuiala") await requireFamilyBudget(ctx);
   await updateRow(ctx.db, "budgets", id, Object.fromEntries(Object.entries(v).filter(([, x]) => x !== undefined)) as Partial<Budget>, w(ctx));
 }

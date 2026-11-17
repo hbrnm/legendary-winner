@@ -166,9 +166,9 @@ export class SyncEngine {
       } catch (e) {
         // Older servers may have the table but lack optional capture columns.
         // Retain the entire write and its dependent queue; never strip the paid total.
-        const captureFields = entry.table === "shopping_transactions" ? ["declared_total", "retailer_id"] : entry.table === "manual_expenses" ? ["place_name", "retailer_id", "source", "note"] : [];
+        const captureFields = entry.table === "shopping_transactions" ? ["declared_total", "retailer_id"] : entry.table === "manual_expenses" ? ["place_name", "retailer_id", "source", "note"] : entry.table === "budgets" ? ["income_sources"] : [];
         if (e instanceof RemoteRejected && ["PGRST204", "42703"].includes(e.code ?? "") && captureFields.some(key => key in entry.payload)) {
-          throw new RemoteUnavailable("Actualizarea serverului este necesară; plata rămâne salvată pe dispozitiv.");
+          throw new RemoteUnavailable("Actualizarea serverului este necesară; modificarea rămâne salvată pe dispozitiv.");
         }
         if (e instanceof RemoteRejected && OPTIONAL_TABLES.has(entry.table) && MISSING_TABLE.has(e.code ?? "")) {
           missing.add(entry.table);
