@@ -12,6 +12,7 @@ test("IA: captură universală, categorie școală, sold și disponibil zilnic",
   await page.getByRole("dialog",{name:"Adaugă rapid"}).getByRole("button",{name:"Adaugă cheltuială",exact:true}).click();
   const sheet=page.getByRole("dialog",{name:"Cheltuială",exact:true});
   await expect(sheet.getByLabel("Sumă (RON)")).toBeFocused();
+  expect(await sheet.getByLabel("Sumă (RON)").evaluate(el => parseFloat(getComputedStyle(el).fontSize))).toBeGreaterThanOrEqual(32);
   await sheet.getByLabel("Sumă (RON)").fill("100");
   await sheet.getByRole("button",{name:"+ Alt loc",exact:true}).click();
   await sheet.getByLabel("Numele locului").fill("Școala copiilor");
