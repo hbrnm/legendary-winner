@@ -47,8 +47,8 @@ it("opens shared receipt capture with the current list context", () => {
 
 it("has one add-list action in the empty shopping landing page and no finance shortcuts", () => {
   state.data = { lists: [], retailers: [] }; render(<ListsPage />);
-  expect(screen.getAllByRole("button", { name: "Începe o listă" })).toHaveLength(1);
-  expect(screen.queryByRole("button", { name: "Listă nouă" })).toBeNull();
+  expect(screen.getAllByRole("button", { name: "Listă nouă" })).toHaveLength(1);
+  expect(screen.queryByRole("button", { name: "Începe o listă" })).toBeNull();
   expect(screen.queryByRole("link", { name: "Pune un bon" })).toBeNull();
   expect(screen.queryByRole("link", { name: "Ce-ai cumpărat până acum" })).toBeNull();
 });

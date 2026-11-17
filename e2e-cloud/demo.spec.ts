@@ -23,21 +23,21 @@ test("demo înainte de cont: explorare, salvare locală, reîncărcare și reven
   await expect(page.getByRole("heading", { name: "Rețete", exact: true })).toBeVisible();
   await expect(page.getByText("Mod demonstrativ", { exact: true })).toBeVisible();
   await nav.getByRole("link", { name: "Acasă", exact: true }).click();
-  const count = page.locator('main a[aria-label="Cumpărături"] [data-dashboard-count]');
-  await expect(count).toHaveText("7");
+  const count = page.locator("main").getByRole("link", {name:/^Cumpărături/});
+  await expect(count).toContainText(/7\s*de luat/);
   const search = page.getByRole("combobox", { name: "Caută sau adaugă un produs" });
   await search.fill("Produs pentru explorarea demo");
   await expect(page.getByRole("listbox")).toBeVisible();
   await search.press("Enter");
-  await expect(count).toHaveText("8");
+  await expect(count).toContainText(/8\s*de luat/);
   await page.reload();
-  await expect(count).toHaveText("8");
+  await expect(count).toContainText(/8\s*de luat/);
   expect(cloudRequests).toEqual([]);
   await page.getByRole("link", { name: "Intră în cont", exact: true }).click();
   await expect(page.getByLabel("Email", { exact: true })).toBeVisible();
   await expect(page.getByText("Mod demonstrativ", { exact: true })).toHaveCount(0);
   await page.getByRole("link", { name: "Încearcă fără cont", exact: true }).click();
-  await expect(count).toHaveText("8");
+  await expect(count).toContainText(/8\s*de luat/);
 });
 
 test("în demo, o invitație nu pornește operații pe server", async ({ page }) => {

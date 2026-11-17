@@ -66,7 +66,7 @@ function ListsScreen() {
       />
 
       {active.length === 0 ? (
-        <EmptyState icon={<BasketIcon size={32} />} title="Încă n-ai nicio listă" action={<Button onClick={() => setCreating(true)}>Începe o listă</Button>}>
+        <EmptyState icon={<BasketIcon size={32} />} title="Încă n-ai nicio listă" action={<Button onClick={() => setCreating(true)} icon={<Plus size={18} />}>Listă nouă</Button>}>
           Una pentru săptămână, una pentru piață, sau câte una pe magazin, cum îți vine mai la îndemână.
         </EmptyState>
       ) : (
