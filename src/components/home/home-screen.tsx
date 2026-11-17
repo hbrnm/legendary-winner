@@ -20,16 +20,16 @@ import { budgetStatus, dailyBudgetAvailable } from "@/lib/domain/budget";
 import { listTotals } from "@/lib/domain/shopping";
 import { expiringSoon } from "@/lib/domain/pantry";
 import { totalMinutes } from "@/lib/domain/recipes";
-import { formatShortDate, localDateOf, toISODate } from "@/lib/domain/dates";
+import { formatShortDate, localDateOf } from "@/lib/domain/dates";
 import { formatRon } from "@/lib/domain/money";
-import { now } from "@/lib/clock";
 import type { MealSlot, Recipe, UnitCode } from "@/lib/domain/types";
 import { quickMealSuggestions } from "./home-model";
+import { useMealTime } from "./use-meal-time";
 
-const SLOT_ORDER: MealSlot[] = ["mic_dejun", "pranz", "cina", "gustare"];
+const SLOT_ORDER: MealSlot[] = ["mic_dejun", "pranz", "gustare", "cina"];
 export function HomeScreen() {
   const { run, busy } = useAction();
-  const today = toISODate(now());
+  const { today, meal: currentMeal } = useMealTime();
   const [mealAction, setMealAction] = useState<{kind:"plan"|"cook";recipe:Recipe}|null>(null);
   const [slot, setSlot] = useState<MealSlot>("pranz");
   const [servings, setServings] = useState(2);
@@ -49,18 +49,18 @@ export function HomeScreen() {
       next, remainingItems:active.reduce((n,a)=>n+a.totals.item_count-a.totals.checked_count,0),
       budget:main?budgetStatus(main,spend,new Map(categories.map(c=>[c.id,c])),today):null,
       meals:meals.filter(m=>m.date===today).sort((a,b)=>SLOT_ORDER.indexOf(a.slot)-SLOT_ORDER.indexOf(b.slot)).map(meal=>({meal,recipe:recipesById.get(meal.recipe_id)})),
-      suggestions:quickMealSuggestions(recipes,today),stockCount:pantry.filter(p=>p.quantity>0).length,
+      suggestions:quickMealSuggestions(recipes,today,currentMeal),stockCount:pantry.filter(p=>p.quantity>0).length,
       expiringCount:expiringSoon(pantry.filter(p=>p.quantity>0),today,3).length,
       recent:recent?{...recent,title:recent.retailerId?retailers.find(r=>r.id===recent.retailerId)?.name??recent.title:recent.title}:null,
     };
-  },[today]);
+  },[today,currentMeal]);
   if(!data)return <Spinner />;
 
   async function quickAdd(productId:string|null,text:string,quantity:number|null,unit:string|null){
     if(submitting.current)return;submitting.current=true;
     try{await run(async ctx=>{const id=data!.next?.list.id??await createList(ctx,{name:"Cumpărături"});await addItem(ctx,id,{product_id:productId,name:productId?undefined:text,quantity,unit:unit as UnitCode|null});return true;},"Am adăugat produsul pe listă.");}finally{submitting.current=false;}
   }
-  function openMeal(kind:"plan"|"cook",recipe:Recipe,plannedServings?:number){setMealAction({kind,recipe});setServings(plannedServings??recipe.servings);setSlot(data!.meals.some(m=>m.meal.slot==="pranz")?"cina":"pranz");}
+  function openMeal(kind:"plan"|"cook",recipe:Recipe,plannedServings?:number){setMealAction({kind,recipe});setServings(plannedServings??recipe.servings);setSlot(currentMeal);}
   async function confirmMeal(){
     if(!mealAction||submitting.current||!Number.isInteger(servings)||servings<1||servings>50)return;
     submitting.current=true;
@@ -79,13 +79,17 @@ export function HomeScreen() {
   return <>
     <SectionTitle action={<Link href="/plan/" className="inline-flex min-h-12 items-center text-sm font-medium text-brand">Planul săptămânii →</Link>}>Azi la masă</SectionTitle>
     <Card className="divide-y divide-line overflow-hidden">
-      {data.meals.length?data.meals.map(({meal,recipe})=><div key={meal.id} className="flex items-center gap-3 p-3">
+      {data.meals.map(({meal,recipe})=><div key={meal.id} className="flex items-center gap-3 p-3">
         {recipe&&<RecipeImage recipe={recipe} size="sm" />}
         <Link href={recipe?`/retete/reteta/?id=${recipe.id}`:"/plan/"} className="min-w-0 flex-1"><span className="block text-xs text-ink-2">{SLOT_LABELS[meal.slot]} · {meal.servings} porții</span><span className="line-clamp-2 font-medium">{recipe?.name??"Rețetă indisponibilă"}</span></Link>
         {recipe&&<Button size="sm" onClick={()=>openMeal("cook",recipe,meal.servings)}>Am gătit</Button>}
-      </div>):data.suggestions.length?data.suggestions.map(recipe=><div key={recipe.id} className="flex items-center gap-3 p-3">
+      </div>)}
+      {!data.meals.some(({meal})=>meal.slot===currentMeal)&&<>
+      <p className="px-3 pb-1 pt-3 text-xs font-medium text-ink-2">Sugestii · {SLOT_LABELS[currentMeal]}</p>
+      {data.suggestions.length?data.suggestions.map(recipe=><div key={recipe.id} className="flex items-center gap-3 p-3">
         <RecipeImage recipe={recipe} size="sm" /><Link href={`/retete/reteta/?id=${recipe.id}`} className="min-w-0 flex-1"><span className="line-clamp-2 font-medium">{recipe.name}</span><span className="block text-xs text-ink-2">{totalMinutes(recipe)} min · {recipe.servings} porții</span></Link><Button size="sm" onClick={()=>openMeal("plan",recipe)}>Alege</Button>
-      </div>):<p className="p-4 text-sm text-ink-2">Adaugă o rețetă rapidă sau <Link href="/plan/" className="font-medium text-brand">planifică masa de azi →</Link></p>}
+      </div>):<p className="p-4 text-sm text-ink-2">Nu ai rețete de maximum 30 min pentru {SLOT_LABELS[currentMeal].toLocaleLowerCase("ro")}. <Link href="/retete/" className="font-medium text-brand">Adaugă o rețetă</Link> sau <Link href="/plan/" className="font-medium text-brand">planifică masa de azi →</Link></p>}
+      </>}
     </Card>
     <SectionTitle>Cumpărături & Cămară</SectionTitle>
     <ProductSearch placeholder="Adaugă pe listă: ex. lapte" onPick={({product,parsed})=>void quickAdd(product?.id??null,parsed.text,parsed.quantity,parsed.unit)} />
@@ -105,7 +109,7 @@ export function HomeScreen() {
     </Card>
     <Sheet open={mealAction!==null} onClose={()=>{if(!busy)setMealAction(null);}} title={mealAction?.kind==="cook"?"Am gătit":"Alege masa de azi"} footer={<Button block disabled={busy||!Number.isInteger(servings)||servings<1||servings>50} onClick={confirmMeal}>{mealAction?.kind==="cook"?"Scade ingredientele":"Programează azi"}</Button>}>
       <p className="mb-4 font-medium">{mealAction?.recipe.name}</p><div className="space-y-4">
-        {mealAction?.kind==="plan"&&<LabeledSelect label="Masa" value={slot} onChange={e=>setSlot(e.target.value as MealSlot)}><option value="pranz">Prânz</option><option value="cina">Cină</option></LabeledSelect>}
+        {mealAction?.kind==="plan"&&<LabeledSelect label="Masa" value={slot} onChange={e=>setSlot(e.target.value as MealSlot)}>{SLOT_ORDER.map(value=><option key={value} value={value}>{SLOT_LABELS[value]}</option>)}</LabeledSelect>}
         <LabeledInput label="Porții" type="number" min={1} max={50} value={Number.isNaN(servings)?"":servings} onChange={e=>setServings(e.target.valueAsNumber)} />
         {mealAction?.kind==="cook"&&<p className="text-sm text-ink-2">Scădem ingredientele disponibile din cămară pentru aceste porții. Confirmă o singură dată pentru fiecare preparare.</p>}
       </div>

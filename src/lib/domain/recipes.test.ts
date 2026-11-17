@@ -86,16 +86,18 @@ describe("ce pot găti cu ce am", () => {
   });
 });
 
-describe("sugestiile după ora din zi (.tasks/016)", () => {
-  it("05–10 mic dejun, 11–16 prânz, 17–04 cină", () => {
-    expect([0, 4, 5, 10, 11, 16, 17, 23].map(mealForHour)).toEqual(["cina", "cina", "mic_dejun", "mic_dejun", "pranz", "pranz", "cina", "cina"]);
+describe("sugestiile după ora locală din zi", () => {
+  it("schimbă masa la 05, 11, 15 și 18, inclusiv gustarea de după prânz", () => {
+    expect([0, 4, 5, 10, 11, 14, 15, 17, 18, 23].map(mealForHour)).toEqual(["cina", "cina", "mic_dejun", "mic_dejun", "pranz", "pranz", "gustare", "gustare", "cina", "cina"]);
   });
 
-  it("doar rețetele mesei; fără niciuna, toate", () => {
+  it("propune doar rețetele mesei, fără preparate nepotrivite când categoria lipsește", () => {
     const omleta = recipe({ id: "omleta", categories: ["mic_dejun", "rapide"] });
     const ciorba = recipe({ id: "ciorba", categories: ["pranz", "supe_ciorbe"] });
     expect(recipesForMeal([omleta, ciorba], "mic_dejun").map((r) => r.id)).toEqual(["omleta"]);
-    expect(recipesForMeal([omleta, ciorba], "cina").map((r) => r.id)).toEqual(["omleta", "ciorba"]);
+    expect(recipesForMeal([omleta, ciorba], "cina")).toEqual([]);
+    const gustare = recipe({ id: "gustare", categories: ["gustari"] });
+    expect(recipesForMeal([omleta, ciorba, gustare], "gustare").map(r => r.id)).toEqual(["gustare"]);
   });
 });
 

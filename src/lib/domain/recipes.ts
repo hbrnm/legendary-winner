@@ -198,17 +198,17 @@ export function recipesUsingProducts(recipes: Recipe[], allIngredients: RecipeIn
   return out.sort((a, b) => b.uses.length - a.uses.length || a.recipe.name.localeCompare(b.recipe.name, "ro"));
 }
 
-export type SuggestedMeal = "mic_dejun" | "pranz" | "cina";
+export type SuggestedMeal = "mic_dejun" | "pranz" | "gustare" | "cina";
 
-/** Masa după ora din zi (.tasks/016, chestionar 22 oct. 2026): 05–10 mic dejun, 11–16 prânz, 17–04 cină. */
+/** Ora locală: 05–11 mic dejun, 11–15 prânz, 15–18 gustare, 18–05 cină. */
 export function mealForHour(hour: number): SuggestedMeal {
   if (hour >= 5 && hour < 11) return "mic_dejun";
-  if (hour >= 11 && hour < 17) return "pranz";
+  if (hour >= 11 && hour < 15) return "pranz";
+  if (hour >= 15 && hour < 18) return "gustare";
   return "cina";
 }
 
-/** Rețetele potrivite mesei; dacă nu e niciuna, toate (sugestiile nu rămân goale). */
+/** Gustarea din plan corespunde categoriei „gustari” din colecție. */
 export function recipesForMeal<R extends Pick<Recipe, "categories">>(recipes: R[], meal: SuggestedMeal): R[] {
-  const fit = recipes.filter((r) => r.categories.includes(meal));
-  return fit.length ? fit : recipes;
+  return recipes.filter((r) => r.categories.includes(meal === "gustare" ? "gustari" : meal));
 }
