@@ -3,6 +3,7 @@
 import { useMemo, useState } from "react";
 import Link from "next/link";
 import { ChevronLeft, ChevronRight, Download, Pencil, Plus, ScanLine, Shapes, Tags, Trash2, Wallet } from "lucide-react";
+import { IncomePanel } from "@/components/budget/income-panel";
 import { CompactCategories } from "@/components/budget/compact-categories";
 import { TransactionFeed } from "@/components/budget/transaction-feed";
 import { hasSpendHistory } from "@/components/budget/transactions";
@@ -202,6 +203,8 @@ function BudgetScreen() {
           </div>
         }
       />
+
+      <IncomePanel budget={mainStatus?.budget.scope.kind === "familie" || mainStatus?.budget.scope.kind === "total" ? mainStatus.budget : undefined} />
 
       {view.statuses.length === 0 ? (
         <EmptyState icon={<Wallet size={32} />} title="Setează un buget" action={<Button onClick={() => openForm("nou")}>Setează bugetul lunar</Button>}>

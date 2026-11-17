@@ -1,8 +1,8 @@
 import {afterAll,beforeAll,expect,it} from "vitest";
 import {randomUUID} from "node:crypto";
 import {asUser,closeDb,createHousehold,createUser,db,type TestUser} from "./helpers";
-let owner:TestUser,other:TestUser,household:string;
-beforeAll(async()=>{owner=await createUser("IncomeOwner");other=await createUser("IncomeOther");household=await createHousehold(owner);});
+let owner:TestUser,member:TestUser,other:TestUser,household:string;
+beforeAll(async()=>{owner=await createUser("IncomeOwner");other=await createUser("IncomeOther");household=await createHousehold(owner);member=await createUser("IncomeMember");await db().query("insert into household_members(household_id,user_id,role) values($1,$2,'member')",[household,member.id]);});
 afterAll(closeDb);
 const sources=[{name:"Soț",amount:3000},{name:"Soție",amount:2000}];
 async function add(income:unknown=sources,period="lunar",kind="familie"){
@@ -23,4 +23,14 @@ it("respinge JSON invalid, venituri incompatibile și precizie neacceptată",asy
  await expect(add(sources,"saptamanal")).rejects.toThrow();
  await expect(add(sources,"lunar","total")).rejects.toThrow();
  await add([],"lunar","total");
+});
+
+it("un membru simplu poate adăuga și modifica bugetele și veniturile comune",async()=>{
+ const id=await add();
+ const updated=[...sources,{name:"Alte venituri",amount:500}];
+ await asUser(member,q=>q("update budgets set amount=4500,income_sources=$1 where id=$2",[JSON.stringify(updated),id]));
+ expect((await asUser(owner,q=>q("select amount,income_sources from budgets where id=$1",[id]))).rows).toEqual([{amount:"4500.00",income_sources:updated}]);
+ const created=randomUUID();
+ await asUser(member,q=>q("insert into budgets(id,household_id,name,period,scope,amount) values($1,$2,'Educație','lunar',$3,500)",[created,household,{kind:"cheltuiala",category_id:"educatie"}]));
+ expect((await asUser(owner,q=>q("select amount from budgets where id=$1",[created]))).rows).toEqual([{amount:"500.00"}]);
 });
