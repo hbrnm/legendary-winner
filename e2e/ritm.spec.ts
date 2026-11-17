@@ -44,6 +44,9 @@ test("Ritm: cardul compact păstrează accesul la lista cu nume lung pe telefon"
   await start(page);
   await createList(page, "Cumpărăturilesăptămânalepentrufamiliameaextinsă");
   await quickAdd(page, "roșii");
+  // Câmpul se golește înainte să se încheie scrierea în IndexedDB.
+  // Navigăm abia după afișarea produsului salvat în listă.
+  await expect(page.getByRole("checkbox", { name: "Bifează Roșii", exact: true })).toBeVisible();
   await page.goto("/");
   const list = page.locator("main").getByRole("link", { name: /^Cumpărături/ });
   await expect(list).toContainText(/1\s*de luat/);
