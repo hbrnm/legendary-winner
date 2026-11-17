@@ -5,11 +5,11 @@ import { start } from "./helpers";
 // deci se încarcă și subsetul latin-ext, nu doar cel latin.
 test("fonturile Cămarei se încarcă, cu diacriticele românești", async ({ page }) => {
   await start(page);
-  await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Azi la masă", exact: true })).toBeVisible();
   await page.evaluate(() => document.fonts.ready);
   const loaded = await page.evaluate(() => [...document.fonts].filter((f) => f.status === "loaded").map((f) => f.family.replace(/['"]/g, "")));
   expect(loaded).toEqual(expect.arrayContaining(["dmSans", "dmSansExt"]));
-  const h1 = await page.getByRole("heading", { level: 1 }).evaluate((el) => getComputedStyle(el).fontFamily);
+  const h1 = await page.getByRole("heading", { name: "Azi la masă", exact: true }).evaluate((el) => getComputedStyle(el).fontFamily);
   expect(h1).toMatch(/^-apple-system, BlinkMacSystemFont, "?dmSans/);
   const body = await page.evaluate(() => getComputedStyle(document.body).fontFamily);
   expect(body).toMatch(/^-apple-system, BlinkMacSystemFont, "?dmSans/);

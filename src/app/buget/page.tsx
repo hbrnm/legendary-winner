@@ -2,9 +2,11 @@
 
 import { useMemo, useState } from "react";
 import Link from "next/link";
-import { ChevronLeft, ChevronRight, Download, Pencil, Plus, Shapes, Tags, Trash2, Wallet } from "lucide-react";
-import { useApp } from "@/components/app/app-provider";
-import { ManualExpenses } from "@/components/budget/expenses";
+import { ChevronLeft, ChevronRight, Download, Pencil, Plus, ScanLine, Shapes, Tags, Trash2, Wallet } from "lucide-react";
+import { CompactCategories } from "@/components/budget/compact-categories";
+import { TransactionFeed } from "@/components/budget/transaction-feed";
+import { hasSpendHistory } from "@/components/budget/transactions";
+import { dispatchCapture } from "@/components/capture/events";
 import { EXPENSE_CATEGORIES, type ExpenseCategoryId } from "@/lib/domain/expense-categories";
 import { AppShell } from "@/components/app/shell";
 import { useAction, useData } from "@/components/app/hooks";
@@ -16,7 +18,7 @@ import { BarList, ColumnChart } from "@/components/budget/charts";
 import { listItems, owned, priceIndex, householdSpendRecords, visible } from "@/lib/services/queries";
 import { createBudget, deleteBudget, updateBudget } from "@/lib/services/money";
 import { diverseToSort } from "@/lib/services/receipts";
-import { averageTrip, budgetStatus, byCategory, byExpenseCategory, byRetailer, monthlyTotals, SOURCE_LABELS, spendInPeriod, spendToCsv, sumAmounts, weeklyTotals } from "@/lib/domain/budget";
+import { averageTrip, budgetStatus, dailyBudgetAvailable, byCategory, byExpenseCategory, byRetailer, monthlyTotals, SOURCE_LABELS, spendInPeriod, spendToCsv, sumAmounts, weeklyTotals } from "@/lib/domain/budget";
 import { listTotals } from "@/lib/domain/shopping";
 import { addDays, formatMonth, formatShortDate, monthPeriod, startOfMonth, toISODate } from "@/lib/domain/dates";
 import { formatRon, parseMoney, sumMoney } from "@/lib/domain/money";
@@ -51,7 +53,6 @@ type ScopeKind = BudgetScope["kind"];
 
 function BudgetScreen() {
   const { run, busy } = useAction();
-  const { familyBudgetEnabled } = useApp();
   const today = toISODate(now());
   const [month, setMonth] = useState(startOfMonth(today));
   const [split, setSplit] = useState<"familie" | "categorii" | "magazine">("familie");
@@ -64,17 +65,22 @@ function BudgetScreen() {
   const [formError, setFormError] = useState<string | null>(null);
 
   const data = useData(async (ctx) => {
-    const [spend, budgets, categories, retailers, lists, prices] = await Promise.all([
+    const [spend, budgets, categories, retailers, lists, prices, transactions, expenses] = await Promise.all([
       householdSpendRecords(ctx.db, ctx.householdId),
       owned(ctx.db, "budgets", ctx.householdId),
       visible(ctx.db, "product_categories", ctx.householdId),
       visible(ctx.db, "retailers", ctx.householdId),
       owned(ctx.db, "shopping_lists", ctx.householdId),
       priceIndex(ctx.db, ctx.householdId),
+      owned(ctx.db, "shopping_transactions", ctx.householdId),
+      owned(ctx.db, "manual_expenses", ctx.householdId),
     ]);
     const open = await Promise.all(lists.filter((l) => !l.archived_at).map(async (l) => listTotals(await listItems(ctx.db, l.id), prices)));
     return {
       spend,
+      transactions,
+      expenses,
+      hasHistory: hasSpendHistory(spend),
       budgets: budgets.sort((a, b) => a.created_at.localeCompare(b.created_at)),
       categories: categories.sort((a, b) => a.sort_order - b.sort_order),
       retailers: retailers.sort((a, b) => a.name.localeCompare(b.name, "ro")),
@@ -93,7 +99,8 @@ function BudgetScreen() {
     const monthSpend = spendInPeriod(data.spend, period);
     const total = sumAmounts(monthSpend);
     const shoppingSpend = monthSpend.filter((item) => !item.manual_expense_id);
-    const familySplit = familyBudgetEnabled && split === "familie";
+    const familySplit = !data.hasHistory || split === "familie";
+    const familyCategories = new Map(byExpenseCategory(monthSpend, catMap).map(item => [item.key, item.amount]));
     const statuses = data.budgets.filter((b) => b.active).map((b) => budgetStatus(b, data.spend, catMap, today));
     return {
       catMap,
@@ -109,16 +116,19 @@ function BudgetScreen() {
         current: m.period.from === month,
       })),
       weeks: weeklyTotals(data.spend, today, 8).map((w) => ({ key: w.period.from, label: formatShortDate(w.period.from).replace(/\.$/, ""), value: w.amount, current: w.period.to >= today })),
-      split:
-        (familySplit ? byExpenseCategory(monthSpend, catMap) : split === "magazine" ? byRetailer(shoppingSpend, retMap) : byCategory(shoppingSpend, catMap))
-          .map((b) => ({ key: b.key, label: b.label, value: b.amount })),
+      split: familySplit
+        ? [
+            ...EXPENSE_CATEGORIES.map(category => ({ key: category.id, label: category.name, value: familyCategories.get(category.id) ?? 0 })),
+            ...(familyCategories.has("nealocat") ? [{ key: "nealocat", label: "Nealocat", value: familyCategories.get("nealocat") ?? 0 }] : []),
+          ]
+        : (split === "magazine" ? byRetailer(shoppingSpend, retMap) : byCategory(shoppingSpend, catMap)).map(item => ({ key: item.key, label: item.label, value: item.amount })),
       sources: (["supermarket", "piata", "producator", "alta"] as PurchaseSource[])
         .map((s) => ({ source: s, amount: sumAmounts(shoppingSpend.filter((i) => i.source === s)) }))
         .filter((x) => x.amount > 0),
       avgTrip: averageTrip(shoppingSpend.filter((i) => !i.transaction_id.startsWith("in-curs"))),
       noAmount: monthSpend.filter((i) => i.amount == null).length,
     };
-  }, [data, month, split, today, familyBudgetEnabled]);
+  }, [data, month, split, today]);
 
   if (!data || !view) return <Spinner />;
   const names = { categories: new Map(data.categories.map((c) => [c.id, c.name])), retailers: new Map(data.retailers.map((r) => [r.id, r.name])) };
@@ -134,7 +144,7 @@ function BudgetScreen() {
       setFName(data!.budgets.length === 0 ? "Bugetul lunii" : "");
       setFAmount("");
       setFPeriod("lunar");
-      setFKind(familyBudgetEnabled ? "familie" : "total");
+      setFKind("familie");
       setFValue("");
     } else {
       setFName(b.name);
@@ -186,13 +196,14 @@ function BudgetScreen() {
         title="Buget"
         subtitle="Ce plănuiești și ce cheltui de fapt"
         action={
-          <Button variant="secondary" onClick={() => openForm("nou")} icon={<Plus size={18} />}>
-            Buget
-          </Button>
+          <div className="flex items-center gap-1">
+            <Button onClick={() => dispatchCapture({ mode: "manual" })} icon={<Plus size={18} />}>Cheltuială</Button>
+            <IconButton label="Scanează un bon" onClick={() => dispatchCapture({ mode: "scan" })}><ScanLine size={20} /></IconButton>
+          </div>
         }
       />
 
-      {data.budgets.length === 0 ? (
+      {view.statuses.length === 0 ? (
         <EmptyState icon={<Wallet size={32} />} title="Setează un buget" action={<Button onClick={() => openForm("nou")}>Setează bugetul lunar</Button>}>
           Spune cât vrei să cheltui pe lună (sau pe săptămână, la piață, la un anumit magazin) și urmărești cum te încadrezi, chiar din magazin.
         </EmptyState>
@@ -212,9 +223,11 @@ function BudgetScreen() {
                 </IconButton>
               </div>
               <div className="mt-3 flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
-                <span className={`text-[26px] font-medium leading-none tracking-tight ${s.over ? "text-accent" : "text-ink"}`}>{formatRon(s.spent)}</span>
+                <span className={`text-[26px] font-medium leading-none tracking-tight ${s.over ? "text-accent" : "text-ink"}`}>{formatRon(Math.abs(s.remaining))} <span className="text-sm font-normal">{s.over ? "peste buget" : "rămași"}</span></span>
                 <span className="whitespace-nowrap text-sm text-ink-2">din {formatRon(s.budget.amount)}</span>
               </div>
+              {s.budget.period === "lunar" && isCurrentMonth && !s.over && <p className="mt-2 text-sm text-ink-2">~{formatRon(dailyBudgetAvailable(s.remaining, today))}/zi disponibili până la finalul lunii</p>}
+              <p className="mt-1 text-xs text-ink-2">Cheltuit {formatRon(s.spent)}</p>
               <div className="mt-2">
                 {s === basketStatus && data.openEstimate > 0 ? (
                   <>
@@ -236,11 +249,13 @@ function BudgetScreen() {
                 {s.over ? `Ai depășit bugetul cu ${formatRon(-s.remaining)}.` : `Mai ai ${formatRon(s.remaining)}.`}
                 {s.projected != null && ` La ritmul actual ajungi la ${formatRon(s.projected)} la final de lună.`}
               </p>
-              {s.items_without_amount > 0 && <p className="mt-1 text-xs text-warn">{s.items_without_amount === 1 ? "Un produs cumpărat nu are preț" : `${count(s.items_without_amount, "produs", "produse")} cumpărate nu au preț`}: cheltuiala reală e mai mare.</p>}
+              {s.items_without_amount > 0 && <p className="mt-1 text-xs text-warn">{s.items_without_amount === 1 ? "Un produs cumpărat nu are preț" : `${count(s.items_without_amount, "produs", "produse")} cumpărate nu au preț`}. Totalurile declarate ale bonurilor sunt incluse.</p>}
             </Card>
           ))}
         </div>
       )}
+
+      {view.statuses.length > 0 && <Button className="mt-3" variant="ghost" icon={<Plus size={16} />} onClick={() => openForm("nou")}>Adaugă un buget</Button>}
 
       {data.openEstimate > 0 || data.openUnknown > 0 ? (
         // Toată caseta duce la liste (decizia proprietarului, 18 oct. 2026).
@@ -292,13 +307,15 @@ function BudgetScreen() {
           <p className="mt-0.5 text-xl font-medium">{view.avgTrip == null ? "—" : formatRon(view.avgTrip)}</p>
         </div>
       </Card>
-      {familyBudgetEnabled && <ManualExpenses month={month} />}
+      <SectionTitle>Tranzacții</SectionTitle>
+      <TransactionFeed month={month} records={data.spend} transactions={data.transactions} expenses={data.expenses} retailers={data.retailers} />
       {view.sources.length > 0 && (
         <p className="mt-2 text-sm text-ink-2 tabular">
           {view.sources.map((s) => `${s.source === "producator" ? "Producători" : SOURCE_LABELS[s.source]}: ${formatRon(s.amount)}`).join(" · ")}
         </p>
       )}
 
+      {data.hasHistory && <>
       <SectionTitle>Ultimele 6 luni</SectionTitle>
       <Card className="p-4">
         <ColumnChart bars={view.months} title="Cheltuieli pe lună" reference={mainStatus?.budget.period === "lunar" ? { value: mainStatus.budget.amount, label: "buget" } : undefined} />
@@ -309,17 +326,19 @@ function BudgetScreen() {
         <ColumnChart bars={view.weeks} title="Cheltuieli pe săptămână" />
       </Card>
 
-      <SectionTitle>Unde s-au dus banii</SectionTitle>
-      <div className="mb-3">
-        <LabeledSelect label="Împarte după" value={!familyBudgetEnabled && split === "familie" ? "categorii" : split} onChange={(event) => setSplit(event.target.value as typeof split)}>
-          {familyBudgetEnabled && <option value="familie">Categorii de cheltuieli</option>}
+      </>}
+
+      <SectionTitle>Categorii de cheltuieli</SectionTitle>
+      {data.hasHistory && <div className="mb-3">
+        <LabeledSelect label="Împarte după" value={split} onChange={(event) => setSplit(event.target.value as typeof split)}>
+          <option value="familie">Cele 12 categorii ale familiei</option>
           <option value="categorii">Categorii de produse</option>
           <option value="magazine">Magazine</option>
         </LabeledSelect>
-      </div>
+      </div>}
       <Card className="p-4">
-        {view.split.length === 0 ? <p className="text-sm text-ink-2">Nicio cheltuială în {formatMonth(month)}.</p> : <BarList bars={view.split} total={view.splitTotal} />}
-        {view.noAmount > 0 && <p className="mt-3 text-xs text-ink-2">{view.noAmount === 1 ? "Un produs fără preț nu apare" : `${view.noAmount} produse fără preț nu apar`} în împărțire.</p>}
+        {!data.hasHistory ? <CompactCategories bars={view.split} /> : view.split.length === 0 ? <p className="text-sm text-ink-2">Nicio cheltuială în {formatMonth(month)}.</p> : <BarList bars={view.split} total={view.splitTotal} />}
+        {view.noAmount > 0 && <p className="mt-3 text-xs text-ink-2">{view.noAmount === 1 ? "Un produs fără preț individual" : `${view.noAmount} produse fără preț individual`}. Diferențele față de totalul plătit sunt afișate separat.</p>}
       </Card>
       {data.diverse > 0 && (
         <Link href="/buget/diverse/" className="mt-2 inline-flex h-12 w-full items-center justify-center gap-2 rounded-full border border-line font-medium transition duration-150 ease-out hover:bg-surface-2 active:scale-[0.99]">
@@ -383,10 +402,8 @@ function BudgetScreen() {
               setFValue("");
             }}
           >
-            {familyBudgetEnabled && <>
-              <option value="familie">Toate cheltuielile familiei</option>
-              <option value="cheltuiala">O categorie de cheltuieli</option>
-            </>}
+            <option value="familie">Toate cheltuielile familiei</option>
+            <option value="cheltuiala">O categorie de cheltuieli</option>
             <option value="total">Toate cumpărăturile</option>
             <option value="alimente">Doar alimente</option>
             <option value="nealimentare">Casă și igienă (nealimentare)</option>
@@ -428,7 +445,7 @@ function BudgetScreen() {
             </LabeledSelect>
           )}
           <LabeledInput label="Nume (opțional)" value={fName} onChange={(e) => setFName(e.target.value)} maxLength={60} placeholder="ex. Piața din weekend" />
-          <p className="text-xs text-ink-2">Bugetul e suma planificată. {familyBudgetEnabled ? "Cheltuiala reală include plățile manuale și produsele bifate la cumpărături, potrivit categoriei alese." : "Cheltuiala reală vine doar din produsele bifate la cumpărături, cu prețul plătit."}</p>
+          <p className="text-xs text-ink-2">Bugetul e suma planificată. Cheltuiala reală include plățile manuale și produsele bifate la cumpărături, potrivit categoriei alese.</p>
         </div>
       </Sheet>
     </>

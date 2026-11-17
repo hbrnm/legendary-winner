@@ -72,9 +72,9 @@ function HistoryScreen() {
         const its = items.filter((i) => i.transaction_id === tx.id).sort((a, b) => (a.receipt_name || a.name).localeCompare(b.receipt_name || b.name, "ro"));
         const places = [...new Set(its.map((i) => (i.retailer_id ? (retailerName.get(i.retailer_id) ?? "") : i.source !== "supermarket" ? SOURCE_LABELS[i.source] : "")).filter(Boolean))];
         const name = tx.list_id ? (listName.get(tx.list_id) ?? "Listă ștearsă") : "Cumpărături";
-        const title = places.join(", ") || name;
+        const title = (tx.retailer_id ? retailerName.get(tx.retailer_id) : null) || places.join(", ") || name;
         // Lista apare sub titlu doar dacă există și nu e deja titlul.
-        return { tx, title, listNote: tx.list_id && title !== name ? name : null, items: its, total: sumMoney(its.map((i) => i.amount ?? 0)), missing: its.filter((i) => i.amount == null).length };
+        return { tx, title, listNote: tx.list_id && title !== name ? name : null, items: its, total: tx.declared_total ?? sumMoney(its.map((i) => i.amount ?? 0)), missing: its.filter((i) => i.amount == null).length };
       })
       .sort((a, b) => (b.tx.completed_at ?? b.tx.started_at).localeCompare(a.tx.completed_at ?? a.tx.started_at));
     return { trips, openTrips };
@@ -165,7 +165,7 @@ function HistoryScreen() {
           <div className="flex flex-col gap-1">
             <p className="mb-2 text-sm text-ink-2">
               {capitalizeFirst(formatLongDate(localDateOf(open.tx.completed_at ?? open.tx.started_at)))}
-              {open.listNote && ` · ${open.listNote}`}. Completează prețurile lipsă: intră în buget și în istoricul de prețuri.
+              {open.listNote && ` · ${open.listNote}`}. {open.tx.declared_total != null ? "Totalul declarat rămâne suma plătită. Prețurile individuale completează istoricul de prețuri." : "Completează prețurile lipsă: intră în buget și în istoricul de prețuri."}
             </p>
             <ul className="divide-y divide-line">
               {open.items.map((i) => (

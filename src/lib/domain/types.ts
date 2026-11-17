@@ -192,6 +192,9 @@ export interface ShoppingListItem extends SyncedRow {
 }
 
 export interface ShoppingTransaction extends SyncedRow {
+  /** Optional authoritative receipt total; absent preserves legacy item sums. */
+  declared_total?: number | null;
+  retailer_id?: string | null;
   list_id: string | null;
   list_cycle: number | null;
   started_at: ISODateTime;
@@ -242,7 +245,8 @@ export type RecipeCategoryId =
   | "salate"
   | "deserturi"
   | "rapide"
-  | "meal_prep";
+  | "meal_prep"
+  | "de_post";
 
 export interface Recipe extends SyncedRow {
   name: string;
@@ -344,6 +348,10 @@ export interface Budget extends SyncedRow {
 
 /** O plată făcută în afara fluxului listelor/bonurilor. */
 export interface ManualExpense extends SyncedRow {
+  place_name?: string | null;
+  retailer_id?: string | null;
+  source?: PurchaseSource | null;
+  note?: string | null;
   description: string;
   amount: number;
   category_id: ExpenseCategoryId;
@@ -353,6 +361,9 @@ export interface ManualExpense extends SyncedRow {
 /** Proiecție de citire comună; rândurile manuale nu se scriu în tabelele de cumpărături. */
 export type SpendRecord = ShoppingTransactionItem & {
   manual_expense_id?: string;
+  unallocated?: boolean;
+  place_name?: string | null;
+  note?: string | null;
   expense_category_id?: ExpenseCategoryId;
 };
 

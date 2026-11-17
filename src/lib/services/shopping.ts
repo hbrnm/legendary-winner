@@ -12,6 +12,7 @@ import { CONSUME_DAYS } from "@/data/consume-days";
 import { type AppCtx, UserError, w } from "./context";
 import { parse, parsePatch, zMoney, zName, zNote, zQuantity, zSource, zUnit } from "./validation";
 import { listItems, owned, productMap } from "./queries";
+import { normalize } from "@/lib/domain/search";
 import { variantField } from "./catalog";
 
 const listInput = z.object({
@@ -119,7 +120,7 @@ export type ItemInput = z.input<typeof itemInput>;
  * nebifat, cu unitate compatibilă, i se mărește cantitatea în loc să apară
  * de două ori. Cu o variantă aleasă, se unește doar cu linia aceleiași variante.
  */
-export async function addItem(ctx: AppCtx, listId: string, input: ItemInput): Promise<string> {
+export async function addItem(ctx: AppCtx, listId: string, input: ItemInput, opts: { merge?: boolean } = {}): Promise<string> {
   const v = parse(itemInput, input);
   const list = await ctx.db.shopping_lists.get(listId);
   if (!list || list.deleted_at) throw new UserError("Lista nu mai există.");
@@ -129,7 +130,7 @@ export async function addItem(ctx: AppCtx, listId: string, input: ItemInput): Pr
   if (!name) throw new UserError("Scrie numele produsului.");
   const variant = await variantField(ctx, v.variant_id, product?.id ?? null);
 
-  if (product) {
+  if (product && opts.merge !== false) {
     const existing = (await listItems(ctx.db, listId)).filter((i) => !variant.variant_id || i.variant_id === variant.variant_id);
     const quantity = v.quantity === undefined ? null : v.quantity;
     const unit = v.unit === undefined ? (quantity == null ? null : product.default_unit) : v.unit;
@@ -269,6 +270,7 @@ export async function addPurchaseToPantry(
   line: { name: string; quantity: number | null; unit: UnitCode | null; purchased_at: string },
   precomputedId?: string,
 ): Promise<void> {
+  if (line.quantity == null || line.unit == null) return;
   const purchasedOn = localDateOf(line.purchased_at);
   const consumeOn = autoConsumeOn(product.category_id, purchasedOn, CONSUME_DAYS);
   await upsertRow(
@@ -279,8 +281,8 @@ export async function addPurchaseToPantry(
       household_id: ctx.householdId,
       product_id: product.id,
       name: line.name,
-      quantity: line.quantity ?? 1,
-      unit: line.unit ?? product.default_unit,
+      quantity: line.quantity,
+      unit: line.unit,
       location_id: guessLocation(product.category_id),
       purchased_on: purchasedOn,
       expires_on: null,
@@ -297,6 +299,7 @@ export interface FinalizeResult {
   items: number;
   without_price: number;
   added_to_pantry: number;
+  pending_pantry: number;
 }
 
 /**
@@ -308,10 +311,16 @@ export interface FinalizeResult {
  * Id-urile sunt deterministe (listă + tură), deci dacă doi membri finalizează
  * aceeași tură de pe telefoane diferite, cheltuiala nu se dublează.
  */
-export async function finalizeShopping(ctx: AppCtx, listId: string, opts: { addToPantry: boolean }): Promise<FinalizeResult> {
+export async function finalizeShopping(ctx: AppCtx, listId: string, opts: { addToPantry: boolean; totalPaid?: number | null; retailerId?: string | null }): Promise<FinalizeResult> {
+  if (opts.totalPaid != null) parse(zMoney, opts.totalPaid);
+  if (opts.retailerId) {
+    const place = await ctx.db.retailers.get(opts.retailerId);
+    if (!place || place.deleted_at || (place.household_id !== null && place.household_id !== ctx.householdId)) throw new UserError("Locul nu este disponibil în această gospodărie.");
+  }
   const list = await ctx.db.shopping_lists.get(listId);
-  if (!list || list.deleted_at) throw new UserError("Lista nu mai există.");
-  const checked = (await listItems(ctx.db, listId)).filter((i) => i.checked);
+  if (!list || list.deleted_at || list.household_id !== ctx.householdId || list.archived_at) throw new UserError("Lista nu mai există.");
+  const allItems = await listItems(ctx.db, listId);
+  const checked = allItems.filter((i) => i.checked);
   if (checked.length === 0) throw new UserError("Bifează întâi produsele pe care le-ai cumpărat.");
   const products = await productMap(ctx.db, ctx.householdId);
   const categories = new Map((await ctx.db.product_categories.toArray()).map((c) => [c.id, c]));
@@ -324,11 +333,24 @@ export async function finalizeShopping(ctx: AppCtx, listId: string, opts: { addT
     checked.map(async (item) => {
       const txItemId = await stableId("tura-produs", txId, item.id);
       const purchasedAt = item.checked_at ?? nowIso();
-      const product = item.product_id ? products.get(item.product_id) : undefined;
-      const priceId = product && item.actual_price != null ? await stableId("pret", txItemId) : null;
-      const shouldAddToPantry = opts.addToPantry && product && categories.get(product.category_id)?.is_food !== false;
+      let product = item.product_id ? products.get(item.product_id) : undefined;
+      let createProduct = false;
+      if (!product && !item.product_id && opts.addToPantry && item.quantity != null && item.unit != null && categories.get(item.category_id)?.is_food === true) {
+        product = [...products.values()].find(p => normalize(p.name) === normalize(item.name));
+        if (!product) {
+          const id = await stableId("cumparat-produs", ctx.householdId, normalize(item.name));
+          product = { id, household_id: ctx.householdId, name: item.name, category_id: item.category_id,
+            default_unit: item.unit, subcategory: null, brand_id: null, ean: null, season_months: [], is_traditional: false,
+            is_market_typical: item.source === "piata" || item.source === "producator", allergens: [], piece_grams: null, grams_per_ml: null,
+            created_at: nowIso(), updated_at: nowIso(), deleted_at: null };
+          products.set(id, product); createProduct = true;
+        }
+      }
+      const priceId = product && item.actual_price != null && item.quantity != null && Number.isFinite(item.quantity) && item.quantity > 0 && zUnit.safeParse(item.unit).success ? await stableId("pret", txItemId) : null;
+      const pantryEligible = opts.addToPantry && categories.get(product?.category_id ?? item.category_id)?.is_food === true;
+      const shouldAddToPantry = pantryEligible && product && item.quantity != null && item.unit != null;
       const pantryItemId = shouldAddToPantry ? await stableId("camara", txItemId) : null;
-      return { item, txItemId, purchasedAt, product, priceId, shouldAddToPantry, pantryItemId };
+      return { item, txItemId, purchasedAt, product, priceId, shouldAddToPantry, pantryItemId, createProduct, pantryEligible };
     }),
   );
 
@@ -339,6 +361,7 @@ export async function finalizeShopping(ctx: AppCtx, listId: string, opts: { addT
   await ctx.db.transaction(
     "rw",
     [
+      ctx.db.products,
       ctx.db.shopping_transactions,
       ctx.db.shopping_transaction_items,
       ctx.db.product_prices,
@@ -348,14 +371,17 @@ export async function finalizeShopping(ctx: AppCtx, listId: string, opts: { addT
       ctx.db.outbox,
     ],
     async () => {
+      const current = await ctx.db.shopping_lists.get(listId);
+      if (!current || current.deleted_at || current.archived_at || current.cycle !== list.cycle || await ctx.db.shopping_transactions.get(txId)) throw new UserError("Tura a fost deja finalizată.");
       await upsertRow(
         ctx.db,
         "shopping_transactions",
-        { id: txId, household_id: ctx.householdId, list_id: listId, list_cycle: list.cycle, started_at: startedAt, completed_at: nowIso(), note: null },
+        { id: txId, household_id: ctx.householdId, list_id: listId, list_cycle: list.cycle, started_at: startedAt, completed_at: nowIso(), note: null, ...(opts.totalPaid != null ? { declared_total: opts.totalPaid } : {}), ...(opts.retailerId ? { retailer_id: opts.retailerId } : {}) },
         w(ctx),
       );
 
       for (const d of itemsData) {
+        if (d.createProduct && d.product) await upsertRow(ctx.db, "products", d.product, w(ctx));
         await upsertRow(
           ctx.db,
           "shopping_transaction_items",
@@ -364,13 +390,13 @@ export async function finalizeShopping(ctx: AppCtx, listId: string, opts: { addT
             household_id: ctx.householdId,
             transaction_id: txId,
             list_item_id: d.item.id,
-            product_id: d.item.product_id,
+            product_id: d.product?.id ?? d.item.product_id,
             name: d.item.name,
             quantity: d.item.quantity,
             unit: d.item.unit,
             category_id: d.item.category_id,
             amount: d.item.actual_price,
-            retailer_id: d.item.retailer_id,
+            retailer_id: d.item.retailer_id ?? opts.retailerId ?? null,
             source: d.item.source,
             purchased_at: d.purchasedAt,
             ...(d.item.variant_id ? { variant_id: d.item.variant_id } : {}),
@@ -387,14 +413,14 @@ export async function finalizeShopping(ctx: AppCtx, listId: string, opts: { addT
               id: d.priceId,
               household_id: ctx.householdId,
               product_id: d.product.id,
-              retailer_id: d.item.retailer_id,
+              retailer_id: d.item.retailer_id ?? opts.retailerId ?? null,
               source: d.item.source,
               amount: d.item.actual_price,
               currency: "RON",
-              quantity: d.item.quantity ?? 1,
-              unit: d.item.unit ?? d.product.default_unit,
+              quantity: d.item.quantity!,
+              unit: d.item.unit!,
               price_type: "platit",
-              confidence: d.item.quantity == null ? "medie" : "ridicata",
+              confidence: "ridicata",
               observed_on: localDateOf(d.purchasedAt),
               transaction_item_id: d.txItemId,
               ...(d.item.variant_id ? { variant_id: d.item.variant_id } : {}),
@@ -415,21 +441,24 @@ export async function finalizeShopping(ctx: AppCtx, listId: string, opts: { addT
         }
       }
 
-      await updateRow(ctx.db, "shopping_lists", listId, list.is_recurring ? { cycle: list.cycle + 1 } : { cycle: list.cycle + 1, archived_at: nowIso() }, w(ctx));
+      await updateRow(ctx.db, "shopping_lists", listId, list.is_recurring || allItems.some(i => !i.checked) ? { cycle: list.cycle + 1 } : { cycle: list.cycle + 1, archived_at: nowIso() }, w(ctx));
       if (list.is_recurring) {
         for (const item of checked) {
           await updateRow(ctx.db, "shopping_list_items", item.id, { checked: false, checked_at: null, checked_by: null, actual_price: null, ...(item.receipt_name ? { receipt_name: null } : {}) }, w(ctx));
         }
+      } else if (allItems.some(i => !i.checked)) {
+        for (const item of checked) await softDelete(ctx.db, "shopping_list_items", item.id, w(ctx));
       }
     },
   );
 
   return {
     transaction_id: txId,
-    total: sumMoney(checked.map((i) => i.actual_price ?? 0)),
+    total: opts.totalPaid ?? sumMoney(checked.map((i) => i.actual_price ?? 0)),
     items: checked.length,
     without_price: checked.filter((i) => i.actual_price == null).length,
     added_to_pantry: added,
+    pending_pantry: itemsData.filter(d => d.pantryEligible && !d.shouldAddToPantry).length,
   };
 }
 
@@ -449,9 +478,8 @@ export async function setTransactionItemAmount(ctx: AppCtx, id: string, amount: 
   if (!item || item.deleted_at) throw new UserError("Produsul nu mai există în istoric.");
   await updateRow(ctx.db, "shopping_transaction_items", id, { amount }, w(ctx));
   if (!item.product_id) return;
-  const product = await ctx.db.products.get(item.product_id);
   const priceId = await stableId("pret", id);
-  if (amount == null) {
+  if (amount == null || item.quantity == null || !Number.isFinite(item.quantity) || item.quantity <= 0 || !zUnit.safeParse(item.unit).success) {
     if (await ctx.db.product_prices.get(priceId)) await softDelete(ctx.db, "product_prices", priceId, w(ctx));
     return;
   }
@@ -466,10 +494,10 @@ export async function setTransactionItemAmount(ctx: AppCtx, id: string, amount: 
       source: item.source,
       amount,
       currency: "RON",
-      quantity: item.quantity ?? 1,
-      unit: item.unit ?? product?.default_unit ?? "buc",
+      quantity: item.quantity,
+      unit: item.unit!,
       price_type: "platit",
-      confidence: item.quantity == null ? "medie" : "ridicata",
+      confidence: "ridicata",
       observed_on: localDateOf(item.purchased_at),
       transaction_item_id: id,
       ...(item.variant_id ? { variant_id: item.variant_id } : {}),

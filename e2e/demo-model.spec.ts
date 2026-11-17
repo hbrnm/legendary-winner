@@ -80,19 +80,25 @@ async function clipped(page: Page, selector: string) {
   return page.locator(selector).evaluateAll((els) => els.filter((el) => el.scrollWidth > el.clientWidth + 1).map((el) => el.textContent));
 }
 
-test("Acasă, în gospodăria model: magazinele la cheltuieli, eticheta de expirare, inițiala rețetei", async ({ page }) => {
+test("Acasă, în gospodăria model: ultima tranzacție și rezumatul stocului păstrează detaliile accesibile", async ({ page }) => {
   await startModel(page);
-  // Cheltuieli recente: magazinul (sau piața) pe rândul principal, nu „Cumpărături” repetat.
-  const recent = page.locator("main a[href='/cumparaturi/istoric/']").filter({ hasText: /RON/ });
+  // Home keeps one latest transaction; the complete register retains all three trips.
+  await expect(page.locator("main p").filter({ hasText: /^Kaufland ·/ })).toHaveCount(1);
+  await expect(page.getByRole("link", { name: "Cămară 14 în stoc 1 expiră curând" })).toBeVisible();
+  await page.getByRole("link", { name: "Istoric →" }).click();
+  const recent = page.locator("main a[href^='/cumparaturi/istoric']").filter({ hasText: /RON/ });
   await expect(recent).toHaveCount(3);
   await expect(recent.nth(0)).toContainText("Kaufland");
   await expect(recent.nth(1)).toContainText("Piață");
   await expect(recent.nth(2)).toContainText("Lidl");
-  // Expiră curând: termenul ca ștampilă lângă produs.
+  await page.goto("/camara/");
   await expect(page.getByRole("listitem").filter({ hasText: "Iaurt natural" })).toContainText(/în 2 zile/i);
-  // Rețetele fără fotografie au inițiala în locul pictogramei.
-  const avatars = page.getByTestId("avatar-reteta");
-  for (const el of await avatars.all()) expect(await el.textContent()).toMatch(/^\p{Lu}$/u);
+  await page.goto("/retete/");
+  await expect(page.getByTestId("avatar-reteta")).toHaveCount(0);
+  // A recipe without an approved photo still has its full text and link.
+  const noPhoto = page.getByRole("link", { name: /^Omletă cu legume/ });
+  await expect(noPhoto).toBeVisible();
+  await expect(noPhoto.locator("img")).toHaveCount(0);
 });
 
 test("adăugarea rapidă pune produsele terminate în cămară sub titlul lor", async ({ page }) => {
@@ -110,7 +116,7 @@ test("adăugarea rapidă pune produsele terminate în cămară sub titlul lor", 
 
 test("istoricul ca registru: magazinul pe rândul principal, lista dedesubt", async ({ page }) => {
   await startModel(page, "/cumparaturi/istoric/");
-  // Aceleași trei cumpărături, în aceeași ordine, ca la Cheltuieli recente pe Acasă.
+  // The register preserves all three completed trips in date order.
   const trips = page.locator("main li button");
   await expect(trips.nth(0).locator("span").first()).toHaveText(/^Kaufland/);
   await expect(trips.nth(1).locator("span").first()).toHaveText(/^Piață/);
@@ -207,9 +213,14 @@ for (const scheme of ["light", "dark"] as const) {
     await page.keyboard.press("Escape");
 
     await page.goto("/retete/");
-    await expect(page.getByTestId("avatar-reteta").first()).toBeVisible();
-    const avatar = await page.getByTestId("avatar-reteta").first().boundingBox();
-    expect([avatar?.width, avatar?.height]).toEqual([64, 64]);
+    await expect(page.getByTestId("avatar-reteta")).toHaveCount(0);
+    const noPhoto = page.getByRole("link", { name: /^Omletă cu legume/ });
+    await expect(noPhoto).toBeVisible();
+    await expect(noPhoto.locator("img")).toHaveCount(0);
+    const photo = page.getByRole("link", { name: /^Ciorbă de legume/ }).locator("img");
+    await expect(photo).toBeVisible();
+    const bounds = await photo.boundingBox();
+    expect([bounds?.width, bounds?.height]).toEqual([64, 64]);
   });
 }
 

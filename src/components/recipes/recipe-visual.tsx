@@ -15,6 +15,7 @@ export const RECIPE_CATEGORY_LABELS: Record<RecipeCategoryId, string> = {
   carne: "Carne",
   peste: "Pește",
   vegetariene: "Vegetariene",
+  de_post: "De post",
   salate: "Salate",
   deserturi: "Deserturi",
   rapide: "Rapide",
@@ -45,25 +46,19 @@ export function recipeInitial(name: string): string {
   return name.trim().charAt(0).toLocaleUpperCase("ro-RO") || "?";
 }
 
-/**
- * În liste, o rețetă fără fotografie primește un pătrat uniform de 64 px (48 px
- * mic), ca rândurile să rămână aliniate (cererea proprietarului, 16 oct. 2026),
- * cu inițiala numelui în serif pe kraft, în locul pictogramei categoriei
- * (decizia proprietarului, 18 oct. 2026). Pe pagina rețetei rămâne fără imagine.
- */
+/** Kept for callers using the old avatar API; no placeholder without a photo. */
 export function RecipeAvatar({ recipe, size = "md" }: { recipe: Pick<Recipe, "name">; size?: "sm" | "md" }) {
-  const dims = size === "sm" ? "h-12 w-12 text-2xl" : "h-16 w-16 text-3xl";
-  return (
-    <span data-testid="avatar-reteta" aria-hidden className={`${dims} inline-flex shrink-0 items-center justify-center rounded-md border border-line bg-surface-2 font-sans font-medium text-ink-2`}>
-      {recipeInitial(recipe.name)}
-    </span>
-  );
+  void recipe;
+  void size;
+  return null;
 }
 
 /** Dacă fotografia rețetei se poate afișa (există și nu e o poză retrasă din catalog). */
 export function hasRecipeVisual(recipe: Pick<Recipe, "image_url">): boolean {
   if (!recipe.image_url) return false;
-  return !(recipe.image_url.startsWith("/retete/") && !catalogPhotoByUrl(recipe.image_url));
+  if (!recipe.image_url.startsWith("/retete/")) return true;
+  const photo = catalogPhotoByUrl(recipe.image_url);
+  return !!photo && photo.source !== "ai";
 }
 
 /**

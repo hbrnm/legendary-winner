@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 import { describe, expect, it } from "vitest";
 import { render } from "@testing-library/react";
-import { ColumnChart } from "./charts";
+import { BarList, ColumnChart } from "./charts";
 import { DualBudgetBar } from "@/components/ui/misc";
 
 const bars = (values: number[]) => values.map((value, i) => ({ key: String(i), label: `l${i}`, value }));
@@ -37,5 +37,16 @@ describe("DualBudgetBar", () => {
     const spent = container.querySelector<HTMLElement>("[data-part=cheltuit]")!;
     expect(spent.className).toContain("bg-accent");
     expect(spent.style.width).toBe("75%");
+  });
+});
+
+
+describe("BarList", () => {
+  it("keeps negative unallocated adjustments visible without a negative CSS width", () => {
+    const { container, getByText } = render(<BarList bars={[{ key: "food", label: "Alimentație", value: 20 }, { key: "other", label: "Alte cheltuieli", value: -8 }]} total={12} />);
+    expect(getByText("Alte cheltuieli")).toBeTruthy();
+    const bars = container.querySelectorAll<HTMLElement>("li > div:last-child > div");
+    expect(bars[1].style.width).toBe("0%");
+    expect(container.textContent).toContain("-8");
   });
 });

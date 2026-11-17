@@ -1,5 +1,6 @@
 import type { CamaraDB, SyncedTables, TableName } from "@/lib/db/database";
 import type { Product, ShoppingListItem, ShoppingTransactionItem, SpendRecord } from "@/lib/domain/types";
+import { roundMoney, sumMoney } from "@/lib/domain/money";
 import { manualExpenseRecord } from "@/lib/domain/budget";
 import { buildPriceIndex, type PriceIndex } from "@/lib/domain/pricing";
 import { productUnitsOf } from "@/lib/domain/quantities";
@@ -41,14 +42,16 @@ export async function listItems(db: CamaraDB, listId: string): Promise<ShoppingL
  * apare o singură dată: după finalizare, lista se arhivează sau se golește
  * de bifări, deci nu mai e numărat ca „în curs”.
  */
-export async function spendRecords(db: CamaraDB, householdId: string): Promise<ShoppingTransactionItem[]> {
+export async function spendRecords(db: CamaraDB, householdId: string): Promise<SpendRecord[]> {
   const [finalized, transactionsList, openLists] = await Promise.all([
     owned(db, "shopping_transaction_items", householdId),
     owned(db, "shopping_transactions", householdId),
     owned(db, "shopping_lists", householdId),
   ]);
   const transactions = new Map(transactionsList.map((t) => [t.id, t]));
-  const done = finalized.filter((i) => transactions.has(i.transaction_id));
+  // Finalized lines and the authoritative-total delta share the trip date.
+  // Keep original row/price observation timestamps intact in storage.
+  const done = finalized.filter((i) => transactions.has(i.transaction_id)).map(i => ({ ...i, purchased_at: transactions.get(i.transaction_id)?.completed_at ?? i.purchased_at }));
   const activeLists = openLists.filter((l) => !l.archived_at);
 
   const listLastCompleted = new Map<string, string>();
@@ -71,7 +74,7 @@ export async function spendRecords(db: CamaraDB, householdId: string): Promise<S
       if (!item.checked) continue;
       // Prevenire F05: dacă bifarea a avut loc înainte de finalizarea turei anterioare a listei,
       // produsul este deja inclus în tranzacția înregistrată și nu trebuie numărat dublu ca „în curs”.
-      if (lastDoneAt && item.checked_at && item.checked_at <= lastDoneAt) continue;
+      if (lastDoneAt && item.checked_at && item.checked_at <= lastDoneAt && done.some(d => d.list_item_id === item.id && transactions.get(d.transaction_id)?.list_cycle === list.cycle)) continue;
       pending.push({
         id: `in-curs:${item.id}`,
         household_id: householdId,
@@ -93,7 +96,16 @@ export async function spendRecords(db: CamaraDB, householdId: string): Promise<S
       });
     }
   }
-  return [...done, ...pending];
+  const adjustments: SpendRecord[] = [];
+  for (const t of transactionsList) {
+    if (t.declared_total == null || !t.completed_at) continue;
+    const delta = roundMoney(t.declared_total - sumMoney(done.filter(i => i.transaction_id === t.id).map(i => i.amount ?? 0)));
+    if (delta === 0) continue;
+    adjustments.push({ ...t, id: `nealocat:${t.id}`, transaction_id: t.id, list_item_id: null, product_id: null,
+      name: "Diferență nealocată", quantity: null, unit: null, category_id: "nealocat", amount: delta,
+      retailer_id: t.retailer_id ?? null, source: "alta", purchased_at: t.completed_at, unallocated: true });
+  }
+  return [...done, ...pending, ...adjustments];
 }
 
 /** Totalul familiei; plățile manuale sunt proiectate numai la citire. */

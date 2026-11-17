@@ -36,6 +36,10 @@ test("import din text: ciorna, ingredientul de ales, produsul nou, salvarea", as
 
   // Nu se salvează cu un ingredient fără produs.
   await page.getByRole("button", { name: "Cină" }).click();
+  // Ingredientele vegetale nu etichetează automat rețeta drept „de post”.
+  const postTag = page.getByRole("button", { name: "De post", exact: true });
+  await expect(postTag).toHaveAttribute("aria-pressed", "false");
+  await postTag.click();
   await page.getByRole("button", { name: "Salvează rețeta" }).click();
   await expect(page.getByText("Alege produsul pentru fiecare ingredient sau scoate-l din rețetă.")).toBeVisible();
 
@@ -52,6 +56,7 @@ test("import din text: ciorna, ingredientul de ales, produsul nou, salvarea", as
   await expect(page.getByRole("heading", { name: "Ciorbă rapidă de legume" })).toBeVisible();
   await expect(page.getByText("Pastă de chipotle", { exact: true })).toBeVisible();
   await expect(page.getByText("Fierbe totul 30 de minute.")).toBeVisible();
+  await expect(page.getByText("De post", { exact: true })).toBeVisible();
 });
 
 test("partajare (Android): textul ajunge la „Text”; linkul, fără cont, rămâne în câmp", async ({ page }) => {

@@ -1,8 +1,8 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import Link from "next/link";
-import { Minus, Plus, Search, ShoppingBasket, Trash2, Warehouse } from "lucide-react";
+import { Minus, MoreHorizontal, Plus, Search, ShoppingBasket, Trash2, Warehouse } from "lucide-react";
 import { AppShell } from "@/components/app/shell";
 import { useAction, useData } from "@/components/app/hooks";
 import { ProductSearch } from "@/components/shopping/product-search";
@@ -14,6 +14,7 @@ import { useToast } from "@/components/ui/toast";
 import { owned, visible } from "@/lib/services/queries";
 import { addPantryItem, adjustPantry, removePantryItem, updatePantryItem } from "@/lib/services/kitchen";
 import { addItem, createList } from "@/lib/services/shopping";
+import { finishPantryToList } from "@/lib/services/pantry-exceptions";
 import { expiringSoon, expiryState } from "@/lib/domain/pantry";
 import { recipesUsingProducts } from "@/lib/domain/recipes";
 import { addDays, daysBetween, formatShortDate, toISODate } from "@/lib/domain/dates";
@@ -80,6 +81,9 @@ function PantryScreen() {
   const today = toISODate(now());
   const [location, setLocation] = useState<string | null>(null);
   const [query, setQuery] = useState("");
+  const [adding, setAdding] = useState(false);
+  const [revealed, setRevealed] = useState<string | null>(null);
+  const touchStart = useRef<{ id: string; x: number; y: number } | null>(null);
   const [draft, setDraft] = useState<Draft | null>(null);
   const [showEmpty, setShowEmpty] = useState(false);
 
@@ -177,7 +181,11 @@ function PantryScreen() {
 
   return (
     <>
-      <PageHeader title="Cămară și frigider" subtitle={`${data.items.filter((i) => i.quantity > 0).length} produse acasă`} />
+      <PageHeader title="Cămară și frigider" subtitle={`${data.items.filter((i) => i.quantity > 0).length} produse acasă`} action={<Button icon={<Plus size={18} />} onClick={() => setAdding(true)}>Adaugă în cămară</Button>} />
+      <div className="mb-4 flex items-center gap-2 rounded-xl bg-surface-2 px-4">
+        <Search size={18} className="text-ink-3" aria-hidden />
+        <input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Caută în cămară" aria-label="Caută în cămară" className="h-12 min-w-0 flex-1 bg-transparent focus:outline-none" />
+      </div>
 
       {data.soon.length > 0 && (
         // Etichetă de borcan: chenar punctat terracotta, ca „Expiră curând” de pe Acasă.
@@ -199,7 +207,6 @@ function PantryScreen() {
         </section>
       )}
 
-      <ProductSearch placeholder="Adaugă în cămară: ex. 1 kg făină" onPick={({ product, parsed }) => startAdd(product, parsed.text, parsed.quantity, parsed.unit)} />
 
       {/* Cele 4 filtre principale încap pe un rând de la 360 px; celelalte locuri apar dedesubt doar dacă au produse. */}
       <div role="group" aria-label="Unde caut" className="mt-3 grid grid-cols-4 gap-1.5">
@@ -221,12 +228,6 @@ function PantryScreen() {
         </div>
       )}
 
-      {data.items.length > 0 && (
-        <div className="mt-3 flex items-center gap-2 rounded-full border border-transparent bg-surface-container-high px-4 transition-colors duration-150 ease-out focus-within:border-brand focus-within:bg-surface">
-          <Search size={16} className="text-ink-3" />
-          <input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Caută în cămară" aria-label="Caută în cămară" className="h-12 min-w-0 flex-1 bg-transparent focus:outline-none" />
-        </div>
-      )}
 
       {data.items.length === 0 ? (
         <div className="mt-4">
@@ -242,10 +243,15 @@ function PantryScreen() {
             return (
               <section key={loc} className="mt-5">
                 <SectionTitle>{locName.get(loc) ?? "Alt loc"}</SectionTitle>
-                <ul className="divide-y divide-line overflow-hidden rounded-[28px] bg-surface">
+                <ul className="divide-y divide-line overflow-hidden rounded-[20px] bg-surface">
                   {items.map((i) => (
-                    <li key={i.id} className="flex items-center gap-2 py-1.5 pl-4 pr-2">
-                      <button type="button" onClick={() => startEdit(i)} className="min-w-0 flex-1 py-1 text-left">
+                    <li key={i.id}
+                      className="touch-pan-y"
+                      onTouchStart={(e) => { const point = e.touches[0]; touchStart.current = { id: i.id, x: point.clientX, y: point.clientY }; }}
+                      onTouchEnd={(e) => { const start = touchStart.current; const point = e.changedTouches[0]; if (start?.id === i.id && start.x - point.clientX > 60 && Math.abs(start.y - point.clientY) < 40) setRevealed(i.id); touchStart.current = null; }}
+                    >
+                      <div className="flex items-center gap-1 py-1.5 pl-4 pr-2">
+                      <button type="button" onClick={() => startEdit(i)} className="min-h-12 min-w-0 flex-1 py-1 text-left">
                         <span className={`block text-[15px] ${i.quantity <= 0 ? "text-ink-3 line-through" : ""}`}>{i.name}</span>
                         <span className="flex flex-wrap items-center gap-2 text-xs text-ink-2">
                           <span>{formatQuantity(i.quantity, i.unit)}</span>
@@ -258,6 +264,12 @@ function PantryScreen() {
                       <IconButton label={`Adaugă ${i.name}`} onClick={() => run((ctx) => adjustPantry(ctx, i.id, STEP[i.unit] ?? 1))}>
                         <Plus size={18} />
                       </IconButton>
+                      <IconButton label={`Acțiuni pentru ${i.name}`} aria-expanded={revealed === i.id} onClick={() => setRevealed(revealed === i.id ? null : i.id)}><MoreHorizontal size={18} /></IconButton>
+                      </div>
+                      {revealed === i.id && <div className="flex flex-wrap justify-end gap-2 border-t border-line bg-surface-2 p-2">
+                        <Button variant="secondary" disabled={busy} onClick={async () => { const result = await run((ctx) => finishPantryToList(ctx, i.id)); if (result) { setRevealed(null); toast(`„${i.name}” s-a terminat. L-am pus pe lista de cumpărături.`); } }}>S-a terminat → Pe listă</Button>
+                        <Button variant="ghost" disabled={busy} onClick={() => void toShoppingList(i)}>Pune pe listă</Button>
+                      </div>}
                     </li>
                   ))}
                 </ul>
@@ -272,12 +284,15 @@ function PantryScreen() {
         </>
       )}
 
+      <Sheet open={adding} onClose={() => setAdding(false)} title="Alege un produs">
+        <ProductSearch inline autoFocus placeholder="Adaugă: ex. 1 kg făină" onPick={({ product, parsed }) => { setAdding(false); startAdd(product, parsed.text, parsed.quantity, parsed.unit); }} />
+      </Sheet>
       <Sheet
         open={draft !== null}
         onClose={() => setDraft(null)}
         title={draft?.id ? draft.name : "Adaugă în cămară"}
         footer={
-          <div className="flex gap-2">
+          <div className="flex flex-wrap gap-2">
             {draft?.id && (
               <Button
                 variant="danger"

@@ -42,8 +42,8 @@ test("varianta pusă de un membru ajunge la celălalt, cu prețul pe kg", async 
   await openBasket(dana);
   await expect(dana.getByText("1 pachet · Sissi, Șuncă de pui, 300 g")).toBeVisible();
   await expect(dana.getByRole("dialog")).toHaveCount(0);
-  await dana.getByRole("button", { name: "Gata", exact: true }).click();
-  await dana.getByRole("button", { name: "Gata, am terminat" }).click();
+  await dana.getByRole("button", { name: "Am plătit", exact: true }).click();
+  await dana.getByRole("button", { name: "Finalizează cumpărăturile" }).click();
   // Finalizarea arhivează lista; prețul efectiv este verificat mai jos,
   // pe dispozitivul celuilalt membru, fără a depinde de textul notificării.
   await expect(dana).toHaveURL(/\/cumparaturi\/$/);

@@ -35,6 +35,8 @@ const TABLE_SCHEMAS: Partial<Record<TableName, z.ZodTypeAny>> = {
   }),
   shopping_transactions: z.object({
     started_at: z.string().min(1),
+    declared_total: expenseInput.shape.amount.or(z.literal(0)).nullable().optional(),
+    retailer_id: z.string().min(1).nullable().optional(),
   }),
   shopping_transaction_items: z.object({
     transaction_id: z.string().min(1),

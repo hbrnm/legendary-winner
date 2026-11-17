@@ -121,7 +121,7 @@ export function BarList({ bars, total }: { bars: Bar[]; total: number }) {
             </span>
           </div>
           <div className="h-2 rounded-full bg-surface-2">
-            <div className="h-full rounded-r rounded-l-sm bg-brand" style={{ width: `${(b.value / max) * 100}%` }} />
+            <div className="h-full rounded-r rounded-l-sm bg-brand" style={{ width: `${Math.max(0, (b.value / max) * 100)}%` }} />
           </div>
         </li>
       ))}

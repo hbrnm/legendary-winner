@@ -234,12 +234,12 @@ function RecipeScreen() {
           <span className="text-xs">Planifică</span>
         </Button>
         <Button variant="secondary" onClick={() => setCookOpen(true)} className="flex-col !h-auto py-2.5" icon={<ChefHat size={20} />}>
-          <span className="text-xs">Am gătit-o</span>
+          <span className="text-xs">Am gătit</span>
         </Button>
       </div>
 
       <SectionTitle>Ingrediente</SectionTitle>
-      <ul className="divide-y divide-line overflow-hidden rounded-[28px] bg-surface">
+      <ul className="divide-y divide-line overflow-hidden rounded-[20px] bg-surface">
         {view.scaled.map((i) => {
           const p = data.products.get(i.product_id);
           const have = view.available.has(i.product_id);
@@ -359,10 +359,18 @@ function RecipeScreen() {
               if (res) toast(res.updated ? `Am scăzut ${res.updated} ${res.updated === 1 ? "produs" : "produse"} din cămară.` : "Nimic de scăzut: ingredientele nu erau în cămară.");
             }}
           >
-            Scade ingredientele din cămară
+            Am gătit
           </Button>
         }
       >
+        <div className="mb-4 flex items-center justify-between gap-3">
+          <span className="text-sm font-medium">Porții gătite</span>
+          <div className="flex items-center gap-3">
+            <Button variant="secondary" aria-label="Mai puține porții gătite" disabled={servings <= 1} onClick={() => setServings(Math.max(1, servings - 1))}>−</Button>
+            <span className="min-w-6 text-center tabular-nums">{servings}</span>
+            <Button variant="secondary" aria-label="Mai multe porții gătite" disabled={servings >= 50} onClick={() => setServings(Math.min(50, servings + 1))}>+</Button>
+          </div>
+        </div>
         <p className="text-[15px] text-ink-2">
           Scădem din cămară cantitățile pentru {servings} porții, începând cu produsele care expiră primele. Ce nu e în cămară rămâne neschimbat.
         </p>

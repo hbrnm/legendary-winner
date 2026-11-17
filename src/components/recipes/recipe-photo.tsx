@@ -10,7 +10,7 @@ import { ConfirmSheet } from "@/components/ui/sheet";
 import { useToast } from "@/components/ui/toast";
 import { activeRecipePhoto, addRecipePhoto, recipePhotoBlob, removeRecipePhoto } from "@/lib/services/recipe-photos";
 import { resizePhoto } from "@/lib/photo-resize";
-import { hasRecipeVisual, RecipeAvatar, RecipePhotoCredit, RecipeVisual, visualDims, type RecipeVisualSize } from "./recipe-visual";
+import { RecipePhotoCredit, RecipeVisual, visualDims, type RecipeVisualSize } from "./recipe-visual";
 
 // Fotografia gospodăriei la o rețetă (.tasks/008, etapa 5): are întâietate
 // față de cea din catalog. Textele aprobate de proprietar, 15 oct. 2026.
@@ -50,13 +50,13 @@ export function useHouseholdPhoto(recipeId: string): { photo: RecipePhoto | null
 
 /**
  * Imaginea rețetei în liste și pe pagina ei: a gospodăriei, altfel cea din
- * catalog; altfel, în liste (`avatar`), pătratul cu inițiala rețetei.
+ * catalog. Fără fotografie nu afișează un substitut.
  */
 export function RecipeImage({ recipe, size = "md", avatar = false }: { recipe: Pick<Recipe, "id" | "image_url"> & Partial<Pick<Recipe, "name">>; size?: RecipeVisualSize; avatar?: boolean }) {
   const { src } = useHouseholdPhoto(recipe.id);
   // eslint-disable-next-line @next/next/no-img-element
   if (src) return <img src={src} alt="" className={`${visualDims(size)} shrink-0 object-cover`} />;
-  if (avatar && size !== "lg" && !hasRecipeVisual(recipe)) return <RecipeAvatar recipe={{ name: recipe.name ?? "" }} size={size} />;
+  void avatar;
   return <RecipeVisual recipe={recipe} size={size} />;
 }
 

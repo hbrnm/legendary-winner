@@ -73,6 +73,14 @@ describe("prepareImport", () => {
     expect(ingredients[0].product_id).toBeNull();
   });
 
+  it("salvează și permite scoaterea etichetei explicite de post", async () => {
+    const base = { name: "Supă de post", categories: ["supe_ciorbe" as const, "de_post" as const], servings: 4, prep_minutes: 10, cook_minutes: 20, difficulty: "usor" as const, ingredients: [{ product_id: "sare", quantity: null, unit: null }], steps: ["Fierbe."] };
+    const id = await saveRecipe(ctx, base);
+    expect((await ctx.db.recipes.get(id))?.categories).toContain("de_post");
+    await saveRecipe(ctx, { ...base, categories: ["supe_ciorbe"] }, { id });
+    expect((await ctx.db.recipes.get(id))?.categories).toEqual(["supe_ciorbe"]);
+  });
+
   it("rețeta importată se salvează cu sursa, iar o modificare fără sursă o păstrează doar dacă formularul o trimite", async () => {
     const base = { name: "Ciorbă", categories: ["supe_ciorbe" as const], servings: 6, prep_minutes: 30, cook_minutes: 75, difficulty: "mediu" as const, ingredients: [{ product_id: "sare", quantity: null, unit: null }], steps: ["Fierbe."] };
     const id = await saveRecipe(ctx, { ...base, source_url: "https://exemplu.ro/ciorba" });

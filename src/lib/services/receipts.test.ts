@@ -105,7 +105,7 @@ describe("aplicarea bonului", () => {
     const ceapa = await addItem(ctx, listId, { product_id: "ceapa-galbena", quantity: 1, unit: "kg" });
     await addItem(ctx, listId, { product_id: "rosii", quantity: 1, unit: "kg" });
     const r = await applyReceipt(ctx, { retailer_id: "kaufland", date: "2026-10-12", list_id: listId, lines });
-    expect(r).toEqual({ checked: 1, added: 2, transaction_id: null, created: 1, added_to_pantry: 0 });
+    expect(r).toEqual({ checked: 1, added: 2, transaction_id: null, created: 1, added_to_pantry: 0, pending_pantry: 0 });
     const items = await listItems(ctx.db, listId);
     expect(items.find((i) => i.id === ceapa)).toMatchObject({ checked: true, actual_price: 2.32, quantity: 1.014, retailer_id: "kaufland" });
     expect(items.find((i) => i.product_id === "rosii")?.checked).toBe(false);
@@ -296,7 +296,7 @@ describe("cămara din cumpărături (.tasks/016, etapa 2)", () => {
     await applyReceipt(ctx, { retailer_id: "lidl", date: "2026-10-12", list_id: null, lines: [line("lapte-integral", "Lapte integral", 5.29)] });
     expect(await owned(ctx.db, "pantry_items", "h1")).toEqual([]);
     const listId = await createList(ctx, { name: "Săptămâna" });
-    const paine = await addItem(ctx, listId, { product_id: "paine-alba" });
+    const paine = await addItem(ctx, listId, { product_id: "paine-alba", quantity: 1, unit: "buc" });
     await setChecked(ctx, paine, true);
     await finalizeShopping(ctx, listId, { addToPantry: true });
     const [p] = await owned(ctx.db, "pantry_items", "h1");

@@ -14,7 +14,7 @@ test("demo înainte de cont: explorare, salvare locală, reîncărcare și reven
   });
   await enter.click();
   await expect(page.getByText("Mod demonstrativ", { exact: true })).toBeVisible();
-  await expect(page.getByRole("heading", { name: "Acasă", exact: true })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Azi la masă", exact: true })).toBeVisible();
   const nav = page.locator('nav[aria-label="Navigare principală"]:visible');
   await nav.getByRole("link", { name: "Rețete", exact: true }).click();
   await expect(page).toHaveURL(/\/retete\/$/);
@@ -43,7 +43,7 @@ test("demo înainte de cont: explorare, salvare locală, reîncărcare și reven
 test("în demo, o invitație nu pornește operații pe server", async ({ page }) => {
   await page.clock.setFixedTime(FIXED_NOW);
   await page.goto("/autentificare/?demo=1");
-  await expect(page.getByRole("heading", { name: "Acasă", exact: true })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Azi la masă", exact: true })).toBeVisible();
   const requests: string[] = [];
   page.on("request", req => { if (req.url().includes("/rest/v1/")) requests.push(req.url()); });
   await page.goto("/invitatie/?token=invitat-demo");

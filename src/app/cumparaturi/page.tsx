@@ -1,10 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ChevronRight, Plus } from "lucide-react";
-import { AgainIcon, BasketIcon, NotebookIcon, ReceiptIcon } from "@/components/ui/icons";
+import { AgainIcon, BasketIcon } from "@/components/ui/icons";
 import { AppShell } from "@/components/app/shell";
 import { useAction, useData } from "@/components/app/hooks";
 import { Button } from "@/components/ui/button";
@@ -22,6 +22,12 @@ function ListsScreen() {
   const router = useRouter();
   const { run, busy } = useAction();
   const [creating, setCreating] = useState(false);
+  useEffect(() => {
+    if (new URLSearchParams(window.location.search).get("nou") === "1") {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- apply the URL action after hydration
+      setCreating(true);
+    }
+  }, []);
   const [name, setName] = useState("");
   const [recurring, setRecurring] = useState(false);
   const [retailerId, setRetailerId] = useState("");
@@ -55,9 +61,7 @@ function ListsScreen() {
         title="Cumpărături"
         subtitle="Ce e de luat, pentru toată casa"
         action={
-          <Button onClick={() => setCreating(true)} icon={<Plus size={18} />}>
-            Listă nouă
-          </Button>
+          active.length > 0 ? <Button onClick={() => setCreating(true)} icon={<Plus size={18} />}>Listă nouă</Button> : undefined
         }
       />
 
@@ -98,19 +102,6 @@ function ListsScreen() {
         </ul>
       )}
 
-      <Card className="mt-6 divide-y divide-line overflow-hidden">
-      <Link href="/cumparaturi/bon/" className="flex min-h-12 items-center gap-3 px-4 text-[15px] transition-colors duration-150 ease-out hover:bg-surface-2 active:bg-surface-2">
-        <ReceiptIcon size={20} strokeWidth={1.75} className="text-ink-2" />
-        <span className="flex-1">Pune un bon</span>
-        <ChevronRight size={18} className="text-ink-3" />
-      </Link>
-      <Link href="/cumparaturi/istoric/" className="flex min-h-12 items-center gap-3 px-4 text-[15px] transition-colors duration-150 ease-out hover:bg-surface-2 active:bg-surface-2">
-        <NotebookIcon size={20} strokeWidth={1.75} className="text-ink-2" />
-        <span className="flex-1">Ce-ai cumpărat până acum</span>
-        <ChevronRight size={18} strokeWidth={1.75} className="text-ink-3" />
-      </Link>
-      </Card>
-
       {archived.length > 0 && (
         <>
           <SectionTitle
@@ -123,7 +114,7 @@ function ListsScreen() {
             Puse deoparte
           </SectionTitle>
           {showArchived && (
-            <ul className="flex flex-col divide-y divide-line overflow-hidden rounded-[28px] bg-surface">
+            <ul className="flex flex-col divide-y divide-line overflow-hidden rounded-[20px] bg-surface">
               {archived.map(({ list, totals }) => (
                 <li key={list.id} className="flex items-center gap-2 px-4 py-2">
                   <Link href={`/cumparaturi/lista/?id=${list.id}`} className="min-w-0 flex-1 py-1">

@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
-import { describe, expect, it } from "vitest";
-import { act, render } from "@testing-library/react";
+import { describe, expect, it, vi } from "vitest";
+import { act, fireEvent, render } from "@testing-library/react";
 import { Sheet, keyboardInset } from "./sheet";
 
 describe("keyboardInset", () => {
@@ -42,4 +42,18 @@ describe("Sheet cu tastatura deschisă", () => {
     });
     expect(dialog.style.marginBottom).toBe("");
   });
+});
+
+it("focalizează câmpul cerut după deschiderea dialogului, nu butonul de închidere", () => {
+  HTMLDialogElement.prototype.showModal = function (this: HTMLDialogElement) { this.open = true; this.querySelector<HTMLButtonElement>("button")?.focus(); };
+  const view = render(<Sheet open onClose={() => {}} title="Sumă rapidă"><input aria-label="Suma plătită" data-autofocus /></Sheet>);
+  expect(document.activeElement).toBe(view.getByLabelText("Suma plătită"));
+});
+
+it("închiderea unui selector imbricat nu închide panoul de captură părinte", () => {
+  const outerClose=vi.fn(); const innerClose=vi.fn();
+  const view=render(<Sheet open onClose={outerClose} title="Captură bon"><Sheet open onClose={innerClose} title="Alege produsul"><input /></Sheet></Sheet>);
+  fireEvent(view.getByRole("dialog",{name:"Alege produsul",hidden:true}),new Event("close"));
+  expect(innerClose).toHaveBeenCalledOnce();
+  expect(outerClose).not.toHaveBeenCalled();
 });

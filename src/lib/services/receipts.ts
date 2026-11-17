@@ -1,4 +1,7 @@
 import { z } from "zod";
+import Dexie from "dexie";
+import { getMeta, setMeta } from "@/lib/db/database";
+import { canConvert } from "@/lib/domain/units";
 import type { ISODate, PurchaseSource, ShoppingTransactionItem, UnitCode } from "@/lib/domain/types";
 import { insertRow, updateRow, upsertRow } from "@/lib/db/write";
 import { newId, stableId } from "@/lib/db/ids";
@@ -28,7 +31,7 @@ export async function learnReceiptAlias(ctx: AppCtx, input: { retailer_id: strin
   if (!key) throw new UserError("Textul de pe bon e gol.");
   const product = await ctx.db.products.get(input.product_id);
   if (!product || product.deleted_at) throw new UserError("Produsul nu există în catalog.");
-  const id = await receiptAliasId(ctx.householdId, input.retailer_id, key);
+  const id = await Dexie.waitFor(receiptAliasId(ctx.householdId, input.retailer_id, key));
   await upsertRow(ctx.db, "receipt_aliases", { id, household_id: ctx.householdId, retailer_id: input.retailer_id, receipt_text: key, product_id: product.id }, w(ctx));
   return id;
 }
@@ -87,6 +90,7 @@ export interface ReceiptApplyResult {
   created: number;
   /** Alimente puse în cămară (doar fără listă). */
   added_to_pantry: number;
+  pending_pantry: number;
 }
 
 /**
@@ -99,10 +103,27 @@ export interface ReceiptApplyResult {
  * categoria aleasă pe „Verifică bonul” (.tasks/016; altfel „Diverse”), deci prețul ei intră în
  * istoricul de prețuri și bonul următor o recunoaște.
  */
-export async function applyReceipt(ctx: AppCtx, input: ReceiptApplyInput): Promise<ReceiptApplyResult> {
+export async function applyReceipt(ctx: AppCtx, input: ReceiptApplyInput, opts: { submissionId?: string } = {}): Promise<ReceiptApplyResult> {
+  const parsed = parse(applyInput, input);
+  const fingerprint = JSON.stringify(parsed);
+  const key = opts.submissionId ? `receipt_submission:${ctx.householdId}:${opts.submissionId}` : null;
+  const txId = opts.submissionId ? await stableId("bon", ctx.householdId, opts.submissionId) : newId();
+  return ctx.db.transaction("rw", [ctx.db.products, ctx.db.product_aliases, ctx.db.product_categories, ctx.db.product_variants, ctx.db.retailers, ctx.db.shopping_lists, ctx.db.shopping_list_items, ctx.db.shopping_transactions, ctx.db.shopping_transaction_items, ctx.db.product_prices, ctx.db.pantry_items, ctx.db.receipt_aliases, ctx.db.outbox, ctx.db.meta], async () => {
+    const previous = key ? await getMeta<{ fingerprint: string; result: ReceiptApplyResult }>(ctx.db, key) : undefined;
+    if (previous) {
+      if (previous.fingerprint !== fingerprint) throw new UserError("Acest bon a fost deja salvat cu alte date.");
+      return previous.result;
+    }
+    const result = await applyReceiptRows(ctx, parsed, txId);
+    if (key) await setMeta(ctx.db, key, { fingerprint, result });
+    return result;
+  });
+}
+
+async function applyReceiptRows(ctx: AppCtx, input: ReceiptApplyInput, txId: string): Promise<ReceiptApplyResult> {
   const v = parse(applyInput, input);
   const retailer = v.retailer_id ? await ctx.db.retailers.get(v.retailer_id) : undefined;
-  if (v.retailer_id && !retailer) throw new UserError("Magazinul ales nu mai există.");
+  if (v.retailer_id && (!retailer || retailer.deleted_at || (retailer.household_id !== null && retailer.household_id !== ctx.householdId))) throw new UserError("Magazinul ales nu mai există.");
   const source: PurchaseSource = retailer?.kind === "piata" ? "piata" : retailer?.kind === "producator" ? "producator" : "supermarket";
   // Ora din mijlocul zilei, ca data locală să rămână ziua de pe bon.
   const purchasedAt = new Date(`${v.date}T12:00:00`).toISOString();
@@ -116,7 +137,7 @@ export async function applyReceipt(ctx: AppCtx, input: ReceiptApplyInput): Promi
   const list = v.list_id ? await ctx.db.shopping_lists.get(v.list_id) : undefined;
   if (v.list_id && (!list || list.deleted_at || list.household_id !== ctx.householdId || list.archived_at)) throw new UserError("Lista aleasă nu mai există.");
 
-  const result: ReceiptApplyResult = { checked: 0, added: 0, transaction_id: null, created: 0, added_to_pantry: 0 };
+  const result: ReceiptApplyResult = { checked: 0, added: 0, transaction_id: null, created: 0, added_to_pantry: 0, pending_pantry: 0 };
   // Același nume (de pe acest bon sau din catalog) e același produs, nu o dublură.
   const byName = new Map([...products.values()].map((p) => [normalize(p.name), p]));
   // Numele de pe bon se păstrează doar când spune altceva decât numele produsului.
@@ -138,28 +159,39 @@ export async function applyReceipt(ctx: AppCtx, input: ReceiptApplyInput): Promi
     // Nebifatele întâi; un produs bifat deja în magazin primește doar prețul, nu un rând nou
     // (altfel „Gata” l-ar număra de două ori).
     const open = (await listItems(ctx.db, v.list_id)).sort((a, b) => Number(a.checked) - Number(b.checked));
+    const aliases = await visible(ctx.db, "product_aliases", ctx.householdId);
+    const exactNames = new Map<string, Set<string>>();
+    for (const p of products.values()) exactNames.set(normalize(p.name), new Set([...(exactNames.get(normalize(p.name)) ?? []), p.id]));
+    for (const a of aliases) {
+      const key = normalize(a.alias); const ids = exactNames.get(key) ?? new Set<string>();
+      if (products.has(a.product_id)) ids.add(a.product_id); exactNames.set(key, ids);
+    }
     for (const l of v.lines) {
       const paid = { ...receiptName(l), checked: true, checked_at: purchasedAt, checked_by: ctx.userId, actual_price: l.amount, retailer_id: v.retailer_id, source };
       const qty = l.quantity != null && l.unit ? { quantity: l.quantity, unit: l.unit as UnitCode } : {};
-      const match = l.product_id ? open.find((i) => i.product_id === l.product_id) : undefined;
+      const compatible = (i: (typeof open)[number]) => !i.variant_id && (i.unit == null || l.unit == null || canConvert(i.unit, l.unit));
+      const match = l.product_id ? open.find(i => i.product_id === l.product_id && compatible(i)) ?? open.find(i => {
+        if (i.product_id || !compatible(i)) return false;
+        const matches = exactNames.get(normalize(i.name));
+        return matches?.size === 1 && matches.has(l.product_id!);
+      }) : undefined;
       if (match) {
         open.splice(open.indexOf(match), 1);
         // Un nume de pe un bon mai vechi nu rămâne pe linie.
         const stale = match.receipt_name && !paid.receipt_name ? { receipt_name: null } : {};
-        await updateRow(ctx.db, "shopping_list_items", match.id, { ...paid, ...qty, ...stale }, w(ctx));
+        await updateRow(ctx.db, "shopping_list_items", match.id, { ...paid, ...qty, ...stale, product_id: l.product_id, category_id: products.get(l.product_id!)?.category_id ?? match.category_id }, w(ctx));
         result.checked++;
       } else {
-        const id = await addItem(ctx, v.list_id, { product_id: l.product_id, name: l.name, quantity: l.quantity, unit: l.unit as UnitCode | null, retailer_id: v.retailer_id, source });
+        const id = await addItem(ctx, v.list_id, { product_id: l.product_id, name: l.name, quantity: l.quantity, unit: l.unit as UnitCode | null, retailer_id: v.retailer_id, source }, { merge: false });
         await updateRow(ctx.db, "shopping_list_items", id, paid, w(ctx));
         result.added++;
       }
     }
   } else {
-    const txId = newId();
     await insertRow(ctx.db, "shopping_transactions", { id: txId, household_id: ctx.householdId, list_id: null, list_cycle: null, started_at: purchasedAt, completed_at: purchasedAt, note: null }, w(ctx));
-    for (const l of v.lines) {
+    for (const [index, l] of v.lines.entries()) {
       const product = l.product_id ? products.get(l.product_id) : undefined;
-      const itemId = newId();
+      const itemId = await Dexie.waitFor(stableId("bon-produs", txId, String(index)));
       await insertRow(
         ctx.db,
         "shopping_transaction_items",
@@ -167,28 +199,29 @@ export async function applyReceipt(ctx: AppCtx, input: ReceiptApplyInput): Promi
         w(ctx),
       );
       if (product) {
-        await insertRow(
+        if (l.quantity != null && l.quantity > 0 && l.unit != null) await insertRow(
           ctx.db,
           "product_prices",
           {
-            id: await stableId("pret", itemId),
+            id: await Dexie.waitFor(stableId("pret", itemId)),
             household_id: ctx.householdId,
             product_id: product.id,
             retailer_id: v.retailer_id,
             source,
             amount: l.amount,
             currency: "RON",
-            quantity: l.quantity ?? 1,
-            unit: (l.unit as UnitCode | null) ?? product.default_unit,
+            quantity: l.quantity!,
+            unit: l.unit!,
             price_type: "platit",
-            confidence: l.quantity == null ? "medie" : "ridicata",
+            confidence: "ridicata",
             observed_on: localDateOf(purchasedAt) as ISODate,
             transaction_item_id: itemId,
           },
           w(ctx),
         );
-        if (v.add_to_pantry && !nonFood.has(product.category_id)) {
-          await addPurchaseToPantry(ctx, itemId, product, { name: receiptName(l).receipt_name ?? l.name, quantity: l.quantity, unit: l.unit as UnitCode | null, purchased_at: purchasedAt });
+        if (v.add_to_pantry && !nonFood.has(product.category_id) && (l.quantity == null || l.unit == null)) result.pending_pantry++;
+        if (v.add_to_pantry && !nonFood.has(product.category_id) && l.quantity != null && l.unit != null) {
+          await addPurchaseToPantry(ctx, itemId, product, { name: receiptName(l).receipt_name ?? l.name, quantity: l.quantity, unit: l.unit as UnitCode | null, purchased_at: purchasedAt }, await Dexie.waitFor(stableId("camara", itemId)));
           result.added_to_pantry++;
         }
       }

@@ -40,14 +40,17 @@ export function Sheet({ open, onClose, title, children, footer }: { open: boolea
   useEffect(() => {
     const d = ref.current;
     if (!d) return;
-    if (open && !d.open) d.showModal();
+    if (open && !d.open) {
+      d.showModal();
+      d.querySelector<HTMLElement>("[data-autofocus], [autofocus]")?.focus();
+    }
     if (!open && d.open) d.close();
   }, [open]);
 
   return (
     <dialog
       ref={ref}
-      onClose={onClose}
+      onClose={(event) => { event.stopPropagation(); onClose(); }}
       onClick={(e) => {
         if (e.target === ref.current) onClose();
       }}

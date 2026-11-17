@@ -106,12 +106,12 @@ test("pe tabletă, navigația laterală permite deschiderea setărilor", async (
 test("planul și catalogul păstrează aceeași destinație principală", async ({ page }) => {
   await start(page, "/retete/");
   const section = page.getByRole("navigation", { name: "Rețete și plan" });
-  await section.getByRole("link", { name: "Planul meselor" }).click();
+  await section.getByRole("link", { name: "Plan", exact: true }).click();
   await expect(page.getByRole("heading", { name: "Planul meselor" })).toBeVisible();
-  await expect(section.getByRole("link", { name: "Planul meselor" })).toHaveAttribute("aria-current", "page");
+  await expect(section.getByRole("link", { name: "Plan", exact: true })).toHaveAttribute("aria-current", "page");
   const nav = page.locator('nav[aria-label="Navigare principală"]:visible');
   await expect(nav.getByRole("link", { name: "Rețete", exact: true })).toHaveAttribute("aria-current", "page");
-  await section.getByRole("link", { name: "Rețete", exact: true }).click();
+  await section.getByRole("link", { name: "Colecție", exact: true }).click();
   await expect(page.getByRole("heading", { name: "Rețete", exact: true })).toBeVisible();
 });
 
