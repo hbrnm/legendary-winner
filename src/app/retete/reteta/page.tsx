@@ -162,32 +162,32 @@ function RecipeScreen() {
       </div>
 
       {/* Timpul, dificultatea și porțiile pe aceeași foaie, separate de filete. */}
-      <Card className="mt-4 grid grid-cols-3 divide-x divide-line text-center">
-        <div className="p-3">
+      <Card className="mt-4 grid grid-cols-3 divide-x divide-line overflow-hidden rounded-[24px] border border-line/60 text-center">
+        <div className="p-3.5">
           <Clock size={18} strokeWidth={1.75} className="mx-auto text-ink-2" />
-          <p className="mt-1 text-sm font-medium">{totalMinutes(r)} min</p>
-          <p className="text-xs text-ink-2">
+          <p className="mt-1 text-sm font-semibold tabular text-ink">{totalMinutes(r)} min</p>
+          <p className="text-xs text-ink-2 tabular">
             <span>{r.prep_minutes}</span> pregătire · <span>{r.cook_minutes}</span> gătire
           </p>
         </div>
-        <div className="p-3">
+        <div className="p-3.5">
           <ChefHat size={18} strokeWidth={1.75} className="mx-auto text-ink-2" />
-          <p className="mt-1 text-sm font-medium">{DIFFICULTY_LABELS[r.difficulty]}</p>
+          <p className="mt-1 text-sm font-semibold text-ink">{DIFFICULTY_LABELS[r.difficulty]}</p>
           <p className="text-xs text-ink-2">dificultate</p>
         </div>
-        <div className="p-3">
+        <div className="p-3.5">
           <Users size={18} strokeWidth={1.75} className="mx-auto text-ink-2" />
           <div className="mt-1 flex items-center justify-center gap-1">
             <button type="button" aria-label="Mai puține porții" onClick={() => setServings(Math.max(1, servings - 1))} className="group inline-flex h-12 w-12 shrink-0 items-center justify-center">
-              <span className="inline-flex h-7 w-7 items-center justify-center rounded-full bg-surface-2 transition-colors duration-150 ease-out group-active:bg-line">
+              <span className="inline-flex h-7 w-7 items-center justify-center rounded-full bg-surface-2 transition-all duration-150 ease-out group-active:scale-[0.92] group-active:bg-line">
                 <Minus size={14} />
               </span>
             </button>
-            <span className="w-6 text-sm font-semibold" aria-live="polite">
+            <span className="w-6 text-sm font-bold tabular" aria-live="polite">
               {servings}
             </span>
             <button type="button" aria-label="Mai multe porții" onClick={() => setServings(Math.min(50, servings + 1))} className="group inline-flex h-12 w-12 shrink-0 items-center justify-center">
-              <span className="inline-flex h-7 w-7 items-center justify-center rounded-full bg-surface-2 transition-colors duration-150 ease-out group-active:bg-line">
+              <span className="inline-flex h-7 w-7 items-center justify-center rounded-full bg-surface-2 transition-all duration-150 ease-out group-active:scale-[0.92] group-active:bg-line">
                 <Plus size={14} />
               </span>
             </button>
@@ -197,15 +197,15 @@ function RecipeScreen() {
       </Card>
 
       {/* Suma apare doar peste 80% din ingrediente cu preț; altfel, pentru câte ingrediente e (decizia proprietarului, 18 oct. 2026). */}
-      <Card className="mt-3 p-4">
+      <Card className="mt-3 overflow-hidden rounded-[24px] border border-line/60 p-4 sm:p-5">
         <div className="flex items-baseline justify-between gap-3">
-          <span className="text-sm text-ink-2">{coverage === "partial" ? capitalizeFirst(partialCostLabel(view.cost.priced_count, view.cost.costable_count)) : "Cost estimat"}</span>
-          <span className="shrink-0 text-lg font-medium">{coverage === "none" ? "—" : coverage === "partial" ? formatRon(view.cost.total) : costAmount(view.cost.total, view.cost.priced_count, view.cost.costable_count)}</span>
+          <span className="text-sm font-medium text-ink-2">{coverage === "partial" ? capitalizeFirst(partialCostLabel(view.cost.priced_count, view.cost.costable_count)) : "Cost estimat"}</span>
+          <span className="shrink-0 text-lg font-bold tabular text-ink">{coverage === "none" ? "—" : coverage === "partial" ? formatRon(view.cost.total) : costAmount(view.cost.total, view.cost.priced_count, view.cost.costable_count)}</span>
         </div>
         {perServing && (
-          <div className="flex items-baseline justify-between text-sm">
+          <div className="mt-1 flex items-baseline justify-between text-sm">
             <span className="text-ink-2">pe porție</span>
-            <span>{perServing}</span>
+            <span className="font-medium tabular text-ink">{perServing}</span>
           </div>
         )}
         <p className="mt-2 text-xs text-ink-2">
@@ -221,39 +221,39 @@ function RecipeScreen() {
 
       {view.allergens.length > 0 && (
         // Etichetă de borcan, ca „Expiră curând” (decizia proprietarului, 18 oct. 2026).
-        <p data-testid="alergeni" className="mt-3 rounded-md border border-dashed border-accent bg-surface px-3.5 py-2.5 text-sm text-ink">
-          <span className="text-xs font-medium uppercase tracking-wider text-accent">Conține:</span> {view.allergens.map((a) => ALLERGEN_LABELS[a]).join(", ")}. Verifică și eticheta produselor folosite.
+        <p data-testid="alergeni" className="mt-3 rounded-[20px] border border-dashed border-accent bg-surface px-4 py-3 text-sm text-ink">
+          <span className="text-xs font-semibold uppercase tracking-wider text-accent">Conține:</span> {view.allergens.map((a) => ALLERGEN_LABELS[a]).join(", ")}. Verifică și eticheta produselor folosite.
         </p>
       )}
 
       <div className="mt-4 grid grid-cols-3 gap-2">
-        <Button variant="primary" onClick={() => setAddOpen(true)} className="flex-col h-auto! min-h-14 py-2.5 rounded-2xl" icon={<ShoppingBasket size={20} />}>
+        <Button variant="primary" onClick={() => setAddOpen(true)} className="flex-col h-auto! min-h-14 py-2.5 rounded-2xl transition-transform active:scale-[0.96]" icon={<ShoppingBasket size={20} />}>
           <span className="text-xs">În listă</span>
         </Button>
-        <Button variant="secondary" onClick={() => setPlanOpen(true)} className="flex-col h-auto! min-h-14 py-2.5 rounded-2xl" icon={<CalendarPlus size={20} />}>
+        <Button variant="secondary" onClick={() => setPlanOpen(true)} className="flex-col h-auto! min-h-14 py-2.5 rounded-2xl transition-transform active:scale-[0.96]" icon={<CalendarPlus size={20} />}>
           <span className="text-xs">Planifică</span>
         </Button>
-        <Button variant="secondary" onClick={() => setCookOpen(true)} className="flex-col h-auto! min-h-14 py-2.5 rounded-2xl" icon={<ChefHat size={20} />}>
+        <Button variant="secondary" onClick={() => setCookOpen(true)} className="flex-col h-auto! min-h-14 py-2.5 rounded-2xl transition-transform active:scale-[0.96]" icon={<ChefHat size={20} />}>
           <span className="text-xs">Am gătit</span>
         </Button>
       </div>
 
       <SectionTitle>Ingrediente</SectionTitle>
-      <ul className="divide-y divide-line overflow-hidden rounded-[20px] bg-surface">
+      <ul className="divide-y divide-line overflow-hidden rounded-[24px] border border-line/60 bg-surface">
         {view.scaled.map((i) => {
           const p = data.products.get(i.product_id);
           const have = view.available.has(i.product_id);
           return (
-            <li key={i.id} className="flex items-center gap-3 px-4 py-2.5">
-              <span className={`inline-flex h-5 w-5 shrink-0 items-center justify-center rounded-full ${have ? "bg-brand-soft text-brand" : "bg-surface-2"}`} title={have ? "Ai în cămară" : undefined}>
+            <li key={i.id} className="flex items-center gap-3 px-4 py-3">
+              <span className={`inline-flex h-5 w-5 shrink-0 items-center justify-center rounded-full transition-colors ${have ? "bg-sprout text-sprout-ink" : "bg-surface-2 text-ink-3"}`} title={have ? "Ai în cămară" : undefined}>
                 {have && <Check size={12} strokeWidth={3} />}
               </span>
-              <span className="min-w-0 flex-1 text-[15px]">
+              <span className="min-w-0 flex-1 text-[15px] text-ink font-medium">
                 {p?.name ?? i.product_id}
-                {i.note && <span className="text-ink-2">, {i.note}</span>}
-                {i.optional && <span className="text-ink-2"> (opțional)</span>}
+                {i.note && <span className="font-normal text-ink-2">, {i.note}</span>}
+                {i.optional && <span className="font-normal text-ink-2"> (opțional)</span>}
               </span>
-              <span className="shrink-0 text-sm text-ink-2">{i.quantity == null ? "după gust" : formatQuantity(i.quantity, i.unit)}</span>
+              <span className="shrink-0 text-sm tabular text-ink-2">{i.quantity == null ? "după gust" : formatQuantity(i.quantity, i.unit)}</span>
             </li>
           );
         })}
@@ -263,10 +263,10 @@ function RecipeScreen() {
       <SectionTitle>Valori nutriționale</SectionTitle>
       {/* Parțial, cu ce lipsește (decizia proprietarului, 22 oct. 2026). */}
       {view.nutrition.per_serving ? (
-        <Card as="section" className="p-4" aria-label="Valori nutriționale">
+        <Card as="section" className="overflow-hidden rounded-[24px] border border-line/60 p-4 sm:p-5" aria-label="Valori nutriționale">
           <p className="text-sm text-ink-2">Pe porție, aproximativ</p>
-          <p className="mt-1 text-lg font-medium">{view.nutrition.per_serving.kcal} kcal</p>
-          <dl className="mt-2 flex flex-col gap-1 text-sm">
+          <p className="mt-1 text-2xl font-bold tracking-tight tabular text-ink">{view.nutrition.per_serving.kcal} kcal</p>
+          <dl className="mt-3 flex flex-col gap-1.5 text-sm">
             {(
               [
                 ["Proteine", view.nutrition.per_serving.protein_g],
@@ -274,9 +274,9 @@ function RecipeScreen() {
                 ["Grăsimi", view.nutrition.per_serving.fat_g],
               ] as const
             ).map(([label, g]) => (
-              <div key={label} className="flex items-baseline justify-between">
+              <div key={label} className="flex items-baseline justify-between border-b border-line/40 pb-1 last:border-b-0 last:pb-0">
                 <dt className="text-ink-2">{label}</dt>
-                <dd>{g} g</dd>
+                <dd className="font-medium tabular text-ink">{g} g</dd>
               </div>
             ))}
           </dl>
@@ -292,11 +292,11 @@ function RecipeScreen() {
       )}
 
       <SectionTitle>Mod de preparare</SectionTitle>
-      <ol className="flex flex-col gap-3">
+      <ol className="mt-2 flex flex-col gap-3.5">
         {data.steps.map((s, k) => (
-          <li key={s.id} className="flex gap-3">
-            <span className="w-7 shrink-0 text-right font-sans text-xl font-semibold leading-7 text-brand">{k + 1}.</span>
-            <p className="max-w-[70ch] pt-0.5 text-[15px] leading-relaxed">{s.text}</p>
+          <li key={s.id} className="flex gap-3.5">
+            <span className="w-7 shrink-0 text-right font-sans text-xl font-bold leading-7 text-brand">{k + 1}.</span>
+            <p className="max-w-[70ch] pt-0.5 text-[15px] leading-relaxed text-ink">{s.text}</p>
           </li>
         ))}
       </ol>

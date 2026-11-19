@@ -225,7 +225,7 @@ export function HomeScreen() {
               {data.remainingItems > 0 ? (
                 <p className="mt-2.5 text-2xl font-semibold tabular-nums text-ink">
                   {data.remainingItems}
-                  <span className="ml-2 text-xs font-normal text-ink-2">de luat</span>
+                  <span className="ml-2 text-xs font-normal text-ink-2"> de luat</span>
                 </p>
               ) : (
                 <p className="mt-2.5 flex items-center gap-1 text-sm text-info">
@@ -248,7 +248,7 @@ export function HomeScreen() {
               </div>
               <p className="mt-2.5 text-2xl font-semibold tabular-nums text-ink">
                 {data.stockCount}
-                <span className="ml-2 text-xs font-normal text-ink-2">în stoc</span>
+                <span className="ml-2 text-xs font-normal text-ink-2"> în stoc</span>
               </p>
               <p className={`mt-1.5 flex items-center gap-1.5 text-xs ${data.expiringCount ? "text-accent font-medium" : "text-info"}`}>
                 <span className={`h-1.5 w-1.5 rounded-full ${data.expiringCount ? "bg-accent animate-pulse" : "bg-info"}`} />
@@ -268,7 +268,7 @@ export function HomeScreen() {
               href="/buget/#tranzactii"
               className="inline-flex min-h-11 items-center gap-1 text-sm font-medium text-brand transition-colors duration-150 hover:text-brand-strong focus-visible:outline-2 focus-visible:outline-brand"
             >
-              Istoric <span aria-hidden>→</span>
+              Istoric →
             </Link>
           }
         >
@@ -312,10 +312,10 @@ export function HomeScreen() {
                   <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-md bg-surface-2 text-ink-3">
                     <Receipt size={12} />
                   </span>
-                  <span className="truncate">
+                  <p className="truncate">
                     {data.recent.title} · {data.recent.amount == null ? "sumă neprecizată" : formatRon(data.recent.amount)} ·{" "}
                     {localDateOf(data.recent.date) === today ? "azi" : formatShortDate(localDateOf(data.recent.date))}
-                  </span>
+                  </p>
                 </div>
                 <span className="shrink-0 text-brand opacity-0 transition-opacity group-hover:opacity-100">→</span>
               </Link>

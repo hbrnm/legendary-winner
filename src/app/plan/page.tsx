@@ -120,13 +120,13 @@ function PlanScreen() {
       <RecipeNavigation active="plan" />
 
       <div className="mb-4 flex items-center gap-2">
-        <IconButton label="Săptămâna trecută" onClick={() => setWeek(addDays(week, -7))} className="border border-line bg-surface">
+        <IconButton label="Săptămâna trecută" onClick={() => setWeek(addDays(week, -7))} className="border border-line bg-surface transition-transform active:scale-[0.94]">
           <ChevronLeft size={20} />
         </IconButton>
-        <Button variant="secondary" size="sm" onClick={() => setWeek(startOfWeek(today))} disabled={week === startOfWeek(today)}>
+        <Button variant="secondary" size="sm" onClick={() => setWeek(startOfWeek(today))} disabled={week === startOfWeek(today)} className="transition-transform active:scale-[0.98]">
           Săptămâna asta
         </Button>
-        <IconButton label="Săptămâna viitoare" onClick={() => setWeek(addDays(week, 7))} className="border border-line bg-surface">
+        <IconButton label="Săptămâna viitoare" onClick={() => setWeek(addDays(week, 7))} className="border border-line bg-surface transition-transform active:scale-[0.94]">
           <ChevronRight size={20} />
         </IconButton>
         <div className="flex-1" />
@@ -140,37 +140,38 @@ function PlanScreen() {
               setWeek(addDays(week, 7));
             }
           }}
-          className="border border-line bg-surface"
+          className="border border-line bg-surface transition-transform active:scale-[0.94]"
         >
           <Copy size={18} />
         </IconButton>
       </div>
 
-      <Button block size="lg" icon={<ShoppingBasket size={20} />} disabled={data.meals.length === 0} onClick={() => setGenerating(true)}>
+      <Button block size="lg" icon={<ShoppingBasket size={20} />} disabled={data.meals.length === 0} onClick={() => setGenerating(true)} className="transition-transform active:scale-[0.99]">
         Generează lista de cumpărături
       </Button>
 
       <div className="mt-6 grid gap-4 min-[900px]:grid-cols-2">
         {days.map((d) => (
-          <Card key={d} as="section" aria-label={formatLongDate(d)} className={`p-4 ${d === today ? "ring-2 ring-brand" : ""}`}>
-            <h2 className="mb-2 flex items-baseline gap-2 px-1">
-              <span className="font-sans text-lg font-semibold capitalize">{formatWeekdayShort(d)}</span>
-              <span className="text-xs text-ink-2">{formatShortDate(d)}</span>
-              {d === today && <span className="text-xs font-medium uppercase tracking-wider text-brand">azi</span>}
+          <Card key={d} as="section" aria-label={formatLongDate(d)} className={`rounded-[24px] border border-line/60 p-4 sm:p-5 ${d === today ? "ring-2 ring-brand ring-offset-2 ring-offset-bg" : ""}`}>
+            <h2 className="mb-2.5 flex items-baseline gap-2 px-1">
+              <span className="font-sans text-lg font-bold capitalize text-ink">{formatWeekdayShort(d)}</span>
+              <span className="text-xs text-ink-2 tabular">{formatShortDate(d)}</span>
+              {d === today && <span className="text-xs font-semibold uppercase tracking-wider text-brand">azi</span>}
             </h2>
-            <div className="grid grid-cols-2 gap-1.5">
+            <div className="grid grid-cols-2 gap-2">
               {SLOTS.map((slot) => {
                 const meals = data.meals.filter((m) => m.date === d && m.slot === slot);
                 return (
-                  <div key={slot} className="flex min-h-16 flex-col gap-1 rounded-2xl bg-surface-container p-3">
-                    <div className="flex items-center justify-between pl-1.5">
-                      <span className="text-xs text-ink-2">{SLOT_LABELS[slot]}</span>
+                  <div key={slot} className="flex min-h-16 flex-col gap-1.5 rounded-2xl bg-surface-container/70 p-2.5 sm:p-3">
+                    <div className="flex items-center justify-between pl-1">
+                      <span className="text-xs font-medium text-ink-2">{SLOT_LABELS[slot]}</span>
                       <IconButton
                         label={`Adaugă la ${SLOT_LABELS[slot]}, ${formatShortDate(d)}`}
                         onClick={() => {
                           setPicker({ date: d, slot });
                           setPickQuery("");
                         }}
+                        className="-mr-1 -my-1"
                       >
                         <Plus size={16} />
                       </IconButton>
@@ -186,10 +187,10 @@ function PlanScreen() {
                             setMoveDate(m.date);
                             setMoveSlot(m.slot);
                           }}
-                          className="flex min-h-12 items-center gap-1.5 rounded-2xl bg-surface px-3 py-2 text-left text-[13px] leading-tight transition-colors duration-150 ease-out active:bg-surface-2"
+                          className="flex min-h-12 items-center gap-1.5 rounded-xl border border-line/40 bg-surface px-3 py-2 text-left text-[13px] leading-tight transition-all duration-150 ease-out hover:border-outline/40 hover:bg-surface-2/40 active:scale-[0.98]"
                         >
-                          <span className="min-w-0 flex-1 font-sans text-sm font-medium">{r?.name ?? "Rețetă ștearsă"}</span>
-                          <span className="shrink-0 text-[11px] text-ink-2">{m.servings} p.</span>
+                          <span className="min-w-0 flex-1 font-sans text-sm font-semibold text-ink">{r?.name ?? "Rețetă ștearsă"}</span>
+                          <span className="shrink-0 text-[11px] text-ink-2 tabular">{m.servings} p.</span>
                         </button>
                       );
                     })}

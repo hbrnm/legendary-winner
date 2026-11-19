@@ -187,7 +187,7 @@ export function CaptureHost() {
       </div>}
       {request?.mode === "manual" && <form onSubmit={e => {e.preventDefault(); void saveExpense();}} className="flex flex-col gap-3 sm:gap-4">
         {!familyBudgetEnabled && <p role="status" className="text-sm text-ink-2">Cheltuielile familiei vor fi disponibile după actualizarea și sincronizarea gospodăriei.</p>}
-        <label className="block text-sm font-medium">Sumă (RON)<input data-autofocus inputMode="decimal" value={amount} onChange={e => setAmount(e.target.value)} placeholder="0,00" className="mt-1 block h-12 w-full border-b border-line bg-transparent text-3xl font-semibold tabular-nums outline-none focus:border-brand sm:h-16 sm:text-4xl" /></label>
+        <label className="block text-sm font-medium">Sumă (RON)<input data-autofocus style={{ fontSize: "2.25rem" }} inputMode="decimal" value={amount} onChange={e => setAmount(e.target.value)} placeholder="0,00" className="mt-1 block h-12 w-full border-b border-line bg-transparent text-3xl font-semibold tabular-nums outline-none focus:border-brand sm:h-16 sm:text-4xl" /></label>
         <div><p className="mb-2 text-sm font-medium">Magazin / Loc</p><div className="flex gap-2 overflow-x-auto pb-1">
           {safeData?.places.map(p => <button type="button" key={p.key} aria-pressed={place === p.name} className={`${chip} ${place === p.name ? "bg-brand text-brand-ink" : "bg-surface-2 text-ink"}`} onClick={() => {setPlace(p.name);setRetailerId(p.retailerId);setSource(p.source);setFreePlace(false);}}>{p.name}</button>)}
           <button type="button" className={`${chip} bg-surface-2 text-ink`} onClick={() => {setFreePlace(true);setRetailerId(null);setPlace("");}}>+ Alt loc</button>

@@ -234,7 +234,7 @@ function ListScreen() {
           onClick={() => setEditing({ id: item.id, focusPrice: false })}
           className="flex min-h-14 min-w-0 flex-1 flex-col justify-center py-2 pr-2 text-left transition-colors duration-150 ease-out hover:bg-surface-2/60 active:bg-surface-2 rounded-l-md focus-visible:outline-2 focus-visible:outline-brand focus-visible:outline-offset-2"
         >
-          <span className={`text-[15px] leading-tight ${item.checked ? "text-ink-3 line-through" : "text-ink"}`}>
+          <span className={`text-[15px] leading-tight ${item.checked ? "text-ink-3 line-through" : "text-ink font-medium"}`}>
             {item.name}
             {item.priority === "ridicata" && !item.checked && (
               <Badge tone="accent" className="ml-2 align-middle">
@@ -253,10 +253,10 @@ function ListScreen() {
           className="flex w-24 shrink-0 flex-col items-end justify-center pr-4 text-right transition-colors duration-150 ease-out hover:bg-surface-2/60 active:bg-surface-2 rounded-r-md focus-visible:outline-2 focus-visible:outline-brand focus-visible:outline-offset-2"
         >
           {item.actual_price != null ? (
-            <span className="text-sm font-medium text-ink">{formatRon(item.actual_price)}</span>
+            <span className="text-sm font-medium tabular text-ink">{formatRon(item.actual_price)}</span>
           ) : est.amount != null ? (
             <>
-              <span className="text-[13px] text-ink-2">~{formatRon(est.amount)}</span>
+              <span className="text-[13px] tabular text-ink-2">~{formatRon(est.amount)}</span>
               {flag && <span className="font-sans text-[11px] leading-tight text-ink-2">{flag}</span>}
             </>
           ) : (
@@ -372,7 +372,7 @@ function ListScreen() {
           {groups.map((g) => (
             <section key={g.key} aria-label={g.title}>
               <h2 className="mb-1.5 px-1 text-xs font-semibold uppercase tracking-wider text-wood">{g.title}</h2>
-              <ul className="overflow-hidden rounded-[28px] bg-surface">
+              <ul className="overflow-hidden rounded-[24px] border border-line/60 bg-surface">
                 {g.items.map(itemRow)}
               </ul>
             </section>
@@ -383,12 +383,12 @@ function ListScreen() {
                 type="button"
                 aria-expanded={basketOpen}
                 onClick={() => setBasketOpen((v) => !v)}
-                className="flex min-h-12 w-full items-center gap-2 px-1 text-left text-sm font-medium text-wood"
+                className="flex min-h-12 w-full items-center gap-2 px-1 text-left text-sm font-semibold tracking-wide text-wood"
               >
                 <span className="flex-1">În coș ({basket.length})</span>
-                <ChevronDown size={18} className={`transition-transform ${basketOpen ? "rotate-180" : ""}`} />
+                <ChevronDown size={18} className={`transition-transform duration-200 ${basketOpen ? "rotate-180" : ""}`} />
               </button>
-              {basketOpen && <ul className="overflow-hidden rounded-[28px] bg-surface">{basket.map(itemRow)}</ul>}
+              {basketOpen && <ul className="overflow-hidden rounded-[24px] border border-line/60 bg-surface">{basket.map(itemRow)}</ul>}
             </section>
           )}
         </div>
@@ -433,13 +433,13 @@ function ListScreen() {
           <div className="mx-auto flex max-w-3xl items-center gap-3">
             <div className="min-w-0 flex-1 tabular">
               <div className="flex flex-wrap items-baseline gap-x-3">
-                <span className="text-lg font-medium">{formatRon(totals.spent)}</span>
+                <span className="text-xl font-bold tracking-tight text-ink">{formatRon(totals.spent)}</span>
                 <span className="text-xs text-ink-2">plătiți până acum{totals.projected_total > totals.spent ? ` · cam ${formatRon(totals.projected_total)} în total` : ""}</span>
               </div>
               <div className="text-xs text-ink-2">
                 {totals.unknown_price_count > 0 && <span>{totals.unknown_price_count} încă fără preț · </span>}
                 {remainingBudget != null ? (
-                  <span className={remainingBudget < 0 ? "font-medium text-accent" : ""}>
+                  <span className={remainingBudget < 0 ? "font-semibold text-accent" : ""}>
                     {remainingBudget < 0 ? `Ai trecut de buget cu ${formatRon(-remainingBudget)}` : `Mai ai ${formatRon(remainingBudget)} ${data.budget?.budget.period === "saptamanal" ? "săptămâna asta" : "luna asta"}`}
                   </span>
                 ) : null}
@@ -452,7 +452,7 @@ function ListScreen() {
               )}
             </div>
             {!list.archived_at && (
-              <Button onClick={() => setFinishing(true)} disabled={totals.checked_count === 0} className={allIn ? "ring-2 ring-sprout ring-offset-2 ring-offset-surface" : ""}>
+              <Button onClick={() => setFinishing(true)} disabled={totals.checked_count === 0} className={`shrink-0 transition-transform active:scale-[0.97] ${allIn ? "ring-2 ring-sprout ring-offset-2 ring-offset-surface" : ""}`}>
                 Am plătit
               </Button>
             )}

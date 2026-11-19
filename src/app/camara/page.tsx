@@ -51,7 +51,7 @@ function LocationFilter({ active, onClick, children }: { active: boolean; onClic
       type="button"
       aria-pressed={active}
       onClick={onClick}
-      className={`h-12 min-w-0 rounded-2xl border px-1.5 text-[13px] font-medium transition duration-150 ease-out active:scale-[0.98] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand ${active ? "border-brand bg-brand text-brand-ink" : "border-line bg-surface text-ink-2 hover:text-ink"}`}
+      className={`h-12 min-w-0 rounded-2xl border px-1.5 text-[13px] font-medium transition duration-150 ease-out active:scale-[0.98] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand ${active ? "border-brand bg-brand text-brand-ink font-semibold" : "border-line bg-surface text-ink-2 hover:border-outline/40 hover:text-ink hover:bg-surface-2/40"}`}
     >
       <span className="truncate">{children}</span>
     </button>
@@ -163,22 +163,22 @@ function PantryScreen() {
   return (
     <>
       <PageHeader title="Cămară și frigider" subtitle={`${data.items.filter((i) => i.quantity > 0).length} produse acasă`} />
-      <div className="mb-4 flex items-center gap-2 rounded-xl bg-surface-2 px-4">
+      <div className="mb-4 flex items-center gap-2 rounded-full border border-line bg-surface px-4 transition-all duration-150 focus-within:border-brand focus-within:ring-2 focus-within:ring-brand/20">
         <Search size={18} className="text-ink-3" aria-hidden />
-        <input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Caută în cămară" aria-label="Caută în cămară" className="h-12 min-w-0 flex-1 bg-transparent focus:outline-none" />
+        <input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Caută în cămară" aria-label="Caută în cămară" className="h-12 min-w-0 flex-1 bg-transparent text-base text-ink placeholder:text-ink-3 focus:outline-none" />
       </div>
 
       {data.soon.length > 0 && (
         // Etichetă de borcan: chenar punctat terracotta, ca „Expiră curând” de pe Acasă.
-        <section aria-label="Expiră curând" className="mb-4 rounded-2xl bg-warn-soft p-5">
-          <p className="font-sans text-lg font-medium text-warn">{data.soon.length === 1 ? "Un produs expiră curând" : `${data.soon.length} produse expiră curând`}</p>
+        <section aria-label="Expiră curând" className="mb-4 rounded-[24px] border border-dashed border-warn/70 bg-warn-soft p-5">
+          <p className="font-sans text-lg font-semibold text-warn">{data.soon.length === 1 ? "Un produs expiră curând" : `${data.soon.length} produse expiră curând`}</p>
           <p className="mt-1 text-sm text-ink">{data.soon.map((i) => i.name).join(", ")}</p>
           {data.useSoon.length > 0 && (
             <div className="mt-3">
               <p className="text-xs text-ink-2">{data.soon.length === 1 ? "Rețete în care intră:" : "Le poți folosi în:"}</p>
-              <div className="mt-1 flex flex-wrap gap-2">
+              <div className="mt-1.5 flex flex-wrap gap-2">
                 {data.useSoon.map((r) => (
-                  <Link key={r.recipe.id} href={`/retete/reteta/?id=${r.recipe.id}`} className="inline-flex min-h-12 items-center rounded-md border border-line bg-surface px-3 font-sans text-[15px] font-medium text-ink transition-colors duration-150 ease-out hover:bg-surface-2 active:bg-surface-2">
+                  <Link key={r.recipe.id} href={`/retete/reteta/?id=${r.recipe.id}`} className="inline-flex min-h-12 items-center rounded-xl border border-line/70 bg-surface px-3.5 font-sans text-[15px] font-medium text-ink transition duration-150 ease-out hover:border-outline/40 hover:bg-surface-2/60 active:scale-[0.98]">
                     {r.recipe.name}
                   </Link>
                 ))}
@@ -200,7 +200,7 @@ function PantryScreen() {
             ))}
           </div>
           {data.locations.some((l) => !MAIN_LOCATIONS.has(l.id) && data.items.some((i) => i.location_id === l.id)) && (
-            <div className="mt-1.5 flex flex-wrap gap-1.5">
+            <div className="mt-2 flex flex-wrap gap-1.5">
               {data.locations
                 .filter((l) => !MAIN_LOCATIONS.has(l.id) && data.items.some((i) => i.location_id === l.id))
                 .map((l) => (
@@ -227,17 +227,17 @@ function PantryScreen() {
             return (
               <section key={loc} className="mt-5">
                 <SectionTitle>{locName.get(loc) ?? "Alt loc"}</SectionTitle>
-                <ul className="divide-y divide-line overflow-hidden rounded-[20px] bg-surface">
+                <ul className="divide-y divide-line overflow-hidden rounded-[24px] border border-line/60 bg-surface">
                   {items.map((i) => (
                     <li key={i.id}
                       className="touch-pan-y"
                       onTouchStart={(e) => { const point = e.touches[0]; touchStart.current = { id: i.id, x: point.clientX, y: point.clientY }; }}
                       onTouchEnd={(e) => { const start = touchStart.current; const point = e.changedTouches[0]; if (start?.id === i.id && start.x - point.clientX > 60 && Math.abs(start.y - point.clientY) < 40) setRevealed(i.id); touchStart.current = null; }}
                     >
-                      <div className="flex items-center gap-1 py-1.5 pl-4 pr-2">
-                      <button type="button" onClick={() => startEdit(i)} className="min-h-12 min-w-0 flex-1 py-1 text-left">
-                        <span className={`block text-[15px] ${i.quantity <= 0 ? "text-ink-3 line-through" : ""}`}>{i.name}</span>
-                        <span className="flex flex-wrap items-center gap-2 text-xs text-ink-2">
+                      <div className="flex items-center gap-1.5 py-1.5 pl-4 pr-2">
+                      <button type="button" onClick={() => startEdit(i)} className="min-h-14 min-w-0 flex-1 py-1 text-left transition-colors hover:text-brand">
+                        <span className={`block font-medium text-[15px] leading-snug ${i.quantity <= 0 ? "text-ink-3 line-through" : "text-ink"}`}>{i.name}</span>
+                        <span className="flex flex-wrap items-center gap-2 text-xs text-ink-2 tabular">
                           <span>{formatQuantity(i.quantity, i.unit)}</span>
                           {expiryBadge(i, today)}
                         </span>
@@ -250,7 +250,7 @@ function PantryScreen() {
                       </IconButton>
                       <IconButton label={`Acțiuni pentru ${i.name}`} aria-expanded={revealed === i.id} onClick={() => setRevealed(revealed === i.id ? null : i.id)}><MoreHorizontal size={18} /></IconButton>
                       </div>
-                      {revealed === i.id && <div className="flex flex-wrap justify-end gap-2 border-t border-line bg-surface-2 p-2">
+                      {revealed === i.id && <div className="flex flex-wrap justify-end gap-2 border-t border-line bg-surface-2/90 p-2.5">
                         <Button variant="secondary" disabled={busy} onClick={async () => { const result = await run((ctx) => finishPantryToList(ctx, i.id)); if (result) { setRevealed(null); toast(`„${i.name}” s-a terminat. L-am pus pe lista de cumpărături.`); } }}>S-a terminat → Pe listă</Button>
                         <Button variant="ghost" disabled={busy} onClick={() => void toShoppingList(i)}>Pune pe listă</Button>
                       </div>}

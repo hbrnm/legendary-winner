@@ -95,14 +95,19 @@ function ListsScreen() {
           Apasă pe butonul de mai sus pentru a crea o listă nouă sau folosește butonul (+) pentru a copia o listă mai veche.
         </EmptyState>
       ) : (
-        <ul className="grid gap-4 min-[900px]:grid-cols-2">
+        <ul className="grid gap-3.5 min-[900px]:grid-cols-2">
           {active.map(({ list, totals }) => (
             <li key={list.id}>
               <Link href={`/cumparaturi/lista/?id=${list.id}`} className="block" onClick={() => selectList(list.id)}>
-                <Card className="flex items-center gap-3 p-5 transition-colors hover:bg-surface-container-high">
+                <Card className="group flex items-center gap-3.5 p-4 sm:p-5 transition-all duration-150 ease-out hover:border-outline/40 hover:bg-surface-2/30 active:scale-[0.99]">
+                  <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-surface-2 text-brand transition-colors duration-150 group-hover:bg-brand group-hover:text-brand-ink">
+                    <BasketIcon size={22} />
+                  </div>
                   <div className="min-w-0 flex-1">
                     <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
-                      <span className="line-clamp-2 break-words font-sans text-lg font-semibold leading-snug">{list.name}</span>
+                      <span className="line-clamp-2 break-words font-sans text-lg font-semibold leading-snug text-ink group-hover:text-brand transition-colors">
+                        {list.name}
+                      </span>
                       {list.is_recurring && (
                         <Badge tone="brand">
                           <AgainIcon size={12} strokeWidth={2} /> se reia
@@ -114,12 +119,15 @@ function ListsScreen() {
                       {list.default_retailer_id && ` · ${retailerName.get(list.default_retailer_id) ?? ""}`}
                     </p>
                     {totals.item_count > 0 && (
-                      <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-surface-2" aria-hidden>
-                        <div className="h-full rounded-full bg-sprout" style={{ width: `${(totals.checked_count / totals.item_count) * 100}%` }} />
+                      <div className="mt-2.5 h-1.5 overflow-hidden rounded-full bg-surface-2" aria-hidden>
+                        <div
+                          className="h-full rounded-full bg-sprout transition-[width] duration-300 ease-out"
+                          style={{ width: `${(totals.checked_count / totals.item_count) * 100}%` }}
+                        />
                       </div>
                     )}
                   </div>
-                  <ChevronRight size={20} className="shrink-0 text-ink-3" />
+                  <ChevronRight size={20} className="shrink-0 text-ink-3 transition-transform duration-150 group-hover:translate-x-0.5" />
                 </Card>
               </Link>
             </li>
@@ -128,7 +136,7 @@ function ListsScreen() {
       )}
 
       {archived.length > 0 && (
-        <>
+        <div className="mt-8">
           <SectionTitle
             action={
               <Button variant="ghost" size="sm" onClick={() => setShowArchived((v) => !v)}>
@@ -139,11 +147,11 @@ function ListsScreen() {
             Puse deoparte
           </SectionTitle>
           {showArchived && (
-            <ul className="flex flex-col divide-y divide-line overflow-hidden rounded-[20px] bg-surface">
+            <ul className="mt-2 flex flex-col divide-y divide-line overflow-hidden rounded-[20px] border border-line/60 bg-surface">
               {archived.map(({ list, totals }) => (
-                <li key={list.id} className="flex items-center gap-2 px-4 py-2">
-                  <Link href={`/cumparaturi/lista/?id=${list.id}`} className="min-w-0 flex-1 py-1">
-                    <span className="line-clamp-2 text-[15px] leading-snug">{list.name}</span>
+                <li key={list.id} className="flex items-center gap-3 px-4 py-3 transition-colors hover:bg-surface-2/40">
+                  <Link href={`/cumparaturi/lista/?id=${list.id}`} className="min-w-0 flex-1 py-0.5">
+                    <span className="line-clamp-2 text-[15px] font-medium leading-snug text-ink">{list.name}</span>
                     <span className="text-xs text-ink-2 tabular">{formatRon(totals.spent)} cheltuit</span>
                   </Link>
                   <Button variant="secondary" size="sm" onClick={() => run((ctx) => restoreList(ctx, list.id), "Lista e din nou activă.")}>
@@ -153,7 +161,7 @@ function ListsScreen() {
               ))}
             </ul>
           )}
-        </>
+        </div>
       )}
     </>
   );
