@@ -338,26 +338,30 @@ function ListScreen() {
       )}
 
       {pendingNotice && <p role="status" className="mb-3 rounded-2xl bg-warn-soft p-3 text-sm text-warn">{pendingNotice}</p>}
-      <div role="group" aria-label="Locul cumpărăturilor — filtre" className="mb-3 flex flex-wrap gap-2">
-        <Chip active={!placeFilter} onClick={() => setPlaceFilter(null)}>Toate</Chip>
-        <Chip active={placeFilter === "source:supermarket"} onClick={() => setPlaceFilter(placeFilter === "source:supermarket" ? null : "source:supermarket")}>Supermarket</Chip>
-        {contextualRetailers.map((r) => <Chip key={r.id} active={placeFilter === r.id} onClick={() => setPlaceFilter(placeFilter === r.id ? null : r.id)}>{r.name}</Chip>)}
-        {[...new Set(data.items.map((i) => i.source))].filter((source) => source && source !== "supermarket").map((source) => <Chip key={source} active={placeFilter === `source:${source}`} onClick={() => setPlaceFilter(placeFilter === `source:${source}` ? null : `source:${source}`)}>{SOURCE_LABELS[source]}</Chip>)}
-        <Button variant="ghost" onClick={() => setDetails(true)}>Detalii</Button>
-      </div>
-      <div className="mb-3">
-        <div>
-          <Segmented
-            label="Grupare"
-            value={groupBy}
-            onChange={setGroupBy}
-            options={[
-              { value: "raioane", label: "Pe raioane" },
-              { value: "magazine", label: "Pe magazine" },
-            ]}
-          />
-        </div>
-      </div>
+      {data.items.length > 0 && (
+        <>
+          <div role="group" aria-label="Locul cumpărăturilor — filtre" className="mb-3 flex flex-wrap gap-2">
+            <Chip active={!placeFilter} onClick={() => setPlaceFilter(null)}>Toate</Chip>
+            <Chip active={placeFilter === "source:supermarket"} onClick={() => setPlaceFilter(placeFilter === "source:supermarket" ? null : "source:supermarket")}>Supermarket</Chip>
+            {contextualRetailers.map((r) => <Chip key={r.id} active={placeFilter === r.id} onClick={() => setPlaceFilter(placeFilter === r.id ? null : r.id)}>{r.name}</Chip>)}
+            {[...new Set(data.items.map((i) => i.source))].filter((source) => source && source !== "supermarket").map((source) => <Chip key={source} active={placeFilter === `source:${source}`} onClick={() => setPlaceFilter(placeFilter === `source:${source}` ? null : `source:${source}`)}>{SOURCE_LABELS[source]}</Chip>)}
+            <Button variant="ghost" onClick={() => setDetails(true)}>Detalii</Button>
+          </div>
+          <div className="mb-3">
+            <div>
+              <Segmented
+                label="Grupare"
+                value={groupBy}
+                onChange={setGroupBy}
+                options={[
+                  { value: "raioane", label: "Pe raioane" },
+                  { value: "magazine", label: "Pe magazine" },
+                ]}
+              />
+            </div>
+          </div>
+        </>
+      )}
 
       {data.items.length === 0 ? (
         <EmptyState icon={<NotebookIcon size={32} />} title="Foaia e albă">

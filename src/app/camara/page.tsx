@@ -189,26 +189,29 @@ function PantryScreen() {
       )}
 
 
-      {/* Cele 4 filtre principale încap pe un rând de la 360 px; celelalte locuri apar dedesubt doar dacă au produse. */}
-      <div role="group" aria-label="Unde caut" className="mt-3 grid grid-cols-4 gap-1.5">
-        {[{ id: null, name: "Toate" }, ...data.locations.filter((l) => MAIN_LOCATIONS.has(l.id))].map((l) => (
-          <LocationFilter key={l.id ?? "toate"} active={location === l.id} onClick={() => setLocation(l.id === null || location === l.id ? null : l.id)}>
-            {l.name}
-          </LocationFilter>
-        ))}
-      </div>
-      {data.locations.some((l) => !MAIN_LOCATIONS.has(l.id) && data.items.some((i) => i.location_id === l.id)) && (
-        <div className="mt-1.5 flex flex-wrap gap-1.5">
-          {data.locations
-            .filter((l) => !MAIN_LOCATIONS.has(l.id) && data.items.some((i) => i.location_id === l.id))
-            .map((l) => (
-              <Chip key={l.id} active={location === l.id} onClick={() => setLocation(location === l.id ? null : l.id)}>
+      {data.items.length > 0 && (
+        <>
+          {/* Cele 4 filtre principale încap pe un rând de la 360 px; celelalte locuri apar dedesubt doar dacă au produse. */}
+          <div role="group" aria-label="Unde caut" className="mt-3 grid grid-cols-4 gap-1.5">
+            {[{ id: null, name: "Toate" }, ...data.locations.filter((l) => MAIN_LOCATIONS.has(l.id))].map((l) => (
+              <LocationFilter key={l.id ?? "toate"} active={location === l.id} onClick={() => setLocation(l.id === null || location === l.id ? null : l.id)}>
                 {l.name}
-              </Chip>
+              </LocationFilter>
             ))}
-        </div>
+          </div>
+          {data.locations.some((l) => !MAIN_LOCATIONS.has(l.id) && data.items.some((i) => i.location_id === l.id)) && (
+            <div className="mt-1.5 flex flex-wrap gap-1.5">
+              {data.locations
+                .filter((l) => !MAIN_LOCATIONS.has(l.id) && data.items.some((i) => i.location_id === l.id))
+                .map((l) => (
+                  <Chip key={l.id} active={location === l.id} onClick={() => setLocation(location === l.id ? null : l.id)}>
+                    {l.name}
+                  </Chip>
+                ))}
+            </div>
+          )}
+        </>
       )}
-
 
       {data.items.length === 0 ? (
         <div className="mt-4">

@@ -152,7 +152,7 @@ function RecipeScreen() {
 
       <RecipePhotoPanel recipe={r} />
       <h1 className="mt-4 min-w-0 break-words text-[32px] font-bold leading-tight tracking-tight">{r.name}</h1>
-      <p className="mt-1 text-[15px] text-ink-2">{r.description}</p>
+      <p className="mt-1 max-w-[70ch] text-[15px] text-ink-2">{r.description}</p>
       {r.source_url && <RecipeSource url={r.source_url} />}
       <div className="mt-3 flex flex-wrap gap-1.5">
         {r.categories.map((c) => (
@@ -296,7 +296,7 @@ function RecipeScreen() {
         {data.steps.map((s, k) => (
           <li key={s.id} className="flex gap-3">
             <span className="w-7 shrink-0 text-right font-sans text-xl font-semibold leading-7 text-brand">{k + 1}.</span>
-            <p className="pt-0.5 text-[15px] leading-relaxed">{s.text}</p>
+            <p className="max-w-[70ch] pt-0.5 text-[15px] leading-relaxed">{s.text}</p>
           </li>
         ))}
       </ol>

@@ -259,6 +259,11 @@ p {
   text-wrap: pretty;
 }
 
+a {
+  text-underline-offset: 3px;
+  text-decoration-thickness: 1.5px;
+}
+
 /* Shared typography, with the native Apple system face on iPhone. */
 h1 {
   font-family: var(--font-sans);
