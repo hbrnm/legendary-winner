@@ -50,7 +50,7 @@ export function IconButton({ label, className = "", children, ...rest }: ButtonH
       type="button"
       aria-label={label}
       title={label}
-      className={`inline-flex h-12 w-12 shrink-0 items-center justify-center rounded-full text-ink-2 transition duration-150 ease-out hover:bg-surface-2 hover:text-ink active:scale-[0.97] active:bg-surface-2 focus-visible:outline-2 focus-visible:outline-brand disabled:opacity-40 ${className}`}
+      className={`inline-flex h-12 w-12 shrink-0 items-center justify-center rounded-full text-ink-2 transition duration-150 ease-out hover:bg-surface-2 hover:text-ink active:scale-[0.97] active:bg-surface-2 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand disabled:opacity-40 ${className}`}
       {...rest}
     >
       {children}
