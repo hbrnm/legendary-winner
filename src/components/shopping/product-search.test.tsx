@@ -31,6 +31,11 @@ it("keeps quantity presets above the keyboard outside document flow", () => {
   expect(screen.getByRole("button", { name: "1 buc" })).toBeTruthy();
   expect(screen.getByRole("button", { name: "1 l" })).toBeTruthy();
 });
+it("places presets in document flow when inline is true (e.g. inside a bottom sheet)", () => {
+  render(<ProductSearch inline onPick={vi.fn()} />);
+  const toolbar = screen.getByRole("group", { name: "Cantități rapide" }).parentElement!;
+  expect(toolbar.style.position).not.toBe("fixed");
+});
 it("keeps numeric product searches available until a unit is explicitly chosen", () => {
   render(<ProductSearch onPick={vi.fn()} />);
   fireEvent.change(screen.getByRole("combobox"), { target: { value: "1234567890123" } });

@@ -50,6 +50,27 @@ it("focalizează câmpul cerut după deschiderea dialogului, nu butonul de înch
   expect(document.activeElement).toBe(view.getByLabelText("Suma plătită"));
 });
 
+it("nu focalizează câmpul pe dispozitive tactile pentru a evita ridicarea bruscă a tastaturii", () => {
+  const originalMatchMedia = window.matchMedia;
+  window.matchMedia = vi.fn().mockImplementation((query) => ({
+    matches: query === "(pointer: coarse)",
+    media: query,
+    onchange: null,
+    addListener: vi.fn(),
+    removeListener: vi.fn(),
+    addEventListener: vi.fn(),
+    removeEventListener: vi.fn(),
+    dispatchEvent: vi.fn(),
+  }));
+  try {
+    HTMLDialogElement.prototype.showModal = function (this: HTMLDialogElement) { this.open = true; };
+    const view = render(<Sheet open onClose={() => {}} title="Sumă mobilă"><input aria-label="Suma tactilă" data-autofocus /></Sheet>);
+    expect(document.activeElement).not.toBe(view.getByLabelText("Suma tactilă"));
+  } finally {
+    window.matchMedia = originalMatchMedia;
+  }
+});
+
 it("închiderea unui selector imbricat nu închide panoul de captură părinte", () => {
   const outerClose=vi.fn(); const innerClose=vi.fn();
   const view=render(<Sheet open onClose={outerClose} title="Captură bon"><Sheet open onClose={innerClose} title="Alege produsul"><input /></Sheet></Sheet>);

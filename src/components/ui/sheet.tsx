@@ -42,7 +42,10 @@ export function Sheet({ open, onClose, title, children, footer }: { open: boolea
     if (!d) return;
     if (open && !d.open) {
       d.showModal();
-      d.querySelector<HTMLElement>("[data-autofocus], [autofocus]")?.focus();
+      const isCoarse = typeof window !== "undefined" && window.matchMedia?.("(pointer: coarse)")?.matches;
+      if (!isCoarse) {
+        d.querySelector<HTMLElement>("[data-autofocus], [autofocus]")?.focus();
+      }
     }
     if (!open && d.open) d.close();
   }, [open]);
@@ -56,18 +59,30 @@ export function Sheet({ open, onClose, title, children, footer }: { open: boolea
       }}
       aria-label={title}
       style={keyboardStyle}
-      className="m-0 mt-auto max-h-[92dvh] w-full max-w-none rounded-t-[28px] border-0 bg-surface-container-low p-0 text-ink shadow-elevated backdrop:bg-backdrop-overlay min-[600px]:m-auto min-[600px]:max-w-lg min-[600px]:rounded-[28px]"
+      className="m-0 mt-auto flex max-h-[92dvh] w-full max-w-none flex-col overflow-hidden rounded-t-[28px] border-0 bg-surface-container-low p-0 text-ink shadow-elevated backdrop:bg-backdrop-overlay min-[600px]:m-auto min-[600px]:max-w-lg min-[600px]:rounded-[28px]"
     >
       {open && (
-        <div className="flex max-h-[inherit] flex-col">
-          <div className="flex items-center justify-between gap-2 px-6 pb-2 pt-5">
+        <div
+          className="flex max-h-[inherit] flex-1 min-h-0 flex-col overflow-hidden"
+          style={keyboardStyle?.maxHeight ? { maxHeight: keyboardStyle.maxHeight } : undefined}
+        >
+          <div className="flex shrink-0 items-center justify-between gap-2 px-6 pb-2 pt-5">
             <h2 className="min-w-0 break-words text-2xl font-bold leading-tight tracking-tight">{title}</h2>
-            <button type="button" onClick={onClose} aria-label="Închide" className="inline-flex h-12 w-12 shrink-0 items-center justify-center rounded-full text-ink-2 transition-colors duration-150 ease-out hover:bg-surface-2 focus-visible:outline-2 focus-visible:outline-brand">
+            <button
+              type="button"
+              onClick={onClose}
+              aria-label="Închide"
+              className="inline-flex h-12 w-12 shrink-0 items-center justify-center rounded-full text-ink-2 transition-colors duration-150 ease-out hover:bg-surface-2 focus-visible:outline-2 focus-visible:outline-brand"
+            >
               <X size={20} />
             </button>
           </div>
-          <div className="flex-1 overflow-y-auto overscroll-contain px-6 py-4">{children}</div>
-          {footer && <div className="pb-safe border-t border-line px-6 pb-6 pt-4">{footer}</div>}
+          <div className="flex-1 min-h-0 overflow-y-auto overscroll-contain px-6 py-4">{children}</div>
+          {footer && (
+            <div className={`shrink-0 border-t border-line px-6 pt-4 ${keyboardStyle?.marginBottom ? "pb-4" : "pb-safe pb-6"}`}>
+              {footer}
+            </div>
+          )}
         </div>
       )}
     </dialog>
