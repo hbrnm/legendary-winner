@@ -4,7 +4,7 @@ import { forwardRef, useId, useRef, type InputHTMLAttributes, type KeyboardEvent
 import { ChevronDown } from "lucide-react";
 
 const FIELD =
-  "w-full min-w-0 rounded-2xl border border-outline bg-surface px-4 text-base text-ink placeholder:text-ink-3 focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/25 disabled:opacity-60";
+  "w-full min-w-0 rounded-2xl border border-outline bg-surface px-4 text-base text-ink placeholder:text-ink-3 transition-colors duration-150 ease-out focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/25 disabled:opacity-60";
 
 export function Field({
   label,

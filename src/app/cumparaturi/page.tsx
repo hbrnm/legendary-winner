@@ -28,6 +28,15 @@ function ListsScreen() {
   const { run } = useAction();
   const [showArchived, setShowArchived] = useState(false);
 
+  async function handleCreateList() {
+    await run(async (ctx) => {
+      const datedName = `Cumpărături ${formatShortDate(toISODate(now()))}`;
+      const id = await createList(ctx, { name: datedName });
+      selectList(id);
+      router.push(`/cumparaturi/lista/?id=${id}`);
+    }, "Am creat lista de cumpărături.");
+  }
+
   const data = useData(async (ctx) => {
     const lists = (await owned(ctx.db, "shopping_lists", ctx.householdId)).sort((a, b) => a.sort_order - b.sort_order || a.created_at.localeCompare(b.created_at));
     const prices = await priceIndex(ctx.db, ctx.householdId);
@@ -81,8 +90,9 @@ function ListsScreen() {
         <EmptyState
           icon={<BasketIcon size={32} />}
           title="Încă n-ai nicio listă"
+          action={<Button onClick={handleCreateList}>Creează o listă</Button>}
         >
-          Apasă pe butonul de adăugare (+) pentru a crea o listă nouă sau pentru a copia o listă mai veche.
+          Apasă pe butonul de mai sus pentru a crea o listă nouă sau folosește butonul (+) pentru a copia o listă mai veche.
         </EmptyState>
       ) : (
         <ul className="grid gap-4 min-[900px]:grid-cols-2">

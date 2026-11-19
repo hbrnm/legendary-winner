@@ -51,7 +51,7 @@ function LocationFilter({ active, onClick, children }: { active: boolean; onClic
       type="button"
       aria-pressed={active}
       onClick={onClick}
-      className={`h-12 min-w-0 rounded-xl border px-1.5 text-[13px] font-medium transition duration-150 ease-out active:scale-[0.98] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand ${active ? "border-brand bg-brand text-brand-ink" : "border-line bg-surface text-ink-2 hover:text-ink"}`}
+      className={`h-12 min-w-0 rounded-2xl border px-1.5 text-[13px] font-medium transition duration-150 ease-out active:scale-[0.98] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand ${active ? "border-brand bg-brand text-brand-ink" : "border-line bg-surface text-ink-2 hover:text-ink"}`}
     >
       <span className="truncate">{children}</span>
     </button>
@@ -189,26 +189,29 @@ function PantryScreen() {
       )}
 
 
-      {/* Cele 4 filtre principale încap pe un rând de la 360 px; celelalte locuri apar dedesubt doar dacă au produse. */}
-      <div role="group" aria-label="Unde caut" className="mt-3 grid grid-cols-4 gap-1.5">
-        {[{ id: null, name: "Toate" }, ...data.locations.filter((l) => MAIN_LOCATIONS.has(l.id))].map((l) => (
-          <LocationFilter key={l.id ?? "toate"} active={location === l.id} onClick={() => setLocation(l.id === null || location === l.id ? null : l.id)}>
-            {l.name}
-          </LocationFilter>
-        ))}
-      </div>
-      {data.locations.some((l) => !MAIN_LOCATIONS.has(l.id) && data.items.some((i) => i.location_id === l.id)) && (
-        <div className="mt-1.5 flex flex-wrap gap-1.5">
-          {data.locations
-            .filter((l) => !MAIN_LOCATIONS.has(l.id) && data.items.some((i) => i.location_id === l.id))
-            .map((l) => (
-              <Chip key={l.id} active={location === l.id} onClick={() => setLocation(location === l.id ? null : l.id)}>
+      {data.items.length > 0 && (
+        <>
+          {/* Cele 4 filtre principale încap pe un rând de la 360 px; celelalte locuri apar dedesubt doar dacă au produse. */}
+          <div role="group" aria-label="Unde caut" className="mt-3 grid grid-cols-4 gap-1.5">
+            {[{ id: null, name: "Toate" }, ...data.locations.filter((l) => MAIN_LOCATIONS.has(l.id))].map((l) => (
+              <LocationFilter key={l.id ?? "toate"} active={location === l.id} onClick={() => setLocation(l.id === null || location === l.id ? null : l.id)}>
                 {l.name}
-              </Chip>
+              </LocationFilter>
             ))}
-        </div>
+          </div>
+          {data.locations.some((l) => !MAIN_LOCATIONS.has(l.id) && data.items.some((i) => i.location_id === l.id)) && (
+            <div className="mt-1.5 flex flex-wrap gap-1.5">
+              {data.locations
+                .filter((l) => !MAIN_LOCATIONS.has(l.id) && data.items.some((i) => i.location_id === l.id))
+                .map((l) => (
+                  <Chip key={l.id} active={location === l.id} onClick={() => setLocation(location === l.id ? null : l.id)}>
+                    {l.name}
+                  </Chip>
+                ))}
+            </div>
+          )}
+        </>
       )}
-
 
       {data.items.length === 0 ? (
         <div className="mt-4">

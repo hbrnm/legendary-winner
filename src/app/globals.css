@@ -236,6 +236,34 @@ body {
   min-height: 100dvh;
 }
 
+/* Finisaje artizanale de browser conform sistemului de design. */
+::selection {
+  background-color: var(--brand-soft);
+  color: var(--brand);
+}
+
+input, textarea {
+  caret-color: var(--brand);
+}
+
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--line) transparent;
+}
+
+h1, h2, h3, h4 {
+  text-wrap: balance;
+}
+
+p {
+  text-wrap: pretty;
+}
+
+a {
+  text-underline-offset: 3px;
+  text-decoration-thickness: 1.5px;
+}
+
 /* Shared typography, with the native Apple system face on iPhone. */
 h1 {
   font-family: var(--font-sans);
@@ -288,7 +316,8 @@ h1 {
 .app-topbar { background: var(--bg); }
 /* The fixed bar floats above the safe area; reserved space includes its lower gap. */
 .app-mobile-nav { left: 16px; right: 16px; bottom: calc(12px + env(safe-area-inset-bottom, 0px)); max-width: 440px; margin-inline: auto; height: 72px; padding: 5px; border: 1px solid var(--line); border-radius: 999px; background: var(--nav-surface); box-shadow: var(--shadow-panel); }
-.app-mobile-item { height: 60px; min-width: 0; border-radius: 999px; font-size: 9px; gap: 3px; }
+.app-mobile-item { height: 60px; min-width: 0; border-radius: 999px; font-size: 9px; gap: 3px; transition: color 150ms ease-out, background-color 150ms ease-out, transform 150ms ease-out; }
+.app-mobile-item:active { transform: scale(0.96); }
 .app-mobile-indicator { display: flex; height: 25px; align-items: center; justify-content: center; }
 .app-mobile-item[aria-current="page"] { color: var(--brand-ink); background: var(--brand); }
 .app-mobile-item[aria-current="page"] .app-mobile-indicator { color: inherit; }
@@ -327,7 +356,9 @@ input[type="checkbox"], input[type="radio"] { accent-color: var(--brand); }
 
 /* A non-interactive fade separates the content from floating navigation. */
 .app-nav-fade { position: fixed; z-index: 35; bottom: 0; inset-inline: 0; height: calc(112px + env(safe-area-inset-bottom, 0px)); pointer-events: none; background: linear-gradient(transparent, var(--bg) 72%); }
-.capture-fab { position: fixed; z-index: 39; right: max(20px, calc((100vw - 960px) / 2)); bottom: calc(104px + env(safe-area-inset-bottom, 0px)); width: 56px; height: 56px; border-radius: 50%; background: var(--brand); color: var(--brand-ink); box-shadow: var(--shadow-panel); display: flex; align-items: center; justify-content: center; }
+.capture-fab { position: fixed; z-index: 39; right: max(20px, calc((100vw - 960px) / 2)); bottom: calc(104px + env(safe-area-inset-bottom, 0px)); width: 56px; height: 56px; border-radius: 50%; background: var(--brand); color: var(--brand-ink); box-shadow: var(--shadow-panel); display: flex; align-items: center; justify-content: center; transition: transform 150ms ease-out, background-color 150ms ease-out; }
+.capture-fab:hover { background: var(--brand-strong); }
+.capture-fab:active { transform: scale(0.94); }
 @media (min-width: 600px) { .app-nav-fade { display: none; } .capture-fab { bottom: 24px; } .app-main { padding-bottom: 112px; } }
 
 /* Progressive enhancement: older browsers retain a scrollable text field. */

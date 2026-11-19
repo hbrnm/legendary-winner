@@ -181,13 +181,13 @@ export function CaptureHost() {
     </Sheet>
     <Sheet open={request !== null} onClose={close} title={request?.mode === "shopping" ? "Adaugă pe listă" : "Cheltuială"}
       footer={request?.mode === "manual" ? <Button block disabled={busy || !familyBudgetEnabled} onClick={saveExpense}>Salvează</Button> : undefined}>
-      {request?.mode !== "shopping" && <div className="mb-5 flex rounded-full bg-surface-2 p-1" role="group" aria-label="Metoda de înregistrare">
+      {request?.mode !== "shopping" && <div className="mb-4 flex rounded-full bg-surface-2 p-1" role="group" aria-label="Metoda de înregistrare">
         <button type="button" aria-pressed={request?.mode === "manual"} className={`${chip} flex-1 justify-center ${request?.mode === "manual" ? "bg-brand text-brand-ink" : "text-ink-2"}`} disabled={busy} onClick={() => {setCameraFile(null);if(request?.listId) dispatchCapture({mode:"manual",listId:request.listId}); else setRequest(r => r && {...r,mode:"manual"});}}>Introducere manuală</button>
         <button type="button" aria-pressed={request?.mode === "scan"} className={`${chip} flex-1 justify-center ${request?.mode === "scan" ? "bg-brand text-brand-ink" : "text-ink-2"}`} disabled={busy} onClick={() => setRequest(r => r && {...r,mode:"scan"})}><Receipt size={17} className="mr-1" /> Scanează bon</button>
       </div>}
-      {request?.mode === "manual" && <form onSubmit={e => {e.preventDefault(); void saveExpense();}} className="flex flex-col gap-4">
+      {request?.mode === "manual" && <form onSubmit={e => {e.preventDefault(); void saveExpense();}} className="flex flex-col gap-3 sm:gap-4">
         {!familyBudgetEnabled && <p role="status" className="text-sm text-ink-2">Cheltuielile familiei vor fi disponibile după actualizarea și sincronizarea gospodăriei.</p>}
-        <label className="block text-sm font-medium">Sumă (RON)<input autoFocus data-autofocus style={{fontSize:"2.25rem"}} inputMode="decimal" value={amount} onChange={e => setAmount(e.target.value)} placeholder="0,00" className="mt-1 block h-16 w-full border-b border-line bg-transparent text-4xl font-semibold tabular-nums outline-none focus:border-brand" /></label>
+        <label className="block text-sm font-medium">Sumă (RON)<input data-autofocus inputMode="decimal" value={amount} onChange={e => setAmount(e.target.value)} placeholder="0,00" className="mt-1 block h-12 w-full border-b border-line bg-transparent text-3xl font-semibold tabular-nums outline-none focus:border-brand sm:h-16 sm:text-4xl" /></label>
         <div><p className="mb-2 text-sm font-medium">Magazin / Loc</p><div className="flex gap-2 overflow-x-auto pb-1">
           {safeData?.places.map(p => <button type="button" key={p.key} aria-pressed={place === p.name} className={`${chip} ${place === p.name ? "bg-brand text-brand-ink" : "bg-surface-2 text-ink"}`} onClick={() => {setPlace(p.name);setRetailerId(p.retailerId);setSource(p.source);setFreePlace(false);}}>{p.name}</button>)}
           <button type="button" className={`${chip} bg-surface-2 text-ink`} onClick={() => {setFreePlace(true);setRetailerId(null);setPlace("");}}>+ Alt loc</button>

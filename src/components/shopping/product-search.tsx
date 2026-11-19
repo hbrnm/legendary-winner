@@ -92,6 +92,9 @@ export function ProductSearch({
     // eslint-disable-next-line react-hooks/exhaustive-deps -- rulează doar când s-a încărcat catalogul
   }, [data]);
 
+  const isCoarse = typeof window !== "undefined" && window.matchMedia?.("(pointer: coarse)")?.matches;
+  const effectiveAutoFocus = autoFocus && !isCoarse;
+
   return (
     <div className="relative" onFocus={() => setFocused(true)} onBlur={(e) => { if (!e.currentTarget.contains(e.relatedTarget)) setFocused(false); }}>
       <div className="flex items-center gap-3 rounded-full border border-transparent bg-surface-container-high px-5 transition-colors duration-150 ease-out focus-within:border-brand focus-within:bg-surface focus-within:ring-2 focus-within:ring-brand/25">
@@ -99,7 +102,7 @@ export function ProductSearch({
         <input
           ref={inputRef}
           value={text}
-          autoFocus={autoFocus}
+          autoFocus={effectiveAutoFocus}
           data-autofocus={autoFocus || undefined}
           onChange={(e) => {
             setText(e.target.value);
@@ -131,8 +134,19 @@ export function ProductSearch({
           className="h-12 min-w-0 flex-1 bg-transparent text-base text-ink placeholder:text-ink-3 focus:outline-none"
         />
       </div>
-      {focused && intent === "add" && (
-        <div className="inset-x-4 z-40 mx-auto flex max-w-xl flex-col gap-2 rounded-2xl border border-line bg-surface p-3 shadow-elevated" style={{ position: "fixed", bottom: `calc(${Math.max(104, keyboardOffset + 8)}px + env(safe-area-inset-bottom))` }}>
+      {(focused || inline) && intent === "add" && (
+        <div
+          className={
+            inline
+              ? "mt-2 flex flex-col gap-2 rounded-2xl border border-line bg-surface p-3"
+              : "inset-x-4 z-40 mx-auto flex max-w-xl flex-col gap-2 rounded-2xl border border-line bg-surface p-3 shadow-elevated"
+          }
+          style={
+            inline
+              ? undefined
+              : { position: "fixed", bottom: `calc(${Math.max(104, keyboardOffset + 8)}px + env(safe-area-inset-bottom))` }
+          }
+        >
           <div role="group" aria-label="Cantități rapide" className="flex gap-2 overflow-x-auto pb-1">
             {([{ quantity: 1, unit: "buc" }, { quantity: 500, unit: "g" }, { quantity: 1, unit: "kg" }, { quantity: 1, unit: "l" }] as const).map(({ quantity, unit }) => (
               <button key={unit} type="button" aria-pressed={parsed.unit === unit && parsed.quantity === quantity} onMouseDown={(e) => e.preventDefault()} onClick={() => {
