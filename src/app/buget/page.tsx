@@ -1,69 +1,59 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
-import { ChevronLeft, ChevronRight, Download, Pencil, Plus, ScanLine, Shapes, Tags, Trash2, Wallet } from "lucide-react";
-import { IncomePanel } from "@/components/budget/income-panel";
+import { ChevronLeft, ChevronRight, Download, Pencil, Plus, Shapes, Tags, Wallet } from "lucide-react";
+import { IncomeSheet } from "@/components/budget/income-sheet";
+import { BudgetEditorSheet, scopeLabel } from "@/components/budget/budget-editor-sheet";
 import { CompactCategories } from "@/components/budget/compact-categories";
 import { TransactionFeed } from "@/components/budget/transaction-feed";
 import { hasSpendHistory } from "@/components/budget/transactions";
-import { dispatchCapture } from "@/components/capture/events";
-import { EXPENSE_CATEGORIES, type ExpenseCategoryId } from "@/lib/domain/expense-categories";
+import { EXPENSE_CATEGORIES } from "@/lib/domain/expense-categories";
 import { AppShell } from "@/components/app/shell";
-import { useAction, useData } from "@/components/app/hooks";
+import { useData } from "@/components/app/hooks";
 import { Button, IconButton } from "@/components/ui/button";
 import { BudgetBar, Card, DualBudgetBar, EmptyState, PageHeader, SectionTitle, Spinner } from "@/components/ui/misc";
-import { Sheet } from "@/components/ui/sheet";
-import { LabeledInput, LabeledSelect, Segmented } from "@/components/ui/fields";
+import { LabeledSelect } from "@/components/ui/fields";
 import { BarList, ColumnChart } from "@/components/budget/charts";
 import { listItems, owned, priceIndex, householdSpendRecords, visible } from "@/lib/services/queries";
-import { createBudget, deleteBudget, updateBudget } from "@/lib/services/money";
 import { diverseToSort } from "@/lib/services/receipts";
 import { averageTrip, budgetStatus, dailyBudgetAvailable, byCategory, byExpenseCategory, byRetailer, monthlyTotals, SOURCE_LABELS, spendInPeriod, spendToCsv, sumAmounts, weeklyTotals } from "@/lib/domain/budget";
+import { incomeSummary } from "@/lib/domain/income";
 import { listTotals } from "@/lib/domain/shopping";
 import { addDays, formatMonth, formatShortDate, monthPeriod, startOfMonth, toISODate } from "@/lib/domain/dates";
-import { formatRon, parseMoney, sumMoney } from "@/lib/domain/money";
+import { formatRon, sumMoney } from "@/lib/domain/money";
 import { now } from "@/lib/clock";
 import { capitalizeFirst, count } from "@/lib/domain/text";
-import type { Budget, BudgetPeriod, BudgetScope, PurchaseSource } from "@/lib/domain/types";
+import type { Budget, PurchaseSource } from "@/lib/domain/types";
 
 const MONTHS_SHORT = ["ian", "feb", "mar", "apr", "mai", "iun", "iul", "aug", "sep", "oct", "nov", "dec"];
 
-function scopeLabel(scope: BudgetScope, names: { categories: Map<string, string>; retailers: Map<string, string> }): string {
-  switch (scope.kind) {
-    case "familie":
-      return "Toate cheltuielile familiei";
-    case "cheltuiala":
-      return EXPENSE_CATEGORIES.find((category) => category.id === scope.category_id)?.name ?? "Categorie";
-    case "total":
-      return "Toate cumpărăturile";
-    case "alimente":
-      return "Doar alimente";
-    case "nealimentare":
-      return "Casă și igienă";
-    case "sursa":
-      return SOURCE_LABELS[scope.source];
-    case "categorie":
-      return names.categories.get(scope.category_id) ?? "Categorie";
-    case "magazin":
-      return names.retailers.get(scope.retailer_id) ?? "Magazin";
-  }
-}
-
-type ScopeKind = BudgetScope["kind"];
-
 function BudgetScreen() {
-  const { run, busy } = useAction();
   const today = toISODate(now());
   const [month, setMonth] = useState(startOfMonth(today));
   const [split, setSplit] = useState<"familie" | "categorii" | "magazine">("familie");
   const [editing, setEditing] = useState<Budget | "nou" | null>(null);
-  const [fName, setFName] = useState("");
-  const [fAmount, setFAmount] = useState("");
-  const [fPeriod, setFPeriod] = useState<BudgetPeriod>("lunar");
-  const [fKind, setFKind] = useState<ScopeKind>("total");
-  const [fValue, setFValue] = useState("");
-  const [formError, setFormError] = useState<string | null>(null);
+  const [incomeOpen, setIncomeOpen] = useState(false);
+  const [incomeInitialAdd, setIncomeInitialAdd] = useState(false);
+  const fromFabRef = useRef(false);
+
+  useEffect(() => {
+    const handleIncome = () => {
+      fromFabRef.current = true;
+      setIncomeInitialAdd(true);
+      setIncomeOpen(true);
+    };
+    window.addEventListener("camara:income", handleIncome);
+    return () => window.removeEventListener("camara:income", handleIncome);
+  }, []);
+
+  function handleCloseIncome() {
+    setIncomeOpen(false);
+    if (fromFabRef.current) {
+      fromFabRef.current = false;
+      requestAnimationFrame(() => document.querySelector<HTMLButtonElement>('.capture-fab')?.focus());
+    }
+  }
 
   const data = useData(async (ctx) => {
     const [spend, budgets, categories, retailers, lists, prices, transactions, expenses] = await Promise.all([
@@ -138,48 +128,6 @@ function BudgetScreen() {
   const basketStatus = mainStatus && (mainStatus.budget.scope.kind === "familie" || mainStatus.budget.scope.kind === "total") ? mainStatus : undefined;
   const isCurrentMonth = month === startOfMonth(today);
 
-  function openForm(b: Budget | "nou") {
-    setEditing(b);
-    setFormError(null);
-    if (b === "nou") {
-      setFName(data!.budgets.length === 0 ? "Bugetul lunii" : "");
-      setFAmount("");
-      setFPeriod("lunar");
-      setFKind("familie");
-      setFValue("");
-    } else {
-      setFName(b.name);
-      setFAmount(b.amount.toFixed(2).replace(".", ","));
-      setFPeriod(b.period);
-      setFKind(b.scope.kind);
-      setFValue(b.scope.kind === "sursa" ? b.scope.source : b.scope.kind === "categorie" || b.scope.kind === "cheltuiala" ? b.scope.category_id : b.scope.kind === "magazin" ? b.scope.retailer_id : "");
-    }
-  }
-
-  async function saveForm() {
-    const amount = parseMoney(fAmount);
-    if (amount == null || amount <= 0) return setFormError("Scrie suma bugetului, de exemplu 2500.");
-    let scope: BudgetScope;
-    if (fKind === "sursa") scope = { kind: "sursa", source: (fValue || "piata") as PurchaseSource };
-    else if (fKind === "categorie") {
-      if (!fValue) return setFormError("Alege categoria.");
-      scope = { kind: "categorie", category_id: fValue };
-    } else if (fKind === "cheltuiala") {
-      if (!fValue || !EXPENSE_CATEGORIES.some((category) => category.id === fValue)) return setFormError("Alege categoria.");
-      scope = { kind: "cheltuiala", category_id: fValue as ExpenseCategoryId };
-    } else if (fKind === "magazin") {
-      if (!fValue) return setFormError("Alege magazinul.");
-      scope = { kind: "magazin", retailer_id: fValue };
-    } else scope = { kind: fKind };
-    const input = { name: fName || scopeLabel(scope, names), period: fPeriod, scope, amount };
-    const ok = await run(async (ctx) => {
-      if (editing === "nou") await createBudget(ctx, input);
-      else await updateBudget(ctx, (editing as Budget).id, input);
-      return true;
-    }, "Am salvat bugetul.");
-    if (ok) setEditing(null);
-  }
-
   function exportCsv(all: boolean) {
     const items = all ? data!.spend : view!.monthSpend;
     const csv = spendToCsv(items, view!.catMap, view!.retMap);
@@ -196,18 +144,17 @@ function BudgetScreen() {
       <PageHeader
         title="Buget"
         subtitle="Ce plănuiești și ce cheltui de fapt"
-        action={
-          <div className="flex items-center gap-1">
-            <Button onClick={() => dispatchCapture({ mode: "manual" })} icon={<Plus size={18} />}>Cheltuială</Button>
-            <IconButton label="Scanează un bon" onClick={() => dispatchCapture({ mode: "scan" })}><ScanLine size={20} /></IconButton>
-          </div>
-        }
       />
 
-      <IncomePanel budget={mainStatus?.budget.scope.kind === "familie" || mainStatus?.budget.scope.kind === "total" ? mainStatus.budget : undefined} />
+      <IncomeSheet
+        open={incomeOpen}
+        onClose={handleCloseIncome}
+        budget={mainStatus?.budget.scope.kind === "familie" || mainStatus?.budget.scope.kind === "total" ? mainStatus.budget : undefined}
+        initialAdd={incomeInitialAdd}
+      />
 
       {view.statuses.length === 0 ? (
-        <EmptyState icon={<Wallet size={32} />} title="Setează un buget" action={<Button onClick={() => openForm("nou")}>Setează bugetul lunar</Button>}>
+        <EmptyState icon={<Wallet size={32} />} title="Setează un buget" action={<Button onClick={() => setEditing("nou")}>Setează bugetul lunar</Button>}>
           Spune cât vrei să cheltui pe lună (sau pe săptămână, la piață, la un anumit magazin) și urmărești cum te încadrezi, chiar din magazin.
         </EmptyState>
       ) : (
@@ -221,7 +168,7 @@ function BudgetScreen() {
                     {scopeLabel(s.budget.scope, names)} · {s.budget.period === "lunar" ? formatMonth(s.period.from) : `${formatShortDate(s.period.from)} – ${formatShortDate(s.period.to)}`}
                   </p>
                 </div>
-                <IconButton label={`Modifică bugetul ${s.budget.name}`} onClick={() => openForm(s.budget)} className="-mr-2 -mt-2">
+                <IconButton label={`Modifică bugetul ${s.budget.name}`} onClick={() => setEditing(s.budget)} className="-mr-2 -mt-2">
                   <Pencil size={18} />
                 </IconButton>
               </div>
@@ -248,17 +195,58 @@ function BudgetScreen() {
                   <BudgetBar pct={s.used_pct} label={`${s.budget.name}: ${s.used_pct}% folosit`} />
                 )}
               </div>
-              <p className={`mt-2 text-sm ${s.over ? "font-medium text-accent" : "text-ink-2"}`}>
-                {s.over ? `Ai depășit bugetul cu ${formatRon(-s.remaining)}.` : `Mai ai ${formatRon(s.remaining)}.`}
-                {s.projected != null && ` La ritmul actual ajungi la ${formatRon(s.projected)} la final de lună.`}
-              </p>
+              {s.over ? (
+                <p className="mt-2 text-sm font-medium text-accent">
+                  Ai depășit bugetul cu {formatRon(-s.remaining)}.
+                  {s.projected != null && ` La ritmul actual ajungi la ${formatRon(s.projected)} la final de lună.`}
+                </p>
+              ) : s.projected != null ? (
+                <p className="mt-2 text-sm text-ink-2">
+                  La ritmul actual ajungi la {formatRon(s.projected)} la final de lună.
+                </p>
+              ) : null}
               {s.items_without_amount > 0 && <p className="mt-1 text-xs text-warn">{s.items_without_amount === 1 ? "Un produs cumpărat nu are preț" : `${count(s.items_without_amount, "produs", "produse")} cumpărate nu au preț`}. Totalurile declarate ale bonurilor sunt incluse.</p>}
+              {s.budget.income_sources && s.budget.income_sources.length > 0 && (() => {
+                const incSum = incomeSummary(s.budget.income_sources, s.budget.amount);
+                return (
+                  <div aria-label="Venituri lunare" role="region" className="mt-3 border-t border-line/60 pt-2.5">
+                    <div className="flex items-center justify-between text-xs">
+                      <span className="font-semibold text-ink">
+                        {formatRon(incSum.total)} <span className="font-normal text-ink-2">venituri</span>
+                      </span>
+                      <div className="flex items-center gap-1.5">
+                        <span className={`tabular ${incSum.unallocated < 0 ? "font-medium text-accent" : "text-info"}`}>
+                          {formatRon(Math.abs(incSum.unallocated))} {incSum.unallocated < 0 ? "peste venituri" : "nealocați"}
+                        </span>
+                        <IconButton
+                          label="Modifică veniturile și alocarea"
+                          onClick={() => {
+                            setIncomeInitialAdd(false);
+                            setIncomeOpen(true);
+                          }}
+                          className="-my-1"
+                        >
+                          <Pencil size={14} />
+                        </IconButton>
+                      </div>
+                    </div>
+                    <ul className="mt-1.5 space-y-1">
+                      {s.budget.income_sources.map((source, index) => (
+                        <li key={index} className="flex justify-between gap-3 text-xs text-ink-2">
+                          <span className="min-w-0 truncate">{source.name}</span>
+                          <span className="shrink-0 tabular">{formatRon(source.amount)}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                );
+              })()}
             </Card>
           ))}
         </div>
       )}
 
-      {view.statuses.length > 0 && <Button className="mt-3" variant="ghost" icon={<Plus size={16} />} onClick={() => openForm("nou")}>Adaugă un buget</Button>}
+      {view.statuses.length > 0 && <Button className="mt-3" variant="ghost" icon={<Plus size={16} />} onClick={() => setEditing("nou")}>Adaugă un buget</Button>}
 
       {data.openEstimate > 0 || data.openUnknown > 0 ? (
         // Toată caseta duce la liste (decizia proprietarului, 18 oct. 2026).
@@ -362,95 +350,17 @@ function BudgetScreen() {
         </Button>
       </div>
 
-      <Sheet
-        open={editing !== null}
+      <BudgetEditorSheet
+        editing={editing}
         onClose={() => setEditing(null)}
-        title={editing === "nou" ? "Buget nou" : "Modifică bugetul"}
-        footer={
-          <div className="flex gap-2">
-            {editing && editing !== "nou" && (
-              <Button
-                variant="danger"
-                icon={<Trash2 size={18} />}
-                onClick={async () => {
-                  await run((ctx) => deleteBudget(ctx, (editing as Budget).id), "Am șters bugetul.");
-                  setEditing(null);
-                }}
-              >
-                Șterge
-              </Button>
-            )}
-            <Button className="min-w-0 flex-1 px-3" onClick={saveForm} disabled={busy}>
-              Salvează
-            </Button>
-          </div>
-        }
-      >
-        <div className="flex flex-col gap-4">
-          <LabeledInput label="Suma (lei)" inputMode="decimal" value={fAmount} onChange={(e) => setFAmount(e.target.value)} placeholder="ex. 2500" autoFocus error={formError} />
-          <Segmented<BudgetPeriod>
-            label="Perioada"
-            value={fPeriod}
-            onChange={setFPeriod}
-            options={[
-              { value: "lunar", label: "Pe lună" },
-              { value: "saptamanal", label: "Pe săptămână" },
-            ]}
-          />
-          <LabeledSelect
-            label="Pentru"
-            value={fKind}
-            onChange={(e) => {
-              setFKind(e.target.value as ScopeKind);
-              setFValue("");
-            }}
-          >
-            <option value="familie">Toate cheltuielile familiei</option>
-            <option value="cheltuiala">O categorie de cheltuieli</option>
-            <option value="total">Toate cumpărăturile</option>
-            <option value="alimente">Doar alimente</option>
-            <option value="nealimentare">Casă și igienă (nealimentare)</option>
-            <option value="sursa">Supermarket sau piață</option>
-            <option value="categorie">O categorie</option>
-            <option value="magazin">Un magazin</option>
-          </LabeledSelect>
-          {fKind === "sursa" && (
-            <LabeledSelect label="Sursa" value={fValue || "piata"} onChange={(e) => setFValue(e.target.value)}>
-              <option value="supermarket">Supermarket</option>
-              <option value="piata">Piață și producători locali</option>
-              <option value="alta">Altă sursă</option>
-            </LabeledSelect>
-          )}
-          {fKind === "cheltuiala" && (
-            <LabeledSelect label="Categoria" value={fValue} onChange={(event) => setFValue(event.target.value)}>
-              <option value="">Alege…</option>
-              {EXPENSE_CATEGORIES.map((category) => <option key={category.id} value={category.id}>{category.name}</option>)}
-            </LabeledSelect>
-          )}
-          {fKind === "categorie" && (
-            <LabeledSelect label="Categoria" value={fValue} onChange={(e) => setFValue(e.target.value)}>
-              <option value="">Alege…</option>
-              {data.categories.map((c) => (
-                <option key={c.id} value={c.id}>
-                  {c.name}
-                </option>
-              ))}
-            </LabeledSelect>
-          )}
-          {fKind === "magazin" && (
-            <LabeledSelect label="Magazinul" value={fValue} onChange={(e) => setFValue(e.target.value)}>
-              <option value="">Alege…</option>
-              {data.retailers.map((r) => (
-                <option key={r.id} value={r.id}>
-                  {r.name}
-                </option>
-              ))}
-            </LabeledSelect>
-          )}
-          <LabeledInput label="Nume (opțional)" value={fName} onChange={(e) => setFName(e.target.value)} maxLength={60} placeholder="ex. Piața din weekend" />
-          <p className="text-xs text-ink-2">Bugetul e suma planificată. Cheltuiala reală include plățile manuale și produsele bifate la cumpărături, potrivit categoriei alese.</p>
-        </div>
-      </Sheet>
+        categories={data.categories}
+        retailers={data.retailers}
+        isFirstBudget={data.budgets.length === 0}
+        onOpenIncome={() => {
+          setIncomeInitialAdd(false);
+          setIncomeOpen(true);
+        }}
+      />
     </>
   );
 }

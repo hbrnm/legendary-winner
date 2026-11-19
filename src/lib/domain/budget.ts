@@ -198,6 +198,7 @@ export function averageTrip(items: SpendRecord[]): number | null {
   const byTx = new Map<string, number[]>();
   for (const i of liveSpend(items)) {
     if (i.manual_expense_id) continue;
+    if (i.transaction_id.startsWith("in-curs")) continue;
     if (i.amount == null) continue;
     const list = byTx.get(i.transaction_id) ?? [];
     list.push(i.amount);

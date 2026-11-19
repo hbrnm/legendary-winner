@@ -9,7 +9,7 @@ test("de la planul săptămânii la buget", async ({ page }) => {
   await page.getByRole("button", { name: "Setează bugetul lunar" }).click();
   await page.getByLabel("Suma (lei)").fill("2000");
   await page.getByRole("button", { name: "Salvează" }).click();
-  await expect(page.getByText("Mai ai 2.000,00 RON.")).toBeVisible();
+  await expect(page.getByText(/2[.]?000,00\s+RON\s+rămași/)).toBeVisible();
 
   // Două rețete cu piept de pui în plan.
   for (const [name, day] of [
@@ -52,7 +52,7 @@ test("de la planul săptămânii la buget", async ({ page }) => {
 
   // Bugetul reflectă cheltuiala reală, o singură dată.
   await page.goto("/buget/");
-  await expect(page.getByText("Mai ai 1.995,50 RON.")).toBeVisible();
+  await expect(page.getByText(/1[.]?995,50\s+RON\s+rămași/)).toBeVisible();
   await expect(page.getByText("Un produs cumpărat nu are preț")).toBeVisible();
 
   // Istoricul păstrează cumpărătura; prețul lipsă se poate completa.
