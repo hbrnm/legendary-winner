@@ -103,7 +103,21 @@ export function HomeScreen() {
         <BudgetBar pct={data.budget.used_pct} label="Bugetul lunii folosit" />
       </>:<Link href="/buget/" className="inline-flex min-h-12 items-center text-brand">Setează plafonul lunar →</Link>}
 
-      <div className="mt-2 flex min-h-11 items-center gap-2 border-t border-line pr-16 pt-2 text-xs"><p className="min-w-0 flex-1 truncate text-ink-2">{data.recent?`${data.recent.title} · ${data.recent.amount==null?"sumă neprecizată":formatRon(data.recent.amount)} · ${localDateOf(data.recent.date)===today?"azi":formatShortDate(localDateOf(data.recent.date))}`:"Încă nu ai tranzacții înregistrate"}</p></div>
+      <div className="mt-2 flex min-h-11 items-center gap-2 border-t border-line pr-16 pt-2 text-xs">
+        {data.recent ? (
+          <Link
+            href="/buget/#tranzactii"
+            className="group flex min-w-0 flex-1 items-center justify-between gap-2 text-ink-2 transition-colors duration-150 hover:text-ink focus-visible:outline-2 focus-visible:outline-brand"
+          >
+            <span className="truncate">
+              {data.recent.title} · {data.recent.amount == null ? "sumă neprecizată" : formatRon(data.recent.amount)} · {localDateOf(data.recent.date) === today ? "azi" : formatShortDate(localDateOf(data.recent.date))}
+            </span>
+            <span className="shrink-0 text-brand opacity-0 transition-opacity group-hover:opacity-100">→</span>
+          </Link>
+        ) : (
+          <p className="min-w-0 flex-1 truncate text-ink-2">Încă nu ai tranzacții înregistrate</p>
+        )}
+      </div>
     </Card>
     <Sheet open={mealAction!==null} onClose={()=>{if(!busy)setMealAction(null);}} title={mealAction?.kind==="cook"?"Am gătit":"Alege masa de azi"} footer={<Button block disabled={busy||!Number.isInteger(servings)||servings<1||servings>50} onClick={confirmMeal}>{mealAction?.kind==="cook"?"Scade ingredientele":"Programează azi"}</Button>}>
       <p className="mb-4 font-medium">{mealAction?.recipe.name}</p><div className="space-y-4">

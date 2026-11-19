@@ -332,7 +332,7 @@ function ListScreen() {
       </div>
 
       {!list.archived_at && (
-        <div className="sticky top-14 z-20 -mx-4 bg-bg px-4 pb-3 pt-1">
+        <div className="sticky top-14 z-20 -mx-4 border-b border-line bg-bg px-4 pb-3 pt-1">
           <ProductSearch placeholder="Ce-ți trebuie? ex. 2 kg roșii" onPick={onPick} />
         </div>
       )}

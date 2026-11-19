@@ -51,7 +51,7 @@ function LocationFilter({ active, onClick, children }: { active: boolean; onClic
       type="button"
       aria-pressed={active}
       onClick={onClick}
-      className={`h-12 min-w-0 rounded-xl border px-1.5 text-[13px] font-medium transition duration-150 ease-out active:scale-[0.98] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand ${active ? "border-brand bg-brand text-brand-ink" : "border-line bg-surface text-ink-2 hover:text-ink"}`}
+      className={`h-12 min-w-0 rounded-2xl border px-1.5 text-[13px] font-medium transition duration-150 ease-out active:scale-[0.98] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand ${active ? "border-brand bg-brand text-brand-ink" : "border-line bg-surface text-ink-2 hover:text-ink"}`}
     >
       <span className="truncate">{children}</span>
     </button>
