@@ -92,9 +92,6 @@ export function ProductSearch({
     // eslint-disable-next-line react-hooks/exhaustive-deps -- rulează doar când s-a încărcat catalogul
   }, [data]);
 
-  const isCoarse = typeof window !== "undefined" && window.matchMedia?.("(pointer: coarse)")?.matches;
-  const effectiveAutoFocus = autoFocus && !isCoarse;
-
   return (
     <div className="relative" onFocus={() => setFocused(true)} onBlur={(e) => { if (!e.currentTarget.contains(e.relatedTarget)) setFocused(false); }}>
       <div className="flex items-center gap-3 rounded-full border border-transparent bg-surface-container-high px-5 transition-colors duration-150 ease-out focus-within:border-brand focus-within:bg-surface focus-within:ring-2 focus-within:ring-brand/25">
@@ -102,7 +99,7 @@ export function ProductSearch({
         <input
           ref={inputRef}
           value={text}
-          autoFocus={effectiveAutoFocus}
+          autoFocus={autoFocus}
           data-autofocus={autoFocus || undefined}
           onChange={(e) => {
             setText(e.target.value);
