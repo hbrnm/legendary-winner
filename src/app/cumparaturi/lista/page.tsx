@@ -6,6 +6,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { Archive, ArrowLeft, ChevronDown, Copy, MoreHorizontal, Pencil, Plus, Scale, Store, Trash2 } from "lucide-react";
 import { AgainIcon, NotebookIcon, ReceiptIcon } from "@/components/ui/icons";
 import { useActiveShoppingList } from "@/components/shopping/active-list-provider";
+import { ListSwitcher } from "@/components/shopping/list-switcher";
 import { AppShell } from "@/components/app/shell";
 import { useAction, useData } from "@/components/app/hooks";
 import { useApp } from "@/components/app/app-provider";
@@ -44,6 +45,9 @@ function ListScreen() {
   const [comparing, setComparing] = useState(false);
   const [renaming, setRenaming] = useState(false);
   const [newName, setNewName] = useState("");
+  const [editingTitle, setEditingTitle] = useState(false);
+  const [titleDraft, setTitleDraft] = useState("");
+  const savingTitle = useRef(false);
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [finishing, setFinishing] = useState(false);
   useEffect(() => {
@@ -134,12 +138,14 @@ function ListScreen() {
       .sort((a, b) => a.title.localeCompare(b.title, "ro"));
   }, [data, groupBy, lingering, placeFilter]);
 
-  if (!data) return <Spinner />;
+  if (!data) return <AppShell wide><Spinner /></AppShell>;
   if (!data.list) {
     return (
-      <EmptyState title="Lista nu mai există" action={<Button onClick={() => router.push("/cumparaturi/")}>Înapoi la liste</Button>}>
-        Poate a fost ștearsă de alt membru al gospodăriei.
-      </EmptyState>
+      <AppShell wide>
+        <EmptyState title="Lista nu mai există" action={<Button onClick={() => router.push("/cumparaturi/?toate=1")}>Înapoi la liste</Button>}>
+          Poate a fost ștearsă de alt membru al gospodăriei.
+        </EmptyState>
+      </AppShell>
     );
   }
   const list = data.list;
@@ -152,6 +158,26 @@ function ListScreen() {
     const v = item.variant_id ? data.variantById.get(item.variant_id) : undefined;
     return v && !v.deleted_at ? variantLabel(v, v.brand_id ? data.brands.get(v.brand_id) : null) : null;
   };
+
+  async function saveTitle(e?: React.FormEvent) {
+    if (e) e.preventDefault();
+    if (savingTitle.current) return;
+    const trimmed = titleDraft.trim();
+    if (!trimmed) {
+      if (data?.list) setTitleDraft(data.list.name);
+      setEditingTitle(false);
+      return;
+    }
+    if (data?.list && trimmed !== data.list.name) {
+      savingTitle.current = true;
+      try {
+        await run((ctx) => shop.updateList(ctx, id, { name: trimmed }), "Am actualizat numele listei.");
+      } finally {
+        savingTitle.current = false;
+      }
+    }
+    setEditingTitle(false);
+  }
 
   async function onPick({ product, parsed }: PickedProduct) {
     await run((ctx) => shop.addItem(ctx, id, { product_id: product?.id ?? null, name: product ? undefined : parsed.text, quantity: parsed.quantity, unit: parsed.unit }));
@@ -244,19 +270,58 @@ function ListScreen() {
   const remainingBudget = data.budget ? data.budget.remaining - (totals?.remaining_estimate ?? 0) : null;
 
   return (
-    <>
+    <AppShell wide hideMobileNav={Boolean(totals && totals.item_count > 0)}>
       <div className="mb-3 flex items-center gap-1">
-        <Link href="/cumparaturi/" aria-label="Înapoi la liste" className="-ml-2 inline-flex h-12 w-12 shrink-0 items-center justify-center rounded-full text-ink-2 hover:bg-surface-2">
+        <Link href="/cumparaturi/?toate=1" aria-label="Toate listele" className="-ml-2 inline-flex h-12 w-12 shrink-0 items-center justify-center rounded-full text-ink-2 hover:bg-surface-2">
           <ArrowLeft size={20} />
         </Link>
         <div className="min-w-0 flex-1">
-          <h1 className="line-clamp-2 break-words text-2xl font-bold leading-tight tracking-tight">{list.name}</h1>
-          <p className="text-xs text-ink-2 tabular">
-            {totals?.checked_count ?? 0} din {totals?.item_count ?? 0} în coș
-            {totals && totals.projected_total > 0 && ` · ~${formatRon(totals.projected_total)}`}
-            {list.is_recurring && " · se reia"}
-            {list.archived_at && " · pusă deoparte"}
-          </p>
+          {editingTitle ? (
+            <form onSubmit={saveTitle} className="my-1">
+              <input
+                type="text"
+                value={titleDraft}
+                onChange={(e) => setTitleDraft(e.target.value)}
+                onBlur={() => void saveTitle()}
+                onKeyDown={(e) => {
+                  if (e.key === "Escape") {
+                    setEditingTitle(false);
+                    setTitleDraft(list.name);
+                  }
+                }}
+                maxLength={80}
+                autoFocus
+                className="w-full border-b border-brand bg-transparent text-2xl font-bold leading-tight tracking-tight text-ink outline-none"
+                aria-label="Numele listei"
+              />
+            </form>
+          ) : (
+            <div className="flex max-w-full items-center gap-2">
+              <h1 className="line-clamp-2 break-words break-all text-2xl font-bold leading-tight tracking-tight">
+                {list.name}
+              </h1>
+              <button
+                type="button"
+                onClick={() => {
+                  setTitleDraft(list.name);
+                  setEditingTitle(true);
+                }}
+                className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-ink-2 hover:bg-surface-2 focus-visible:outline-2 focus-visible:outline-brand"
+                aria-label={`Redenumește ${list.name}`}
+              >
+                <Pencil size={16} />
+              </button>
+            </div>
+          )}
+          <div className="mt-1 flex flex-wrap items-center gap-2">
+            <ListSwitcher currentListId={list.id} lists={[list, ...data.otherLists]} />
+            <p className="text-xs text-ink-2 tabular">
+              {totals?.checked_count ?? 0} din {totals?.item_count ?? 0} în coș
+              {totals && totals.projected_total > 0 && ` · ~${formatRon(totals.projected_total)}`}
+              {list.is_recurring && " · se reia"}
+              {list.archived_at && " · pusă deoparte"}
+            </p>
+          </div>
           {totals && (!list.archived_at || totals.item_count > 0) && (
             <div className="mt-1.5 h-1.5 overflow-hidden rounded-full bg-surface-2" aria-hidden>
               <div className="h-full rounded-full bg-sprout transition-[width]" style={{ width: `${(totals.checked_count / totals.item_count) * 100}%` }} />
@@ -518,7 +583,7 @@ function ListScreen() {
         onConfirm={async () => {
           if (!(await run(async (ctx) => (await shop.deleteList(ctx, id), true)))) return;
           toast("Am șters lista.", { action: { label: "Anulează", run: () => void run((ctx) => shop.restoreDeletedList(ctx, id)) } });
-          router.push("/cumparaturi/");
+          router.push("/cumparaturi/?toate=1");
         }}
       />
 
@@ -581,7 +646,7 @@ function ListScreen() {
           </div>
         )}
       </Sheet>
-    </>
+    </AppShell>
   );
 }
 
@@ -593,11 +658,9 @@ const QUICK_GROUPS = [
 
 export default function Page() {
   return (
-    <AppShell wide hideMobileNav>
-      <Suspense fallback={<Spinner />}>
-        <ListScreen />
-      </Suspense>
-    </AppShell>
+    <Suspense fallback={<Spinner />}>
+      <ListScreen />
+    </Suspense>
   );
 }
 

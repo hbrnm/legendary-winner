@@ -28,11 +28,14 @@ test('long recipe text grows vertically within a bounded field', async ({ page }
 });
 
 test('sheet contains gestures without moving the page and still closes with Escape', async ({ page }) => {
-  await start(page, '/cumparaturi/');
-  await page.evaluate(() => { document.body.style.minHeight = '3000px'; });
-  await page.getByRole('button', { name: 'Listă nouă', exact: true }).click();
-  const sheet = page.getByRole('dialog', { name: 'Listă nouă', exact: true });
+  await start(page, '/cumparaturi/?toate=1');
+  await page.getByRole('button', { name: 'Acțiuni cumpărături', exact: true }).click();
+  const sheet = page.getByRole('dialog', { name: 'Cumpărături', exact: true });
   await expect(sheet).toBeVisible();
+  await page.evaluate(() => {
+    document.body.style.minHeight = '3000px';
+    window.scrollTo(0, 0);
+  });
   const scrollY = await page.evaluate(() => window.scrollY);
   expect(await sheet.evaluate(el => getComputedStyle(el).overscrollBehavior)).toBe('contain');
   expect(await sheet.evaluate(el => getComputedStyle(el, '::backdrop').overscrollBehavior)).toBe('contain');

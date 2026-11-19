@@ -77,24 +77,161 @@ export async function restoreDeletedList(ctx: AppCtx, id: string) {
 export async function duplicateList(ctx: AppCtx, id: string, name?: string): Promise<string> {
   const source = await ctx.db.shopping_lists.get(id);
   if (!source) throw new UserError("Lista nu mai există.");
-  const newListId = await createList(ctx, { name: name ?? `${source.name} (copie)`.slice(0, 80), is_recurring: source.is_recurring, default_retailer_id: source.default_retailer_id });
-  for (const item of await listItems(ctx.db, id)) {
-    await insertRow(
-      ctx.db,
-      "shopping_list_items",
-      { ...pickItem(item), id: newId(), list_id: newListId, checked: false, checked_at: null, checked_by: null, actual_price: null, ...(item.receipt_name ? { receipt_name: null } : {}) },
-      w(ctx),
-    );
-  }
-  return newListId;
+  return copyShoppingSource(ctx, { kind: "list", id }, name ?? `${source.name} (copie)`.slice(0, 80));
 }
 
-function pickItem(i: ShoppingListItem): Omit<ShoppingListItem, "created_at" | "updated_at" | "deleted_at"> {
-  const { created_at: _c, updated_at: _u, deleted_at: _d, ...rest } = i;
-  void _c;
-  void _u;
-  void _d;
-  return rest;
+export type ShoppingSource =
+  | { kind: "list"; id: string }
+  | { kind: "transaction"; id: string };
+
+/**
+ * Copiază o listă (inclusiv arhivată/recurentă) sau o tranzacție din istoric într-o listă nouă.
+ * Resetează stările de bifat, prețurile plătite și nu include ajustări sintetice de buget.
+ * Operație atomică protejată la eșec.
+ */
+export async function copyShoppingSource(
+  ctx: AppCtx,
+  source: ShoppingSource,
+  name: string
+): Promise<string> {
+  const v = parse(listInput.pick({ name: true }), { name });
+  return await ctx.db.transaction(
+    "rw",
+    [
+      ctx.db.shopping_lists,
+      ctx.db.shopping_list_items,
+      ctx.db.shopping_transactions,
+      ctx.db.shopping_transaction_items,
+      ctx.db.outbox,
+    ],
+    async () => {
+      const lists = await owned(ctx.db, "shopping_lists", ctx.householdId);
+      const newListId = newId();
+
+      if (source.kind === "list") {
+        const sourceList = await ctx.db.shopping_lists.get(source.id);
+        if (!sourceList || sourceList.deleted_at || sourceList.household_id !== ctx.householdId) {
+          throw new UserError("Lista nu mai există sau nu ai acces.");
+        }
+
+        await insertRow(
+          ctx.db,
+          "shopping_lists",
+          {
+            id: newListId,
+            household_id: ctx.householdId,
+            name: v.name,
+            is_recurring: false,
+            cycle: 1,
+            archived_at: null,
+            default_retailer_id: sourceList.default_retailer_id,
+            sort_order: lists.length,
+          },
+          w(ctx),
+        );
+
+        const items = await listItems(ctx.db, source.id);
+        for (const item of items) {
+          if (item.household_id !== ctx.householdId || item.deleted_at) continue;
+          await insertRow(
+            ctx.db,
+            "shopping_list_items",
+            {
+              id: newId(),
+              household_id: ctx.householdId,
+              list_id: newListId,
+              product_id: item.product_id,
+              name: item.name,
+              quantity: item.quantity,
+              unit: item.unit,
+              category_id: item.category_id,
+              estimated_price: item.estimated_price,
+              actual_price: null,
+              retailer_id: item.retailer_id,
+              source: item.source,
+              priority: item.priority ?? "normala",
+              note: item.note,
+              checked: false,
+              checked_at: null,
+              checked_by: null,
+              origin: "recurent",
+              sort_order: item.sort_order,
+              ...(item.variant_id ? { variant_id: item.variant_id } : {}),
+            },
+            w(ctx),
+          );
+        }
+      } else {
+        const tx = await ctx.db.shopping_transactions.get(source.id);
+        if (!tx || tx.deleted_at || tx.household_id !== ctx.householdId) {
+          throw new UserError("Cumpărătura nu mai există sau nu ai acces.");
+        }
+
+        await insertRow(
+          ctx.db,
+          "shopping_lists",
+          {
+            id: newListId,
+            household_id: ctx.householdId,
+            name: v.name,
+            is_recurring: false,
+            cycle: 1,
+            archived_at: null,
+            default_retailer_id: tx.retailer_id ?? null,
+            sort_order: lists.length,
+          },
+          w(ctx),
+        );
+
+        const txItems = await ctx.db.shopping_transaction_items
+          .where("transaction_id")
+          .equals(source.id)
+          .toArray();
+
+        let order = 0;
+        for (const item of txItems) {
+          if (
+            item.deleted_at ||
+            item.household_id !== ctx.householdId ||
+            item.category_id === "nealocat" ||
+            item.name === "Diferență nealocată"
+          ) {
+            continue;
+          }
+
+          await insertRow(
+            ctx.db,
+            "shopping_list_items",
+            {
+              id: newId(),
+              household_id: ctx.householdId,
+              list_id: newListId,
+              product_id: item.product_id,
+              name: item.name,
+              quantity: item.quantity,
+              unit: item.unit,
+              category_id: item.category_id,
+              estimated_price: null,
+              actual_price: null,
+              retailer_id: item.retailer_id ?? tx.retailer_id ?? null,
+              source: item.source ?? "supermarket",
+              priority: "normala",
+              note: null,
+              checked: false,
+              checked_at: null,
+              checked_by: null,
+              origin: "recurent",
+              sort_order: order++,
+              ...(item.variant_id ? { variant_id: item.variant_id } : {}),
+            },
+            w(ctx),
+          );
+        }
+      }
+
+      return newListId;
+    }
+  );
 }
 
 const itemInput = z.object({

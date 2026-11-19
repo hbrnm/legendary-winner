@@ -54,14 +54,14 @@ test("lista: duplicare, arhivare, ștergere cu anulare", async ({ page }) => {
   await page.getByRole("button", { name: "Pune deoparte" }).click();
   // Așteptăm salvarea înainte de navigare, altfel ea se poate pierde pe o mașină lentă.
   await expect(page.getByText("Am pus-o deoparte.")).toBeVisible();
-  await page.goto("/cumparaturi/");
+  await page.getByRole("link", { name: "Toate listele" }).click();
   await page.getByRole("button", { name: /Arată-le \(1\)/ }).click();
   await expect(page.getByText("Weekend (copie)")).toBeVisible();
 });
 
 test("lista recurentă rămâne pentru data viitoare", async ({ page }) => {
-  await start(page, "/cumparaturi/");
-  await page.getByText("Cumpărături săptămânale").click();
+  await start(page, "/cumparaturi/?toate=1");
+  await page.getByRole("link", { name: /Cumpărături săptămânale/ }).click();
   await quickAdd(page, "detergent vase");
   await page.getByRole("checkbox", { name: /Bifează Detergent de vase/ }).click();
   await page.getByRole("button", { name: "Am plătit", exact: true }).click();
@@ -127,7 +127,7 @@ test("„În coș”: bifatele coboară strânse, „Ai tot!” la final, „Anu
   await page.getByRole("button", { name: "Opțiunile listei" }).click();
   await page.getByRole("button", { name: "Șterge lista" }).click();
   await page.getByRole("dialog").getByRole("button", { name: "Șterge", exact: true }).click();
-  await page.waitForURL(/\/cumparaturi\/$/);
+  await page.waitForURL(/\/cumparaturi\/(\?toate=1)?$/);
   await expect(page.getByText("Seara")).toHaveCount(0);
   await page.getByRole("status").getByRole("button", { name: "Anulează" }).click();
   await expect(page.getByText("Seara")).toBeVisible();
