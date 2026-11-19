@@ -20,7 +20,7 @@ import { diverseToSort } from "@/lib/services/receipts";
 import { averageTrip, budgetStatus, dailyBudgetAvailable, byCategory, byExpenseCategory, byRetailer, monthlyTotals, SOURCE_LABELS, spendInPeriod, spendToCsv, sumAmounts, weeklyTotals } from "@/lib/domain/budget";
 import { incomeSummary } from "@/lib/domain/income";
 import { listTotals } from "@/lib/domain/shopping";
-import { addDays, formatMonth, formatShortDate, monthPeriod, startOfMonth, toISODate } from "@/lib/domain/dates";
+import { addMonths, formatMonth, formatShortDate, monthPeriod, startOfMonth, toISODate } from "@/lib/domain/dates";
 import { formatRon, sumMoney } from "@/lib/domain/money";
 import { now } from "@/lib/clock";
 import { capitalizeFirst, count } from "@/lib/domain/text";
@@ -284,11 +284,11 @@ function BudgetScreen() {
       ) : null}
 
       <div className="mb-2 mt-8 flex items-center justify-between">
-        <IconButton label="Luna anterioară" onClick={() => setMonth(startOfMonth(addDays(month, -1)))} className="border border-line bg-surface-2 transition-transform active:scale-[0.94]">
+        <IconButton label="Luna anterioară" onClick={() => setMonth(addMonths(month, -1))} className="border border-line bg-surface-2 transition-transform active:scale-[0.94]">
           <ChevronLeft size={20} />
         </IconButton>
         <h2 className="font-sans text-xl font-bold tracking-tight text-ink">{capitalizeFirst(formatMonth(month))}</h2>
-        <IconButton label="Luna următoare" disabled={isCurrentMonth} onClick={() => setMonth(startOfMonth(addDays(month, 32)))} className="border border-line bg-surface-2 transition-transform active:scale-[0.94]">
+        <IconButton label="Luna următoare" disabled={isCurrentMonth} onClick={() => setMonth(addMonths(month, 1))} className="border border-line bg-surface-2 transition-transform active:scale-[0.94]">
           <ChevronRight size={20} />
         </IconButton>
       </div>

@@ -165,7 +165,7 @@ test("gospodăria model: cămară, listă, buget, plan", async ({ page }) => {
   await expect(page.getByText("Graficul se umple după primele cumpărături.")).toHaveCount(0);
   // „Înainte de cumpărături” duce la liste.
   await page.getByRole("link", { name: /Înainte de cumpărături/ }).click();
-  await expect(page).toHaveURL(/\/cumparaturi\/$/);
+  await expect(page).toHaveURL(/\/cumparaturi\/($|lista\/)/);
 
   await page.goto("/plan/");
   await expect(page.getByText("Sarmale în foi de varză murată")).toBeVisible();

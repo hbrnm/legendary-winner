@@ -34,7 +34,21 @@ function useKeyboardStyle(active: boolean): CSSProperties | undefined {
  * Fereastră care urcă de jos pe telefon (centrată pe ecrane mari). Folosește
  * <dialog>, deci are focus capturat, Escape și fundal blocat din browser.
  */
-export function Sheet({ open, onClose, title, children, footer }: { open: boolean; onClose: () => void; title: string; children: ReactNode; footer?: ReactNode }) {
+export function Sheet({
+  open,
+  onClose,
+  title,
+  headerAction,
+  children,
+  footer,
+}: {
+  open: boolean;
+  onClose: () => void;
+  title: string;
+  headerAction?: ReactNode;
+  children: ReactNode;
+  footer?: ReactNode;
+}) {
   const ref = useRef<HTMLDialogElement>(null);
   const keyboardStyle = useKeyboardStyle(open);
   useEffect(() => {
@@ -65,18 +79,21 @@ export function Sheet({ open, onClose, title, children, footer }: { open: boolea
         >
           <div className="flex shrink-0 items-center justify-between gap-2 px-6 pb-2 pt-5">
             <h2 className="min-w-0 break-words text-2xl font-bold leading-tight tracking-tight">{title}</h2>
-            <button
-              type="button"
-              onClick={onClose}
-              aria-label="Închide"
-              className="inline-flex h-12 w-12 shrink-0 items-center justify-center rounded-full text-ink-2 transition-colors duration-150 ease-out hover:bg-surface-2 focus-visible:outline-2 focus-visible:outline-brand"
-            >
-              <X size={20} />
-            </button>
+            <div className="flex items-center gap-2">
+              {headerAction}
+              <button
+                type="button"
+                onClick={onClose}
+                aria-label="Închide"
+                className="inline-flex h-12 w-12 shrink-0 items-center justify-center rounded-full text-ink-2 transition-colors duration-150 ease-out hover:bg-surface-2 focus-visible:outline-2 focus-visible:outline-brand"
+              >
+                <X size={20} />
+              </button>
+            </div>
           </div>
-          <div className="flex-1 min-h-0 overflow-y-auto overscroll-contain px-6 py-4">{children}</div>
+          <div className="flex-1 min-h-0 overflow-y-auto overscroll-contain px-6 py-4 scroll-pb-20">{children}</div>
           {footer && (
-            <div className={`shrink-0 border-t border-line px-6 pt-4 ${keyboardStyle?.marginBottom ? "pb-4" : "pb-safe pb-6"}`}>
+            <div className={`shrink-0 border-t border-line px-6 pt-4 ${keyboardStyle?.marginBottom ? "pb-6" : "pb-safe pb-6"}`}>
               {footer}
             </div>
           )}

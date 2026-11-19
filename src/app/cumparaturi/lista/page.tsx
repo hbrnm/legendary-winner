@@ -452,7 +452,11 @@ function ListScreen() {
               )}
             </div>
             {!list.archived_at && (
-              <Button onClick={() => setFinishing(true)} disabled={totals.checked_count === 0} className={`shrink-0 transition-transform active:scale-[0.97] ${allIn ? "ring-2 ring-sprout ring-offset-2 ring-offset-surface" : ""}`}>
+              <Button
+                onClick={() => setFinishing(true)}
+                disabled={totals.checked_count === 0}
+                className={allIn ? "shrink-0 transition-transform active:scale-[0.97] ring-2 ring-sprout ring-offset-2 ring-offset-surface" : "shrink-0 transition-transform active:scale-[0.97]"}
+              >
                 Am plătit
               </Button>
             )}
