@@ -42,9 +42,7 @@ export function Sheet({ open, onClose, title, children, footer }: { open: boolea
     if (!d) return;
     if (open && !d.open) {
       d.showModal();
-      requestAnimationFrame(() => {
-        d.querySelector<HTMLElement>("[data-autofocus], [autofocus]")?.focus();
-      });
+      d.querySelector<HTMLElement>("[data-autofocus], [autofocus]")?.focus();
     }
     if (!open && d.open) d.close();
   }, [open]);
