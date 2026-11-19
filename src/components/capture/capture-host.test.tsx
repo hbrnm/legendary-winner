@@ -29,6 +29,19 @@ it('offers only recipe creation and import on the recipe tab',()=>{
  expect(state.push).toHaveBeenCalledWith('/retete/import/');
  expect(screen.queryByRole('button',{name:'Adaugă cheltuială'})).toBeNull();
 });
+
+it('offers Listă nouă, Copiază o listă mai veche and Importă listă on the shopping tab', async () => {
+ state.path='/cumparaturi/';render(<CaptureHost/>);
+ fireEvent.click(screen.getByRole('button',{name:'Acțiuni cumpărături'}));
+ expect(screen.getByRole('dialog',{name:'Cumpărături'})).toBeTruthy();
+ expect(screen.getByRole('button',{name:'Listă nouă'})).toBeTruthy();
+ expect(screen.getByRole('button',{name:'Copiază o listă mai veche'})).toBeTruthy();
+ expect(screen.getByRole('button',{name:'Importă listă'})).toBeTruthy();
+ expect(screen.queryByRole('button',{name:'Adaugă cheltuială'})).toBeNull();
+
+ fireEvent.click(screen.getByRole('button',{name:'Copiază o listă mai veche'}));
+ expect(screen.getByRole('dialog',{name:'Copiază o listă mai veche'})).toBeTruthy();
+});
 it('opens pantry form directly without the universal menu',()=>{
  state.path='/camara/';render(<CaptureHost/>);
  fireEvent.click(screen.getByRole('button',{name:'Adaugă în cămară'}));

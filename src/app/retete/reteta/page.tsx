@@ -227,13 +227,13 @@ function RecipeScreen() {
       )}
 
       <div className="mt-4 grid grid-cols-3 gap-2">
-        <Button variant="primary" onClick={() => setAddOpen(true)} className="flex-col !h-auto py-2.5" icon={<ShoppingBasket size={20} />}>
+        <Button variant="primary" onClick={() => setAddOpen(true)} className="flex-col h-auto! min-h-14 py-2.5 rounded-2xl" icon={<ShoppingBasket size={20} />}>
           <span className="text-xs">În listă</span>
         </Button>
-        <Button variant="secondary" onClick={() => setPlanOpen(true)} className="flex-col !h-auto py-2.5" icon={<CalendarPlus size={20} />}>
+        <Button variant="secondary" onClick={() => setPlanOpen(true)} className="flex-col h-auto! min-h-14 py-2.5 rounded-2xl" icon={<CalendarPlus size={20} />}>
           <span className="text-xs">Planifică</span>
         </Button>
-        <Button variant="secondary" onClick={() => setCookOpen(true)} className="flex-col !h-auto py-2.5" icon={<ChefHat size={20} />}>
+        <Button variant="secondary" onClick={() => setCookOpen(true)} className="flex-col h-auto! min-h-14 py-2.5 rounded-2xl" icon={<ChefHat size={20} />}>
           <span className="text-xs">Am gătit</span>
         </Button>
       </div>

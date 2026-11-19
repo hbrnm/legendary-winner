@@ -24,7 +24,7 @@ test("Ritm: bara plutitoare lasă spațiu conținutului și toate destinațiile 
   const bounds = (await nav.boundingBox())!;
   expect(bounds.x).toBeGreaterThan(0);
   expect(bounds.width).toBeLessThan(393);
-  const paths: [string, RegExp][] = [["Cumpărături", /\/cumparaturi\/$/], ["Rețete", /\/retete\/$/], ["Buget", /\/buget\/$/], ["Cămară", /\/camara\/$/], ["Acasă", /\/$/]];
+  const paths: [string, RegExp][] = [["Cumpărături", /\/cumparaturi\/(\$|lista\/)/], ["Rețete", /\/retete\/$/], ["Buget", /\/buget\/$/], ["Cămară", /\/camara\/$/], ["Acasă", /\/$/]];
   for (const [name, path] of paths) {
     const link = nav.getByRole("link", { name, exact: true });
     await link.click();

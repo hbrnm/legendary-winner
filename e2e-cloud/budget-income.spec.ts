@@ -8,7 +8,8 @@ test("un membru simplu modifică bugetul și adaugă venituri vizibile proprieta
  await owner.getByRole("button",{name:"Creează gospodăria"}).click();
  await expect(owner.getByText("Familia venituri").first()).toBeVisible();
  await owner.goto("/buget/");await syncNow(owner);
- await owner.getByRole("button",{name:"Adaugă venit",exact:true}).click();
+ await owner.getByRole("button",{name:"Acțiuni buget",exact:true}).click();
+ await owner.getByRole("dialog",{name:"Buget",exact:true}).getByRole("button",{name:"Adaugă venit",exact:true}).click();
  const first=owner.getByRole("dialog",{name:"Venituri și alocare",exact:true});
  await first.getByLabel("Numele venitului 1",{exact:true}).fill("Salariu soț");
  await first.getByLabel("Venitul 1 (RON)",{exact:true}).fill("3000");
@@ -39,7 +40,8 @@ test("un membru simplu modifică bugetul și adaugă venituri vizibile proprieta
  await owner.goto("/buget/");await syncNow(owner);
  const ownerPanel=owner.getByRole("region",{name:"Venituri lunare",exact:true});
  await expect(ownerPanel).toContainText(/4[.]?500,00\s+RON/);
- await member.getByRole("button",{name:"Adaugă venit",exact:true}).click();
+ await member.getByRole("button",{name:"Acțiuni buget",exact:true}).click();
+ await member.getByRole("dialog",{name:"Buget",exact:true}).getByRole("button",{name:"Adaugă venit",exact:true}).click();
  const sheet=member.getByRole("dialog",{name:"Venituri și alocare",exact:true});
  await sheet.getByLabel("Numele venitului 3",{exact:true}).fill("Alte venituri");
  await sheet.getByLabel("Venitul 3 (RON)",{exact:true}).fill("500");

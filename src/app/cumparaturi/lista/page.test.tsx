@@ -5,7 +5,10 @@ import type { ReactNode } from "react";
 import Page from "./page";
 import ListsPage from "../page";
 const state = vi.hoisted(() => ({ data: {} as Record<string, unknown>, finalize: vi.fn(), push: vi.fn() }));
-vi.mock("next/navigation", () => ({ useSearchParams: () => new URLSearchParams("id=list"), useRouter: () => ({ push: state.push }) }));
+vi.mock("next/navigation", () => ({
+  useSearchParams: () => new URLSearchParams(typeof window !== "undefined" && window.location.search ? window.location.search : "id=list"),
+  useRouter: () => ({ push: state.push, replace: state.push }),
+}));
 vi.mock("@/components/app/shell", () => ({ AppShell: ({ children }: { children: ReactNode }) => children }));
 vi.mock("@/components/app/app-provider", () => ({ useApp: () => ({ variantsEnabled: false }) }));
 vi.mock("@/components/app/hooks", () => ({ useData: () => state.data, useAction: () => ({ run: async (fn: (ctx: object) => unknown) => fn({}), busy: false }) }));
@@ -13,7 +16,15 @@ vi.mock("@/components/ui/toast", () => ({ useToast: () => vi.fn() }));
 vi.mock("@/components/ui/sheet", () => ({ Sheet: ({ open, title, children, footer }: { open: boolean; title: string; children: ReactNode; footer: ReactNode }) => open ? <section aria-label={title}>{children}{footer}</section> : null, ConfirmSheet: () => null }));
 vi.mock("@/components/shopping/product-search", () => ({ ProductSearch: () => <input aria-label="Adaugă produs" /> }));
 vi.mock("@/components/shopping/item-sheet", () => ({ ItemSheet: () => null }));
-vi.mock("@/lib/services/shopping", () => ({ finalizeShopping: (...args: unknown[]) => state.finalize(...args) }));
+vi.mock("@/components/shopping/active-list-provider", () => ({
+  useActiveShoppingList: () => ({ activeListId: null, selectList: vi.fn(), ready: true }),
+}));
+vi.mock("@/lib/services/shopping", () => ({
+  finalizeShopping: (...args: unknown[]) => state.finalize(...args),
+  createList: () => Promise.resolve("new-list-id"),
+  restoreList: vi.fn(),
+  updateList: vi.fn(),
+}));
 const line = (id: string, name: string, retailer_id: string | null, checked = false) => ({ id, name, retailer_id, checked, category_id: "legume", source: "supermarket", quantity: null, unit: null, priority: "normala", actual_price: null, estimated_price: null, variant_id: null, product_id: null });
 beforeEach(() => {
   state.push.mockReset(); state.finalize.mockReset();
@@ -45,17 +56,20 @@ it("opens shared receipt capture with the current list context", () => {
   window.removeEventListener("camara:capture", capture);
 });
 
-it("has one add-list action in the empty shopping landing page and no finance shortcuts", () => {
+it("has no duplicate create buttons in the empty shopping landing page and no finance shortcuts", () => {
   state.data = { lists: [], retailers: [] }; render(<ListsPage />);
-  expect(screen.getAllByRole("button", { name: "Listă nouă" })).toHaveLength(1);
+  expect(screen.queryByRole("button", { name: "Listă nouă" })).toBeNull();
   expect(screen.queryByRole("button", { name: "Începe o listă" })).toBeNull();
   expect(screen.queryByRole("link", { name: "Pune un bon" })).toBeNull();
   expect(screen.queryByRole("link", { name: "Ce-ai cumpărat până acum" })).toBeNull();
 });
-it("opens a new shopping list from the Home query action", () => {
+it("creates a dated list and navigates to it when visiting with ?nou=1", async () => {
   window.history.replaceState({}, "", "/cumparaturi/?nou=1");
-  state.data = { lists: [], retailers: [] }; render(<ListsPage />);
-  expect(screen.getByRole("textbox", { name: "Numele listei" })).toBeTruthy();
+  state.data = { lists: [], retailers: [] };
+  render(<ListsPage />);
+  await waitFor(() => {
+    expect(state.push).toHaveBeenCalledWith("/cumparaturi/lista/?id=new-list-id");
+  });
 });
 it("imports checked food on payment regardless of the old pantry preference, with no extra toggle", async () => {
   state.data = { ...state.data, pantrySetting: "niciodata" };

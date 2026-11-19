@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { averageTrip, budgetStatus, byCategory, diverseGroups, monthlyTotals, sanitizeCsvFormula, spendToCsv, weeklyTotals } from "./budget";
+import { averageTrip, budgetStatus, byCategory, diverseGroups, manualExpenseRecord, monthlyTotals, sanitizeCsvFormula, spendToCsv, weeklyTotals } from "./budget";
 import { normalize } from "./search";
 import { budget, category, txItem } from "@/test/factories";
 import type { ProductCategory, Retailer } from "./types";
@@ -56,6 +56,85 @@ describe("rapoarte", () => {
   it("împarte pe categorii și calculează media unei ieșiri", () => {
     expect(byCategory(items, cats)[0]).toEqual({ key: "legume", label: "Legume", amount: 1129.5 });
     expect(averageTrip(items)).toBe(Math.round(((150 + 30.5 + 999) / 3) * 100) / 100);
+  });
+
+  it("fixture de regresie: 2 bonuri (100 și 50 RON) cu mai multe produse, plus cheltuială manuală de 40 RON => media este 75 RON", () => {
+    const records = [
+      // Bon 1 (100 RON): 2 produse (60 RON și 40 RON)
+      txItem({ transaction_id: "bon-1", name: "Pâine", amount: 60 }),
+      txItem({ transaction_id: "bon-1", name: "Lapte", amount: 40 }),
+      // Bon 2 (50 RON): 2 produse (30 RON și 20 RON)
+      txItem({ transaction_id: "bon-2", name: "Mere", amount: 30 }),
+      txItem({ transaction_id: "bon-2", name: "Pere", amount: 20 }),
+      // Cheltuială manuală (40 RON)
+      manualExpenseRecord({
+        id: "m1",
+        household_id: "h1",
+        category_id: "locuinta",
+        description: "Factură curent",
+        amount: 40,
+        spent_on: "2026-03-05",
+        created_at: "2026-03-05T00:00:00Z",
+        updated_at: "2026-03-05T00:00:00Z",
+        deleted_at: null,
+      }),
+    ];
+    // Media cumpărăturilor este (100 + 50) / 2 = 75 RON, nu (60+40+30+20)/4 = 37.5 RON și nici 95 RON
+    expect(averageTrip(records)).toBe(75);
+  });
+
+  it("gestionează cazurile limită ale mediei unei ieșiri: bon fără prețuri, tranzacție ștearsă, total declarat fără linii, mai multe categorii și lună fără cumpărături", () => {
+    // Lună fără cumpărături
+    expect(averageTrip([])).toBeNull();
+    expect(
+      averageTrip([
+        manualExpenseRecord({
+          id: "m1",
+          household_id: "h1",
+          category_id: "locuinta",
+          description: "Factură curent",
+          amount: 50,
+          spent_on: "2026-03-05",
+          created_at: "2026-03-05T00:00:00Z",
+          updated_at: "2026-03-05T00:00:00Z",
+          deleted_at: null,
+        }),
+      ]),
+    ).toBeNull();
+
+    // Bon fără prețuri (amount: null) - nu produce NaN și nu împarte la 0
+    const noprice = [
+      txItem({ transaction_id: "b1", amount: null }),
+      txItem({ transaction_id: "b1", amount: null }),
+    ];
+    expect(averageTrip(noprice)).toBeNull();
+
+    // Tranzacție ștearsă (deleted_at) este ignorată
+    const withDeleted = [
+      txItem({ transaction_id: "b1", amount: 100 }),
+      txItem({ transaction_id: "b2", amount: 200, deleted_at: "2026-03-01T00:00:00Z" }),
+    ];
+    expect(averageTrip(withDeleted)).toBe(100);
+
+    // Total declarat fără linii (linie nealocată cu transaction_id b1)
+    const declaredWithoutLines = [
+      txItem({ transaction_id: "b1", category_id: "nealocat", name: "Diferență nealocată", amount: 80 }),
+    ];
+    expect(averageTrip(declaredWithoutLines)).toBe(80);
+
+    // Mai multe categorii pe același bon sunt grupate în aceeași tranzacție
+    const multiCategory = [
+      txItem({ transaction_id: "b1", category_id: "legume", amount: 30 }),
+      txItem({ transaction_id: "b1", category_id: "curatenie", amount: 70 }),
+    ];
+    expect(averageTrip(multiCategory)).toBe(100);
+
+    // Linii în curs (pending shopping list) sunt ignorate
+    const withPending = [
+      txItem({ transaction_id: "b1", amount: 50 }),
+      txItem({ transaction_id: "in-curs:list-1", amount: 30 }),
+    ];
+    expect(averageTrip(withPending)).toBe(50);
   });
 
   it("exportă CSV cu separator „;” și virgulă zecimală", () => {

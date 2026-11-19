@@ -339,5 +339,6 @@ input[type="checkbox"], input[type="radio"] { accent-color: var(--brand); }
 }
 
 /* Keep sheet gestures within the modal. Backdrop containment is browser-dependent. */
+:root:has(dialog:modal) { overflow: hidden; }
 dialog:modal { overscroll-behavior: contain; }
 dialog::backdrop { overflow: hidden; overscroll-behavior: contain; }

@@ -1,42 +1,31 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { Suspense, useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { ChevronRight, Plus } from "lucide-react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { ChevronRight } from "lucide-react";
 import { AgainIcon, BasketIcon } from "@/components/ui/icons";
 import { AppShell } from "@/components/app/shell";
 import { useActiveShoppingList } from "@/components/shopping/active-list-provider";
 import { useAction, useData } from "@/components/app/hooks";
 import { Button } from "@/components/ui/button";
 import { Badge, Card, EmptyState, PageHeader, SectionTitle, Spinner } from "@/components/ui/misc";
-import { Sheet } from "@/components/ui/sheet";
-import { LabeledInput, LabeledSelect, Toggle } from "@/components/ui/fields";
 import { listItems, owned, priceIndex, visible } from "@/lib/services/queries";
 import { createList, restoreList } from "@/lib/services/shopping";
 import { listTotals } from "@/lib/domain/shopping";
 import { formatRon } from "@/lib/domain/money";
-
-const SUGGESTED_NAMES = ["Cumpărături săptămânale", "Piață", "Lidl", "Kaufland", "Cumpărături urgente", "Weekend"];
+import { formatShortDate, toISODate } from "@/lib/domain/dates";
+import { now } from "@/lib/clock";
 
 function ListsScreen() {
   const router = useRouter();
-  const {selectList} = useActiveShoppingList();
-  const { run, busy } = useAction();
-  const [creating, setCreating] = useState(false);
-  const fromFab = useRef(false);
-  function closeCreation(){setCreating(false);if(fromFab.current)requestAnimationFrame(()=>document.querySelector<HTMLButtonElement>(".capture-fab")?.focus());fromFab.current=false;}
-  useEffect(() => {
-    const open=()=>{fromFab.current=true;setCreating(true);};
-    window.addEventListener('camara:list-new',open);
-    if (new URLSearchParams(window.location.search).get("nou") === "1") {
-      open();
-    }
-    return ()=>window.removeEventListener("camara:list-new",open);
-  }, []);
-  const [name, setName] = useState("");
-  const [recurring, setRecurring] = useState(false);
-  const [retailerId, setRetailerId] = useState("");
+  const searchParams = useSearchParams();
+  const showAll = searchParams.get("toate") === "1";
+  const isNew = searchParams.get("nou") === "1";
+  const handledNew = useRef(false);
+
+  const { activeListId, selectList, ready } = useActiveShoppingList();
+  const { run } = useAction();
   const [showArchived, setShowArchived] = useState(false);
 
   const data = useData(async (ctx) => {
@@ -47,20 +36,38 @@ function ListsScreen() {
     return { lists: withTotals, retailers };
   });
 
+  useEffect(() => {
+    if (!ready || !data) return;
+
+    if (isNew && !handledNew.current) {
+      handledNew.current = true;
+      void run(async (ctx) => {
+        const datedName = `Cumpărături ${formatShortDate(toISODate(now()))}`;
+        const id = await createList(ctx, { name: datedName });
+        selectList(id);
+        router.replace(`/cumparaturi/lista/?id=${id}`);
+      });
+      return;
+    }
+
+    if (!showAll && !isNew) {
+      const activeLists = data.lists.filter((x) => !x.list.archived_at);
+      const targetId = activeListId || activeLists[0]?.list.id;
+      if (targetId) {
+        router.replace(`/cumparaturi/lista/?id=${targetId}`);
+      }
+    }
+  }, [ready, data, isNew, showAll, activeListId, selectList, router, run]);
+
   if (!data) return <Spinner />;
+
   const active = data.lists.filter((x) => !x.list.archived_at);
   const archived = data.lists.filter((x) => x.list.archived_at).sort((a, b) => (b.list.archived_at ?? "").localeCompare(a.list.archived_at ?? ""));
   const retailerName = new Map(data.retailers.map((r) => [r.id, r.name]));
 
-  async function submit() {
-    const id = await run((ctx) => createList(ctx, { name, is_recurring: recurring, default_retailer_id: retailerId || null }));
-    if (id) {
-      selectList(id);
-      fromFab.current=false;
-      setCreating(false);
-      setName("");
-      router.push(`/cumparaturi/lista/?id=${id}`);
-    }
+  // If redirecting to active list, don't flash all lists
+  if (!showAll && !isNew && active.length > 0) {
+    return <Spinner />;
   }
 
   return (
@@ -68,20 +75,20 @@ function ListsScreen() {
       <PageHeader
         title="Cumpărături"
         subtitle="Ce e de luat, pentru toată casa"
-        action={
-          active.length > 0 ? <Button onClick={() => setCreating(true)} icon={<Plus size={18} />}>Listă nouă</Button> : undefined
-        }
       />
 
       {active.length === 0 ? (
-        <EmptyState icon={<BasketIcon size={32} />} title="Încă n-ai nicio listă" action={<Button onClick={() => setCreating(true)} icon={<Plus size={18} />}>Listă nouă</Button>}>
-          Una pentru săptămână, una pentru piață, sau câte una pe magazin, cum îți vine mai la îndemână.
+        <EmptyState
+          icon={<BasketIcon size={32} />}
+          title="Încă n-ai nicio listă"
+        >
+          Apasă pe butonul de adăugare (+) pentru a crea o listă nouă sau pentru a copia o listă mai veche.
         </EmptyState>
       ) : (
         <ul className="grid gap-4 min-[900px]:grid-cols-2">
           {active.map(({ list, totals }) => (
             <li key={list.id}>
-              <Link href={`/cumparaturi/lista/?id=${list.id}`} className="block" onClick={()=>selectList(list.id)}>
+              <Link href={`/cumparaturi/lista/?id=${list.id}`} className="block" onClick={() => selectList(list.id)}>
                 <Card className="flex items-center gap-3 p-5 transition-colors hover:bg-surface-container-high">
                   <div className="min-w-0 flex-1">
                     <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
@@ -138,44 +145,6 @@ function ListsScreen() {
           )}
         </>
       )}
-
-      <Sheet
-        open={creating}
-        onClose={closeCreation}
-        title="Listă nouă"
-        footer={
-          <Button block onClick={submit} disabled={busy}>
-            Creează lista
-          </Button>
-        }
-      >
-        <form
-          className="flex flex-col gap-4"
-          onSubmit={(e) => {
-            e.preventDefault();
-            void submit();
-          }}
-        >
-          <LabeledInput label="Numele listei" value={name} onChange={(e) => setName(e.target.value)} maxLength={80} placeholder="ex. Piața de sâmbătă" autoFocus />
-          <div className="flex flex-wrap gap-2">
-            {SUGGESTED_NAMES.map((s) => (
-              <button key={s} type="button" onClick={() => setName(s)} className="h-12 rounded-full border border-line px-3 text-sm text-ink-2 transition-colors duration-150 ease-out hover:text-ink active:bg-surface-2">
-                {s}
-              </button>
-            ))}
-          </div>
-          <LabeledSelect label="De obicei iei de la…" value={retailerId} onChange={(e) => setRetailerId(e.target.value)}>
-            <option value="">De oriunde</option>
-            {data.retailers.map((r) => (
-              <option key={r.id} value={r.id}>
-                {r.name}
-              </option>
-            ))}
-          </LabeledSelect>
-          <Toggle checked={recurring} onChange={setRecurring} label="O folosesc des" description="După cumpărături, produsele rămân pe listă, nebifate, gata pentru data viitoare." />
-          <button type="submit" className="hidden" />
-        </form>
-      </Sheet>
     </>
   );
 }
@@ -183,7 +152,9 @@ function ListsScreen() {
 export default function Page() {
   return (
     <AppShell>
-      <ListsScreen />
+      <Suspense fallback={<Spinner />}>
+        <ListsScreen />
+      </Suspense>
     </AppShell>
   );
 }

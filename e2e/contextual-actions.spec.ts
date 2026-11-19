@@ -84,12 +84,11 @@ test('ready-only excludes partial stock and reacts to stock changes offline',asy
 });
 
 test('shopping FAB creates a new list even when already on the lists route',async({page})=>{
- await start(page,'/cumparaturi/');
+ await start(page,'/cumparaturi/?toate=1');
  await page.getByRole('button',{name:'Acțiuni cumpărături',exact:true}).click();
  await page.getByRole('dialog',{name:'Cumpărături',exact:true}).getByRole('button',{name:'Listă nouă',exact:true}).click();
- await expect(page.getByRole('dialog',{name:'Listă nouă',exact:true})).toBeVisible();
- await page.getByRole('dialog',{name:'Listă nouă',exact:true}).getByRole('button',{name:'Închide',exact:true}).click();
- await expect(page.getByRole('button',{name:'Acțiuni cumpărături',exact:true})).toBeFocused();
+ await expect(page).toHaveURL(/\/cumparaturi\/lista\/\?id=/);
+ await expect(page.getByRole('button',{name:/^Redenumește Cumpărături/})).toBeVisible();
 });
 
 test('income opened by contextual FAB returns keyboard focus to that FAB on close',async({page})=>{
@@ -104,7 +103,7 @@ test('income opened by contextual FAB returns keyboard focus to that FAB on clos
 test('detail FAB adds to the viewed list rather than a different preferred list',async({page})=>{
  await start(page);await createList(page,'Lista A');const a=page.url();
  await createList(page,'Lista B');const b=page.url();const id=new URL(b).searchParams.get('id')!;
- await page.goto('/cumparaturi/');await page.getByRole('link').filter({hasText:'Lista A'}).click();
+ await page.goto('/cumparaturi/?toate=1');await page.getByRole('link').filter({hasText:'Lista A'}).click();
  await page.goto(b);
  await page.getByRole('button',{name:'Acțiuni cumpărături',exact:true}).click();
  await page.getByRole('dialog',{name:'Cumpărături',exact:true}).getByRole('button',{name:'Adaugă pe listă',exact:true}).click();

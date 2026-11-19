@@ -8,7 +8,7 @@ import { useAction, useData } from "@/components/app/hooks";
 import { Button, IconButton } from "@/components/ui/button";
 import { Chip, EmptyState, PageHeader, SectionTitle, Spinner } from "@/components/ui/misc";
 import { Sheet } from "@/components/ui/sheet";
-import { Field, Input, LabeledInput, LabeledSelect } from "@/components/ui/fields";
+import { LabeledInput, LabeledSelect } from "@/components/ui/fields";
 import { useToast } from "@/components/ui/toast";
 import { owned, visible } from "@/lib/services/queries";
 import { addPantryItem, adjustPantry, removePantryItem, updatePantryItem } from "@/lib/services/kitchen";
@@ -304,18 +304,16 @@ function PantryScreen() {
         {draft && (
           <div className="flex flex-col gap-4">
             {!draft.product_id && <LabeledInput label="Numele produsului" value={draft.name} onChange={(e) => setDraft({ ...draft, name: e.target.value })} maxLength={120} />}
-            <Field label="Cantitate">
-              <div className="flex gap-2">
-                <Input inputMode="decimal" value={draft.quantity} onChange={(e) => setDraft({ ...draft, quantity: e.target.value })} className="flex-1 tabular" aria-label="Cantitate" />
-                <select aria-label="Unitate" value={draft.unit} onChange={(e) => setDraft({ ...draft, unit: e.target.value as UnitCode })} className="h-12 w-32 rounded-2xl border border-outline bg-surface px-3">
-                  {SHOPPING_UNITS.map((u) => (
-                    <option key={u} value={u}>
-                      {unitLabel(u, 2)}
-                    </option>
-                  ))}
-                </select>
-              </div>
-            </Field>
+            <div className="grid grid-cols-2 gap-3">
+              <LabeledInput label="Cantitate" inputMode="decimal" value={draft.quantity} onChange={(e) => setDraft({ ...draft, quantity: e.target.value })} />
+              <LabeledSelect label="Unitate" value={draft.unit} onChange={(e) => setDraft({ ...draft, unit: e.target.value as UnitCode })}>
+                {SHOPPING_UNITS.map((u) => (
+                  <option key={u} value={u}>
+                    {unitLabel(u, 2)}
+                  </option>
+                ))}
+              </LabeledSelect>
+            </div>
             <LabeledSelect label="Unde îl ții" value={draft.location_id} onChange={(e) => setDraft({ ...draft, location_id: e.target.value })}>
               {data.locations.map((l) => (
                 <option key={l.id} value={l.id}>

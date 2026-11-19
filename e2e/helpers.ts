@@ -20,11 +20,16 @@ export async function quickAdd(page: Page, text: string) {
 }
 
 export async function createList(page: Page, name: string) {
-  await page.goto("/cumparaturi/");
-  await page.getByRole("button", { name: "Listă nouă" }).click();
-  await page.getByLabel("Numele listei").fill(name);
-  await page.getByRole("button", { name: "Creează lista" }).click();
+  await page.goto("/cumparaturi/?toate=1");
+  await page.getByRole("button", { name: "Acțiuni cumpărături" }).click();
+  await page.getByRole("dialog", { name: "Cumpărături" }).getByRole("button", { name: "Listă nouă" }).click();
   await page.waitForURL(/\/cumparaturi\/lista\//);
+  const renameBtn = page.getByRole("button", { name: /^Redenumește/ });
+  await expect(renameBtn).toBeVisible();
+  await renameBtn.click();
+  const input = page.getByRole("textbox", { name: "Numele listei" });
+  await input.fill(name);
+  await input.press("Enter");
   await expect(page.getByRole("heading", { name })).toBeVisible();
 }
 

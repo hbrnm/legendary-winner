@@ -2,7 +2,8 @@ import {expect,test} from "@playwright/test";
 import {start} from "./helpers";
 test("veniturile se cumulează, iar plafonul de cheltuieli rămâne ales separat",async({page})=>{
  await start(page,"/buget/");
- await page.getByRole("button",{name:"Adaugă venit",exact:true}).click();
+ await page.getByRole("button",{name:"Acțiuni buget",exact:true}).click();
+ await page.getByRole("dialog",{name:"Buget",exact:true}).getByRole("button",{name:"Adaugă venit",exact:true}).click();
  let sheet=page.getByRole("dialog",{name:"Venituri și alocare",exact:true});
  await sheet.getByLabel("Numele venitului 1",{exact:true}).fill("Salariu soț");
  await sheet.getByLabel("Venitul 1 (RON)",{exact:true}).fill("3000");

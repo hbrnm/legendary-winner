@@ -2,7 +2,8 @@ import { expect, test, type Page } from "@playwright/test";
 import { start } from "./helpers";
 
 async function addExpense(page: Page, description: string, amount: string, category: string, date = "2026-03-08") {
-  await page.getByRole("button", { name: "Cheltuială", exact: true }).click();
+  await page.getByRole("button", { name: "Acțiuni buget", exact: true }).click();
+  await page.getByRole("dialog", { name: "Buget", exact: true }).getByRole("button", { name: "Adaugă cheltuială", exact: true }).click();
   const form = page.getByRole("dialog", { name: "Cheltuială", exact: true });
   await form.getByLabel("Notă scurtă (opțional)", { exact: true }).fill(description);
   await form.getByLabel("Sumă (RON)", { exact: true }).fill(amount);
@@ -34,7 +35,7 @@ test("bugetul familiei: cheltuieli, categorii, luni, persistență și export pe
   await budget.getByRole("button", { name: "Salvează", exact: true }).click();
   const schoolBudget = page.getByRole("button", { name: "Modifică bugetul Buget școală" }).locator("../..");
   await expect(schoolBudget).toContainText("800,00");
-  await expect(schoolBudget).toContainText("Mai ai 200,00");
+  await expect(schoolBudget).toContainText(/200,00\s+RON\s+rămași/);
   await page.getByRole("button", { name: "Adaugă un buget", exact: true }).click();
   await budget.getByLabel("Suma (lei)", { exact: true }).fill("2000");
   await budget.getByLabel("Nume (opțional)", { exact: true }).fill("Bugetul familiei");

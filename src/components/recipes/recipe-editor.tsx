@@ -236,14 +236,14 @@ export function RecipeEditor({ id, isGlobal, source, imported, onBack }: { id: s
               </div>
               <div className="mt-2 grid grid-cols-[1fr_8rem] gap-2">
                 <Input inputMode="decimal" placeholder="după gust" aria-label={`Cantitate ${i.name}`} value={i.quantity} onChange={(e) => patch(i.key, { quantity: e.target.value })} />
-                <select aria-label={`Unitate ${i.name}`} value={i.unit} onChange={(e) => patch(i.key, { unit: e.target.value as UnitCode })} className="h-14 rounded-2xl border border-outline bg-surface px-2">
+                <Select aria-label={`Unitate ${i.name}`} value={i.unit} onChange={(e) => patch(i.key, { unit: e.target.value as UnitCode })}>
                   <option value="">—</option>
                   {UNIT_CODES.map((u) => (
                     <option key={u} value={u}>
                       {unitLabel(u, 2)}
                     </option>
                   ))}
-                </select>
+                </Select>
                 <Input placeholder="observație (ex. tocat)" aria-label={`Observație ${i.name}`} value={i.note} onChange={(e) => patch(i.key, { note: e.target.value })} maxLength={120} />
                 <label className="flex items-center gap-2 text-sm text-ink-2">
                   <input type="checkbox" checked={i.optional} onChange={(e) => patch(i.key, { optional: e.target.checked })} className="h-5 w-5 accent-[var(--brand)]" />
