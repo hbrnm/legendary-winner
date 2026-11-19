@@ -214,7 +214,7 @@ export function AppShell({ children, wide = false, hideMobileNav = false }: { ch
                   key={n.href}
                   href={n.href}
                   aria-current={active ? "page" : undefined}
-                  className={`app-mobile-item relative flex flex-1 flex-col items-center justify-center font-medium transition-colors duration-150 ease-out focus-visible:outline-2 focus-visible:outline-brand ${active ? "text-brand" : "text-ink-2 active:text-ink"}`}
+                  className={`app-mobile-item relative flex flex-1 flex-col items-center justify-center font-medium transition-colors duration-150 ease-out focus-visible:outline-2 focus-visible:outline-brand ${active ? "font-semibold" : "text-ink-2 active:text-ink"}`}
                 >
                   <span className="app-mobile-indicator transition-colors"><n.icon size={24} strokeWidth={active ? 2 : 1.75} /></span>
                   {n.label}

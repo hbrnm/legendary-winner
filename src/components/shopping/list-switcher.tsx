@@ -35,7 +35,7 @@ export function ListSwitcher({ currentListId, lists, className = "" }: ListSwitc
         type="button"
         onClick={() => setOpen(true)}
         aria-label="Comută lista de cumpărături"
-        className={`inline-flex h-9 items-center gap-1.5 rounded-full bg-surface-2 px-3 text-xs font-semibold text-ink transition-colors hover:bg-surface-container-high focus-visible:outline-2 focus-visible:outline-brand ${className}`}
+        className={`inline-flex min-h-11 items-center gap-1.5 rounded-full bg-surface-2 px-3.5 text-xs font-semibold text-ink transition-colors hover:bg-surface-container-high focus-visible:outline-2 focus-visible:outline-brand ${className}`}
       >
         <span>Comută lista</span>
         <ChevronDown size={14} className="text-ink-2" />

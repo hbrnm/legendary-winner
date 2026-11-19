@@ -300,17 +300,15 @@ function ListScreen() {
               <h1 className="line-clamp-2 break-words break-all text-2xl font-bold leading-tight tracking-tight">
                 {list.name}
               </h1>
-              <button
-                type="button"
+              <IconButton
+                label={`Redenumește ${list.name}`}
                 onClick={() => {
                   setTitleDraft(list.name);
                   setEditingTitle(true);
                 }}
-                className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-ink-2 hover:bg-surface-2 focus-visible:outline-2 focus-visible:outline-brand"
-                aria-label={`Redenumește ${list.name}`}
               >
-                <Pencil size={16} />
-              </button>
+                <Pencil size={18} />
+              </IconButton>
             </div>
           )}
           <div className="mt-1 flex flex-wrap items-center gap-2">

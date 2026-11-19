@@ -30,7 +30,7 @@ const SHORTCUTS: { id: ExpenseShortcut; name: string }[] = [
   { id: "supermarket", name: "Supermarket" }, { id: "piata", name: "Piață" },
   { id: "locuinta", name: "Casă & Utilități" }, { id: "altele", name: "Altele" },
 ];
-const chip = "inline-flex min-h-12 shrink-0 items-center rounded-full px-4 text-sm focus-visible:outline-2 focus-visible:outline-brand";
+const chip = "inline-flex min-h-12 shrink-0 items-center rounded-full px-4 text-sm focus-visible:outline-2 focus-visible:outline-brand focus-visible:-outline-offset-2 transition-colors duration-150 ease-out";
 
 /** One capture host per visible application shell; every entry point uses it. */
 export function CaptureHost() {

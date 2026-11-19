@@ -168,7 +168,7 @@ function ItemSheetForm({ item, estimate, categories, retailers, lists, focusPric
               aria-label="Unitate"
               value={unit}
               onChange={(e) => change({ unit: e.target.value as UnitCode })}
-              className="h-12 w-28 shrink-0 rounded-2xl border border-outline bg-surface px-3 text-[15px]"
+              className="h-14 w-28 shrink-0 rounded-2xl border border-outline bg-surface px-3 text-base text-ink focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/25"
             >
               <option value="">fără unitate</option>
               {SHOPPING_UNITS.map((u) => (
@@ -203,7 +203,7 @@ function ItemSheetForm({ item, estimate, categories, retailers, lists, focusPric
                 aria-label="Baza prețului la raft"
                 value={shelf.basis}
                 onChange={(e) => change({ basis: e.target.value as ShelfBasis })}
-                className="h-12 w-32 shrink-0 rounded-2xl border border-outline bg-surface px-3 text-[15px]"
+                className="h-14 w-32 shrink-0 rounded-2xl border border-outline bg-surface px-3 text-base text-ink focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/25"
               >
                 {SHELF_BASES.map((b) => (
                   <option key={b.basis} value={b.basis}>
