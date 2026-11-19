@@ -42,10 +42,9 @@ export function Sheet({ open, onClose, title, children, footer }: { open: boolea
     if (!d) return;
     if (open && !d.open) {
       d.showModal();
-      const isCoarse = typeof window !== "undefined" && window.matchMedia?.("(pointer: coarse)")?.matches;
-      if (!isCoarse) {
+      requestAnimationFrame(() => {
         d.querySelector<HTMLElement>("[data-autofocus], [autofocus]")?.focus();
-      }
+      });
     }
     if (!open && d.open) d.close();
   }, [open]);
@@ -59,7 +58,7 @@ export function Sheet({ open, onClose, title, children, footer }: { open: boolea
       }}
       aria-label={title}
       style={keyboardStyle}
-      className="m-0 mt-auto flex max-h-[92dvh] w-full max-w-none flex-col overflow-hidden rounded-t-[28px] border-0 bg-surface-container-low p-0 text-ink shadow-elevated backdrop:bg-backdrop-overlay min-[600px]:m-auto min-[600px]:max-w-lg min-[600px]:rounded-[28px]"
+      className="m-0 mt-auto max-h-[92dvh] w-full max-w-none overflow-hidden rounded-t-[28px] border-0 bg-surface-container-low p-0 text-ink shadow-elevated backdrop:bg-backdrop-overlay min-[600px]:m-auto min-[600px]:max-w-lg min-[600px]:rounded-[28px]"
     >
       {open && (
         <div
