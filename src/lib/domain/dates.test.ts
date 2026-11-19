@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { addDays, endOfMonth, monthPeriod, startOfWeek, weekPeriod } from "./dates";
+import { addDays, addMonths, endOfMonth, monthPeriod, startOfWeek, weekPeriod } from "./dates";
 
 describe("date", () => {
   it("săptămâna începe luni", () => {
@@ -13,5 +13,12 @@ describe("date", () => {
     expect(monthPeriod("2028-02-03")).toEqual({ from: "2028-02-01", to: "2028-02-29" });
     expect(addDays("2026-03-28", 2)).toBe("2026-03-30");
     expect(addDays("2026-10-24", 2)).toBe("2026-10-26");
+  });
+
+  it("adaugă și scade luni corect inclusiv peste ani", () => {
+    expect(addMonths("2026-10-15", 1)).toBe("2026-11-01");
+    expect(addMonths("2026-10-15", -1)).toBe("2026-09-01");
+    expect(addMonths("2026-12-01", 1)).toBe("2027-01-01");
+    expect(addMonths("2027-01-01", -1)).toBe("2026-12-01");
   });
 });

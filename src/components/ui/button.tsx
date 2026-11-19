@@ -3,7 +3,7 @@
 import { forwardRef, type ButtonHTMLAttributes, type ReactNode } from "react";
 
 type Variant = "primary" | "secondary" | "ghost" | "danger" | "outlined" | "tonal";
-type Size = "md" | "sm" | "lg";
+type Size = "md" | "sm" | "lg" | "auto";
 
 const VARIANTS: Record<Variant, string> = {
   primary: "bg-brand text-brand-ink hover:bg-brand-strong active:bg-brand-strong",
@@ -18,6 +18,7 @@ const SIZES: Record<Size, string> = {
   sm: "h-12 px-4 text-sm gap-1.5",
   md: "h-12 px-6 text-[15px] gap-2",
   lg: "h-14 px-8 text-base gap-2",
+  auto: "h-auto px-4 py-2 text-sm gap-1.5",
 };
 
 export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
