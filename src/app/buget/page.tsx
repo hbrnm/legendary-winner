@@ -158,9 +158,9 @@ function BudgetScreen() {
           Spune cât vrei să cheltui pe lună (sau pe săptămână, la piață, la un anumit magazin) și urmărești cum te încadrezi, chiar din magazin.
         </EmptyState>
       ) : (
-        <div className="flex flex-col gap-3">
+        <div className="flex flex-col gap-3.5">
           {view.statuses.map((s) => (
-            <Card key={s.budget.id} className="p-4">
+            <Card key={s.budget.id} className="p-4 sm:p-5">
               <div className="flex items-start justify-between gap-2">
                 <div className="min-w-0">
                   <p className="font-sans text-lg font-semibold leading-snug">{s.budget.name}</p>
@@ -173,12 +173,17 @@ function BudgetScreen() {
                 </IconButton>
               </div>
               <div className="mt-3 flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
-                <span className={`text-[26px] font-medium leading-none tracking-tight ${s.over ? "text-accent" : "text-ink"}`}>{formatRon(Math.abs(s.remaining))} <span className="text-sm font-normal">{s.over ? "peste buget" : "rămași"}</span></span>
-                <span className="whitespace-nowrap text-sm text-ink-2">din {formatRon(s.budget.amount)}</span>
+                <span className={`text-[28px] font-bold leading-none tracking-tight tabular ${s.over ? "text-accent" : "text-ink"}`}>{formatRon(Math.abs(s.remaining))} <span className="text-sm font-normal text-ink-2">{s.over ? "peste buget" : "rămași"}</span></span>
+                <span className="whitespace-nowrap text-sm text-ink-2 tabular">din {formatRon(s.budget.amount)}</span>
               </div>
-              {s.budget.period === "lunar" && isCurrentMonth && !s.over && <p className="mt-2 text-sm text-ink-2">~{formatRon(dailyBudgetAvailable(s.remaining, today))}/zi disponibili până la finalul lunii</p>}
-              <p className="mt-1 text-xs text-ink-2">Cheltuit {formatRon(s.spent)}</p>
-              <div className="mt-2">
+              {s.budget.period === "lunar" && isCurrentMonth && !s.over && (
+                <div className="mt-2.5 flex items-center gap-1.5 text-xs text-ink-2 tabular">
+                  <span className="inline-block h-1.5 w-1.5 rounded-full bg-sprout" aria-hidden />
+                  <span>~{formatRon(dailyBudgetAvailable(s.remaining, today))}/zi disponibili până la finalul lunii</span>
+                </div>
+              )}
+              <p className="mt-1 text-xs text-ink-2 tabular">Cheltuit {formatRon(s.spent)}</p>
+              <div className="mt-2.5">
                 {s === basketStatus && data.openEstimate > 0 ? (
                   <>
                     <DualBudgetBar spent={s.spent} pending={data.openEstimate} total={s.budget.amount} label={`${s.budget.name}: cheltuit și coșul de acum`} />
@@ -279,23 +284,23 @@ function BudgetScreen() {
       ) : null}
 
       <div className="mb-2 mt-8 flex items-center justify-between">
-        <IconButton label="Luna anterioară" onClick={() => setMonth(startOfMonth(addDays(month, -1)))} className="border border-line bg-surface-2">
+        <IconButton label="Luna anterioară" onClick={() => setMonth(startOfMonth(addDays(month, -1)))} className="border border-line bg-surface-2 transition-transform active:scale-[0.94]">
           <ChevronLeft size={20} />
         </IconButton>
-        <h2 className="font-sans text-xl font-semibold">{capitalizeFirst(formatMonth(month))}</h2>
-        <IconButton label="Luna următoare" disabled={isCurrentMonth} onClick={() => setMonth(startOfMonth(addDays(month, 32)))} className="border border-line bg-surface-2">
+        <h2 className="font-sans text-xl font-bold tracking-tight text-ink">{capitalizeFirst(formatMonth(month))}</h2>
+        <IconButton label="Luna următoare" disabled={isCurrentMonth} onClick={() => setMonth(startOfMonth(addDays(month, 32)))} className="border border-line bg-surface-2 transition-transform active:scale-[0.94]">
           <ChevronRight size={20} />
         </IconButton>
       </div>
 
-      <Card className="grid grid-cols-2 divide-x divide-line">
-        <div className="p-3">
+      <Card className="grid grid-cols-2 divide-x divide-line overflow-hidden rounded-[24px]">
+        <div className="p-3.5 sm:p-4">
           <p className="text-xs text-ink-2">Cheltuit în lună</p>
-          <p className="mt-0.5 text-xl font-medium">{formatRon(view.total)}</p>
+          <p className="mt-1 text-2xl font-bold tracking-tight tabular text-ink">{formatRon(view.total)}</p>
         </div>
-        <div className="p-3">
+        <div className="p-3.5 sm:p-4">
           <p className="text-xs text-ink-2">Media unei ieșiri la cumpărături</p>
-          <p className="mt-0.5 text-xl font-medium">{view.avgTrip == null ? "—" : formatRon(view.avgTrip)}</p>
+          <p className="mt-1 text-2xl font-bold tracking-tight tabular text-ink">{view.avgTrip == null ? "—" : formatRon(view.avgTrip)}</p>
         </div>
       </Card>
       <SectionTitle>Tranzacții</SectionTitle>

@@ -79,21 +79,21 @@ function RecipesScreen() {
     const c = data!.costs.get(r.id);
     const perServing = c ? costAmount(c.per_serving, c.priced_count, c.costable_count) : null;
     return (
-      <li className="min-w-0 overflow-hidden rounded-[20px] bg-surface-container-low">
-        <Link href={`/retete/reteta/?id=${r.id}`} className="flex h-full items-center gap-4 p-4 transition-colors duration-150 ease-out hover:bg-surface-container-high active:bg-surface-2">
+      <li className="min-w-0 overflow-hidden rounded-[24px] border border-line/60 bg-surface transition-all duration-150 ease-out hover:border-outline/40 hover:bg-surface-2/30 active:scale-[0.99]">
+        <Link href={`/retete/reteta/?id=${r.id}`} className="group flex h-full items-center gap-4 p-4 transition-colors duration-150 ease-out">
           <RecipeImage recipe={r} avatar />
           <div className="min-w-0 flex-1">
-            <p className="line-clamp-2 font-sans text-[17px] font-medium leading-snug">
+            <p className="line-clamp-2 font-sans text-[17px] font-semibold leading-snug text-ink transition-colors group-hover:text-brand">
               {r.name}
               {data!.favorites.has(r.id) && <Heart size={14} className="ml-1.5 inline fill-accent text-accent" aria-label="favorită" />}
             </p>
             <div className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-0.5 text-xs text-ink-2">
-              <span className="inline-flex items-center gap-1">
+              <span className="inline-flex items-center gap-1 tabular">
                 <Clock size={13} strokeWidth={1.75} /> {totalMinutes(r)} min
               </span>
-              <span>· {r.servings} porții</span>
+              <span className="tabular">· {r.servings} porții</span>
               {c && c.priced_count > 0 && (
-                <span>· {perServing ? `${perServing}/porție` : partialCostLabel(c.priced_count, c.costable_count)}</span>
+                <span className="tabular">· {perServing ? `${perServing}/porție` : partialCostLabel(c.priced_count, c.costable_count)}</span>
               )}
               {r.household_id && <Badge tone="brand">a gospodăriei</Badge>}
             </div>
