@@ -227,13 +227,13 @@ function RecipeScreen() {
       )}
 
       <div className="mt-4 grid grid-cols-3 gap-2">
-        <Button variant="primary" onClick={() => setAddOpen(true)} className="flex-col h-auto! min-h-14 py-2.5 rounded-2xl transition-transform active:scale-[0.96]" icon={<ShoppingBasket size={20} />}>
+        <Button variant="primary" size="auto" onClick={() => setAddOpen(true)} className="flex-col min-h-14 py-2.5 rounded-2xl transition-transform active:scale-[0.96]" icon={<ShoppingBasket size={20} />}>
           <span className="text-xs">În listă</span>
         </Button>
-        <Button variant="secondary" onClick={() => setPlanOpen(true)} className="flex-col h-auto! min-h-14 py-2.5 rounded-2xl transition-transform active:scale-[0.96]" icon={<CalendarPlus size={20} />}>
+        <Button variant="secondary" size="auto" onClick={() => setPlanOpen(true)} className="flex-col min-h-14 py-2.5 rounded-2xl transition-transform active:scale-[0.96]" icon={<CalendarPlus size={20} />}>
           <span className="text-xs">Planifică</span>
         </Button>
-        <Button variant="secondary" onClick={() => setCookOpen(true)} className="flex-col h-auto! min-h-14 py-2.5 rounded-2xl transition-transform active:scale-[0.96]" icon={<ChefHat size={20} />}>
+        <Button variant="secondary" size="auto" onClick={() => setCookOpen(true)} className="flex-col min-h-14 py-2.5 rounded-2xl transition-transform active:scale-[0.96]" icon={<ChefHat size={20} />}>
           <span className="text-xs">Am gătit</span>
         </Button>
       </div>

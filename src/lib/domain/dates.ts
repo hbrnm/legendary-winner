@@ -38,6 +38,12 @@ export function startOfMonth(date: ISODate): ISODate {
   return `${date.slice(0, 7)}-01`;
 }
 
+export function addMonths(date: ISODate, months: number): ISODate {
+  const d = parseISODate(startOfMonth(date));
+  d.setMonth(d.getMonth() + months);
+  return toISODate(d);
+}
+
 export function endOfMonth(date: ISODate): ISODate {
   const d = parseISODate(startOfMonth(date));
   d.setMonth(d.getMonth() + 1);

@@ -219,12 +219,14 @@ body {
 }
 
 /* Pe iPhone, un câmp cu litera sub 16 px face ca pagina să se mărească la
-   atingere. În afara straturilor Tailwind, ca să aibă prioritate față de
-   clasele text-sm/text-xs puse pe câmpuri. */
-input,
-select,
-textarea {
-  font-size: max(16px, 1em);
+   atingere. În @layer base, ca utilitățile text-3xl/sm:text-4xl să poată mări
+   câmpurile când este nevoie, dar niciun câmp să nu scadă sub 16px. */
+@layer base {
+  input,
+  select,
+  textarea {
+    font-size: max(16px, 1em);
+  }
 }
 
 body {
