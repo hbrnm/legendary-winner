@@ -46,7 +46,7 @@ function ListsScreen() {
   });
 
   useEffect(() => {
-    if (!ready || !data) return;
+    if (!ready) return;
 
     if (isNew && !handledNew.current) {
       handledNew.current = true;
@@ -60,24 +60,30 @@ function ListsScreen() {
     }
 
     if (!showAll && !isNew) {
-      const activeLists = data.lists.filter((x) => !x.list.archived_at);
-      const targetId = activeListId || activeLists[0]?.list.id;
-      if (targetId) {
-        router.replace(`/cumparaturi/lista/?id=${targetId}`);
+      if (activeListId) {
+        router.replace(`/cumparaturi/lista/?id=${activeListId}`);
+        return;
+      }
+      if (data) {
+        const activeLists = data.lists.filter((x) => !x.list.archived_at);
+        const targetId = activeLists[0]?.list.id;
+        if (targetId) {
+          router.replace(`/cumparaturi/lista/?id=${targetId}`);
+        }
       }
     }
   }, [ready, data, isNew, showAll, activeListId, selectList, router, run]);
+
+  // If redirecting to active list, show spinner and avoid flashing all lists
+  if (!showAll && !isNew && (activeListId || (data && data.lists.some((x) => !x.list.archived_at)))) {
+    return <Spinner />;
+  }
 
   if (!data) return <Spinner />;
 
   const active = data.lists.filter((x) => !x.list.archived_at);
   const archived = data.lists.filter((x) => x.list.archived_at).sort((a, b) => (b.list.archived_at ?? "").localeCompare(a.list.archived_at ?? ""));
   const retailerName = new Map(data.retailers.map((r) => [r.id, r.name]));
-
-  // If redirecting to active list, don't flash all lists
-  if (!showAll && !isNew && active.length > 0) {
-    return <Spinner />;
-  }
 
   return (
     <>

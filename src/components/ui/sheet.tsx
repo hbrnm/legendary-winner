@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState, type CSSProperties, type ReactNode } from "react";
 import { X } from "lucide-react";
+import { Button } from "./button";
 
 /** Cât din partea de jos a ecranului acoperă tastatura (pe iPhone pagina nu se micșorează când apare tastatura). */
 export function keyboardInset(innerHeight: number, viewport: { height: number; offsetTop: number }): number {
@@ -126,23 +127,23 @@ export function ConfirmSheet({
       title={title}
       footer={
         <div className="flex gap-2">
-          <button
-            type="button"
+          <Button
+            variant="secondary"
             onClick={onClose}
-            className="h-12 flex-1 rounded-full border border-line bg-surface-2 font-medium transition-colors duration-150 ease-out hover:bg-surface focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand active:scale-[0.98]"
+            className="flex-1"
           >
             Renunță
-          </button>
-          <button
-            type="button"
+          </Button>
+          <Button
+            variant="danger"
             onClick={() => {
               onConfirm();
               onClose();
             }}
-            className="h-12 flex-1 rounded-full bg-error font-medium text-on-error transition-opacity duration-150 ease-out hover:opacity-90 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand active:scale-[0.98]"
+            className="flex-1"
           >
             {confirmLabel}
-          </button>
+          </Button>
         </div>
       }
     >

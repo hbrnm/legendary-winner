@@ -20,7 +20,7 @@ Un singur fișier: `npx vitest run <cale>`, `npx playwright test e2e/<fișier>`.
 - `scenariu-duminica.spec.ts`: de la planul săptămânii la buget.
 
 ## Supabase local, fără Docker
-`node scripts/local-supabase.mjs` pornește Postgres, Supabase Auth v2.169, PostgREST 12.2.3, un Storage minimal (`scripts/local-storage.mjs`: încărcare, descărcare, ștergere, cu RLS-ul din `storage.objects` aplicat ca utilizatorul din JWT, fișierele în memorie) și un proxy pe portul 54321, cu aceleași căi ca Supabase (`/auth/v1`, `/rest/v1`, `/storage/v1`). Proxy-ul face și CORS-ul (ca Kong în Supabase). Realtime nu e inclus; aplicația sincronizează și la scriere, periodic și la cerere. `scripts/build-cloud-e2e.sh` construiește aplicația conectată la el, în `out-cloud/`.
+`node scripts/local-supabase.mjs` pornește Postgres, Supabase Auth v2.169, PostgREST 12.2.3, un Storage minimal (`scripts/local-storage.mjs`: încărcare, descărcare, ștergere, cu RLS-ul din `storage.objects` aplicat ca utilizatorul din JWT, fișierele în memorie) și un proxy pe portul 54321, cu aceleași căi ca Supabase (`/auth/v1`, `/rest/v1`, `/storage/v1`). Proxy-ul face și CORS-ul (ca Kong în Supabase). Realtime nu e inclus; aplicația sincronizează și la scriere, periodic și la cerere. `scripts/build-cloud-e2e.mjs` construiește aplicația conectată la el, în `out-cloud/`.
 
 ## Înainte de push
 `npm test` și `npm run build`; la schimbări de schemă și `npm run test:db`; la schimbări de ecran și `npm run test:e2e`. CI-ul (`.github/workflows/ci.yml`) le rulează pe toate.

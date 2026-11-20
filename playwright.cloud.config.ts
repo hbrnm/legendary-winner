@@ -3,7 +3,7 @@ import { defineConfig, devices } from "@playwright/test";
 // E2E pentru modul cloud: conturi, gospodărie, invitații, sincronizare între
 // membri, izolarea gospodăriilor. Rulează pe Supabase-ul local
 // (scripts/local-supabase.mjs) și pe build-ul din out-cloud/
-// (scripts/build-cloud-e2e.sh).
+// (scripts/build-cloud-e2e.mjs).
 export default defineConfig({
   testDir: "./e2e-cloud",
   timeout: 120_000,
