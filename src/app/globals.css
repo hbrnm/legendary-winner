@@ -43,8 +43,6 @@
   --on-error: #ffffff;
   --error-container: #ffe1e4;
   --on-error-container: #650d20;
-  --atmosphere-start: #F7F3EE;
-  --atmosphere-mid: #F7F3EE;
   --nav-surface: #ffffff;
   --shadow: 0 2px 8px rgb(35 24 36 / 0.04);
   --shadow-panel: 0 8px 32px rgb(35 24 36 / 0.16);
@@ -95,8 +93,6 @@
   --on-error: #501625;
   --error-container: #51252f;
   --on-error-container: #ffdae0;
-  --atmosphere-start: #191410;
-  --atmosphere-mid: #191410;
   --nav-surface: #29211C;
   --shadow: 0 2px 8px rgb(0 0 0 / 0.08);
   --shadow-panel: 0 8px 32px rgb(0 0 0 / 0.4);
@@ -146,8 +142,6 @@
   --on-error: #501625;
   --error-container: #51252f;
   --on-error-container: #ffdae0;
-  --atmosphere-start: #191410;
-  --atmosphere-mid: #191410;
   --nav-surface: #29211C;
   --shadow: 0 2px 8px rgb(0 0 0 / 0.08);
   --shadow-panel: 0 8px 32px rgb(0 0 0 / 0.4);
@@ -202,7 +196,6 @@
   /* DM Sans vine din src/app/fonts.ts (fișiere locale, licență OFL); are
      două subseturi: latin și latin-ext (ă, ș, ț), puse unul după altul. */
   --font-sans: -apple-system, BlinkMacSystemFont, var(--font-dm-sans), var(--font-dm-sans-ext), ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
-  --font-serif: var(--font-sans);
   --shadow-elevated: var(--shadow-panel);
 }
 
@@ -327,6 +320,7 @@ h1 {
 .recipe-navigation { display: flex; gap: 4px; padding: 4px; margin: 0 0 24px; border-radius: 999px; background: var(--surface-2); }
 .recipe-navigation a { min-height: 48px; flex: 1; display: flex; justify-content: center; align-items: center; padding: 0 12px; color: var(--ink-2); border-radius: 999px; }
 .recipe-navigation a[aria-current="page"] { color: var(--brand-ink); background: var(--brand); font-weight: 600; }
+.recipe-navigation a:focus-visible { outline: 2px solid var(--brand); outline-offset: -2px; }
 @media (min-width: 600px) {
   :root { --app-nav-bottom: 0px; }
   .app-layout { display: flex; }
@@ -353,7 +347,6 @@ h1 {
 /* Dense information still has generous touch targets. */
 button { min-height: 48px; }
 input:not([type="checkbox"]):not([type="radio"]):not([type="file"]), select { min-height: 56px; }
-.recipe-navigation a:focus-visible { outline: 2px solid var(--brand); outline-offset: -2px; }
 input[type="checkbox"], input[type="radio"] { accent-color: var(--brand); }
 
 /* A non-interactive fade separates the content from floating navigation. */
