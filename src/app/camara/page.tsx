@@ -11,7 +11,7 @@ import { Sheet } from "@/components/ui/sheet";
 import { LabeledInput, LabeledSelect } from "@/components/ui/fields";
 import { useToast } from "@/components/ui/toast";
 import { owned, visible } from "@/lib/services/queries";
-import { addPantryItem, adjustPantry, removePantryItem, updatePantryItem } from "@/lib/services/kitchen";
+import { addPantryItem, adjustPantry, removePantryItem, restorePantryItem, updatePantryItem } from "@/lib/services/kitchen";
 import { addItem, createList } from "@/lib/services/shopping";
 import { finishPantryToList } from "@/lib/services/pantry-exceptions";
 import { expiringSoon, expiryState } from "@/lib/domain/pantry";
@@ -127,6 +127,22 @@ function PantryScreen() {
       note: i.note ?? "",
       auto_consume_on: i.auto_consume_on ?? "",
       had_auto: Boolean(i.auto_consume_on),
+    });
+  }
+
+  /** Ștergere cu „Anulează” în toast, ca la lista de cumpărături (ștergerea e logică). */
+  async function removeItem(i: PantryItem) {
+    setRevealed(null);
+    const removed = await run(async (ctx) => {
+      await removePantryItem(ctx, i.id);
+      return true;
+    });
+    if (!removed) return;
+    toast(`Am scos „${i.name}” din cămară.`, {
+      action: {
+        label: "Anulează",
+        run: () => void run((ctx) => restorePantryItem(ctx, i.id), "Am pus produsul înapoi în cămară."),
+      },
     });
   }
 
@@ -249,6 +265,7 @@ function PantryScreen() {
                         <Plus size={18} />
                       </IconButton>
                       <IconButton label={`Acțiuni pentru ${i.name}`} aria-expanded={revealed === i.id} onClick={() => setRevealed(revealed === i.id ? null : i.id)}><MoreHorizontal size={18} /></IconButton>
+                      <IconButton label={`Scoate ${i.name} din cămară`} className="text-accent" onClick={() => void removeItem(i)}><Trash2 size={18} /></IconButton>
                       </div>
                       {revealed === i.id && <div className="flex flex-wrap justify-end gap-2 border-t border-line bg-surface-2/90 p-2.5">
                         <Button variant="secondary" disabled={busy} onClick={async () => { const result = await run((ctx) => finishPantryToList(ctx, i.id)); if (result) { setRevealed(null); toast(`„${i.name}” s-a terminat. L-am pus pe lista de cumpărături.`); } }}>S-a terminat → Pe listă</Button>

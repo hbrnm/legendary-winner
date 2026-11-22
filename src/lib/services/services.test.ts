@@ -4,7 +4,7 @@ import { setClock } from "@/lib/clock";
 import { seedCatalog } from "./bootstrap";
 import type { AppCtx } from "./context";
 import { addItem, createList, deleteList, duplicateList, finalizeShopping, moveItem, restoreDeletedList, restoreList, setActualPrice, setChecked, updateList } from "./shopping";
-import { addMeal, addPantryItem, addRecipeToList, adjustPantry, cookRecipe, generateListFromPlan, saveRecipe, toggleFavorite } from "./kitchen";
+import { addMeal, addPantryItem, addRecipeToList, adjustPantry, cookRecipe, generateListFromPlan, removePantryItem, restorePantryItem, saveRecipe, toggleFavorite } from "./kitchen";
 import { createBudget, recordPrice } from "./money";
 import { createProduct, productSearchIndex } from "./catalog";
 import { listItems, owned, priceIndex, spendRecords } from "./queries";
@@ -343,6 +343,19 @@ describe("rețete și cămară", () => {
 
     item = await ctx.db.pantry_items.get(id);
     expect(item?.quantity).toBe(2);
+  });
+
+  it("scoaterea din cămară se poate anula, cu tot cu cantitatea (22 nov. 2026)", async () => {
+    const id = await addPantryItem(ctx, { name: "Iaurt", quantity: 2, unit: "buc", location_id: "frigider", expires_on: "2026-03-12" });
+
+    await removePantryItem(ctx, id);
+    expect((await ctx.db.pantry_items.get(id))?.deleted_at).toBeTruthy();
+    expect((await owned(ctx.db, "pantry_items", "h1")).map((i) => i.id)).not.toContain(id);
+
+    // „Anulează” din toast readuce produsul neatins, inclusiv termenul.
+    await restorePantryItem(ctx, id);
+    expect(await ctx.db.pantry_items.get(id)).toMatchObject({ deleted_at: null, quantity: 2, unit: "buc", expires_on: "2026-03-12" });
+    expect((await owned(ctx.db, "pantry_items", "h1")).map((i) => i.id)).toContain(id);
   });
 });
 

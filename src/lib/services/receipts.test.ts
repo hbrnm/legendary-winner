@@ -136,6 +136,17 @@ describe("aplicarea bonului", () => {
     expect((await spendRecords(ctx.db, "h1")).map((s) => s.amount)).toEqual([2.32]);
   });
 
+  it("cămara la bon e o alegere: fără `add_to_pantry` bonul nu umple cămara (22 nov. 2026)", async () => {
+    const r = await applyReceipt(ctx, { retailer_id: "kaufland", date: "2026-10-12", list_id: null, lines });
+    expect(r.added_to_pantry).toBe(0);
+    expect(await owned(ctx.db, "pantry_items", "h1")).toHaveLength(0);
+    // Cu alegerea explicită, alimentele intră; ce nu are cantitate și unitate rămâne de completat.
+    await applyReceipt(ctx, { retailer_id: "lidl", date: "2026-10-13", list_id: null, add_to_pantry: true, lines });
+    const items = await owned(ctx.db, "pantry_items", "h1");
+    expect(items).not.toHaveLength(0);
+    expect(items.some((i) => i.product_id === "ceapa-galbena" && i.quantity === 1.014 && i.unit === "kg")).toBe(true);
+  });
+
   it("fără listă: o cumpărătură în istoric, cu prețurile plătite la data bonului", async () => {
     const r = await applyReceipt(ctx, { retailer_id: "kaufland", date: "2026-10-12", list_id: null, lines });
     expect(r.added).toBe(3);

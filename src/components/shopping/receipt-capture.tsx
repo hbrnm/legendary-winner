@@ -126,7 +126,9 @@ export function ReceiptCapture({ initialListId, onSaved, embedded = false, initi
   const [retailerId, setRetailerId] = useState("");
   const [date, setDate] = useState(toISODate(now()));
   const [listId, setListId] = useState(initialListId ?? "");
-  const [addToPantry, setAddToPantry] = useState(true);
+  // „Întreabă-mă”: la bon, cămara e o alegere conștientă, nu o consecință a scanării
+  // (cămara se umplea singură la fiecare bon). Se pune în cămară doar dacă omul bifează.
+  const [addToPantry, setAddToPantry] = useState(false);
   const [picking, setPicking] = useState<number | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [submissionId] = useState(newId);
@@ -281,8 +283,9 @@ export function ReceiptCapture({ initialListId, onSaved, embedded = false, initi
           retailer_id: retailerId || null,
           date,
           list_id: listId || null,
-          // Fără listă, cămara după setarea gospodăriei, ca la „Gata” (.tasks/016).
-          add_to_pantry: !listId && (embedded || data!.pantrySetting === "mereu" || (data!.pantrySetting === "intreaba" && addToPantry)),
+          // Fără listă, cămara după alegerea făcută la bon, ca la „Gata” (.tasks/016).
+          // Nu mai există scurtătură după punctul de intrare: „Întreabă-mă” întreabă mereu.
+          add_to_pantry: !listId && (data!.pantrySetting === "mereu" || (data!.pantrySetting === "intreaba" && addToPantry)),
           lines: kept.map((l) => ({ product_id: l.product?.id ?? null, name: l.product?.name ?? l.name.trim(), receipt_text: l.receipt_text, receipt_name: typed ? null : l.receipt_text.trim() || null, category_id: l.product ? null : l.category_id, quantity: l.quantity, unit: l.unit, amount: parseMoney(l.amount)! })),
         }, {submissionId}),
       (res) => {
@@ -438,7 +441,7 @@ export function ReceiptCapture({ initialListId, onSaved, embedded = false, initi
       </LabeledSelect>
       {!listId && data.pantrySetting === "intreaba" && (
         <div className="mt-3">
-          <Toggle checked={addToPantry} onChange={setAddToPantry} label="Pune alimentele în cămară" description="Le poți scădea apoi când gătești." />
+          <Toggle checked={addToPantry} onChange={setAddToPantry} label="Pune alimentele în cămară" description="Le poți scădea apoi când gătești. Fără bifă, bonul rămâne doar în istoric și în buget." />
         </div>
       )}
 
