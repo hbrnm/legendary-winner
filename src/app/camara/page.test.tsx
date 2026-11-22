@@ -3,7 +3,7 @@ import { afterEach, expect, it, vi } from "vitest";
 import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import type { ReactNode } from "react";
 import Page from "./page";
-const actions = vi.hoisted(() => ({ finish: vi.fn(), add: vi.fn(), remove: vi.fn(async () => {}) }));
+const actions = vi.hoisted(() => ({ finish: vi.fn(), add: vi.fn(), remove: vi.fn((_ctx: object, _id: string) => Promise.resolve()) }));
 const toast = vi.hoisted(() => vi.fn());
 vi.mock("@/components/app/shell", () => ({ AppShell: ({ children }: { children: ReactNode }) => children }));
 vi.mock("@/components/app/hooks", () => ({ useData: () => ({ items: [{ id: "stock", name: "Mere", quantity: 2, unit: "buc", location_id: "camara", product_id: null }], locations: [{ id: "camara", name: "Cămară", sort_order: 1 }], soon: [], useSoon: [], lists: [{ id: "list", name: "Săptămână" }] }), useAction: () => ({ run: async (fn: (ctx: object) => unknown) => fn({}), busy: false }) }));
