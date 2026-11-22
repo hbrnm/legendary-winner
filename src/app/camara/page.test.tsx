@@ -3,7 +3,7 @@ import { afterEach, expect, it, vi } from "vitest";
 import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import type { ReactNode } from "react";
 import Page from "./page";
-const actions = vi.hoisted(() => ({ finish: vi.fn(), add: vi.fn(), remove: vi.fn(async () => {}) }));
+const actions = vi.hoisted(() => ({ finish: vi.fn(), add: vi.fn(), remove: vi.fn((_ctx: object, _id: string) => Promise.resolve()) }));
 const toast = vi.hoisted(() => vi.fn());
 vi.mock("@/components/app/shell", () => ({ AppShell: ({ children }: { children: ReactNode }) => children }));
 vi.mock("@/components/app/hooks", () => ({ useData: () => ({ items: [{ id: "stock", name: "Mere", quantity: 2, unit: "buc", location_id: "camara", product_id: null }], locations: [{ id: "camara", name: "Cămară", sort_order: 1 }], soon: [], useSoon: [], lists: [{ id: "list", name: "Săptămână" }] }), useAction: () => ({ run: async (fn: (ctx: object) => unknown) => fn({}), busy: false }) }));
@@ -11,7 +11,7 @@ vi.mock("@/components/ui/toast", () => ({ useToast: () => toast }));
 vi.mock("@/components/ui/sheet", () => ({ Sheet: ({ open, title, children, footer }: { open: boolean; title: string; children: ReactNode; footer: ReactNode }) => open ? <section aria-label={title}>{children}{footer}</section> : null }));
 vi.mock("@/components/shopping/product-search", () => ({ ProductSearch: () => <input aria-label="Alege produs pentru cămară" /> }));
 vi.mock("@/lib/services/pantry-exceptions", () => ({ finishPantryToList: (...args: unknown[]) => actions.finish(...args) }));
-vi.mock("@/lib/services/kitchen", () => ({ removePantryItem: (...args: unknown[]) => actions.remove(...args), restorePantryItem: vi.fn(), adjustPantry: vi.fn(), addPantryItem: vi.fn(), updatePantryItem: vi.fn() }));
+vi.mock("@/lib/services/kitchen", () => ({ removePantryItem: (ctx: object, id: string) => actions.remove(ctx, id), restorePantryItem: vi.fn(), adjustPantry: vi.fn(), addPantryItem: vi.fn(), updatePantryItem: vi.fn() }));
 vi.mock("@/lib/services/shopping", () => ({ addItem: (...args: unknown[]) => actions.add(...args), createList: vi.fn() }));
 afterEach(() => { cleanup(); vi.clearAllMocks(); });
 it("keeps pantry search separate from the add-product control", () => {
