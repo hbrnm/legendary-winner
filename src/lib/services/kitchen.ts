@@ -247,6 +247,11 @@ export async function removePantryItem(ctx: AppCtx, id: string) {
   await softDelete(ctx.db, "pantry_items", id, w(ctx));
 }
 
+/** Anulează ștergerea unui produs din cămară (butonul „Anulează” de după ștergere). */
+export async function restorePantryItem(ctx: AppCtx, id: string) {
+  await updateRow(ctx.db, "pantry_items", id, { deleted_at: null }, w(ctx));
+}
+
 // --- Setări ----------------------------------------------------------------------
 
 export async function setPantryOnPurchase(ctx: AppCtx, value: "intreaba" | "mereu" | "niciodata") {
