@@ -107,24 +107,42 @@ function roundedTop(x: number, y: number, w: number, h: number, r: number): stri
   return `M${x},${y + h} V${y + r} Q${x},${y} ${x + r},${y} H${x + w - r} Q${x + w},${y} ${x + w},${y + r} V${y + h} Z`;
 }
 
-/** Bare orizontale cu eticheta și suma scrise (ex. pe categorii). */
-export function BarList({ bars, total }: { bars: Bar[]; total: number }) {
+/** Bare orizontale cu eticheta și suma scrise (ex. pe categorii). Cu `onSelect`, fiecare bară deschide detaliile categoriei. */
+export function BarList({ bars, total, onSelect }: { bars: Bar[]; total: number; onSelect?: (key: string) => void }) {
   const max = Math.max(1, ...bars.map((b) => b.value));
   return (
     <ul className="flex flex-col gap-2.5">
-      {bars.map((b) => (
-        <li key={b.key} title={`${b.label}: ${formatRon(b.value)}`}>
-          <div className="mb-1 flex items-baseline justify-between gap-2 text-sm">
-            <span className="truncate text-ink">{b.label}</span>
-            <span className="shrink-0 text-xs text-ink-2">
-              {formatRon(b.value)} <span>· {total > 0 ? Math.round((b.value / total) * 100) : 0}%</span>
-            </span>
-          </div>
-          <div className="h-2 rounded-full bg-surface-2">
-            <div className="h-full rounded-r rounded-l-sm bg-brand" style={{ width: `${Math.max(0, (b.value / max) * 100)}%` }} />
-          </div>
-        </li>
-      ))}
+      {bars.map((b) => {
+        const content = (
+          <>
+            <div className="mb-1 flex items-baseline justify-between gap-2 text-sm">
+              <span className="truncate text-ink">{b.label}</span>
+              <span className="shrink-0 text-xs text-ink-2">
+                {formatRon(b.value)} <span>· {total > 0 ? Math.round((b.value / total) * 100) : 0}%</span>
+              </span>
+            </div>
+            <div className="h-2 rounded-full bg-surface-2">
+              <div className="h-full rounded-r rounded-l-sm bg-brand" style={{ width: `${Math.max(0, (b.value / max) * 100)}%` }} />
+            </div>
+          </>
+        );
+        return (
+          <li key={b.key} title={`${b.label}: ${formatRon(b.value)}`}>
+            {onSelect ? (
+              <button
+                type="button"
+                onClick={() => onSelect(b.key)}
+                aria-label={`Vezi cheltuielile din ${b.label}`}
+                className="-mx-2 block min-h-11 w-[calc(100%+16px)] rounded-xl px-2 py-1 text-left transition-colors duration-150 ease-out hover:bg-surface-2 active:bg-surface-2 focus-visible:outline-2 focus-visible:outline-brand"
+              >
+                {content}
+              </button>
+            ) : (
+              content
+            )}
+          </li>
+        );
+      })}
     </ul>
   );
 }

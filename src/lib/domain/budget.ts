@@ -158,6 +158,24 @@ export function byRetailer(items: SpendRecord[], retailers: Map<string, Retailer
   );
 }
 
+/** Cum e împărțit graficul „Categorii de cheltuieli”. */
+export type SpendSplit = "familie" | "categorii" | "magazine";
+
+/** Liniile de cheltuială dintr-o bară a graficului, pentru detalii. Include și liniile fără sumă. */
+export function spendForCategoryKey(
+  items: SpendRecord[],
+  key: string,
+  split: SpendSplit,
+  categories: Map<string, ProductCategory>,
+): SpendRecord[] {
+  return liveSpend(items).filter((i) => {
+    if (split === "familie") return (expenseCategoryOf(i, categories) ?? "nealocat") === key;
+    if (i.manual_expense_id) return false;
+    if (split === "categorii") return i.category_id === key;
+    return (i.retailer_id ?? `sursa:${sourceGroup(i.source)}`) === key;
+  });
+}
+
 export const SOURCE_LABELS: Record<PurchaseSource, string> = {
   supermarket: "Supermarket",
   piata: "Piață",

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { averageTrip, budgetStatus, byCategory, diverseGroups, manualExpenseRecord, monthlyTotals, sanitizeCsvFormula, spendToCsv, weeklyTotals } from "./budget";
+import { averageTrip, budgetStatus, byCategory, diverseGroups, manualExpenseRecord, monthlyTotals, sanitizeCsvFormula, spendForCategoryKey, spendToCsv, sumAmounts, weeklyTotals } from "./budget";
 import { normalize } from "./search";
 import { budget, category, txItem } from "@/test/factories";
 import type { ProductCategory, Retailer } from "./types";
@@ -209,5 +209,38 @@ describe("cumpărăturile din „Diverse” (.tasks/016)", () => {
       { key: "p-unt", product_id: "p-unt", label: "Unt arahide Lidl", count: 2, total: 47.49, last_bought: "2026-03-12" },
       { key: `nume:${normalize("Pungă")}`, product_id: null, label: "pungă", count: 2, total: 1, last_bought: "2026-03-11" },
     ]);
+  });
+});
+describe("spendForCategoryKey (detaliile unei categorii)", () => {
+  it("familie: adună liniile din categoria de cheltuieli, inclusiv fără sumă și din alte luni, fără cele șterse", () => {
+    const rows = spendForCategoryKey(items, "alimentatie", "familie", cats);
+    expect(rows.map((r) => r.transaction_id).sort()).toEqual(["t1", "t2", "t2", "t3"]);
+    expect(sumAmounts(rows)).toBe(1129.5);
+    expect(rows.some((r) => r.amount == null)).toBe(true);
+    expect(sumAmounts(spendForCategoryKey(items, "ingrijire", "familie", cats))).toBe(50);
+  });
+
+  it("familie: categoria explicită și diferența nealocată își găsesc locul", () => {
+    const extra = [
+      ...items,
+      txItem({ transaction_id: "t5", category_id: "legume", expense_category_id: "transport", amount: 40 }),
+      txItem({ transaction_id: "t6", category_id: "nealocat", name: "Diferență nealocată", unallocated: true, amount: 12 }),
+    ];
+    expect(sumAmounts(spendForCategoryKey(extra, "transport", "familie", cats))).toBe(40);
+    expect(sumAmounts(spendForCategoryKey(extra, "nealocat", "familie", cats))).toBe(12);
+    // Linia cu categorie explicită nu se mai numără la alimentație.
+    expect(sumAmounts(spendForCategoryKey(extra, "alimentatie", "familie", cats))).toBe(1129.5);
+  });
+
+  it("categorii: doar cumpărăturile, fără plățile manuale", () => {
+    const extra = [...items, txItem({ transaction_id: "manual:m1", manual_expense_id: "m1", category_id: "legume", amount: 70 })];
+    const rows = spendForCategoryKey(extra, "legume", "categorii", cats);
+    expect(rows.every((r) => !r.manual_expense_id)).toBe(true);
+    expect(sumAmounts(rows)).toBe(1129.5);
+  });
+
+  it("magazine: piața și producătorul local merg împreună, magazinul după id", () => {
+    expect(sumAmounts(spendForCategoryKey(items, "sursa:piata", "magazine", cats))).toBe(130.5);
+    expect(sumAmounts(spendForCategoryKey(items, "lidl", "magazine", cats))).toBe(50);
   });
 });
