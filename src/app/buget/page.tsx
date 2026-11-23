@@ -141,6 +141,11 @@ function BudgetScreen() {
     setTimeout(() => URL.revokeObjectURL(a.href), 1000);
   }
 
+  function openCategory(key: string) {
+    const bar = view!.split.find((b) => b.key === key);
+    if (bar) setDetail({ key: bar.key, label: bar.label });
+  }
+
   return (
     <>
       <PageHeader
@@ -335,7 +340,7 @@ function BudgetScreen() {
         </LabeledSelect>
       </div>}
       <Card className="p-4">
-        {!data.hasHistory ? <CompactCategories bars={view.split} /> : view.split.length === 0 ? <p className="text-sm text-ink-2">Nicio cheltuială în {formatMonth(month)}.</p> : <BarList bars={view.split} total={view.splitTotal} onSelect={(key) => { const bar = view.split.find((b) => b.key === key); if (bar) setDetail({ key: bar.key, label: bar.label }); }} />}
+        {!data.hasHistory ? <CompactCategories bars={view.split} onSelect={openCategory} /> : view.split.length === 0 ? <p className="text-sm text-ink-2">Nicio cheltuială în {formatMonth(month)}.</p> : <BarList bars={view.split} total={view.splitTotal} onSelect={openCategory} />}
         {view.noAmount > 0 && <p className="mt-3 text-xs text-ink-2">{view.noAmount === 1 ? "Un produs fără preț individual" : `${view.noAmount} produse fără preț individual`}. Diferențele față de totalul plătit sunt afișate separat.</p>}
       </Card>
       {data.diverse > 0 && (
@@ -362,7 +367,7 @@ function BudgetScreen() {
         onClose={() => setDetail(null)}
         categoryKey={detail?.key ?? ""}
         label={detail?.label ?? ""}
-        split={split}
+        split={data.hasHistory ? split : "familie"}
         month={month}
         spend={data.spend}
         categories={view.catMap}
