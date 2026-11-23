@@ -265,7 +265,7 @@ export function HomeScreen() {
           className="mt-2! mb-1.5"
           action={
             <Link
-              href="/buget/#tranzactii"
+              href="/buget/tranzactii/"
               className="inline-flex min-h-11 items-center gap-1 text-sm font-medium text-brand transition-colors duration-150 hover:text-brand-strong focus-visible:outline-2 focus-visible:outline-brand"
             >
               Istoric →
@@ -305,7 +305,7 @@ export function HomeScreen() {
           <div className="mt-2.5 flex min-h-11 items-center gap-2 border-t border-line/70 pr-16 pt-2.5 text-xs">
             {data.recent ? (
               <Link
-                href="/buget/#tranzactii"
+                href="/buget/tranzactii/"
                 className="group flex min-w-0 flex-1 items-center justify-between gap-2 text-ink-2 transition-colors duration-150 hover:text-ink focus-visible:outline-2 focus-visible:outline-brand"
               >
                 <div className="flex min-w-0 items-center gap-1.5">
