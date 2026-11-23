@@ -7,8 +7,8 @@ import { monthlyTotals, SOURCE_LABELS, spendForCategoryKey, spendInPeriod, sumAm
 import { formatMonth, formatShortDate, localDateOf, monthPeriod } from "@/lib/domain/dates";
 import { formatRon } from "@/lib/domain/money";
 import { capitalizeFirst, count } from "@/lib/domain/text";
-import { formatQuantity, type UnitCode } from "@/lib/domain/units";
-import type { ProductCategory, Retailer, SpendRecord } from "@/lib/domain/types";
+import { formatQuantity } from "@/lib/domain/units";
+import type { ProductCategory, Retailer, SpendRecord, UnitCode } from "@/lib/domain/types";
 
 const MONTHS_SHORT = ["ian", "feb", "mar", "apr", "mai", "iun", "iul", "aug", "sep", "oct", "nov", "dec"];
 
