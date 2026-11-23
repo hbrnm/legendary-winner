@@ -14,6 +14,7 @@ const PAGES = [
   "/offline/",
   "/plan/",
   "/buget/",
+  "/buget/tranzactii/",
   "/buget/preturi/",
   "/camara/",
   "/gospodarie/",

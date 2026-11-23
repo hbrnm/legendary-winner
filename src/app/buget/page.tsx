@@ -2,13 +2,12 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
-import { ChevronLeft, ChevronRight, Download, Pencil, Plus, Shapes, Tags, Wallet } from "lucide-react";
+import { ChevronLeft, ChevronRight, Download, Pencil, Plus, Receipt, Shapes, Tags, Wallet } from "lucide-react";
 import { IncomeSheet } from "@/components/budget/income-sheet";
 import { BudgetEditorSheet, scopeLabel } from "@/components/budget/budget-editor-sheet";
 import { CompactCategories } from "@/components/budget/compact-categories";
 import { CategoryDetailSheet } from "@/components/budget/category-detail-sheet";
-import { TransactionFeed } from "@/components/budget/transaction-feed";
-import { hasSpendHistory } from "@/components/budget/transactions";
+import { hasSpendHistory, projectTransactions } from "@/components/budget/transactions";
 import { EXPENSE_CATEGORIES } from "@/lib/domain/expense-categories";
 import { AppShell } from "@/components/app/shell";
 import { useData } from "@/components/app/hooks";
@@ -21,7 +20,7 @@ import { diverseToSort } from "@/lib/services/receipts";
 import { averageTrip, budgetStatus, dailyBudgetAvailable, byCategory, byExpenseCategory, byRetailer, monthlyTotals, SOURCE_LABELS, spendInPeriod, spendToCsv, sumAmounts, weeklyTotals } from "@/lib/domain/budget";
 import { incomeSummary } from "@/lib/domain/income";
 import { listTotals } from "@/lib/domain/shopping";
-import { addMonths, formatMonth, formatShortDate, monthPeriod, startOfMonth, toISODate } from "@/lib/domain/dates";
+import { addMonths, formatMonth, formatShortDate, inPeriod, localDateOf, monthPeriod, startOfMonth, toISODate } from "@/lib/domain/dates";
 import { formatRon, sumMoney } from "@/lib/domain/money";
 import { now } from "@/lib/clock";
 import { capitalizeFirst, count } from "@/lib/domain/text";
@@ -58,7 +57,7 @@ function BudgetScreen() {
   }
 
   const data = useData(async (ctx) => {
-    const [spend, budgets, categories, retailers, lists, prices, transactions, expenses] = await Promise.all([
+    const [spend, budgets, categories, retailers, lists, prices, transactions] = await Promise.all([
       householdSpendRecords(ctx.db, ctx.householdId),
       owned(ctx.db, "budgets", ctx.householdId),
       visible(ctx.db, "product_categories", ctx.householdId),
@@ -66,13 +65,11 @@ function BudgetScreen() {
       owned(ctx.db, "shopping_lists", ctx.householdId),
       priceIndex(ctx.db, ctx.householdId),
       owned(ctx.db, "shopping_transactions", ctx.householdId),
-      owned(ctx.db, "manual_expenses", ctx.householdId),
     ]);
     const open = await Promise.all(lists.filter((l) => !l.archived_at).map(async (l) => listTotals(await listItems(ctx.db, l.id), prices)));
     return {
       spend,
       transactions,
-      expenses,
       hasHistory: hasSpendHistory(spend),
       budgets: budgets.sort((a, b) => a.created_at.localeCompare(b.created_at)),
       categories: categories.sort((a, b) => a.sort_order - b.sort_order),
@@ -120,6 +117,7 @@ function BudgetScreen() {
         .filter((x) => x.amount > 0),
       avgTrip: averageTrip(shoppingSpend.filter((i) => !i.transaction_id.startsWith("in-curs"))),
       noAmount: monthSpend.filter((i) => i.amount == null).length,
+      txCount: projectTransactions(data.spend, data.transactions).filter((row) => inPeriod(localDateOf(row.date), period)).length,
     };
   }, [data, month, split, today]);
 
@@ -305,8 +303,10 @@ function BudgetScreen() {
           <p className="mt-1 text-2xl font-bold tracking-tight tabular text-ink">{view.avgTrip == null ? "—" : formatRon(view.avgTrip)}</p>
         </div>
       </Card>
-      <SectionTitle>Tranzacții</SectionTitle>
-      <TransactionFeed month={month} records={data.spend} transactions={data.transactions} expenses={data.expenses} retailers={data.retailers} />
+      <Link href="/buget/tranzactii/" className="mt-3 flex min-h-12 items-center justify-between gap-3 rounded-full border border-line bg-surface px-4 py-3 transition-colors duration-150 ease-out hover:bg-surface-2 active:bg-surface-2">
+        <span className="flex items-center gap-2 font-medium"><Receipt size={18} strokeWidth={1.75} /> Tranzacții</span>
+        <span className="flex items-center gap-1 text-sm text-ink-2 tabular">{count(view.txCount, "tranzacție", "tranzacții")} <ChevronRight size={18} strokeWidth={1.75} className="text-ink-3" /></span>
+      </Link>
       {view.sources.length > 0 && (
         <p className="mt-2 text-sm text-ink-2 tabular">
           {view.sources.map((s) => `${s.source === "producator" ? "Producători" : SOURCE_LABELS[s.source]}: ${formatRon(s.amount)}`).join(" · ")}
