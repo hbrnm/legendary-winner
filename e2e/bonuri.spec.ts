@@ -53,6 +53,7 @@ test("bonul pe o listă: propune, confirmi, bifează cu prețul; al doilea bon �
   await expect(page.getByRole("listitem").filter({ hasText: "pe bon: VDR.LAP.3,5%1L" })).toContainText("Lapte integral");
   await page.getByRole("button", { name: "Salvează bonul" }).click();
   await page.waitForURL(/\/buget\//);
+  await page.getByRole("link", {name:/^Tranzacții/}).click();
   await page.getByRole("link", {name:"Istoricul cumpărăturilor",exact:true}).click();
   await expect(page.getByText(/7,61/).first()).toBeVisible();
   // În istoric, linia are numele de pe bon, cu produsul din catalog dedesubt (.tasks/016).

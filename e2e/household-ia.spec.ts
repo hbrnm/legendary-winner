@@ -21,6 +21,9 @@ test("IA: captură universală, categorie școală, sold și disponibil zilnic",
   await sheet.getByRole("button",{name:"Salvează",exact:true}).click();
   await expect(sheet).not.toBeVisible();
   await expect(page.getByText("Cheltuit în lună",{exact:true}).locator("..")).toContainText("100,00");
+  // Lista de tranzacții nu mai stă în pagina de buget; se deschide în ecranul ei.
+  await expect(page.getByRole("radio",{name:"Manuale",exact:true})).toHaveCount(0);
+  await page.getByRole("link",{name:/^Tranzacții/}).click();
   await page.getByRole("radio",{name:"Manuale",exact:true}).click();
   await expect(page.getByText("Caiete și rechizite",{exact:true})).toBeVisible();
   await page.getByRole("radio",{name:"Bonuri",exact:true}).click();

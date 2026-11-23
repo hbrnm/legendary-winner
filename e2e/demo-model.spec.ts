@@ -39,7 +39,7 @@ async function short(page: Page) {
 /** Paginile redesenate (inclusiv o listă și o rețetă): nimic în afara ecranului, butoane de 44 px, câte o captură. */
 async function checkScreens(page: Page, info: TestInfo, prefix: string) {
   const screens: [string, string | (() => Promise<void>)][] = [
-    ...["/", "/cumparaturi/", "/cumparaturi/istoric/", "/retete/", "/plan/", "/buget/", "/buget/preturi/", "/camara/", "/gospodarie/"].map((p): [string, string] => [p, p]),
+    ...["/", "/cumparaturi/", "/cumparaturi/istoric/", "/retete/", "/plan/", "/buget/", "/buget/tranzactii/", "/buget/preturi/", "/camara/", "/gospodarie/"].map((p): [string, string] => [p, p]),
     ["/cumparaturi/lista/", async () => {
       await page.goto("/cumparaturi/");
       await page.getByText("Cumpărături săptămânale").click();
