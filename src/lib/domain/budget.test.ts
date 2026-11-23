@@ -223,8 +223,8 @@ describe("spendForCategoryKey (detaliile unei categorii)", () => {
   it("familie: categoria explicită și diferența nealocată își găsesc locul", () => {
     const extra = [
       ...items,
-      txItem({ transaction_id: "t5", category_id: "legume", expense_category_id: "transport", amount: 40 }),
-      txItem({ transaction_id: "t6", category_id: "nealocat", name: "Diferență nealocată", unallocated: true, amount: 12 }),
+      { ...txItem({ transaction_id: "t5", category_id: "legume", amount: 40 }), expense_category_id: "transport" as const },
+      { ...txItem({ transaction_id: "t6", category_id: "nealocat", name: "Diferență nealocată", amount: 12 }), unallocated: true },
     ];
     expect(sumAmounts(spendForCategoryKey(extra, "transport", "familie", cats))).toBe(40);
     expect(sumAmounts(spendForCategoryKey(extra, "nealocat", "familie", cats))).toBe(12);
@@ -233,7 +233,7 @@ describe("spendForCategoryKey (detaliile unei categorii)", () => {
   });
 
   it("categorii: doar cumpărăturile, fără plățile manuale", () => {
-    const extra = [...items, txItem({ transaction_id: "manual:m1", manual_expense_id: "m1", category_id: "legume", amount: 70 })];
+    const extra = [...items, { ...txItem({ transaction_id: "manual:m1", category_id: "legume", amount: 70 }), manual_expense_id: "m1" }];
     const rows = spendForCategoryKey(extra, "legume", "categorii", cats);
     expect(rows.every((r) => !r.manual_expense_id)).toBe(true);
     expect(sumAmounts(rows)).toBe(1129.5);
