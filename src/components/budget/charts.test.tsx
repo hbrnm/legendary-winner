@@ -1,10 +1,12 @@
 // @vitest-environment jsdom
-import { describe, expect, it } from "vitest";
-import { render } from "@testing-library/react";
+import { afterEach, describe, expect, it, vi } from "vitest";
+import { cleanup, fireEvent, render } from "@testing-library/react";
 import { BarList, ColumnChart } from "./charts";
 import { DualBudgetBar } from "@/components/ui/misc";
 
 const bars = (values: number[]) => values.map((value, i) => ({ key: String(i), label: `l${i}`, value }));
+
+afterEach(cleanup);
 
 describe("ColumnChart", () => {
   it("fără nicio cheltuială nu rămâne gol: arată schița estompată și explicația", () => {
@@ -42,6 +44,20 @@ describe("DualBudgetBar", () => {
 
 
 describe("BarList", () => {
+  it("cu onSelect, fiecare bară e un buton care deschide detaliile categoriei", () => {
+    const onSelect = vi.fn();
+    const { getByRole, getAllByRole } = render(<BarList bars={bars([20, 30])} total={50} onSelect={onSelect} />);
+    const button = getByRole("button", { name: "Vezi cheltuielile din l1" });
+    fireEvent.click(button);
+    expect(onSelect).toHaveBeenCalledWith("1");
+    expect(getAllByRole("button")).toHaveLength(2);
+  });
+
+  it("fără onSelect, barele rămân text simplu, fără butoane", () => {
+    const { queryByRole } = render(<BarList bars={bars([20])} total={20} />);
+    expect(queryByRole("button")).toBeNull();
+  });
+
   it("keeps negative unallocated adjustments visible without a negative CSS width", () => {
     const { container, getByText } = render(<BarList bars={[{ key: "food", label: "Alimentație", value: 20 }, { key: "other", label: "Alte cheltuieli", value: -8 }]} total={12} />);
     expect(getByText("Alte cheltuieli")).toBeTruthy();

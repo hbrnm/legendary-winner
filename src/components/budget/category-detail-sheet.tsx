@@ -1,0 +1,85 @@
+"use client";
+
+import { useMemo } from "react";
+import { Sheet } from "@/components/ui/sheet";
+import { ColumnChart } from "./charts";
+import { monthlyTotals, SOURCE_LABELS, spendForCategoryKey, spendInPeriod, sumAmounts, type SpendSplit } from "@/lib/domain/budget";
+import { formatMonth, formatShortDate, localDateOf, monthPeriod } from "@/lib/domain/dates";
+import { formatRon } from "@/lib/domain/money";
+import { capitalizeFirst, count } from "@/lib/domain/text";
+import { formatQuantity, type UnitCode } from "@/lib/domain/units";
+import type { ProductCategory, Retailer, SpendRecord } from "@/lib/domain/types";
+
+const MONTHS_SHORT = ["ian", "feb", "mar", "apr", "mai", "iun", "iul", "aug", "sep", "oct", "nov", "dec"];
+
+/** Detaliile unei categorii din graficul „Categorii de cheltuieli”: totalul lunii, evoluția și liniile cumpărate. */
+export function CategoryDetailSheet({
+  open,
+  onClose,
+  categoryKey,
+  label,
+  split,
+  month,
+  spend,
+  categories,
+  retailers,
+}: {
+  open: boolean;
+  onClose: () => void;
+  categoryKey: string;
+  label: string;
+  split: SpendSplit;
+  /** Prima zi a lunii alese (ISO). */
+  month: string;
+  spend: SpendRecord[];
+  categories: Map<string, ProductCategory>;
+  retailers: Map<string, Retailer>;
+}) {
+  const view = useMemo(() => {
+    const all = spendForCategoryKey(spend, categoryKey, split, categories);
+    const period = monthPeriod(month);
+    const items = spendInPeriod(all, period).sort((a, b) => b.purchased_at.localeCompare(a.purchased_at) || a.id.localeCompare(b.id));
+    return {
+      items,
+      total: sumAmounts(items),
+      months: monthlyTotals(all, period.from, 6).map((m) => ({
+        key: m.period.from,
+        label: MONTHS_SHORT[Number(m.period.from.slice(5, 7)) - 1],
+        value: m.amount,
+        current: m.period.from === month,
+      })),
+    };
+  }, [spend, categoryKey, split, month, categories]);
+
+  return (
+    <Sheet open={open} onClose={onClose} title={label}>
+      <p className="text-xs text-ink-2">{capitalizeFirst(formatMonth(month))} · {count(view.items.length, "linie", "linii")}</p>
+      <p className="mt-1 text-[28px] font-bold leading-none tracking-tight tabular text-ink">{formatRon(view.total)}</p>
+
+      <div className="mt-4">
+        <ColumnChart bars={view.months} title={`Cheltuieli pe lună: ${label}`} />
+      </div>
+
+      {view.items.length === 0 ? (
+        <p className="mt-4 text-sm text-ink-2">Nicio cheltuială în {formatMonth(month)}.</p>
+      ) : (
+        <ul className="mt-4 divide-y divide-line">
+          {view.items.map((i) => (
+            <li key={i.id} className="flex items-start justify-between gap-3 py-2.5">
+              <div className="min-w-0">
+                <p className="break-words text-sm font-medium text-ink">{i.name}</p>
+                <p className="mt-0.5 text-xs text-ink-2">
+                  {formatShortDate(localDateOf(i.purchased_at))}
+                  {i.quantity != null && i.unit ? ` · ${formatQuantity(i.quantity, i.unit as UnitCode)}` : ""}
+                  {" · "}
+                  {i.manual_expense_id ? "Cheltuială manuală" : i.retailer_id ? retailers.get(i.retailer_id)?.name ?? SOURCE_LABELS[i.source] : SOURCE_LABELS[i.source]}
+                </p>
+              </div>
+              <span className="shrink-0 text-sm tabular text-ink">{i.amount == null ? "Sumă necunoscută" : formatRon(i.amount)}</span>
+            </li>
+          ))}
+        </ul>
+      )}
+    </Sheet>
+  );
+}

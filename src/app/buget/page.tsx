@@ -6,6 +6,7 @@ import { ChevronLeft, ChevronRight, Download, Pencil, Plus, Shapes, Tags, Wallet
 import { IncomeSheet } from "@/components/budget/income-sheet";
 import { BudgetEditorSheet, scopeLabel } from "@/components/budget/budget-editor-sheet";
 import { CompactCategories } from "@/components/budget/compact-categories";
+import { CategoryDetailSheet } from "@/components/budget/category-detail-sheet";
 import { TransactionFeed } from "@/components/budget/transaction-feed";
 import { hasSpendHistory } from "@/components/budget/transactions";
 import { EXPENSE_CATEGORIES } from "@/lib/domain/expense-categories";
@@ -32,6 +33,7 @@ function BudgetScreen() {
   const today = toISODate(now());
   const [month, setMonth] = useState(startOfMonth(today));
   const [split, setSplit] = useState<"familie" | "categorii" | "magazine">("familie");
+  const [detail, setDetail] = useState<{ key: string; label: string } | null>(null);
   const [editing, setEditing] = useState<Budget | "nou" | null>(null);
   const [incomeOpen, setIncomeOpen] = useState(false);
   const [incomeInitialAdd, setIncomeInitialAdd] = useState(false);
@@ -333,7 +335,7 @@ function BudgetScreen() {
         </LabeledSelect>
       </div>}
       <Card className="p-4">
-        {!data.hasHistory ? <CompactCategories bars={view.split} /> : view.split.length === 0 ? <p className="text-sm text-ink-2">Nicio cheltuială în {formatMonth(month)}.</p> : <BarList bars={view.split} total={view.splitTotal} />}
+        {!data.hasHistory ? <CompactCategories bars={view.split} /> : view.split.length === 0 ? <p className="text-sm text-ink-2">Nicio cheltuială în {formatMonth(month)}.</p> : <BarList bars={view.split} total={view.splitTotal} onSelect={(key) => { const bar = view.split.find((b) => b.key === key); if (bar) setDetail({ key: bar.key, label: bar.label }); }} />}
         {view.noAmount > 0 && <p className="mt-3 text-xs text-ink-2">{view.noAmount === 1 ? "Un produs fără preț individual" : `${view.noAmount} produse fără preț individual`}. Diferențele față de totalul plătit sunt afișate separat.</p>}
       </Card>
       {data.diverse > 0 && (
@@ -354,6 +356,18 @@ function BudgetScreen() {
           Exportă tot
         </Button>
       </div>
+
+      <CategoryDetailSheet
+        open={detail !== null}
+        onClose={() => setDetail(null)}
+        categoryKey={detail?.key ?? ""}
+        label={detail?.label ?? ""}
+        split={split}
+        month={month}
+        spend={data.spend}
+        categories={view.catMap}
+        retailers={view.retMap}
+      />
 
       <BudgetEditorSheet
         editing={editing}
