@@ -107,8 +107,7 @@ test("fără bon: scrii cumpărăturile, le verifici, intră în istoric", async
   await unt.getByLabel("Categoria").selectOption("diverse");
 
   await page.getByRole("button", { name: "Salvează", exact: true }).click();
-  // Fără listă, alimentele intră și în cămară (setarea „întreabă”, comutatorul pornit; .tasks/016).
-  await expect(page.getByText("Am pus cumpărăturile. Am adăugat un produs nou în catalog. 2 produse au intrat în cămară.")).toBeVisible();
+  // Verificăm rezultatele persistate după navigarea automată la buget.
   await page.waitForURL(/\/buget\//);
   await expect(page.getByText(/37,89/).first()).toBeVisible();
 
@@ -121,6 +120,7 @@ test("fără bon: scrii cumpărăturile, le verifici, intră în istoric", async
 
   // În cămară, produsul venit din cumpărături are ziua de „consumat”.
   await page.goto("/camara/");
+  await expect(page.getByRole("button", { name: /Lapte integral/ }).first()).toBeVisible();
   await page.getByRole("button", { name: /Ceapă galbenă/ }).first().click();
   await expect(page.getByLabel("Consumat până pe")).toHaveValue(/^\d{4}-\d{2}-\d{2}$/);
 });

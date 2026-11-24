@@ -1,5 +1,6 @@
 import { expect, test } from "@playwright/test";
 import { openBasket, quickAdd, signUp, syncNow } from "./helpers";
+import { createList } from "../e2e/helpers";
 
 // Variantele comerciale (.tasks/007) prin Supabase-ul local: varianta și linia
 // cu ea ajung la celălalt membru, iar prețul plătit intră pe variantă.
@@ -20,11 +21,7 @@ test("varianta pusă de un membru ajunge la celălalt, cu prețul pe kg", async 
   await emil.waitForURL((u) => u.pathname === "/");
 
   // Dana: listă, linia de șuncă, varianta nouă și prețul.
-  await dana.goto("/cumparaturi/");
-  await dana.getByRole("button", { name: "Listă nouă" }).click();
-  await dana.getByLabel("Numele listei").fill("Mezeluri");
-  await dana.getByRole("button", { name: "Creează lista" }).click();
-  await dana.waitForURL(/lista/);
+  await createList(dana, "Mezeluri");
   // Ecranul variantelor apare după ce serverul a confirmat tabelul (prima sincronizare).
   await syncNow(dana);
   await quickAdd(dana, "șuncă", "Șuncă");
@@ -44,10 +41,10 @@ test("varianta pusă de un membru ajunge la celălalt, cu prețul pe kg", async 
   await expect(dana.getByRole("dialog")).toHaveCount(0);
   await dana.getByRole("button", { name: "Am plătit", exact: true }).click();
   await dana.getByRole("button", { name: "Finalizează cumpărăturile" }).click();
-  // Finalizarea arhivează lista; prețul efectiv este verificat mai jos,
-  // pe dispozitivul celuilalt membru, fără a depinde de textul notificării.
-  await expect(dana).toHaveURL(/\/cumparaturi\/$/);
+  // Confirmarea rămâne vizibilă pe lista arhivată.
+  const recorded = dana.getByRole("region", { name: "Cumpărături înregistrate" });
   await syncNow(dana);
+  await expect(recorded).toContainText(/21,00\s+RON/);
   await expect(dana.getByRole("button", { name: /Sincronizează acum/ })).not.toContainText(/refuz/i);
 
   // Emil vede prețul pe kg al variantei, adus de pe server.
