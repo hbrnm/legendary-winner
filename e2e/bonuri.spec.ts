@@ -106,6 +106,7 @@ test("fără bon: scrii cumpărăturile, le verifici, intră în istoric", async
   await expect(unt.getByLabel("Categoria")).toHaveValue("lactate");
   await unt.getByLabel("Categoria").selectOption("diverse");
 
+  await page.getByText("Pune alimentele în cămară", { exact: true }).click();
   await page.getByRole("button", { name: "Salvează", exact: true }).click();
   // Verificăm rezultatele persistate după navigarea automată la buget.
   await page.waitForURL(/\/buget\//);
@@ -120,7 +121,7 @@ test("fără bon: scrii cumpărăturile, le verifici, intră în istoric", async
 
   // În cămară, produsul venit din cumpărături are ziua de „consumat”.
   await page.goto("/camara/");
-  await expect(page.getByRole("button", { name: /Lapte integral/ }).first()).toBeVisible();
+  await expect(page.getByRole("button", { name: /Lapte integral/i }).first()).toBeVisible();
   await page.getByRole("button", { name: /Ceapă galbenă/ }).first().click();
   await expect(page.getByLabel("Consumat până pe")).toHaveValue(/^\d{4}-\d{2}-\d{2}$/);
 });
