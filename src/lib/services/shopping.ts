@@ -1,6 +1,7 @@
 import { z } from "zod";
 import type { ItemOrigin, Product, PurchaseSource, ShoppingListItem, UnitCode } from "@/lib/domain/types";
-import { insertRow, softDelete, updateRow, upsertRow } from "@/lib/db/write";
+import { insertRow, softDelete, updateRow, upsertRow, type WriteOptions } from "@/lib/db/write";
+import type { RowWrite } from "@/lib/db/database";
 import { newId, stableId } from "@/lib/db/ids";
 import { nowIso } from "@/lib/clock";
 import { planMerge } from "@/lib/domain/shopping";
@@ -406,6 +407,7 @@ export async function addPurchaseToPantry(
   product: Product,
   line: { name: string; quantity: number | null; unit: UnitCode | null; purchased_at: string },
   precomputedId?: string,
+  writeOptions = w(ctx),
 ): Promise<void> {
   if (line.quantity == null || line.unit == null) return;
   const purchasedOn = localDateOf(line.purchased_at);
@@ -426,12 +428,13 @@ export async function addPurchaseToPantry(
       note: null,
       ...(consumeOn ? { auto_consume_on: consumeOn } : {}),
     },
-    w(ctx),
+    writeOptions,
   );
 }
 
 export interface FinalizeResult {
   transaction_id: string;
+  attempt_id?: string;
   total: number;
   items: number;
   without_price: number;
@@ -463,6 +466,9 @@ export async function finalizeShopping(ctx: AppCtx, listId: string, opts: { addT
   const categories = new Map((await ctx.db.product_categories.toArray()).map((c) => [c.id, c]));
 
   const txId = await stableId("tura", listId, String(list.cycle));
+  const checkoutWrites: RowWrite[] = [];
+  const checkoutOptions: WriteOptions = { ...w(ctx), checkoutWrites };
+  const attemptId = newId();
   const startedAt = checked.map((i) => i.checked_at ?? nowIso()).sort()[0];
 
   // Pre-calculăm toate id-urile stabile înainte de tranzacția Dexie
@@ -510,15 +516,27 @@ export async function finalizeShopping(ctx: AppCtx, listId: string, opts: { addT
     async () => {
       const current = await ctx.db.shopping_lists.get(listId);
       if (!current || current.deleted_at || current.archived_at || current.cycle !== list.cycle || await ctx.db.shopping_transactions.get(txId)) throw new UserError("Tura a fost deja finalizată.");
+      if (ctx.sync) {
+        // Bifările netrimise fac parte din plata de pe acest dispozitiv.
+        for (const item of checked) {
+          const pending = await ctx.db.outbox.where("[table+row_id]").equals(["shopping_list_items", item.id]).toArray();
+          for (const entry of pending) {
+            const payload = { ...entry.payload };
+            for (const field of ["checked", "checked_at", "checked_by", "actual_price"]) delete payload[field];
+            if (Object.keys(payload).length) await ctx.db.outbox.update(entry.seq!, { payload });
+            else await ctx.db.outbox.delete(entry.seq!);
+          }
+        }
+      }
       await upsertRow(
         ctx.db,
         "shopping_transactions",
         { id: txId, household_id: ctx.householdId, list_id: listId, list_cycle: list.cycle, started_at: startedAt, completed_at: nowIso(), note: null, ...(opts.totalPaid != null ? { declared_total: opts.totalPaid } : {}), ...(opts.retailerId ? { retailer_id: opts.retailerId } : {}) },
-        w(ctx),
+        checkoutOptions,
       );
 
       for (const d of itemsData) {
-        if (d.createProduct && d.product) await upsertRow(ctx.db, "products", d.product, w(ctx));
+        if (d.createProduct && d.product) await upsertRow(ctx.db, "products", d.product, checkoutOptions);
         await upsertRow(
           ctx.db,
           "shopping_transaction_items",
@@ -539,7 +557,7 @@ export async function finalizeShopping(ctx: AppCtx, listId: string, opts: { addT
             ...(d.item.variant_id ? { variant_id: d.item.variant_id } : {}),
             ...(d.item.receipt_name ? { receipt_name: d.item.receipt_name } : {}),
           },
-          w(ctx),
+          checkoutOptions,
         );
 
         if (d.product && d.priceId && d.item.actual_price != null) {
@@ -562,7 +580,7 @@ export async function finalizeShopping(ctx: AppCtx, listId: string, opts: { addT
               transaction_item_id: d.txItemId,
               ...(d.item.variant_id ? { variant_id: d.item.variant_id } : {}),
             },
-            w(ctx),
+            checkoutOptions,
           );
         }
 
@@ -573,24 +591,39 @@ export async function finalizeShopping(ctx: AppCtx, listId: string, opts: { addT
             d.product,
             { name: d.item.receipt_name || d.item.name, quantity: d.item.quantity, unit: d.item.unit, purchased_at: d.purchasedAt },
             d.pantryItemId,
+            checkoutOptions,
           );
           added++;
         }
       }
 
-      await updateRow(ctx.db, "shopping_lists", listId, list.is_recurring || allItems.some(i => !i.checked) ? { cycle: list.cycle + 1 } : { cycle: list.cycle + 1, archived_at: nowIso() }, w(ctx));
+      await updateRow(ctx.db, "shopping_lists", listId, list.is_recurring || allItems.some(i => !i.checked) ? { cycle: list.cycle + 1 } : { cycle: list.cycle + 1, archived_at: nowIso() }, checkoutOptions);
       if (list.is_recurring) {
         for (const item of checked) {
-          await updateRow(ctx.db, "shopping_list_items", item.id, { checked: false, checked_at: null, checked_by: null, actual_price: null, ...(item.receipt_name ? { receipt_name: null } : {}) }, w(ctx));
+          await updateRow(ctx.db, "shopping_list_items", item.id, { checked: false, checked_at: null, checked_by: null, actual_price: null, ...(item.receipt_name ? { receipt_name: null } : {}) }, checkoutOptions);
         }
       } else if (allItems.some(i => !i.checked)) {
-        for (const item of checked) await softDelete(ctx.db, "shopping_list_items", item.id, w(ctx));
+        for (const item of checked) await softDelete(ctx.db, "shopping_list_items", item.id, checkoutOptions);
+      } else if (ctx.sync) {
+        for (const item of checked) checkoutWrites.push({
+          table: "shopping_list_items", row_id: item.id, op: "update",
+          payload: { checked: true, checked_at: item.checked_at, checked_by: item.checked_by, actual_price: item.actual_price },
+        });
+      }
+      if (ctx.sync) {
+        await ctx.db.shopping_transactions.update(txId, { checkout_attempt_id: attemptId });
+        await ctx.db.outbox.add({
+          table: "shopping_transactions", row_id: txId, op: "insert",
+          payload: { household_id: ctx.householdId }, attempts: 0, created_at: nowIso(),
+          checkout: { attemptId, householdId: ctx.householdId, listId, cycle: list.cycle, writes: checkoutWrites },
+        });
       }
     },
   );
 
   return {
     transaction_id: txId,
+    ...(ctx.sync ? { attempt_id: attemptId } : {}),
     total: opts.totalPaid ?? sumMoney(checked.map((i) => i.actual_price ?? 0)),
     items: checked.length,
     without_price: checked.filter((i) => i.actual_price == null).length,

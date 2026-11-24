@@ -1,4 +1,4 @@
-import type { CamaraDB, OutboxEntry, SyncedTables, TableName } from "./database";
+import type { CamaraDB, RowWrite, SyncedTables, TableName } from "./database";
 import { nowIso } from "@/lib/clock";
 
 // Toate scrierile locale trec pe aici: rândul se modifică în IndexedDB și,
@@ -12,13 +12,18 @@ type NewRow<T extends TableName> = Omit<Row<T>, "created_at" | "updated_at" | "d
 /** Dacă e false (mod demonstrativ), nu se mai adaugă nimic în outbox. */
 export interface WriteOptions {
   outbox: boolean;
+  checkoutWrites?: RowWrite[];
 }
 
-async function enqueue(db: CamaraDB, entry: Omit<OutboxEntry, "seq" | "attempts" | "created_at">): Promise<void> {
+async function enqueue(db: CamaraDB, entry: RowWrite, checkoutWrites?: RowWrite[]): Promise<void> {
+  if (checkoutWrites) {
+    checkoutWrites.push(entry);
+    return;
+  }
   // Comasăm cu intrarea neconfirmată a aceluiași rând: mai puține cereri și
   // ordinea logică păstrată (inserarea rămâne inserare).
   const pending = await db.outbox.where("[table+row_id]").equals([entry.table, entry.row_id]).last();
-  if (pending && pending.attempts === 0 && !(await refersToNewer(db, entry.payload, pending.seq!))) {
+  if (pending && !pending.checkout && pending.attempts === 0 && !(await refersToNewer(db, entry, pending.seq!))) {
     await db.outbox.update(pending.seq!, { payload: { ...pending.payload, ...entry.payload } });
     return;
   }
@@ -30,10 +35,11 @@ async function enqueue(db: CamaraDB, entry: Omit<OutboxEntry, "seq" | "attempts"
  * pusă pe o linie mai veche)? Atunci nu se comasează în ea: serverul ar primi
  * linia înaintea variantei și ar refuza referința.
  */
-async function refersToNewer(db: CamaraDB, payload: Record<string, unknown>, seq: number): Promise<boolean> {
-  const refs = new Set(Object.entries(payload).flatMap(([k, v]) => (k.endsWith("_id") && typeof v === "string" ? [v] : [])));
-  if (refs.size === 0) return false;
-  return (await db.outbox.where("seq").above(seq).filter((e) => refs.has(e.row_id)).count()) > 0;
+async function refersToNewer(db: CamaraDB, entry: RowWrite, seq: number): Promise<boolean> {
+  const refs = new Set(Object.entries(entry.payload).flatMap(([k, v]) => (k.endsWith("_id") && typeof v === "string" ? [v] : [])));
+  return (await db.outbox.where("seq").above(seq).filter((e) =>
+    e.checkout ? e.checkout.writes.some((write) => refs.has(write.row_id) || (entry.table === write.table && entry.row_id === write.row_id)) : refs.has(e.row_id)
+  ).first()) !== undefined;
 }
 
 export async function insertRow<T extends TableName>(db: CamaraDB, table: T, row: NewRow<T>, opts: WriteOptions): Promise<Row<T>> {
@@ -41,7 +47,7 @@ export async function insertRow<T extends TableName>(db: CamaraDB, table: T, row
   const full = { deleted_at: null, ...row, created_at: ts, updated_at: ts } as Row<T>;
   await db.transaction("rw", [db.table(table), db.outbox], async () => {
     await db.table(table).put(full);
-    if (opts.outbox) await enqueue(db, { table, row_id: full.id, op: "insert", payload: stripTimestamps(full as unknown as Record<string, unknown>) });
+    if (opts.outbox) await enqueue(db, { table, row_id: full.id, op: "insert", payload: stripTimestamps(full as unknown as Record<string, unknown>) }, opts.checkoutWrites);
   });
   return full;
 }
@@ -68,7 +74,7 @@ export async function updateRow<T extends TableName>(db: CamaraDB, table: T, id:
     const changed = Object.fromEntries(Object.entries(clean).filter(([k, v]) => !sameValue(existing[k], v)));
     if (Object.keys(changed).length === 0) return;
     await db.table(table).put({ ...existing, ...changed, updated_at: nowIso() });
-    if (opts.outbox) await enqueue(db, { table, row_id: id, op: "update", payload: changed });
+    if (opts.outbox) await enqueue(db, { table, row_id: id, op: "update", payload: changed }, opts.checkoutWrites);
   });
 }
 
@@ -100,7 +106,7 @@ function stripTimestamps(row: Record<string, unknown>): Record<string, unknown> 
 export async function applyRemoteRows(db: CamaraDB, table: TableName, rows: Record<string, unknown>[]): Promise<void> {
   if (rows.length === 0) return;
   await db.transaction("rw", [db.table(table), db.outbox], async () => {
-    const pending = (await db.outbox.toArray()).filter((e) => e.table === table);
+    const pending = (await db.outbox.toArray()).flatMap((e) => e.checkout?.writes ?? [e]).filter((e) => e.table === table);
     const byRow = new Map<string, Record<string, unknown>>();
     for (const e of pending) byRow.set(e.row_id, { ...(byRow.get(e.row_id) ?? {}), ...e.payload });
     // Rândurile pe care le avem deja în aceeași versiune nu se rescriu

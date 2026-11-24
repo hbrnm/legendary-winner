@@ -24,6 +24,30 @@ const PAGES = [
   "/termeni/",
 ];
 
+test("lista activă păstrează plata accesibilă pe mobil îngust și desktop", async ({ page }) => {
+  await page.setViewportSize({ width: 320, height: 640 });
+  await start(page);
+  await createList(page, "Cumpărături săptămânale");
+  await quickAdd(page, "2 kg roșii");
+  await page.getByRole("checkbox", { name: /^Bifează Roșii/ }).click();
+  const checkout = page.getByRole("button", { name: "Am plătit", exact: true });
+  const actions = page.getByRole("button", { name: "Acțiuni cumpărături", exact: true });
+
+  for (const width of [320, 390, 1440]) {
+    await page.setViewportSize({ width, height: 640 });
+    await page.getByRole("heading", { name: "Cumpărături săptămânale" }).scrollIntoViewIfNeeded();
+    await expect(actions).toBeInViewport();
+    await expect(checkout).toBeInViewport();
+    const actionBox = (await actions.boundingBox())!;
+    const checkoutBox = (await checkout.boundingBox())!;
+    expect(actionBox.y + actionBox.height).toBeLessThan(checkoutBox.y);
+  }
+
+  await checkout.focus();
+  await checkout.press("Enter");
+  await expect(page.getByRole("dialog", { name: "Am plătit" })).toBeVisible();
+});
+
 for (const width of [360, 390, 600, 768, 1024, 1440]) {
   test(`fără derulare orizontală la ${width}px`, async ({ page }) => {
     await page.setViewportSize({ width, height: 800 });

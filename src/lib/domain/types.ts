@@ -192,6 +192,7 @@ export interface ShoppingListItem extends SyncedRow {
 }
 
 export interface ShoppingTransaction extends SyncedRow {
+  checkout_attempt_id?: string | null;
   /** Optional authoritative receipt total; absent preserves legacy item sums. */
   declared_total?: number | null;
   retailer_id?: string | null;

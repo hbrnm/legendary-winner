@@ -1,6 +1,7 @@
 import { readFileSync } from "node:fs";
 import { expect, test } from "@playwright/test";
 import { openBasket, quickAdd, signUp, syncNow } from "./helpers";
+import { createList } from "../e2e/helpers";
 
 test("cont, gospodărie, invitație, listă comună sincronizată, gospodării izolate", async ({ browser }) => {
   // Ana își face cont și gospodărie.
@@ -30,16 +31,12 @@ test("cont, gospodărie, invitație, listă comună sincronizată, gospodării i
   await expect(ana.getByText("Bogdan")).toBeVisible();
 
   // Ana face o listă; Bogdan o vede.
-  await ana.goto("/cumparaturi/");
-  await ana.getByRole("button", { name: "Listă nouă" }).click();
-  await ana.getByLabel("Numele listei").fill("Săptămâna asta");
-  await ana.getByRole("button", { name: "Creează lista" }).click();
-  await ana.waitForURL(/lista/);
+  await createList(ana, "Săptămâna asta");
   await quickAdd(ana, "lapte", "Lapte integral");
   await quickAdd(ana, "2 kg cartofi", "Cartofi albi");
   await syncNow(ana);
 
-  await bogdan.goto("/cumparaturi/");
+  await bogdan.goto("/cumparaturi/?toate=1");
   await syncNow(bogdan);
   await bogdan.getByText("Săptămâna asta").click();
   await expect(bogdan.getByText("Lapte integral")).toBeVisible();

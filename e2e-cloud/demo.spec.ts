@@ -23,12 +23,15 @@ test("demo înainte de cont: explorare, salvare locală, reîncărcare și reven
   await expect(page.getByRole("heading", { name: "Rețete", exact: true })).toBeVisible();
   await expect(page.getByText("Mod demonstrativ", { exact: true })).toBeVisible();
   await nav.getByRole("link", { name: "Acasă", exact: true }).click();
-  const count = page.locator("main").getByRole("link", {name:/^Cumpărături/});
+  const count = page.getByRole("link", { name: /^Deschide lista/ });
   await expect(count).toContainText(/7\s*de luat/);
+  await count.click();
   const search = page.getByRole("combobox", { name: "Caută sau adaugă un produs" });
   await search.fill("Produs pentru explorarea demo");
   await expect(page.getByRole("listbox")).toBeVisible();
   await search.press("Enter");
+  await expect(page.getByRole("checkbox", { name: "Bifează Produs pentru explorarea demo" })).toBeVisible();
+  await page.goto("/");
   await expect(count).toContainText(/8\s*de luat/);
   await page.reload();
   await expect(count).toContainText(/8\s*de luat/);

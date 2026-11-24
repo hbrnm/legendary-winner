@@ -3,7 +3,7 @@
 import { Suspense, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { Archive, ArrowLeft, ChevronDown, Copy, MoreHorizontal, Pencil, Plus, Scale, Store, Trash2 } from "lucide-react";
+import { Archive, ArrowLeft, ChevronDown, Copy, MoreHorizontal, Pencil, Plus, Scale, SlidersHorizontal, Store, Trash2 } from "lucide-react";
 import { AgainIcon, NotebookIcon, ReceiptIcon } from "@/components/ui/icons";
 import { useActiveShoppingList } from "@/components/shopping/active-list-provider";
 import { ListSwitcher } from "@/components/shopping/list-switcher";
@@ -13,7 +13,7 @@ import { useApp } from "@/components/app/app-provider";
 import { ProductSearch, type PickedProduct } from "@/components/shopping/product-search";
 import { ItemSheet } from "@/components/shopping/item-sheet";
 import { Button, IconButton } from "@/components/ui/button";
-import { Badge, BudgetBar, Chip, EmptyState, Spinner } from "@/components/ui/misc";
+import { Badge, Chip, EmptyState, Spinner } from "@/components/ui/misc";
 import { ConfirmSheet, Sheet } from "@/components/ui/sheet";
 import { LabeledInput, LabeledSelect, Segmented } from "@/components/ui/fields";
 import { useToast } from "@/components/ui/toast";
@@ -60,9 +60,18 @@ function ListScreen() {
   }, [id]);
   const [placeFilter, setPlaceFilter] = useState<string | null>(null);
   const [details, setDetails] = useState(false);
+  const [captureTarget, setCaptureTarget] = useState<HTMLDivElement | null>(null);
   const [totalPaid, setTotalPaid] = useState("");
   const [paymentRetailer, setPaymentRetailer] = useState<string | null>(null);
-  const [pendingNotice, setPendingNotice] = useState("");
+  const [paymentSummary, setPaymentSummary] = useState<{ listId: string; result: shop.FinalizeResult } | null>(null);
+  const payment = paymentSummary?.listId === id ? paymentSummary.result : null;
+  const paymentId = payment?.transaction_id;
+  const summaryRef = useRef<HTMLElement>(null);
+  useEffect(() => {
+    if (!paymentSummary) return;
+    const frame = requestAnimationFrame(() => summaryRef.current?.focus());
+    return () => cancelAnimationFrame(frame);
+  }, [paymentSummary]);
   const submitting = useRef(false);
   // „În coș”: ce bifezi coboară aici, strâns (decizia proprietarului, 23 oct. 2026).
   const [basketOpen, setBasketOpen] = useState(false);
@@ -98,6 +107,9 @@ function ListScreen() {
         recentRetailerIds: [...new Set([...spend].filter((row) => row.retailer_id && !row.id.startsWith("in-curs")).sort((a, b) => b.purchased_at.localeCompare(a.purchased_at)).map((row) => row.retailer_id!))].slice(0, 5),
         otherLists: lists.filter((l) => l.id !== id && !l.archived_at),
         budget,
+        recordedTransactions: budget ? new Set(spend.map((row) => row.transaction_id)) : undefined,
+        paymentTransaction: paymentId ? await ctx.db.shopping_transactions.get(paymentId) : undefined,
+        paymentPending: paymentId ? await ctx.db.outbox.where("[table+row_id]").equals(["shopping_transactions", paymentId]).filter((entry) => !!entry.checkout).count() : 0,
         variants,
         variantById: new Map(variants.map((v) => [v.id, v])),
         brands: new Map(brands.map((b) => [b.id, b.name])),
@@ -109,7 +121,7 @@ function ListScreen() {
         }),
       };
     },
-    [id],
+    [id, paymentId],
   );
   useEffect(()=>{
     if(ready && data?.list && !data.list.archived_at && activeListId!==data.list.id)selectList(data.list.id);
@@ -225,7 +237,7 @@ function ListScreen() {
           aria-checked={item.checked}
           aria-label={`${item.checked ? "Debifează" : "Bifează"} ${item.name}`}
           onClick={() => toggle(item)}
-          className="flex w-14 shrink-0 items-center justify-center"
+          className="flex w-12 shrink-0 items-center justify-center focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-brand"
         >
           <CheckMark checked={item.checked} animate={lingering.has(item.id)} />
         </button>
@@ -250,7 +262,7 @@ function ListScreen() {
           type="button"
           onClick={() => setEditing({ id: item.id, focusPrice: true })}
           aria-label={`Prețul pentru ${item.name}`}
-          className="flex w-24 shrink-0 flex-col items-end justify-center pr-4 text-right transition-colors duration-150 ease-out hover:bg-surface-2/60 active:bg-surface-2 rounded-r-md focus-visible:outline-2 focus-visible:outline-brand focus-visible:outline-offset-2"
+          className="flex w-[5.5rem] shrink-0 flex-col items-end justify-center pr-2 text-right transition-colors duration-150 ease-out hover:bg-surface-2/60 active:bg-surface-2 focus-visible:outline-2 focus-visible:outline-brand focus-visible:outline-offset-2"
         >
           {item.actual_price != null ? (
             <span className="text-sm font-medium tabular text-ink">{formatRon(item.actual_price)}</span>
@@ -268,10 +280,22 @@ function ListScreen() {
   };
 
   const remainingBudget = data.budget ? data.budget.remaining - (totals?.remaining_estimate ?? 0) : null;
+  const paymentBudget = payment && data.recordedTransactions?.has(payment.transaction_id) ? data.budget : null;
+  const paymentConflict = payment?.attempt_id && data.paymentTransaction?.id === payment.transaction_id &&
+    data.paymentTransaction.checkout_attempt_id !== payment.attempt_id;
+  const paymentPending = payment?.attempt_id && (data.paymentTransaction?.id !== payment.transaction_id || data.paymentPending > 0);
+  const paymentSummaryLink = list.archived_at ? "/cumparaturi/?toate=1" : "/cumparaturi/istoric/";
+  const showCheckout = !list.archived_at && Boolean(totals?.item_count);
+  const otherPlaces = [...new Set(data.items.map((item) => item.source))].filter((source) => source && source !== "supermarket");
+  const secondaryPlaces = [
+    ...contextualRetailers.map(({ id, name }) => ({ id, name })),
+    ...otherPlaces.map((source) => ({ id: `source:${source}`, name: SOURCE_LABELS[source] })),
+  ];
+  const selectedPlace = secondaryPlaces.find((place) => place.id === placeFilter);
 
   return (
-    <AppShell wide hideMobileNav={Boolean(totals && totals.item_count > 0)}>
-      <div className="mb-3 flex items-center gap-1">
+    <AppShell hideMobileNav={showCheckout} captureTarget={captureTarget} mainClassName={`shopping-list ${showCheckout ? "shopping-list-with-checkout" : ""}`}>
+      <div className="mb-3 flex items-start gap-1">
         <Link href="/cumparaturi/?toate=1" aria-label="Toate listele" className="-ml-2 inline-flex h-12 w-12 shrink-0 items-center justify-center rounded-full text-ink-2 hover:bg-surface-2">
           <ArrowLeft size={20} />
         </Link>
@@ -297,7 +321,7 @@ function ListScreen() {
             </form>
           ) : (
             <div className="flex max-w-full items-center gap-2">
-              <h1 className="line-clamp-2 break-words break-all text-2xl font-bold leading-tight tracking-tight">
+              <h1 className="line-clamp-2 break-words text-2xl font-bold leading-tight tracking-tight">
                 {list.name}
               </h1>
               <IconButton
@@ -311,56 +335,80 @@ function ListScreen() {
               </IconButton>
             </div>
           )}
-          <div className="mt-1 flex flex-wrap items-center gap-2">
-            <ListSwitcher currentListId={list.id} lists={[list, ...data.otherLists]} />
-            <p className="text-xs text-ink-2 tabular">
-              {totals?.checked_count ?? 0} din {totals?.item_count ?? 0} în coș
-              {totals && totals.projected_total > 0 && ` · ~${formatRon(totals.projected_total)}`}
-              {list.is_recurring && " · se reia"}
-              {list.archived_at && " · pusă deoparte"}
-            </p>
+          <div className="flex items-center gap-1">
+            <ListSwitcher currentListId={list.id} lists={[list, ...data.otherLists]} className="mr-auto" />
+            <div ref={setCaptureTarget} />
+            <IconButton label="Opțiunile listei" onClick={() => setMenu(true)}>
+              <MoreHorizontal size={20} />
+            </IconButton>
           </div>
-          {totals && (!list.archived_at || totals.item_count > 0) && (
+          <p className="pt-1 text-xs text-ink-2 tabular">
+            {totals?.checked_count ?? 0} din {totals?.item_count ?? 0} în coș
+            {list.is_recurring && " · se reia"}
+            {list.archived_at && " · pusă deoparte"}
+          </p>
+          {!!totals?.item_count && (
             <div className="mt-1.5 h-1.5 overflow-hidden rounded-full bg-surface-2" aria-hidden>
               <div className="h-full rounded-full bg-sprout transition-[width]" style={{ width: `${(totals.checked_count / totals.item_count) * 100}%` }} />
             </div>
           )}
         </div>
-        <IconButton label="Opțiunile listei" onClick={() => setMenu(true)}>
-          <MoreHorizontal size={20} />
-        </IconButton>
       </div>
 
+      {paymentConflict && (
+        <p role="status" className="mb-4 rounded-2xl border border-line bg-surface p-4 text-sm">
+          Tura a fost deja confirmată pe alt dispozitiv. <Link href="/cumparaturi/istoric/" className="font-semibold text-brand underline">Vezi cumpărăturile confirmate</Link>.
+        </p>
+      )}
+      {payment && !paymentConflict && (
+        <section ref={summaryRef} tabIndex={-1} aria-labelledby="shopping-payment-title" className="mb-4 rounded-2xl border border-line bg-surface p-4 focus-visible:outline-2 focus-visible:outline-brand">
+          <div role="status">
+            <h2 id="shopping-payment-title" className="text-lg font-semibold">{paymentPending ? "Cumpărături salvate pe dispozitiv" : "Cumpărături înregistrate"}</h2>
+            {paymentPending && <p className="mt-1 text-sm text-ink-2">Confirmarea în gospodărie așteaptă sincronizarea.</p>}
+            <dl className="mt-3 grid gap-y-2 tabular">
+              <div className="flex flex-wrap items-baseline justify-between gap-x-3">
+                <dt className="text-sm text-ink-2">Total înregistrat</dt>
+                <dd className="text-2xl font-bold tracking-tight">{formatRon(payment.total)}</dd>
+              </div>
+              <div className="flex flex-wrap justify-between gap-x-3 border-t border-line pt-2 text-sm">
+                <dt className="text-ink-2">Adăugate în cămară</dt>
+                <dd className="font-semibold">{count(payment.added_to_pantry, "produs", "produse")}</dd>
+              </div>
+              {paymentBudget && (
+                <div className="flex flex-wrap justify-between gap-x-3 border-t border-line pt-2 text-sm">
+                  <dt className="text-ink-2">{paymentBudget.budget.name}</dt>
+                  <dd className={paymentBudget.over ? "font-semibold text-accent" : "font-semibold"}>
+                    {formatRon(Math.abs(paymentBudget.remaining))} {paymentBudget.over ? "peste buget" : "rămași"}
+                  </dd>
+                </div>
+              )}
+            </dl>
+            {payment.pending_pantry > 0 && <p className="mt-2 text-sm text-warn">Produsele fără cantitate pot fi adăugate în cămară după completarea cantității.</p>}
+            {payment.without_price > 0 && <p className="mt-1 text-sm text-ink-2">{count(payment.without_price, "produs", "produse")} fără preț individual.</p>}
+          </div>
+          <Link href={paymentSummaryLink} className="inline-flex min-h-12 items-center text-sm font-medium text-brand hover:underline focus-visible:outline-2 focus-visible:outline-brand">
+            {list.archived_at ? "Înapoi la liste" : "Istoricul cumpărăturilor"}
+          </Link>
+        </section>
+      )}
+
       {!list.archived_at && (
-        <div className="sticky top-14 z-20 -mx-4 border-b border-line bg-bg px-4 pb-3 pt-1">
+        <div className="relative z-20 mb-1">
           <ProductSearch placeholder="Ce-ți trebuie? ex. 2 kg roșii" onPick={onPick} />
         </div>
       )}
 
-      {pendingNotice && <p role="status" className="mb-3 rounded-2xl bg-warn-soft p-3 text-sm text-warn">{pendingNotice}</p>}
       {data.items.length > 0 && (
-        <>
-          <div role="group" aria-label="Locul cumpărăturilor — filtre" className="mb-3 flex flex-wrap gap-2">
+        <div className="mb-3 flex flex-wrap items-center justify-between gap-x-2 border-b border-line">
+          <div role="group" aria-label="Locul cumpărăturilor — filtre" className="flex flex-wrap items-center gap-1">
             <Chip active={!placeFilter} onClick={() => setPlaceFilter(null)}>Toate</Chip>
             <Chip active={placeFilter === "source:supermarket"} onClick={() => setPlaceFilter(placeFilter === "source:supermarket" ? null : "source:supermarket")}>Supermarket</Chip>
-            {contextualRetailers.map((r) => <Chip key={r.id} active={placeFilter === r.id} onClick={() => setPlaceFilter(placeFilter === r.id ? null : r.id)}>{r.name}</Chip>)}
-            {[...new Set(data.items.map((i) => i.source))].filter((source) => source && source !== "supermarket").map((source) => <Chip key={source} active={placeFilter === `source:${source}`} onClick={() => setPlaceFilter(placeFilter === `source:${source}` ? null : `source:${source}`)}>{SOURCE_LABELS[source]}</Chip>)}
-            <Button variant="ghost" onClick={() => setDetails(true)}>Detalii</Button>
+            {selectedPlace && <Chip active onClick={() => setPlaceFilter(null)}>{selectedPlace.name}</Chip>}
           </div>
-          <div className="mb-3">
-            <div>
-              <Segmented
-                label="Grupare"
-                value={groupBy}
-                onChange={setGroupBy}
-                options={[
-                  { value: "raioane", label: "Pe raioane" },
-                  { value: "magazine", label: "Pe magazine" },
-                ]}
-              />
-            </div>
-          </div>
-        </>
+          <Button variant="ghost" size="sm" icon={<SlidersHorizontal size={16} />} onClick={() => setDetails(true)}>
+            Filtre
+          </Button>
+        </div>
       )}
 
       {data.items.length === 0 ? (
@@ -368,11 +416,11 @@ function ListScreen() {
           Scrie sus ce-ți trebuie („2 kg cartofi”, „lapte”) sau ia direct dintr-o rețetă ori din planul meselor.
         </EmptyState>
       ) : (
-        <div className="flex flex-col gap-5">
+        <div className="flex flex-col gap-3">
           {groups.map((g) => (
             <section key={g.key} aria-label={g.title}>
               <h2 className="mb-1.5 px-1 text-xs font-semibold uppercase tracking-wider text-wood">{g.title}</h2>
-              <ul className="overflow-hidden rounded-[24px] border border-line/60 bg-surface">
+              <ul className="border-t border-line">
                 {g.items.map(itemRow)}
               </ul>
             </section>
@@ -388,7 +436,7 @@ function ListScreen() {
                 <span className="flex-1">În coș ({basket.length})</span>
                 <ChevronDown size={18} className={`transition-transform duration-200 ${basketOpen ? "rotate-180" : ""}`} />
               </button>
-              {basketOpen && <ul className="overflow-hidden rounded-[24px] border border-line/60 bg-surface">{basket.map(itemRow)}</ul>}
+              {basketOpen && <ul className="border-t border-line">{basket.map(itemRow)}</ul>}
             </section>
           )}
         </div>
@@ -425,45 +473,33 @@ function ListScreen() {
         </section>
       )}
 
-      {/* Loc pentru bara cu totalul, fixată jos, ca ultimele rânduri să nu rămână sub ea. */}
-      {totals && <div aria-hidden className="h-40 min-[600px]:h-28" />}
-
-      {totals && (!list.archived_at || totals.item_count > 0) && (
-        <div className="fixed inset-x-0 bottom-0 pb-safe z-30 border-t border-line bg-surface px-4 py-3 min-[600px]:left-24 min-[1200px]:left-64">
-          <div className="mx-auto flex max-w-3xl items-center gap-3">
+      {!!totals?.item_count && (
+        <div className={showCheckout ? "shopping-list-checkout" : "mt-4 border-t border-line pt-3"}>
+          <div className="mx-auto flex max-w-3xl items-center gap-2 sm:gap-4">
             <div className="min-w-0 flex-1 tabular">
-              <div className="flex flex-wrap items-baseline gap-x-3">
-                <span className="text-xl font-bold tracking-tight text-ink">{formatRon(totals.spent)}</span>
-                <span className="text-xs text-ink-2">plătiți până acum{totals.projected_total > totals.spent ? ` · cam ${formatRon(totals.projected_total)} în total` : ""}</span>
+              <div className="flex flex-wrap items-baseline gap-x-2">
+                <span className="text-lg font-bold tracking-tight text-ink">{formatRon(totals.spent)}</span>
+                <span className="text-xs text-ink-2">plătiți până acum</span>
               </div>
               <div className="text-xs text-ink-2">
-                {totals.unknown_price_count > 0 && <span>{totals.unknown_price_count} încă fără preț · </span>}
+                {totals.projected_total > totals.spent && <span className="block">Estimare totală {formatRon(totals.projected_total)}</span>}
+                {totals.unknown_price_count > 0 && <span className="block">{totals.unknown_price_count} încă fără preț</span>}
                 {remainingBudget != null ? (
                   <span className={remainingBudget < 0 ? "font-semibold text-accent" : ""}>
                     {remainingBudget < 0 ? `Ai trecut de buget cu ${formatRon(-remainingBudget)}` : `Mai ai ${formatRon(remainingBudget)} ${data.budget?.budget.period === "saptamanal" ? "săptămâna asta" : "luna asta"}`}
                   </span>
                 ) : null}
               </div>
-              {allIn && <p className="mt-0.5 font-sans text-[15px] font-semibold text-sprout">Ai tot! Poți înregistra plata.</p>}
-              {data.budget && (
-                <div className="mt-1.5">
-                  <BudgetBar pct={((data.budget.spent + totals.remaining_estimate) / data.budget.budget.amount) * 100} label={data.budget.budget.period === "saptamanal" ? "Bugetul săptămânii, cu lista inclusă" : "Bugetul lunii, cu lista inclusă"} />
-                </div>
-              )}
+              {allIn && <p className="mt-0.5 font-sans text-sm font-semibold text-sprout">Ai tot! Poți înregistra plata.</p>}
             </div>
-            {!list.archived_at && (
-              <Button
-                onClick={() => setFinishing(true)}
-                disabled={totals.checked_count === 0}
-                className={allIn ? "shrink-0 transition-transform active:scale-[0.97] ring-2 ring-sprout ring-offset-2 ring-offset-surface" : "shrink-0 transition-transform active:scale-[0.97]"}
-              >
+            {showCheckout && (
+              <Button size="sm" className="whitespace-nowrap" onClick={() => setFinishing(true)} disabled={totals.checked_count === 0}>
                 Am plătit
               </Button>
             )}
           </div>
         </div>
       )}
-
       <ItemSheet
         item={editingItem}
         estimate={editingItem ? lineEstimate(editingItem, data.prices, today) : null}
@@ -594,6 +630,24 @@ function ListScreen() {
       />
 
       <Sheet open={details} onClose={() => setDetails(false)} title="Detaliile listei">
+        <div className="mb-4 space-y-3">
+          <Segmented
+            label="Grupare"
+            value={groupBy}
+            onChange={setGroupBy}
+            options={[
+              { value: "raioane", label: "Pe raioane" },
+              { value: "magazine", label: "Pe magazine" },
+            ]}
+          />
+          {secondaryPlaces.length > 0 && (
+            <div role="group" aria-label="Magazine și alte locuri" className="flex flex-wrap gap-1.5">
+              {secondaryPlaces.map(({ id, name }) => (
+                <Chip key={id} active={placeFilter === id} onClick={() => setPlaceFilter(placeFilter === id ? null : id)}>{name}</Chip>
+              ))}
+            </div>
+          )}
+        </div>
         <LabeledSelect label="Locul obișnuit" value={list.default_retailer_id ?? ""} onChange={(e) => void run((ctx) => shop.updateList(ctx, id, { default_retailer_id: e.target.value || null }))}>
           <option value="">De oriunde</option>
           {data.retailers.map((r) => <option key={r.id} value={r.id}>{r.name}</option>)}
@@ -620,11 +674,7 @@ function ListScreen() {
                 if (r) {
                   setFinishing(false);
                   setTotalPaid("");
-                  const notice = r.pending_pantry ? "Produsele fără cantitate nu au intrat în cămară. Le poți adăuga după completarea cantității." : "";
-                  setPendingNotice(notice);
-                  toast(`Ai plătit ${formatRon(r.total)}.${r.added_to_pantry ? ` Am pus ${count(r.added_to_pantry, "produs", "produse")} în cămară.` : ""}${notice ? ` ${notice}` : ""}`);
-                  // A partial list stays open with its unchecked items.
-                  if (!list.is_recurring && totals?.checked_count === totals?.item_count && !notice) router.push("/cumparaturi/");
+                  setPaymentSummary({ listId: id, result: r });
                 }
               } finally { submitting.current = false; }
             }}
@@ -709,7 +759,7 @@ function CheckMark({ checked, animate }: { checked: boolean; animate: boolean })
       <path
         d="M14.2 2.6c6.3-.1 11.3 5 11.2 11.5-.1 6.3-5.3 11.4-11.6 11.3C7.4 25.3 2.5 20.2 2.6 13.8 2.7 7.6 7.9 2.7 14.2 2.6z"
         strokeWidth={2}
-        className={`transition-colors duration-200 ${checked ? "fill-sprout stroke-sprout" : "fill-none stroke-line"}`}
+        className={`transition-colors duration-200 ${checked ? "fill-sprout stroke-sprout" : "fill-none stroke-outline"}`}
       />
       {checked && <path d="M8.6 14.6l3.7 3.5 7.4-8" fill="none" strokeWidth={2.6} strokeLinecap="round" strokeLinejoin="round" className={`stroke-sprout-ink ${animate ? "draw-check" : ""}`} />}
     </svg>

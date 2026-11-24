@@ -103,13 +103,25 @@ export const CATALOG_TABLES = new Set<TableName>([
   "recipe_steps",
 ]);
 
-export interface OutboxEntry {
-  seq?: number;
+export interface RowWrite {
   table: TableName;
   row_id: string;
   /** insert = rândul complet; update = doar câmpurile schimbate. */
   op: "insert" | "update";
   payload: Record<string, unknown>;
+}
+
+export interface CheckoutWrite {
+  attemptId: string;
+  householdId: string;
+  listId: string;
+  cycle: number;
+  writes: RowWrite[];
+}
+
+export interface OutboxEntry extends RowWrite {
+  seq?: number;
+  checkout?: CheckoutWrite;
   created_at: string;
   attempts: number;
 }

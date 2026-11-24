@@ -1,4 +1,4 @@
-import type { TableName } from "@/lib/db/database";
+import type { CheckoutWrite, TableName } from "@/lib/db/database";
 
 /** Serverul a refuzat definitiv (RLS, constrângere): nu are rost să reîncercăm. */
 export class RemoteRejected extends Error {
@@ -28,6 +28,8 @@ export interface PullFrom {
 }
 
 export interface RemoteStore {
+  checkout(batch: CheckoutWrite): Promise<boolean>;
+  checkoutItems(transactionId: string): Promise<RemoteRow[]>;
   upsert(table: TableName, row: Record<string, unknown>): Promise<void>;
   /** false dacă rândul nu există sau nu poate fi modificat de utilizator. */
   update(table: TableName, id: string, patch: Record<string, unknown>): Promise<boolean>;

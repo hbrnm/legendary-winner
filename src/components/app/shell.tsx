@@ -120,7 +120,7 @@ function RejectedNotice() {
  * Cadrul paginilor aplicației: verifică autentificarea și gospodăria, apoi
  * afișează navigația (jos pe telefon, lateral pe ecrane mari).
  */
-export function AppShell({ children, wide = false, hideMobileNav = false }: { children: ReactNode; wide?: boolean; hideMobileNav?: boolean }) {
+export function AppShell({ children, wide = false, hideMobileNav = false, captureTarget, mainClassName = "" }: { children: ReactNode; wide?: boolean; hideMobileNav?: boolean; captureTarget?: HTMLElement | null; mainClassName?: string }) {
   const app = useApp();
   const pathname = usePathname();
   const router = useRouter();
@@ -194,7 +194,7 @@ export function AppShell({ children, wide = false, hideMobileNav = false }: { ch
             )}
           </div>
         )}
-        <main id="continut-principal" tabIndex={-1} className={`app-main mx-auto focus:outline-none ${wide ? "app-main-wide" : ""}`}>
+        <main id="continut-principal" tabIndex={-1} className={`app-main mx-auto focus:outline-none ${wide ? "app-main-wide" : ""} ${mainClassName}`}>
           <RejectedNotice />
           {ready ? children : <Spinner />}
           {app.status === "ready" && <ExpiryNotifier />}
@@ -202,7 +202,7 @@ export function AppShell({ children, wide = false, hideMobileNav = false }: { ch
         </main>
       </div>
 
-      {app.status === "ready" && <CaptureHost key={`${app.mode}:${app.userId}:${app.ctx?.householdId}`} />}
+      {app.status === "ready" && <CaptureHost key={`${app.mode}:${app.userId}:${app.ctx?.householdId}`} inlineTarget={captureTarget} />}
       {!hideMobileNav && <div aria-hidden="true" className="app-nav-fade" />}
       {!hideMobileNav && (
         <nav aria-label="Navigare principală" className="app-mobile-nav fixed z-40">

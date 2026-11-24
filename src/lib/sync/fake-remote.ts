@@ -1,4 +1,4 @@
-import type { TableName } from "@/lib/db/database";
+import type { CheckoutWrite, TableName } from "@/lib/db/database";
 import { RemoteRejected, RemoteUnavailable, type PullFrom, type RemoteRow, type RemoteStore } from "./remote";
 import type { RemoteFiles } from "./files";
 
@@ -15,6 +15,42 @@ export class FakeRemote implements RemoteStore {
   /** Tabele care încă nu există pe server (migrația neaplicată). */
   missingTables = new Set<string>();
   private subscribers = new Set<() => void>();
+  private checkoutQueue: Promise<unknown> = Promise.resolve();
+
+  checkout(batch: CheckoutWrite): Promise<boolean> {
+    const result = this.checkoutQueue.then(async () => {
+      this.check();
+      const list = this.t("shopping_lists").get(batch.listId);
+      if (!list || list.household_id !== batch.householdId) throw new RemoteRejected("Lista nu este disponibilă");
+      const existing = [...this.t("shopping_transactions").values()].find((row) =>
+        row.list_id === batch.listId && row.list_cycle === batch.cycle);
+      if (existing) return existing.checkout_attempt_id === batch.attemptId;
+      if (list.deleted_at || list.archived_at || list.cycle !== batch.cycle) throw new RemoteRejected("Tura nu mai este activă");
+
+      const snapshot = new Map([...this.tables].map(([table, rows]) => [table, new Map(rows)]));
+      try {
+        for (const write of batch.writes) {
+          if (write.op === "insert") {
+            const payload = write.table === "shopping_transactions" ? { ...write.payload, checkout_attempt_id: batch.attemptId } : write.payload;
+            await this.upsert(write.table, payload);
+          } else if (!(await this.update(write.table, write.row_id, write.payload))) {
+            throw new RemoteRejected("Rândul nu mai există pe server");
+          }
+        }
+      } catch (error) {
+        this.tables = snapshot;
+        throw error;
+      }
+      return true;
+    });
+    this.checkoutQueue = result.catch(() => undefined);
+    return result;
+  }
+
+  async checkoutItems(transactionId: string): Promise<RemoteRow[]> {
+    this.check("shopping_transaction_items");
+    return [...this.t("shopping_transaction_items").values()].filter((row) => row.transaction_id === transactionId);
+  }
 
   private t(table: string) {
     if (!this.tables.has(table)) this.tables.set(table, new Map());

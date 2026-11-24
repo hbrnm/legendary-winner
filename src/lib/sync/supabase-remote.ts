@@ -1,5 +1,5 @@
 import type { SupabaseClient, PostgrestError } from "@supabase/supabase-js";
-import type { TableName } from "@/lib/db/database";
+import type { CheckoutWrite, TableName } from "@/lib/db/database";
 import { RemoteRejected, RemoteUnavailable, type PullFrom, type RemoteRow, type RemoteStore } from "./remote";
 import type { RemoteFiles } from "./files";
 
@@ -43,6 +43,30 @@ export class SupabaseRemote implements RemoteStore {
 
   async upsert(table: TableName, row: Record<string, unknown>): Promise<void> {
     await this.run(() => this.client.from(table).upsert(row, { onConflict: "id" }));
+  }
+
+  async checkout(batch: CheckoutWrite): Promise<boolean> {
+    try {
+      const accepted: unknown = await this.run(() => this.client.rpc("finalize_shopping_checkout", {
+        checkout_attempt: batch.attemptId,
+        target_household: batch.householdId,
+        target_list: batch.listId,
+        target_cycle: batch.cycle,
+        writes: batch.writes,
+      }));
+      if (typeof accepted !== "boolean") throw new RemoteUnavailable("Serverul nu a confirmat finalizarea cumpărăturilor.");
+      return accepted;
+    } catch (error) {
+      if (error instanceof RemoteRejected && error.code === "PGRST202") {
+        throw new RemoteUnavailable("Actualizarea serverului este necesară; cumpărăturile au rămas salvate pe dispozitiv.");
+      }
+      throw error;
+    }
+  }
+
+  async checkoutItems(transactionId: string): Promise<RemoteRow[]> {
+    const data = await this.run(() => this.client.from("shopping_transaction_items").select("*").eq("transaction_id", transactionId));
+    return (data ?? []) as RemoteRow[];
   }
 
   async update(table: TableName, id: string, patch: Record<string, unknown>): Promise<boolean> {

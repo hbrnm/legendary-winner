@@ -39,7 +39,8 @@ test("un membru simplu modifică bugetul și adaugă venituri vizibile proprieta
  await save.click();await expect(budget).not.toBeVisible();await syncNow(member);
  await owner.goto("/buget/");await syncNow(owner);
  const ownerPanel=owner.getByRole("region",{name:"Venituri lunare",exact:true});
- await expect(ownerPanel).toContainText(/4[.]?500,00\s+RON/);
+ await expect(owner.getByText(/din 4[.]?500,00\s+RON/)).toBeVisible();
+ await expect(ownerPanel).toContainText(/500,00\s+RON nealocați/);
  await member.getByRole("button",{name:"Acțiuni buget",exact:true}).click();
  await member.getByRole("dialog",{name:"Buget",exact:true}).getByRole("button",{name:"Adaugă venit",exact:true}).click();
  const sheet=member.getByRole("dialog",{name:"Venituri și alocare",exact:true});

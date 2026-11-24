@@ -1,12 +1,12 @@
 "use client";
 
 import Link from "next/link";
-import { useRef, useState } from "react";
-import { Archive, ArrowUpRight, Check, Clock, Receipt, ShoppingBasket } from "lucide-react";
+import { useCallback, useRef, useState, type Ref } from "react";
+import { Archive, ArrowRight, Clock, Receipt, ShoppingBasket, Wallet } from "lucide-react";
 import { useApp } from "@/components/app/app-provider";
 import { useAction, useData } from "@/components/app/hooks";
 import { ProductSearch } from "@/components/shopping/product-search";
-import { BudgetBar, Card, SectionTitle, Spinner } from "@/components/ui/misc";
+import { BudgetBar, Spinner } from "@/components/ui/misc";
 import { Button } from "@/components/ui/button";
 import { LabeledInput, LabeledSelect } from "@/components/ui/fields";
 import { Sheet } from "@/components/ui/sheet";
@@ -17,19 +17,17 @@ import { projectTransactions } from "@/components/budget/transactions";
 import { listItems, owned, priceIndex, householdSpendRecords, visible } from "@/lib/services/queries";
 import { addItem, createList } from "@/lib/services/shopping";
 import { addMeal, cookRecipe } from "@/lib/services/kitchen";
-import { budgetStatus, dailyBudgetAvailable } from "@/lib/domain/budget";
+import { budgetStatus } from "@/lib/domain/budget";
 import { listTotals } from "@/lib/domain/shopping";
 import { expiringSoon } from "@/lib/domain/pantry";
 import { totalMinutes } from "@/lib/domain/recipes";
 import { formatShortDate, localDateOf } from "@/lib/domain/dates";
 import { formatRon } from "@/lib/domain/money";
 import type { MealSlot, Recipe, UnitCode } from "@/lib/domain/types";
-import { quickMealSuggestions, selectHomeMeal } from "./home-model";
+import { quickMealSuggestions, selectHomeMeal, SLOT_ORDER } from "./home-model";
 import { useMealTime } from "./use-meal-time";
 
-const SLOT_ORDER: MealSlot[] = ["mic_dejun", "pranz", "gustare", "cina"];
-
-export function HomeScreen() {
+export function HomeScreen({ captureRef }: { captureRef?: Ref<HTMLDivElement> }) {
   const { run, busy } = useAction();
   const { ctx } = useApp();
   const { activeListId, selectList, ready } = useActiveShoppingList();
@@ -38,6 +36,13 @@ export function HomeScreen() {
   const [slot, setSlot] = useState<MealSlot>("pranz");
   const [servings, setServings] = useState(2);
   const submitting = useRef(false);
+  const focusListAfterAdd = useRef(false);
+  const focusList = useCallback((link: HTMLAnchorElement | null) => {
+    if (link && focusListAfterAdd.current) {
+      focusListAfterAdd.current = false;
+      link.focus();
+    }
+  }, []);
 
   const data = useData(async (ctx) => {
     const [lists, prices, budgets, spend, categories, meals, recipes, pantry, txs, retailers] = await Promise.all([
@@ -53,16 +58,14 @@ export function HomeScreen() {
       visible(ctx.db, "retailers", ctx.householdId),
     ]);
     const active = await Promise.all(
-      lists.filter((l) => !l.archived_at).map(async (list) => ({ list, totals: listTotals(await listItems(ctx.db, list.id), prices) }))
+      lists.filter((l) => !l.archived_at).map(async (list) => {
+        const totals = listTotals(await listItems(ctx.db, list.id), prices);
+        return { list, remaining: totals.item_count - totals.checked_count };
+      })
     );
-    const next =
-      active.find((a) => a.list.id === activeListId) ??
-      active.sort(
-        (a, b) =>
-          b.totals.item_count - b.totals.checked_count - (a.totals.item_count - a.totals.checked_count) ||
-          b.list.updated_at.localeCompare(a.list.updated_at)
-      )[0] ??
-      null;
+    const preferred = active.find((entry) => entry.list.id === activeListId);
+    const [first] = active.sort((a, b) => b.remaining - a.remaining || b.list.updated_at.localeCompare(a.list.updated_at));
+    const next = preferred?.remaining ? preferred : first?.remaining ? first : preferred ?? first;
     const main =
       budgets.find((b) => b.active && b.period === "lunar" && b.scope.kind === "familie") ??
       budgets.find((b) => b.active && b.period === "lunar" && (b.scope.kind === "total" || b.scope.kind === "alimente"));
@@ -72,11 +75,9 @@ export function HomeScreen() {
     return {
       householdId: ctx.householdId,
       next,
-      remainingItems: active.reduce((n, a) => n + a.totals.item_count - a.totals.checked_count, 0),
       budget: main ? budgetStatus(main, spend, new Map(categories.map((c) => [c.id, c])), today) : null,
       meals: meals
         .filter((m) => m.date === today)
-        .sort((a, b) => SLOT_ORDER.indexOf(a.slot) - SLOT_ORDER.indexOf(b.slot))
         .map((meal) => ({ meal, recipe: recipesById.get(meal.recipe_id) })),
       suggestions: quickMealSuggestions(recipes, today, currentMeal),
       stockCount: pantry.filter((p) => p.quantity > 0).length,
@@ -93,6 +94,7 @@ export function HomeScreen() {
   async function quickAdd(productId: string | null, text: string, quantity: number | null, unit: string | null) {
     if (submitting.current) return;
     submitting.current = true;
+    focusListAfterAdd.current = true;
     try {
       const id = await run(async (ctx) => {
         const id = data!.next?.list.id ?? (await createList(ctx, { name: "Cumpărături" }));
@@ -100,6 +102,7 @@ export function HomeScreen() {
         return id;
       }, "Am adăugat produsul pe listă.");
       if (id) selectList(id);
+      else focusListAfterAdd.current = false;
     } finally {
       submitting.current = false;
     }
@@ -141,190 +144,127 @@ export function HomeScreen() {
   }
 
   return (
-    <div className="space-y-3">
-      {/* 1. Azi la masă */}
-      <section aria-label="Azi la masă">
-        <SectionTitle
-          className="mt-0! mb-1.5"
-          action={
-            <Link
-              href="/plan/"
-              className="inline-flex min-h-11 items-center gap-1 text-sm font-medium text-brand transition-colors duration-150 hover:text-brand-strong focus-visible:outline-2 focus-visible:outline-brand"
-            >
-              Planul săptămânii <span aria-hidden>→</span>
+    <div className="space-y-4">
+      <div className="flex min-h-12 items-center justify-between gap-3">
+        <h1 className="text-3xl font-bold leading-tight tracking-tight">Azi</h1>
+        <div ref={captureRef} />
+      </div>
+
+      <div className="grid items-start gap-4 min-[900px]:grid-cols-[1.15fr_1fr]">
+        <section aria-labelledby="today-meal-title">
+          <div className="flex min-h-12 flex-wrap items-center justify-between gap-x-3">
+            <h2 id="today-meal-title" className="text-lg font-semibold">Azi la masă</h2>
+            <Link href="/plan/" className="inline-flex min-h-12 items-center gap-1 text-sm font-medium text-brand hover:underline focus-visible:outline-2 focus-visible:outline-brand">
+              Planul săptămânii <ArrowRight size={15} aria-hidden />
             </Link>
-          }
-        >
-          Azi la masă
-        </SectionTitle>
-
-        <Card className="overflow-hidden border border-line/40 transition-colors duration-150 ease-out hover:border-line" data-testid="home-meal">
-          {selectedMeal ? (
-            <div className="flex items-center gap-3 p-3">
-              <div className="shrink-0 overflow-hidden rounded-xl">
-                <RecipeImage recipe={selectedMeal.recipe} size="sm" />
-              </div>
-              <Link
-                href={`/retete/reteta/?id=${selectedMeal.recipe.id}`}
-                className="group min-w-0 flex-1 focus-visible:outline-2 focus-visible:outline-brand"
-              >
-                <span className="flex items-center gap-1.5 text-xs font-medium text-ink-2">
-                  <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-brand" aria-hidden />
-                  {SLOT_LABELS[currentMeal]} · {selectedMeal.servings} porții
-                </span>
-                <span className="line-clamp-1 font-semibold text-ink transition-colors duration-150 group-hover:text-brand">
-                  {selectedMeal.recipe.name}
-                </span>
-                <span className="mt-0.5 flex items-center gap-1 text-xs text-ink-3">
-                  <Clock size={12} className="shrink-0" aria-hidden />
-                  {totalMinutes(selectedMeal.recipe)} min
-                </span>
-              </Link>
-              <Button
-                size="sm"
-                variant={selectedMeal.planned ? "primary" : "secondary"}
-                onClick={() => openMeal(selectedMeal.planned ? "cook" : "plan", selectedMeal.recipe, selectedMeal.servings)}
-                className="shrink-0 active:scale-[0.96]"
-              >
-                {selectedMeal.planned ? "Am gătit" : "Alege"}
-              </Button>
-            </div>
-          ) : (
-            <p className="p-3 text-sm text-ink-2">
-              Nu ai o recomandare pentru această masă.{" "}
-              <Link href="/plan/" className="font-medium text-brand hover:text-brand-strong">
-                Planifică masa de azi →
-              </Link>
-            </p>
-          )}
-        </Card>
-      </section>
-
-      {/* 2. Cumpărături & Cămară */}
-      <section aria-label="Cumpărături și Cămară">
-        <SectionTitle className="mt-2! mb-1.5">Cumpărături & Cămară</SectionTitle>
-        <ProductSearch
-          placeholder="Adaugă pe listă: ex. lapte"
-          onPick={({ product, parsed }) => void quickAdd(product?.id ?? null, parsed.text, parsed.quantity, parsed.unit)}
-        />
-        <div className="mt-2 grid grid-cols-2 gap-2.5" data-testid="home-shopping-pantry">
-          <Card className="min-w-0 border border-line/40 transition-all duration-150 ease-out hover:border-line active:scale-[0.98]">
-            <Link
-              href={data.next ? `/cumparaturi/lista/?id=${data.next.list.id}` : "/cumparaturi/"}
-              className="group block p-3 focus-visible:outline-2 focus-visible:outline-brand"
-            >
-              <div className="flex items-center justify-between">
-                <span className="flex items-center gap-1.5 text-sm font-medium text-ink">
-                  <span className="flex h-6 w-6 items-center justify-center rounded-lg bg-brand-soft text-brand">
-                    <ShoppingBasket size={15} />
-                  </span>
-                  Cumpărături
-                </span>
-                <ArrowUpRight size={15} className="text-ink-3 opacity-60 transition-all duration-150 group-hover:text-brand group-hover:opacity-100" />
-              </div>
-              {data.remainingItems > 0 ? (
-                <p className="mt-2.5 text-2xl font-semibold tabular-nums text-ink">
-                  {data.remainingItems}
-                  <span className="ml-2 text-xs font-normal text-ink-2"> de luat</span>
-                </p>
-              ) : (
-                <p className="mt-2.5 flex items-center gap-1 text-sm text-info">
-                  <Check size={16} /> Nimic de luat
-                </p>
-              )}
-            </Link>
-          </Card>
-
-          <Card className="min-w-0 border border-line/40 transition-all duration-150 ease-out hover:border-line active:scale-[0.98]">
-            <Link href="/camara/" className="group block p-3 focus-visible:outline-2 focus-visible:outline-brand">
-              <div className="flex items-center justify-between">
-                <span className="flex items-center gap-1.5 text-sm font-medium text-ink">
-                  <span className="flex h-6 w-6 items-center justify-center rounded-lg bg-surface-2 text-ink-2">
-                    <Archive size={15} />
-                  </span>
-                  Cămară
-                </span>
-                <ArrowUpRight size={15} className="text-ink-3 opacity-60 transition-all duration-150 group-hover:text-brand group-hover:opacity-100" />
-              </div>
-              <p className="mt-2.5 text-2xl font-semibold tabular-nums text-ink">
-                {data.stockCount}
-                <span className="ml-2 text-xs font-normal text-ink-2"> în stoc</span>
-              </p>
-              <p className={`mt-1.5 flex items-center gap-1.5 text-xs ${data.expiringCount ? "text-accent font-medium" : "text-info"}`}>
-                <span className={`h-1.5 w-1.5 rounded-full ${data.expiringCount ? "bg-accent animate-pulse" : "bg-info"}`} />
-                {data.expiringCount ? `${data.expiringCount} expiră curând` : "Totul e în termen"}
-              </p>
-            </Link>
-          </Card>
-        </div>
-      </section>
-
-      {/* 3. Bugetul lunii */}
-      <section aria-label="Bugetul lunii">
-        <SectionTitle
-          className="mt-2! mb-1.5"
-          action={
-            <Link
-              href="/buget/tranzactii/"
-              className="inline-flex min-h-11 items-center gap-1 text-sm font-medium text-brand transition-colors duration-150 hover:text-brand-strong focus-visible:outline-2 focus-visible:outline-brand"
-            >
-              Istoric →
-            </Link>
-          }
-        >
-          Bugetul lunii
-        </SectionTitle>
-
-        <Card className="border border-line/40 p-3.5 transition-colors duration-150 ease-out hover:border-line" data-testid="home-budget">
-          {data.budget ? (
-            <>
-              <Link href="/buget/" className="group block focus-visible:outline-2 focus-visible:outline-brand">
-                <div className="flex items-baseline justify-between gap-2">
-                  <p className={`text-2xl font-semibold tabular-nums ${data.budget.over ? "text-accent" : "text-ink"}`}>
-                    {formatRon(Math.abs(data.budget.remaining))}{" "}
-                    <span className="text-sm font-normal text-ink-2">{data.budget.over ? "peste buget" : "rămași"}</span>
-                  </p>
-                  <p className="text-xs text-ink-3">din {formatRon(data.budget.budget.amount)}</p>
+          </div>
+          <div className="rounded-2xl border border-line bg-surface p-3" data-testid="home-meal">
+            {selectedMeal ? (
+              <div className="flex flex-wrap items-center gap-2 min-[360px]:gap-3">
+                <div className="shrink-0 empty:hidden">
+                  <RecipeImage recipe={selectedMeal.recipe} size="md" />
                 </div>
-                {data.budget.remaining >= 0 && (
-                  <p className="mt-1 text-xs text-ink-2">
-                    ~{formatRon(dailyBudgetAvailable(data.budget.remaining, today))}/zi disponibili până la finalul lunii
-                  </p>
-                )}
-              </Link>
-              <div className="mt-2.5">
-                <BudgetBar pct={data.budget.used_pct} label="Bugetul lunii folosit" />
-              </div>
-            </>
-          ) : (
-            <Link href="/buget/" className="inline-flex min-h-12 items-center text-brand hover:text-brand-strong">
-              Setează plafonul lunar →
-            </Link>
-          )}
-
-          <div className="mt-2.5 flex min-h-11 items-center gap-2 border-t border-line/70 pr-16 pt-2.5 text-xs">
-            {data.recent ? (
-              <Link
-                href="/buget/tranzactii/"
-                className="group flex min-w-0 flex-1 items-center justify-between gap-2 text-ink-2 transition-colors duration-150 hover:text-ink focus-visible:outline-2 focus-visible:outline-brand"
-              >
-                <div className="flex min-w-0 items-center gap-1.5">
-                  <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-md bg-surface-2 text-ink-3">
-                    <Receipt size={12} />
+                <Link href={"/retete/reteta/?id=" + selectedMeal.recipe.id} className="min-w-[7rem] flex-1 rounded-md focus-visible:outline-2 focus-visible:outline-brand hover:text-brand">
+                  <span className="block text-xs font-medium text-ink-2">
+                    {SLOT_LABELS[selectedMeal.slot]} · {selectedMeal.servings} porții
                   </span>
-                  <p className="truncate">
-                    {data.recent.title} · {data.recent.amount == null ? "sumă neprecizată" : formatRon(data.recent.amount)} ·{" "}
-                    {localDateOf(data.recent.date) === today ? "azi" : formatShortDate(localDateOf(data.recent.date))}
-                  </p>
-                </div>
-                <span className="shrink-0 text-brand opacity-0 transition-opacity group-hover:opacity-100">→</span>
-              </Link>
+                  <span className="block break-words text-base font-semibold leading-tight">{selectedMeal.recipe.name}</span>
+                  <span className="mt-1 flex items-center gap-1 text-xs text-ink-2">
+                    <Clock size={13} aria-hidden /> {totalMinutes(selectedMeal.recipe)} min
+                  </span>
+                </Link>
+                <Button
+                  size="sm"
+                  variant="secondary"
+                  onClick={() => openMeal(selectedMeal.planned ? "cook" : "plan", selectedMeal.recipe, selectedMeal.servings)}
+                >
+                  {selectedMeal.planned ? "Am gătit" : "Alege"}
+                </Button>
+              </div>
             ) : (
-              <p className="min-w-0 flex-1 truncate text-ink-3">Încă nu ai tranzacții înregistrate</p>
+              <p className="py-2 text-sm text-ink-2">Nu ai nicio masă planificată pentru restul zilei.</p>
             )}
           </div>
-        </Card>
-      </section>
+        </section>
+
+        <section aria-label="Cumpărături" className="rounded-2xl border border-line bg-surface p-3 min-[900px]:mt-12" data-testid="home-shopping-pantry">
+          {data.next && data.next.remaining > 0 ? (
+            <Link
+              ref={focusList}
+              href={"/cumparaturi/lista/?id=" + data.next.list.id}
+              className="flex min-h-14 items-center gap-2 rounded-xl bg-brand px-3 text-sm font-semibold text-brand-ink transition-colors hover:bg-brand-strong focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand"
+            >
+              <ShoppingBasket size={19} className="shrink-0" aria-hidden />
+              <span className="min-w-0 flex-1">Deschide lista</span>
+              <span className="shrink-0 tabular-nums">{data.next.remaining} de luat</span>
+              <ArrowRight size={16} className="shrink-0" aria-hidden />
+            </Link>
+          ) : (
+            <>
+              <div className="mb-2 flex flex-wrap items-center justify-between gap-x-2">
+                <h2 className="text-sm font-semibold">Adaugă pe listă</h2>
+                {data.next && (
+                  <Link href={"/cumparaturi/lista/?id=" + data.next.list.id} className="inline-flex min-h-12 items-center text-sm font-medium text-brand hover:underline focus-visible:outline-2 focus-visible:outline-brand">
+                    Vezi lista
+                  </Link>
+                )}
+              </div>
+              <ProductSearch
+                placeholder="De ex. 2 kg roșii"
+                onPick={({ product, parsed }) => void quickAdd(product?.id ?? null, parsed.text, parsed.quantity, parsed.unit)}
+              />
+            </>
+          )}
+        </section>
+      </div>
+
+      <div className="grid gap-x-5 min-[600px]:grid-cols-2">
+        <Link href="/camara/" className="flex min-h-16 items-center gap-3 border-t border-line py-2 text-sm focus-visible:outline-2 focus-visible:outline-brand hover:text-brand">
+          <Archive size={20} className="shrink-0 text-brand" aria-hidden />
+          <span className="min-w-0 flex-1">
+            <span className="block font-semibold">Cămară</span>
+            <span className="text-ink-2">
+              {data.stockCount} în stoc
+              {data.expiringCount > 0 && <span className="ml-2 font-medium text-accent"> {data.expiringCount} expiră curând</span>}
+            </span>
+          </span>
+          <ArrowRight size={16} className="shrink-0 text-ink-2" aria-hidden />
+        </Link>
+
+        <section aria-label="Bugetul lunii" className="border-t border-line" data-testid="home-budget">
+          <Link href="/buget/" className="flex min-h-16 items-center gap-3 py-2 text-sm hover:text-brand focus-visible:outline-2 focus-visible:outline-brand">
+            <Wallet size={20} className="shrink-0 text-brand" aria-hidden />
+            <span className="min-w-0 flex-1">
+              <span className="block font-semibold">Bugetul lunii</span>
+              {data.budget ? (
+                <span className={data.budget.over ? "font-medium text-accent" : "text-ink-2"}>
+                  <strong className="font-semibold tabular-nums">{formatRon(Math.abs(data.budget.remaining))}</strong>{" "}
+                  {data.budget.over ? "peste buget" : "rămași"}{" "}
+                  <span className="text-xs text-ink-2">din {formatRon(data.budget.budget.amount)}</span>
+                </span>
+              ) : (
+                <span className="text-ink-2">Setează plafonul lunar</span>
+              )}
+            </span>
+            <ArrowRight size={16} className="shrink-0 text-ink-2" aria-hidden />
+          </Link>
+          {data.budget && <BudgetBar pct={data.budget.used_pct} label="Bugetul lunii folosit" />}
+          {data.recent && (
+            <div className="flex items-center justify-between gap-2 text-xs text-ink-2">
+              <p className="flex min-w-0 items-center gap-1.5">
+                <Receipt size={14} className="shrink-0" aria-hidden />
+                <span className="truncate">
+                  {data.recent.title} · {data.recent.amount == null ? "sumă neprecizată" : formatRon(data.recent.amount)} ·{" "}
+                  {localDateOf(data.recent.date) === today ? "azi" : formatShortDate(localDateOf(data.recent.date))}
+                </span>
+              </p>
+              <Link href="/buget/tranzactii/" className="inline-flex min-h-12 shrink-0 items-center font-medium text-brand hover:underline focus-visible:outline-2 focus-visible:outline-brand">
+                Istoric →
+              </Link>
+            </div>
+          )}
+        </section>
+      </div>
 
       {/* Sheet acțiune masă */}
       <Sheet

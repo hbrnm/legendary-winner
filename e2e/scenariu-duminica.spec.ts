@@ -48,10 +48,18 @@ test("de la planul săptămânii la buget", async ({ page }) => {
   await page.getByRole("button", { name: "Finalizează cumpărăturile" }).click();
   // A partial purchase keeps the unchecked ingredients available on this list.
   await expect(page.getByRole("dialog", { name: "Am plătit" })).toHaveCount(0);
+  const summary = page.getByRole("region", { name: "Cumpărături înregistrate" });
+  await expect(summary).toBeFocused();
+  await expect(summary).toContainText(/Total înregistrat\s*4,50\s+RON/);
+  await expect(summary).toContainText("Adăugate în cămară");
+  await expect(summary).toContainText(/1[.]?995,50\s+RON\s+rămași/);
   await expect(page.getByRole("checkbox", { name: /Bifează/ }).first()).toBeVisible();
 
   // Bugetul reflectă cheltuiala reală, o singură dată.
   await page.goto("/buget/");
+  for (const label of ["Rămas", "Cheltuit", "Estimat în coș"]) {
+    await expect(page.getByText(label, { exact: true })).toBeVisible();
+  }
   await expect(page.getByText(/1[.]?995,50\s+RON\s+rămași/)).toBeVisible();
   await expect(page.getByText("Un produs cumpărat nu are preț")).toBeVisible();
 

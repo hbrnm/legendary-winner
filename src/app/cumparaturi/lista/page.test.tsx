@@ -13,7 +13,7 @@ vi.mock("@/components/app/shell", () => ({ AppShell: ({ children }: { children: 
 vi.mock("@/components/app/app-provider", () => ({ useApp: () => ({ variantsEnabled: false }) }));
 vi.mock("@/components/app/hooks", () => ({ useData: () => state.data, useAction: () => ({ run: async (fn: (ctx: object) => unknown) => fn({}), busy: false }) }));
 vi.mock("@/components/ui/toast", () => ({ useToast: () => vi.fn() }));
-vi.mock("@/components/ui/sheet", () => ({ Sheet: ({ open, title, children, footer }: { open: boolean; title: string; children: ReactNode; footer: ReactNode }) => open ? <section aria-label={title}>{children}{footer}</section> : null, ConfirmSheet: () => null }));
+vi.mock("@/components/ui/sheet", () => ({ Sheet: ({ open, title, children, footer, onClose }: { open: boolean; title: string; children: ReactNode; footer: ReactNode; onClose: () => void }) => open ? <section aria-label={title}><button onClick={onClose}>Închide</button>{children}{footer}</section> : null, ConfirmSheet: () => null }));
 vi.mock("@/components/shopping/product-search", () => ({ ProductSearch: () => <input aria-label="Adaugă produs" /> }));
 vi.mock("@/components/shopping/item-sheet", () => ({ ItemSheet: () => null }));
 vi.mock("@/components/shopping/active-list-provider", () => ({
@@ -34,8 +34,11 @@ beforeEach(() => {
 afterEach(() => { cleanup(); window.history.replaceState({}, "", "/"); });
 it("filters shopping by saved place without hiding checkout", () => {
   render(<Page />);
+  fireEvent.click(screen.getByRole("button", { name: "Filtre" }));
   fireEvent.click(screen.getByRole("button", { name: "Lidl" }));
+  fireEvent.click(screen.getByRole("button", { name: "Închide" }));
   expect(screen.queryByText("Pere")).toBeNull();
+  expect(screen.getByRole("button", { name: "Lidl" }).getAttribute("aria-pressed")).toBe("true");
   expect(screen.getByRole("button", { name: "Am plătit" }).hasAttribute("disabled")).toBe(false);
 });
 it("finalizes a partial list with authoritative total and place, leaving it accessible", async () => {
@@ -92,8 +95,11 @@ it("returns from list capture to checkout with its draft total and ignores other
 it("always offers the supermarket source and limits place chips to saved or assigned places", () => {
   state.data = { ...state.data, items: [{ ...line("b", "Pere", null), source: null }], retailers: [{ id: "global", name: "Unrelated global store", household_id: null }, { id: "obor", name: "Piața Obor", household_id: "h1", kind: "piata" }] };
   render(<Page />);
+  expect(screen.queryByRole("button", { name: "Piața Obor" })).toBeNull();
+  fireEvent.click(screen.getByRole("button", { name: "Filtre" }));
   expect(screen.queryByRole("button", { name: "Unrelated global store" })).toBeNull();
   expect(screen.getByRole("button", { name: "Piața Obor" })).toBeTruthy();
+  fireEvent.click(screen.getByRole("button", { name: "Închide" }));
   fireEvent.click(screen.getByRole("button", { name: "Supermarket" }));
   expect(screen.getByText("Pere")).toBeTruthy();
 });

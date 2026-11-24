@@ -1,6 +1,7 @@
-import type { CamaraDB, TableName } from "@/lib/db/database";
+import type { CamaraDB, CheckoutWrite, OutboxEntry, TableName } from "@/lib/db/database";
 import { OPTIONAL_TABLES, SYNCED_TABLES, getMeta, setMeta } from "@/lib/db/database";
 import { applyRemoteRows, normalizeRemote } from "@/lib/db/write";
+import { stableId } from "@/lib/db/ids";
 import { nowIso } from "@/lib/clock";
 import { RemoteRejected, RemoteUnavailable, type PullFrom, type RemoteStore } from "./remote";
 import type { PhotoCache, RemoteFiles } from "./files";
@@ -155,6 +156,11 @@ export class SyncEngine {
       if (!entry) return;
       // Marcăm intrarea ca „în zbor”, ca scrierile noi să nu se comaseze în ea.
       await this.db.outbox.update(entry.seq!, { attempts: entry.attempts + 1 });
+      if (entry.checkout) {
+        if (await this.remote.checkout(entry.checkout)) await this.db.outbox.delete(entry.seq!);
+        else await this.reconcileCheckout(entry.seq!, entry.row_id, entry.checkout);
+        continue;
+      }
       try {
         if (entry.op === "insert") {
           await this.remote.upsert(entry.table, entry.payload);
@@ -175,8 +181,7 @@ export class SyncEngine {
           continue;
         }
         if (e instanceof RemoteRejected) {
-          await this.reject(entry.table, entry.row_id, entry.op, e.message);
-          await this.db.outbox.delete(entry.seq!);
+          await this.reject(entry, e.message);
           continue;
         }
         if (e instanceof RemoteUnavailable) throw e;
@@ -185,23 +190,76 @@ export class SyncEngine {
     }
   }
 
+  private async reconcileCheckout(seq: number, transactionId: string, checkout: CheckoutWrite) {
+    const confirmedItems = await this.remote.checkoutItems(transactionId);
+    const keys = new Map<TableName, Set<string>>();
+    const addKey = (table: TableName, id: unknown) => {
+      if (typeof id !== "string") return;
+      const ids = keys.get(table) ?? new Set<string>();
+      ids.add(id);
+      keys.set(table, ids);
+    };
+    for (const write of checkout.writes) addKey(write.table, write.row_id);
+    await Promise.all(confirmedItems.map(async (item) => {
+      addKey("shopping_transaction_items", item.id);
+      addKey("shopping_list_items", item.list_item_id);
+      addKey("products", item.product_id);
+      const [stockId, priceId] = await Promise.all([stableId("camara", item.id), stableId("pret", item.id)]);
+      addKey("pantry_items", stockId);
+      addKey("product_prices", priceId);
+    }));
+    const rows = await Promise.all([...keys].flatMap(([table, ids]) => [...ids].map(async (id) => ({
+      table, id, row: await this.remote.fetchRow(table, id),
+    }))));
+    const tables = ["outbox", "sync_errors", ...keys.keys()];
+    await this.db.transaction("rw", tables, async () => {
+      if (!(await this.db.outbox.get(seq))) return;
+      await this.db.outbox.delete(seq);
+      const pending = (await this.db.outbox.toArray()).flatMap((entry) => entry.checkout?.writes ?? [entry]);
+      for (const { table, id, row } of rows) {
+        const local = this.db.table(table);
+        const later = pending.filter((entry) => entry.table === table && entry.row_id === id);
+        const base = row ?? later.find((entry) => entry.op === "insert")?.payload;
+        if (base) {
+          const merged = Object.assign({}, base, ...later.map((entry) => entry.payload));
+          await local.put(normalizeRemote(table, merged));
+        } else {
+          await local.delete(id);
+        }
+      }
+      await this.db.sync_errors.add({
+        table: "shopping_transactions", row_id: transactionId, op: "insert", at: nowIso(),
+        message: "Tura a fost deja confirmată pe alt dispozitiv. Am preluat cumpărăturile confirmate.",
+      });
+    });
+  }
+
   /** Serverul a refuzat o modificare: o notăm și readucem rândul la versiunea serverului. */
-  private async reject(table: TableName, rowId: string, op: "insert" | "update", message: string) {
-    await this.db.sync_errors.add({ table, row_id: rowId, op, message, at: nowIso() });
-    const photo = table === "recipe_photos" ? await this.db.recipe_photos.get(rowId) : undefined;
-    // Modificările ulterioare ale aceluiași rând depind de cea refuzată.
-    const dependent = (await this.db.outbox.toArray()).filter((e) => e.table === table && e.row_id === rowId);
-    await this.db.outbox.bulkDelete(dependent.map((e) => e.seq!));
-    const serverRow = await this.remote.fetchRow(table, rowId).catch(() => null);
-    if (serverRow) await this.db.table(table).put(normalizeRemote(table, serverRow));
-    else await this.db.table(table).delete(rowId);
-    // Fotografia refuzată nu există pe server: fișierul ei, deja urcat, nu mai folosește nimănui.
-    if (photo && !serverRow) {
-      await this.db.photo_uploads.delete(rowId);
-      await this.db.photo_removals.put({ storage_path: photo.storage_path, photo_id: rowId, created_at: nowIso() });
-    }
-    // Ștergerea refuzată: fotografia e încă activă pe server, deci fișierul rămâne.
-    if (photo && serverRow && !serverRow.deleted_at) await this.db.photo_removals.delete(String(serverRow.storage_path));
+  private async reject(entry: OutboxEntry, message: string) {
+    const { table, row_id: rowId, op } = entry;
+    // Dacă citirea eșuează, păstrăm rândul local și coada pentru următoarea încercare.
+    const serverRow = await this.remote.fetchRow(table, rowId);
+    const localTable = this.db.table(table);
+    const tables: string[] = [table, "outbox", "sync_errors"];
+    if (table === "recipe_photos") tables.push("photo_uploads", "photo_removals");
+
+    await this.db.transaction("rw", tables, async () => {
+      if (!(await this.db.outbox.get(entry.seq!))) return;
+      await this.db.sync_errors.add({ table, row_id: rowId, op, message, at: nowIso() });
+      const photo = table === "recipe_photos" ? await this.db.recipe_photos.get(rowId) : undefined;
+      // Modificările ulterioare ale aceluiași rând depind de cea refuzată.
+      await this.db.outbox.where("[table+row_id]").equals([table, rowId]).delete();
+      if (serverRow) await localTable.put(normalizeRemote(table, serverRow));
+      else await localTable.delete(rowId);
+
+      // Fotografia refuzată nu există pe server: fișierul ei, deja urcat, nu mai folosește nimănui.
+      if (photo && !serverRow) {
+        await this.db.photo_uploads.delete(rowId);
+        await this.db.photo_removals.put({ storage_path: photo.storage_path, photo_id: rowId, created_at: nowIso() });
+      }
+      // Ștergerea refuzată: fotografia e încă activă pe server, deci fișierul rămâne.
+      if (photo && serverRow && !serverRow.deleted_at) await this.db.photo_removals.delete(String(serverRow.storage_path));
+    });
   }
 
   /** Urcă fișierele fotografiilor noi. Întoarce eroarea temporară, dacă a fost una. */

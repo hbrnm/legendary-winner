@@ -4,6 +4,7 @@
 import { execFileSync, spawn, type ChildProcess } from "node:child_process";
 import { mkdtempSync, readdirSync, readFileSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
+import { fileURLToPath } from "node:url";
 import { join } from "node:path";
 import pg from "pg";
 import type { TestProject } from "vitest/node";
@@ -14,7 +15,7 @@ declare module "vitest" {
   }
 }
 
-const ROOT = new URL("../..", import.meta.url).pathname;
+const ROOT = fileURLToPath(new URL("../..", import.meta.url));
 let server: ChildProcess | null = null;
 let dataDir: string | null = null;
 
