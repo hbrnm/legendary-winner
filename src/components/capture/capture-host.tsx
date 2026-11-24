@@ -1,6 +1,7 @@
 "use client";
 
 import { lazy, Suspense, useCallback, useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { usePathname, useRouter } from "next/navigation";
 import { Camera, Copy, Plus, Receipt, ShoppingBasket, Wallet } from "lucide-react";
 import { useAction, useData } from "@/components/app/hooks";
@@ -33,7 +34,7 @@ const SHORTCUTS: { id: ExpenseShortcut; name: string }[] = [
 const chip = "inline-flex min-h-12 shrink-0 items-center rounded-full px-4 text-sm focus-visible:outline-2 focus-visible:outline-brand focus-visible:-outline-offset-2 transition-colors duration-150 ease-out";
 
 /** One capture host per visible application shell; every entry point uses it. */
-export function CaptureHost() {
+export function CaptureHost({ inlineTarget }: { inlineTarget?: HTMLElement | null } = {}) {
   const { familyBudgetEnabled, ctx } = useApp();
   const { run, busy } = useAction();
   const toast = useToast();
@@ -151,13 +152,24 @@ export function CaptureHost() {
   }
   const fabLabel = context === 'recipes' ? 'Acțiuni rețete' : context === 'pantry' ? 'Adaugă în cămară' : context === 'budget' ? 'Acțiuni buget' : context === 'shopping' ? 'Acțiuni cumpărături' : 'Adaugă rapid';
   const menuTitle = context === 'recipes' ? 'Rețete' : context === 'budget' ? 'Buget' : context === 'shopping' ? 'Cumpărături' : 'Adaugă rapid';
+  const trigger = context && !request && !menu && !pantryOpen && !copyOpen && (!keyboard || inlineTarget) && (
+    <button
+      type="button"
+      ref={fabRef}
+      className={inlineTarget ? "capture-inline-trigger" : "capture-fab focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-brand"}
+      aria-label={fabLabel}
+      onClick={() => context === "pantry" ? setPantryOpen(true) : setMenu(true)}
+    >
+      <Plus size={inlineTarget ? 22 : 28} />
+    </button>
+  );
   return <>
-    <input ref={cameraInput} type="file" accept="image/*" capture="environment" className="hidden" data-testid="camera-rapida" onChange={e=>{
+    <input ref={cameraInput} type="file" accept="image/*" capture="environment" className="hidden" tabIndex={-1} aria-hidden="true" data-testid="camera-rapida" onChange={e=>{
       const file=e.target.files?.[0];e.target.value='';
       if(!file)return;
       openCapture({mode:'scan'},file);
     }}/>
-    {context && !request && !menu && !pantryOpen && !copyOpen && !keyboard && <button type="button" ref={fabRef} className="capture-fab focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-brand" aria-label={fabLabel} onClick={() => context==='pantry'?setPantryOpen(true):setMenu(true)}><Plus size={28} /></button>}
+    {inlineTarget ? createPortal(trigger, inlineTarget) : inlineTarget === undefined && trigger}
     {pantryOpen&&<PantryItemSheet onClose={()=>setPantryOpen(false)}/>}
     {copyOpen&&<ListActionsSheet open={copyOpen} onClose={()=>setCopyOpen(false)}/>}
     <Sheet open={menu} onClose={() => setMenu(false)} title={menuTitle}>

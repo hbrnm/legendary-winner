@@ -220,6 +220,11 @@ body {
   textarea {
     font-size: max(16px, 1em);
   }
+
+  :focus-visible {
+    outline: 2px solid var(--brand);
+    outline-offset: 2px;
+  }
 }
 
 body {
@@ -355,6 +360,37 @@ input[type="checkbox"], input[type="radio"] { accent-color: var(--brand); }
 .capture-fab:hover { background: var(--brand-strong); }
 .capture-fab:active { transform: scale(0.94); }
 @media (min-width: 600px) { .app-nav-fade { display: none; } .capture-fab { bottom: 24px; } .app-main { padding-bottom: 112px; } }
+
+.shopping-list,
+.home-today,
+.budget-overview {
+  --brand: light-dark(#46552c, #f3b68e);
+  --brand-strong: light-dark(#354120, #ffd0ae);
+  --brand-soft: light-dark(#e6e9d9, #352b28);
+  --wood: light-dark(#46552c, #f3b68e);
+}
+.capture-inline-trigger {
+  display: grid;
+  place-items: center;
+  width: 48px;
+  border-radius: 50%;
+  color: var(--brand);
+  background: var(--brand-soft);
+}
+.capture-inline-trigger:hover { background: var(--surface-2); }
+.capture-inline-trigger:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; }
+.app-main.shopping-list-with-checkout { padding-bottom: calc(10rem + env(safe-area-inset-bottom, 0px)); }
+.shopping-list-with-checkout :is(button, input, a) { scroll-margin-bottom: calc(10rem + env(safe-area-inset-bottom, 0px)); }
+.shopping-list-checkout {
+  position: fixed;
+  z-index: 30;
+  inset: auto 0 0;
+  border-top: 1px solid var(--line);
+  background: light-dark(#fffaf2, #29211c);
+  padding: 12px 16px calc(12px + env(safe-area-inset-bottom, 0px));
+}
+@media (min-width: 600px) { .shopping-list-checkout { left: 96px; } }
+@media (min-width: 1200px) { .shopping-list-checkout { left: 256px; } }
 
 /* Progressive enhancement: older browsers retain a scrollable text field. */
 .growing-textarea {

@@ -143,7 +143,7 @@ test("gospodăria model: cămară, listă, buget, plan", async ({ page }) => {
   await expect(page.getByText("expiră în 2 zile", { exact: true })).toBeVisible();
   await expect(page.getByText("Un produs expiră curând")).toBeVisible();
 
-  await page.goto("/cumparaturi/");
+  await page.goto("/cumparaturi/?toate=1");
   await expect(page.getByText(/3 din 10 în coș · ~/)).toBeVisible();
   await page.getByText("Cumpărături săptămânale").click();
   await expect(page.getByRole("heading", { name: "Cumpărături săptămânale" })).toBeVisible();
@@ -203,8 +203,10 @@ for (const scheme of ["light", "dark"] as const) {
 
     await page.goto("/cumparaturi/");
     await page.getByText("Cumpărături săptămânale").click();
+    await page.getByRole("button", { name: "Filtre" }).click();
     await expect(page.getByRole("radiogroup", { name: "Grupare" })).toBeVisible();
     expect(await wrapped(page, "[aria-label='Grupare'] button")).toEqual([]);
+    await page.getByRole("dialog", { name: "Detaliile listei" }).getByRole("button", { name: "Închide" }).click();
     // În fereastra produsului, selectoarele (inclusiv „Sursa”, cu 4 variante) nu ies din ecran.
     await page.getByText("Mere").first().click();
     const groups = page.getByRole("dialog").getByRole("radiogroup");

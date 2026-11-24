@@ -214,6 +214,35 @@ describe("sincronizarea între dispozitive", () => {
     expect(remote.tables.get("shopping_list_items")!.has("i2")).toBe(true);
   });
 
+  it("păstrează scrierile locale când citirea de recuperare eșuează", async () => {
+    const a = device(remote);
+    await addList(a.db, "l1");
+    await addItem(a.db, "i1", "l1");
+    await a.sync.syncNow();
+
+    await updateRow(a.db, "shopping_list_items", "i1", { actual_price: -1 }, W);
+    // O modificare făcută după prima încercare trebuie să rămână și ea în coadă.
+    const fetchRow = vi.spyOn(remote, "fetchRow").mockImplementationOnce(async () => {
+      await updateRow(a.db, "shopping_list_items", "i1", { note: "Notă locală" }, W);
+      throw new RemoteUnavailable("Conexiune întreruptă");
+    });
+    remote.rejectIf = (table, row) => (table === "shopping_list_items" && row.actual_price === -1 ? "Suma nu poate fi negativă" : null);
+    await addItem(a.db, "i2", "l1", "Pâine");
+
+    await a.sync.syncNow();
+    expect(await a.db.shopping_list_items.get("i1")).toMatchObject({ actual_price: -1, note: "Notă locală" });
+    expect((await a.db.outbox.orderBy("seq").toArray()).map((entry) => entry.row_id)).toEqual(["i1", "i2", "i1"]);
+    expect(a.sync.getStatus()).toMatchObject({ state: "offline", pending: 3, rejected: 0 });
+
+    await a.sync.syncNow();
+    expect(fetchRow).toHaveBeenCalledTimes(2);
+    expect(await a.db.shopping_list_items.get("i1")).toMatchObject({ actual_price: null, note: null });
+    expect(await a.db.outbox.count()).toBe(0);
+    expect(await a.db.sync_errors.toArray()).toEqual([expect.objectContaining({ row_id: "i1", message: "Suma nu poate fi negativă" })]);
+    expect(remote.tables.get("shopping_list_items")!.has("i2")).toBe(true);
+    expect(a.sync.getStatus()).toMatchObject({ state: "sincronizat", pending: 0, rejected: 1 });
+  });
+
   it("o inserare refuzată dispare și local", async () => {
     const a = device(remote);
     remote.rejectIf = (table) => (table === "shopping_lists" ? "Nu ai acces la această gospodărie" : null);

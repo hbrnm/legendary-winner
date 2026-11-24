@@ -28,9 +28,10 @@ test("IA: captură universală, categorie școală, sold și disponibil zilnic",
   await expect(page.getByText("Caiete și rechizite",{exact:true})).toBeVisible();
   await page.getByRole("radio",{name:"Bonuri",exact:true}).click();
   await expect(page.getByText("Caiete și rechizite",{exact:true})).toHaveCount(0);
+  await page.goto("/buget/");
+  await expect(page.getByText(/37,50\s+RON\/zi/)).toBeVisible();
   await page.goto("/");
   await expect(page.getByText(/900,00\s+RON/).first()).toBeVisible();
-  await expect(page.getByText(/37,50\s+RON\/zi/)).toBeVisible();
   await expect(page.getByRole("heading",{name:"Azi la masă",exact:true})).toBeVisible();
   const nav=page.locator(".app-mobile-nav");
   expect(await nav.getByRole("link").allTextContents()).toEqual(["Acasă","Rețete","Cămară","Cumpărături","Buget"]);

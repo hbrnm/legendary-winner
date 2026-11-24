@@ -1,20 +1,26 @@
 import { expect, test } from "@playwright/test";
 import { createList, quickAdd, start } from "./helpers";
 
-test("Ritm: cardul listei urmărește adăugarea, bifarea și salvarea după reîncărcare", async ({ page }) => {
+test("Azi: acțiunea principală urmărește adăugarea și bifarea după reîncărcare", async ({ page }) => {
   await start(page);
-  const list = page.locator("main").getByRole("link", { name: /^Cumpărături/ });
-  await expect(list).toContainText("Nimic de luat");
-  await quickAdd(page, "roșii");
+  const search = page.getByRole("combobox", { name: "Caută sau adaugă un produs" });
+  const list = page.getByRole("link", { name: /^Deschide lista/ });
+  await expect(search).toBeVisible();
+  await expect(page.getByRole("link", { name: "Planul săptămânii" })).toBeVisible();
+  await search.fill("roșii");
+  await expect(page.getByRole("listbox")).toBeVisible();
+  await search.press("Enter");
   await expect(list).toContainText(/1\s*de luat/);
+  await expect(list).toBeFocused();
   await list.click();
   await expect(page.getByRole("heading", { name: "Cumpărături săptămânale", exact: true })).toBeVisible();
   await page.getByRole("checkbox", { name: "Bifează Roșii", exact: true }).click();
   await expect(page.getByText("Ai tot! Poți înregistra plata.")).toBeVisible();
   await page.goto("/");
-  await expect(list).toContainText("Nimic de luat");
+  await expect(search).toBeVisible();
+  await expect(page.getByRole("link", { name: "Vezi lista" })).toBeVisible();
   await page.reload();
-  await expect(list).toContainText("Nimic de luat");
+  await expect(search).toBeVisible();
 });
 
 test("Ritm: bara plutitoare lasă spațiu conținutului și toate destinațiile sunt accesibile", async ({ page }) => {
@@ -31,7 +37,7 @@ test("Ritm: bara plutitoare lasă spațiu conținutului și toate destinațiile 
     await expect(page).toHaveURL(path);
     await expect(link).toHaveAttribute("aria-current", "page");
     if (name === "Acasă") {
-      await expect(page.getByRole("heading", { level: 1 })).toHaveCount(0);
+      await expect(page.getByRole("heading", { level: 1, name: "Azi" })).toBeVisible();
       await expect(page.getByRole("heading", { name: "Azi la masă" })).toBeVisible();
     } else await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
   }
@@ -48,7 +54,7 @@ test("Ritm: cardul compact păstrează accesul la lista cu nume lung pe telefon"
   // Navigăm abia după afișarea produsului salvat în listă.
   await expect(page.getByRole("checkbox", { name: "Bifează Roșii", exact: true })).toBeVisible();
   await page.goto("/");
-  const list = page.locator("main").getByRole("link", { name: /^Cumpărături/ });
+  const list = page.getByRole("link", { name: /^Deschide lista/ });
   await expect(list).toContainText(/1\s*de luat/);
   expect(await list.evaluate(el => el.scrollWidth - el.clientWidth)).toBeLessThanOrEqual(0);
   await list.click();

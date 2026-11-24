@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState, type Ref } from "react";
 import Link from "next/link";
 import { ChevronLeft, ChevronRight, Download, Pencil, Plus, Receipt, Shapes, Tags, Wallet } from "lucide-react";
 import { IncomeSheet } from "@/components/budget/income-sheet";
@@ -28,7 +28,7 @@ import type { Budget, PurchaseSource } from "@/lib/domain/types";
 
 const MONTHS_SHORT = ["ian", "feb", "mar", "apr", "mai", "iun", "iul", "aug", "sep", "oct", "nov", "dec"];
 
-function BudgetScreen() {
+function BudgetScreen({ captureTarget, captureRef }: { captureTarget: HTMLDivElement | null; captureRef: Ref<HTMLDivElement> }) {
   const today = toISODate(now());
   const [month, setMonth] = useState(startOfMonth(today));
   const [split, setSplit] = useState<"familie" | "categorii" | "magazine">("familie");
@@ -52,7 +52,7 @@ function BudgetScreen() {
     setIncomeOpen(false);
     if (fromFabRef.current) {
       fromFabRef.current = false;
-      requestAnimationFrame(() => document.querySelector<HTMLButtonElement>('.capture-fab')?.focus());
+      requestAnimationFrame(() => captureTarget?.querySelector("button")?.focus());
     }
   }
 
@@ -126,6 +126,7 @@ function BudgetScreen() {
   const mainStatus = view.statuses.find((s) => s.budget.period === "lunar" && s.budget.scope.kind === "familie")
     ?? view.statuses.find((s) => s.budget.period === "lunar" && (s.budget.scope.kind === "total" || s.budget.scope.kind === "alimente"));
   const basketStatus = mainStatus && (mainStatus.budget.scope.kind === "familie" || mainStatus.budget.scope.kind === "total") ? mainStatus : undefined;
+  const orderedStatuses = mainStatus ? [mainStatus, ...view.statuses.filter((status) => status !== mainStatus)] : view.statuses;
   const isCurrentMonth = month === startOfMonth(today);
 
   function exportCsv(all: boolean) {
@@ -149,6 +150,7 @@ function BudgetScreen() {
       <PageHeader
         title="Buget"
         subtitle="Ce plănuiești și ce cheltui de fapt"
+        action={<div ref={captureRef} />}
       />
 
       <IncomeSheet
@@ -164,7 +166,7 @@ function BudgetScreen() {
         </EmptyState>
       ) : (
         <div className="flex flex-col gap-3.5">
-          {view.statuses.map((s) => (
+          {orderedStatuses.map((s) => (
             <Card key={s.budget.id} className="p-4 sm:p-5">
               <div className="flex items-start justify-between gap-2">
                 <div className="min-w-0">
@@ -177,44 +179,48 @@ function BudgetScreen() {
                   <Pencil size={18} />
                 </IconButton>
               </div>
-              <div className="mt-3 flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
-                <span className={`text-[28px] font-bold leading-none tracking-tight tabular ${s.over ? "text-accent" : "text-ink"}`}>{formatRon(Math.abs(s.remaining))} <span className="text-sm font-normal text-ink-2">{s.over ? "peste buget" : "rămași"}</span></span>
-                <span className="whitespace-nowrap text-sm text-ink-2 tabular">din {formatRon(s.budget.amount)}</span>
-              </div>
-              {s.budget.period === "lunar" && isCurrentMonth && !s.over && (
-                <div className="mt-2.5 flex items-center gap-1.5 text-xs text-ink-2 tabular">
-                  <span className="inline-block h-1.5 w-1.5 rounded-full bg-sprout" aria-hidden />
-                  <span>~{formatRon(dailyBudgetAvailable(s.remaining, today))}/zi disponibili până la finalul lunii</span>
+              <dl className={`mt-4 grid grid-cols-2 gap-x-3 gap-y-3 tabular ${s === basketStatus ? "sm:grid-cols-[1.35fr_1fr_1fr]" : ""}`}>
+                <div className={s === basketStatus ? "col-span-2 sm:col-span-1" : ""}>
+                  <dt className="text-xs font-medium text-ink-2">{s.over ? "Depășire" : "Rămas"}</dt>
+                  <dd className={`mt-1 text-2xl font-bold leading-tight tracking-tight ${s.over ? "text-accent" : "text-ink"}`}>
+                    {formatRon(Math.abs(s.remaining))} <span className="sr-only">{s.over ? "peste buget" : "rămași"}</span>
+                  </dd>
+                  <dd className="text-xs text-ink-2">din {formatRon(s.budget.amount)}</dd>
                 </div>
-              )}
-              <p className="mt-1 text-xs text-ink-2 tabular">Cheltuit {formatRon(s.spent)}</p>
-              <div className="mt-2.5">
+                <div className="min-w-0 border-l border-line pl-3">
+                  <dt className="flex items-center gap-1.5 text-xs font-medium text-ink-2">
+                    {s === basketStatus && data.openEstimate > 0 && <span aria-hidden className={`h-2 w-2 rounded-full ${s.over ? "bg-accent" : "bg-brand"}`} />}
+                    Cheltuit
+                  </dt>
+                  <dd className="mt-1 text-lg font-semibold leading-tight">{formatRon(s.spent)}</dd>
+                </div>
+                {s === basketStatus && (
+                  <div className="min-w-0 border-l border-line pl-3">
+                    <dt className="flex items-center gap-1.5 text-xs font-medium text-ink-2">
+                      {data.openEstimate > 0 && <span aria-hidden className="h-2 w-2 shrink-0 rounded-full bg-warn" />}
+                      Estimat în coș
+                    </dt>
+                    <dd className="mt-1 text-lg font-semibold leading-tight">
+                      {data.openEstimate === 0 && data.openUnknown > 0 ? "Necunoscut" : formatRon(data.openEstimate)}
+                    </dd>
+                  </div>
+                )}
+              </dl>
+              <div className="mt-4">
                 {s === basketStatus && data.openEstimate > 0 ? (
-                  <>
-                    <DualBudgetBar spent={s.spent} pending={data.openEstimate} total={s.budget.amount} label={`${s.budget.name}: cheltuit și coșul de acum`} />
-                    <p className="mt-1.5 flex flex-wrap gap-x-4 gap-y-1 text-xs text-ink-2 tabular">
-                      <span className="inline-flex items-center gap-1.5">
-                        <span aria-hidden className="h-2.5 w-2.5 rounded-full bg-brand" /> Cheltuit {formatRon(s.spent)}
-                      </span>
-                      <span className="inline-flex items-center gap-1.5">
-                        <span aria-hidden className="h-2.5 w-2.5 rounded-full bg-warn" /> În coș, estimat {formatRon(data.openEstimate)}
-                      </span>
-                    </p>
-                  </>
+                  <DualBudgetBar spent={s.spent} pending={data.openEstimate} total={s.budget.amount} label={`${s.budget.name}: cheltuit și coșul de acum`} />
                 ) : (
                   <BudgetBar pct={s.used_pct} label={`${s.budget.name}: ${s.used_pct}% folosit`} />
                 )}
               </div>
-              {s.over ? (
-                <p className="mt-2 text-sm font-medium text-accent">
-                  Ai depășit bugetul cu {formatRon(-s.remaining)}.
-                  {s.projected != null && ` La ritmul actual ajungi la ${formatRon(s.projected)} la final de lună.`}
-                </p>
-              ) : s.projected != null ? (
-                <p className="mt-2 text-sm text-ink-2">
-                  La ritmul actual ajungi la {formatRon(s.projected)} la final de lună.
-                </p>
-              ) : null}
+              {((s.budget.period === "lunar" && isCurrentMonth && !s.over) || s.projected != null) && (
+                <div className="mt-3 flex flex-wrap gap-x-4 gap-y-1 border-t border-line pt-2 text-xs text-ink-2 tabular">
+                  {s.budget.period === "lunar" && isCurrentMonth && !s.over && (
+                    <p>~{formatRon(dailyBudgetAvailable(s.remaining, today))}/zi disponibili</p>
+                  )}
+                  {s.projected != null && <p>Proiecție la finalul lunii: {formatRon(s.projected)}</p>}
+                </div>
+              )}
               {s.items_without_amount > 0 && <p className="mt-1 text-xs text-warn">{s.items_without_amount === 1 ? "Un produs cumpărat nu are preț" : `${count(s.items_without_amount, "produs", "produse")} cumpărate nu au preț`}. Totalurile declarate ale bonurilor sunt incluse.</p>}
               {s.budget.income_sources && s.budget.income_sources.length > 0 && (() => {
                 const incSum = incomeSummary(s.budget.income_sources, s.budget.amount);
@@ -390,9 +396,11 @@ function BudgetScreen() {
 }
 
 export default function Page() {
+  const [captureTarget, setCaptureTarget] = useState<HTMLDivElement | null>(null);
+
   return (
-    <AppShell>
-      <BudgetScreen />
+    <AppShell captureTarget={captureTarget} mainClassName="budget-overview">
+      <BudgetScreen captureTarget={captureTarget} captureRef={setCaptureTarget} />
     </AppShell>
   );
 }

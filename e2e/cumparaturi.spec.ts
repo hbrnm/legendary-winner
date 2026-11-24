@@ -24,7 +24,10 @@ test("lista: adăugare rapidă, cantități, preț, total, sursă piață", asyn
   await expect(page.getByRole("region", { name: "În coș" }).getByText("Piață", { exact: false })).toBeVisible();
 
   // Gruparea pe magazine, pentru ce mai e de luat.
-  await page.getByRole("radio", { name: "Pe magazine" }).click();
+  await page.getByRole("button", { name: "Filtre" }).click();
+  const filters = page.getByRole("dialog", { name: "Detaliile listei" });
+  await filters.getByRole("radio", { name: "Pe magazine" }).click();
+  await filters.getByRole("button", { name: "Închide" }).click();
   await expect(page.getByRole("heading", { name: "Oriunde" })).toBeVisible();
   await expect(page.getByRole("heading", { name: "Piață" })).toHaveCount(0);
 
