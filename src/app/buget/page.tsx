@@ -244,20 +244,20 @@ function BudgetScreen({ captureTarget, captureRef }: { captureTarget: HTMLDivEle
             <Pencil size={18} />
           </IconButton>}
         </div>
-        <dl className={`mt-4 grid grid-cols-2 gap-x-3 gap-y-3 tabular ${s === basketStatus ? "sm:grid-cols-[1.35fr_1fr_1fr]" : ""}`}>
-          <div className={s === basketStatus ? "col-span-2 sm:col-span-1" : ""}>
+        <dl className={`mt-4 grid gap-x-3 gap-y-3 tabular ${hasLists ? "grid-cols-2 sm:grid-cols-[minmax(0,1.35fr)_minmax(0,1fr)_minmax(0,1fr)]" : "grid-cols-1 sm:grid-cols-2"}`}>
+          <div className={hasLists ? "col-span-2 min-w-0 sm:col-span-1" : "min-w-0"}>
             <dt className="text-sm font-medium text-ink-2">{balanceLabel}</dt>
-            <dd className={`mt-1 font-bold leading-tight tracking-tight ${primary ? "text-3xl" : "text-2xl"} ${balance < 0 ? "text-accent" : "text-ink"}`}>
+            <dd className={`mt-1 wrap-anywhere font-bold leading-tight tracking-tight ${primary ? "text-3xl" : "text-2xl"} ${balance < 0 ? "text-accent" : "text-ink"}`}>
               {formatRon(Math.abs(balance))} <span className={balance < 0 ? "text-sm font-medium" : "sr-only"}>{balance < 0 ? "peste buget" : "rămași"}</span>
             </dd>
             <dd className="text-xs text-ink-2">din {formatRon(s.budget.amount)}</dd>
           </div>
-          <div className={`min-w-0 border-l pl-3 ${primary ? "border-meal-hero-border" : "border-line"}`}>
+          <div className={`min-w-0 ${hasLists ? "border-l pl-3" : "border-t pt-3 sm:border-t-0 sm:border-l sm:pt-0 sm:pl-3"} ${primary ? "border-meal-hero-border" : "border-line"}`}>
             <dt className="flex items-center gap-1.5 text-xs font-medium text-ink-2">
               {s === basketStatus && openEstimate > 0 && <span aria-hidden className={`h-2 w-2 rounded-full ${s.over ? "bg-accent" : "bg-secondary"}`} />}
               {s.budget.period === "lunar" ? "Cheltuit în lună" : "Cheltuit în săptămână"}
             </dt>
-            <dd className="mt-1 text-lg font-semibold leading-tight">{formatRon(s.spent)}</dd>
+            <dd className="mt-1 wrap-anywhere text-lg font-semibold leading-tight">{formatRon(s.spent)}</dd>
             {primary && view!.monthDeltaPct != null && view!.monthDeltaPct !== 0 && (
               <dd className={`mt-0.5 text-xs font-medium ${view!.monthDeltaPct > 0 ? "text-accent" : "text-info"}`}>
                 {view!.monthDeltaPct > 0 ? `+${view!.monthDeltaPct}%` : `${view!.monthDeltaPct}%`} față de luna trecută
@@ -270,7 +270,7 @@ function BudgetScreen({ captureTarget, captureRef }: { captureTarget: HTMLDivEle
                 {openEstimate > 0 && <span aria-hidden className="h-2 w-2 shrink-0 rounded-full bg-tertiary" />}
                 Liste deschise
               </dt>
-              <dd className="mt-1 text-lg font-semibold leading-tight">
+              <dd className="mt-1 wrap-anywhere text-lg font-semibold leading-tight">
                 {openEstimate === 0 && openUnknown > 0 ? "Necunoscut" : formatRon(openEstimate)}
               </dd>
             </div>
