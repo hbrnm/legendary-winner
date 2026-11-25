@@ -65,7 +65,7 @@ test("lista: duplicare, arhivare, ștergere cu anulare", async ({ page }) => {
 test("lista recurentă rămâne pentru data viitoare", async ({ page }) => {
   await start(page, "/cumparaturi/?toate=1");
   await page.getByRole("link", { name: /Cumpărături săptămânale/ }).click();
-  await quickAdd(page, "detergent de vase");
+  await quickAdd(page, "detergent de vase", "Detergent de vase");
   await page.getByRole("checkbox", { name: /Bifează Detergent de vase/ }).click();
   await page.getByRole("button", { name: "Am plătit", exact: true }).click();
   await page.getByRole("button", { name: "Finalizează cumpărăturile" }).click();
