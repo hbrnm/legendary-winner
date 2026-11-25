@@ -53,7 +53,7 @@ test("bonul pe o listă: propune, confirmi, bifează cu prețul; al doilea bon �
   await expect(page.getByRole("listitem").filter({ hasText: "pe bon: VDR.LAP.3,5%1L" })).toContainText("Lapte integral");
   await page.getByRole("button", { name: "Salvează bonul" }).click();
   await page.waitForURL(/\/buget\//);
-  await page.getByRole("link", {name:/^Tranzacții/}).click();
+  await page.getByRole("link", {name:"Tranzacții",exact:true}).click();
   await page.getByRole("link", {name:"Istoricul cumpărăturilor",exact:true}).click();
   await expect(page.getByText(/7,61/).first()).toBeVisible();
   // În istoric, linia are numele de pe bon, cu produsul din catalog dedesubt (.tasks/016).
@@ -86,7 +86,7 @@ test("fără bon: scrii cumpărăturile, le verifici, intră în istoric", async
   await page.getByRole("button", { name: "Continuă" }).click();
   await expect(page.getByRole("alert").filter({ hasText: "Scrie" })).toHaveText("Scrie cel puțin un produs, de exemplu „pâine 5,50”.");
 
-  await page.getByLabel("Scrie cumpărăturile").fill("ceapă galbenă 1 kg 2,32, lapte integral 2 buc 10,58, unt de arahide 24,99");
+  await page.getByLabel("Scrie cumpărăturile").fill("ceapă galbenă 1 kg 2,32, lapte integral 2 buc 10,58, unt de alune de pădure 24,99");
   await page.getByRole("button", { name: "Continuă" }).click();
   await expect(page.getByRole("heading", { name: "Verifică produsele" })).toBeVisible();
   await expect(page.getByText("Am găsit 3 produse.", { exact: false })).toBeVisible();
@@ -99,9 +99,9 @@ test("fără bon: scrii cumpărăturile, le verifici, intră în istoric", async
   await page.getByRole("button", { name: "Continuă" }).click();
 
   // Ce nu e în catalog devine produs nou, cu numele pe care îl corectez.
-  const unt = page.getByRole("listitem").filter({ hasText: "ai scris: unt de arahide" });
+  const unt = page.getByRole("listitem").filter({ hasText: "ai scris: unt de alune de pădure" });
   await expect(unt.getByText("produs nou")).toBeVisible();
-  await unt.getByLabel("Numele în catalog").fill("Unt de arahide");
+  await unt.getByLabel("Numele în catalog").fill("Unt de alune de pădure");
   // Categoria e propusă după catalog (.tasks/016); o las în „Diverse”, ca s-o mut din Buget.
   await expect(unt.getByLabel("Categoria")).toHaveValue("lactate");
   await unt.getByLabel("Categoria").selectOption("diverse");
@@ -115,8 +115,8 @@ test("fără bon: scrii cumpărăturile, le verifici, intră în istoric", async
   await page.goto("/buget/");
   await page.getByRole("link", { name: "Mută din Diverse (1)" }).click();
   await expect(page.getByRole("heading", { name: "Produse din Diverse" })).toBeVisible();
-  await page.getByRole("listitem").filter({ hasText: "Unt de arahide" }).getByLabel("Categoria").selectOption("dulciuri-gustari");
-  await expect(page.getByText("Am mutat „Unt de arahide” la Dulciuri și gustări.")).toBeVisible();
+  await page.getByRole("listitem").filter({ hasText: "Unt de alune de pădure" }).getByLabel("Categoria").selectOption("dulciuri-gustari");
+  await expect(page.getByText("Am mutat „Unt de alune de pădure” la Dulciuri și gustări.")).toBeVisible();
   await expect(page.getByText("Nu mai ai nimic în Diverse.")).toBeVisible();
 
   // În cămară, produsul venit din cumpărături are ziua de „consumat”.

@@ -3,42 +3,42 @@ import { createList, quickAdd, start } from "./helpers";
 
 test("rețetă: porții, cost incomplet, alergeni, favorite, ingrediente în listă", async ({ page }) => {
   await start(page, "/retete/");
-  await page.getByLabel("Caută rețete").fill("papanasi");
-  await page.getByRole("link", { name: /Papanași/ }).click();
-  await expect(page.getByRole("heading", { name: /Papanași/ })).toBeVisible();
-  await expect(page.getByText(/Conține: .*gluten/)).toBeVisible();
-  await expect(page.getByText("500 g")).toBeVisible();
+  await page.getByLabel("Caută rețete").fill("omletă cu spanac");
+  await page.getByRole("link", { name: /Omletă cu spanac/ }).click();
+  await expect(page.getByRole("heading", { name: /Omletă cu spanac/ })).toBeVisible();
+  await expect(page.getByText(/Conține: .*lapte/)).toBeVisible();
+  await expect(page.getByText("150 g", { exact: true })).toBeVisible();
   await page.getByRole("button", { name: "Mai multe porții" }).click();
   await page.getByRole("button", { name: "Mai multe porții" }).click();
   await page.getByRole("button", { name: "Mai multe porții" }).click();
-  await expect(page.getByText("750 g")).toBeVisible(); // 6 → 9 porții
+  await expect(page.getByText("600 g", { exact: true })).toBeVisible(); // 1 → 4 porții
   await expect(page.getByText(/Costul apare după ce introduci prețuri/)).toBeVisible();
 
-  // Valorile pe porție nu depind de numărul de porții; uleiul de prăjit nu se socotește (.tasks/016, etapa 4).
+  // Valorile declarate pe porție rămân aceleași când se schimbă numărul de porții.
   const nutrition = page.getByRole("region", { name: "Valori nutriționale" });
-  await expect(nutrition.getByText("338 kcal")).toBeVisible();
-  await expect(nutrition.getByText("Fără: Zahăr vanilat, Praf de copt, Ulei de floarea-soarelui (pentru prăjit).")).toBeVisible();
+  await expect(nutrition.getByText("365 kcal")).toBeVisible();
+  await expect(nutrition.getByText("Valori declarate în colecția sursă.")).toBeVisible();
 
   await page.getByRole("button", { name: "Adaugă la favorite" }).click();
   await expect(page.getByRole("button", { name: "Scoate de la favorite" })).toBeVisible();
 
   await page.getByRole("button", { name: "În listă" }).click();
-  await page.getByRole("button", { name: "Adaugă pentru 9 porții" }).click();
+  await page.getByRole("button", { name: "Adaugă pentru 4 porții" }).click();
   await page.getByRole("button", { name: "Vezi lista" }).click();
-  await expect(page.getByRole("checkbox", { name: /Bifează Brânză de vaci/ })).toBeVisible();
+  await expect(page.getByRole("checkbox", { name: /Bifează Brânză feta/ })).toBeVisible();
 
   await page.goto("/retete/");
   await page.getByRole("button", { name: "Filtre", exact: true }).click();
   await page.getByRole("button", { name: "Favorite", exact: true }).click();
-  await expect(page.getByRole("link", { name: /Papanași/ })).toBeVisible();
+  await expect(page.getByRole("link", { name: /Omletă cu spanac/ })).toBeVisible();
 });
 
 test("cămara: expirare, „ce pot găti”, doar ingredientele lipsă", async ({ page }) => {
   await start(page, "/camara/");
   for (const [text, expires] of [
     ["10 ouă", "2026-03-09"],
-    ["1 kg dovlecei", "2026-03-20"],
-    ["500 g făină albă", ""],
+    ["500 g spanac", "2026-03-20"],
+    ["20 g ulei de măsline", ""],
   ]) {
     await page.getByRole("button", { name: "Adaugă în cămară", exact: true }).click();
     const box = page.getByRole("combobox", { name: "Caută sau adaugă un produs" });
@@ -59,30 +59,33 @@ test("cămara: expirare, „ce pot găti”, doar ingredientele lipsă", async (
   await page.goto("/retete/");
   await page.getByRole("button", { name: "Filtre", exact: true }).click();
   await page.getByRole("button", { name: "Ce pot găti", exact: true }).click();
-  await expect(page.getByRole("link", { name: /Dovlecei pane/ })).toBeVisible();
-  await expect(page.getByRole("link", { name: /Dovlecei pane/ })).toContainText("Îți lipsesc 2 ingrediente");
-  await page.getByRole("link", { name: /Dovlecei pane/ }).click();
+  await page.getByLabel("Caută rețete").fill("omletă cu spanac");
+  await expect(page.getByRole("link", { name: /Omletă cu spanac/ })).toBeVisible();
+  await expect(page.getByRole("link", { name: /Omletă cu spanac/ })).toContainText("Îți lipsesc 2 ingrediente");
+  await page.getByRole("link", { name: /Omletă cu spanac/ }).click();
   await page.getByRole("button", { name: "În listă" }).click();
   await page.getByRole("button", { name: /Adaugă pentru/ }).click();
   await page.getByRole("button", { name: "Vezi lista" }).click();
   await expect(page.getByRole("checkbox", { name: /Bifează / }).first()).toBeVisible();
-  await expect(page.getByRole("checkbox", { name: /Bifează Dovlecei/ })).toHaveCount(0); // îi ai deja
-  await expect(page.getByRole("checkbox", { name: /Bifează Ouă de găină/ })).toHaveCount(0);
+  await expect(page.getByRole("checkbox", { name: /Bifează Spanac/ })).toHaveCount(0); // îi ai deja
+  await expect(page.getByRole("checkbox", { name: /Bifează Ulei de măsline/ })).toHaveCount(0);
+  await expect(page.getByRole("checkbox", { name: /Bifează Brânză feta/ })).toBeVisible();
 
   // Confirmarea de gătit folosește porțiile alese și scade stocul disponibil.
-  await page.goto("/retete/reteta/?id=dovlecei-pane");
+  await page.goto("/retete/reteta/?id=omleta-spanac-feta");
   await page.getByRole("button", { name: "Am gătit", exact: true }).click();
   const cook = page.getByRole("dialog", { name: "Ai gătit rețeta?" });
-  await expect(cook).toContainText("pentru 4 porții");
-  await cook.getByRole("button", { name: "Mai puține porții gătite" }).click();
-  await cook.getByRole("button", { name: "Mai puține porții gătite" }).click();
+  await expect(cook).toContainText(/pentru 1 porți/);
+  await cook.getByRole("button", { name: "Mai multe porții gătite" }).click();
   await expect(cook).toContainText("pentru 2 porții");
   await cook.getByRole("button", { name: "Am gătit", exact: true }).click();
   await expect(cook).not.toBeVisible();
   await page.goto("/camara/");
-  await expect(page.locator("li").filter({ hasText: "Ouă de găină" })).toContainText("8 buc");
-  await expect(page.locator("li").filter({ hasText: "Dovlecei" })).toContainText("600 g");
-  await expect(page.locator("li").filter({ hasText: "Făină albă" })).toContainText("470 g");
+  const search = page.getByRole("searchbox", { name: "Caută în cămară" });
+  await search.fill("Spanac");
+  await expect(page.getByRole("listitem").filter({ hasText: "Spanac" })).toContainText("400 g");
+  await search.fill("Ulei de măsline");
+  await expect(page.getByRole("listitem").filter({ hasText: "Ulei de măsline" })).toContainText("10 g");
 });
 
 test("prețuri de la piață și comparație", async ({ page }) => {

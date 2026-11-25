@@ -11,17 +11,17 @@ test("de la planul săptămânii la buget", async ({ page }) => {
   await page.getByRole("button", { name: "Salvează" }).click();
   await expect(page.getByText(/2[.]?000,00\s+RON\s+rămași/)).toBeVisible();
 
-  // Două rețete cu piept de pui în plan.
+  // Două rețete cu ceapă și morcovi în plan.
   for (const [name, day] of [
-    ["Ciorbă de pui a la grec", "luni"],
-    ["Ciulama de pui cu ciuperci", "marți"],
+    ["Ciorbă de perișoare de curcan acrită cu borș", "luni"],
+    ["Ardei umpluți cu orez, ciuperci și legume (de post)", "marți"],
   ] as const) {
     await page.goto("/plan/");
     await page.getByRole("button", { name: "Săptămâna viitoare" }).click();
     const dayCard = page.getByRole("region", { name: new RegExp(`^${day}`) });
     await dayCard.getByRole("button", { name: /Adaugă la Prânz/ }).click();
     await page.getByLabel("Caută rețeta").fill(name.split(" ").slice(0, 3).join(" "));
-    await page.getByRole("button", { name: new RegExp(name) }).first().click();
+    await page.getByRole("button", { name: name }).first().click();
     await expect(dayCard.getByText(name)).toBeVisible();
   }
 
@@ -57,11 +57,11 @@ test("de la planul săptămânii la buget", async ({ page }) => {
 
   // Bugetul reflectă cheltuiala reală, o singură dată.
   await page.goto("/buget/");
-  for (const label of ["Rămas", "Cheltuit", "Estimat în coș"]) {
+  for (const label of ["Rămas înainte de cumpărături", "Cheltuit în lună", "Liste deschise"]) {
     await expect(page.getByText(label, { exact: true })).toBeVisible();
   }
   await expect(page.getByText(/1[.]?995,50\s+RON\s+rămași/)).toBeVisible();
-  await expect(page.getByText("Un produs cumpărat nu are preț")).toBeVisible();
+  await expect(page.getByText(/^Un produs cumpărat nu are preț/)).toBeVisible();
 
   // Istoricul păstrează cumpărătura; prețul lipsă se poate completa.
   await page.goto("/cumparaturi/istoric/");

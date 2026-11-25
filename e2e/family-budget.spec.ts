@@ -42,10 +42,10 @@ test("bugetul familiei: cheltuieli, categorii, luni, persistență și export pe
   await expect(budget).not.toBeVisible();
   await expect(page.getByRole("button", {name:"Modifică bugetul Bugetul familiei",exact:true})).toBeVisible();
   await page.goto("/");
-  await expect(page.getByRole("link", { name: /1[.]?030,00\s+RON\s+rămași\s+din\s+2[.]?000,00\s+RON/ })).toBeVisible();
+  await expect(page.getByRole("link", { name: /2[.]?000,00\s+RON.*1[.]?030,00\s+RON\s+îți mai rămân/ })).toBeVisible();
   await expect(page.getByRole("progressbar", { name: "Bugetul lunii folosit" })).toHaveAttribute("aria-valuenow", "49");
   await page.goto("/buget/");
-  await page.getByRole("link", { name: /^Tranzacții/ }).click();
+  await page.getByRole("link", { name: "Tranzacții", exact: true }).click();
   await page.getByRole("button", { name: "Modifică cheltuiala Autobuz", exact: true }).click();
   const edit = page.getByRole("dialog", { name: "Modifică cheltuiala Autobuz", exact: true });
   await edit.getByLabel("Suma (lei)", { exact: true }).fill("60");
@@ -81,7 +81,7 @@ test("bugetul familiei: cheltuieli, categorii, luni, persistență și export pe
   await expect(total).toContainText("140,00");
   await page.getByLabel("Buget și domeniu").selectOption({ label: "Buget școală · Școala și educația copiilor" });
   await expect(total).toContainText("110,00");
-  await page.getByRole("link", { name: /^Tranzacții/ }).click();
+  await page.getByRole("link", { name: "Tranzacții", exact: true }).click();
   await expect(page.getByRole("heading", { name: "Februarie 2026" })).toBeVisible();
   await expect(page.getByRole("button", { name: "Modifică cheltuiala Autobuz februarie" })).toHaveCount(0);
   await page.getByRole("link", { name: "Înapoi la buget", exact: true }).click();

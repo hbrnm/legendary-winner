@@ -23,13 +23,13 @@ test("IA: captură universală, categorie școală, sold și disponibil zilnic",
   await expect(page.getByText("Cheltuit în lună",{exact:true}).locator("..")).toContainText("100,00");
   // Lista de tranzacții nu mai stă în pagina de buget; se deschide în ecranul ei.
   await expect(page.getByRole("radio",{name:"Manuale",exact:true})).toHaveCount(0);
-  await page.getByRole("link",{name:/^Tranzacții/}).click();
+  await page.getByRole("link",{name:"Tranzacții",exact:true}).click();
   await page.getByRole("radio",{name:"Manuale",exact:true}).click();
   await expect(page.getByText("Caiete și rechizite",{exact:true})).toBeVisible();
   await page.getByRole("radio",{name:"Bonuri",exact:true}).click();
   await expect(page.getByText("Caiete și rechizite",{exact:true})).toHaveCount(0);
   await page.goto("/buget/");
-  await expect(page.getByText(/37,50\s+RON\/zi/)).toBeVisible();
+  await expect(page.getByText(/37,50\s+RON pe zi/)).toBeVisible();
   await page.goto("/");
   await expect(page.getByText(/900,00\s+RON/).first()).toBeVisible();
   await expect(page.getByRole("heading",{name:"Azi la masă",exact:true})).toBeVisible();

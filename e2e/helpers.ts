@@ -24,12 +24,11 @@ export async function createList(page: Page, name: string) {
   await page.getByRole("button", { name: "Acțiuni cumpărături" }).click();
   await page.getByRole("dialog", { name: "Cumpărături" }).getByRole("button", { name: "Listă nouă" }).click();
   await page.waitForURL(/\/cumparaturi\/lista\//);
-  const renameBtn = page.getByRole("button", { name: /^Redenumește/ });
-  await expect(renameBtn).toBeVisible();
-  await renameBtn.click();
-  const input = page.getByRole("textbox", { name: "Numele listei" });
-  await input.fill(name);
-  await input.press("Enter");
+  await page.getByRole("button", { name: "Opțiunile listei" }).click();
+  await page.getByRole("button", { name: "Schimbă numele", exact: true }).click();
+  const sheet = page.getByRole("dialog", { name: "Schimbă numele listei" });
+  await sheet.getByRole("textbox", { name: "Numele listei" }).fill(name);
+  await sheet.getByRole("button", { name: "Salvează", exact: true }).click();
   await expect(page.getByRole("heading", { name })).toBeVisible();
 }
 

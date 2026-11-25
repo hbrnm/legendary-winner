@@ -64,7 +64,7 @@ test("cont, gospodărie, invitație, listă comună sincronizată, gospodării i
   await expect(ana.getByText("8,90 RON").first()).toBeVisible();
 
   // Ana pune fotografia ei la o rețetă din catalog; ajunge în Storage, iar Bogdan o vede.
-  const recipe = "/retete/reteta/?id=ciorba-de-perisoare";
+  const recipe = "/retete/reteta/?id=ciorba-perisoare-curcan-bors";
   await ana.goto(recipe);
   await syncNow(ana);
   // Încărcarea poate porni singură, imediat după salvare: o așteptăm de dinainte să alegem fișierul.
@@ -91,10 +91,10 @@ test("cont, gospodărie, invitație, listă comună sincronizată, gospodării i
   await syncNow(carmen);
   await expect(carmen.getByText("Săptămâna asta")).toHaveCount(0);
   await expect(carmen.getByText("Încă n-ai nicio listă")).toBeVisible();
-  // Și vede la rețetă fotografia din catalog, nu pe cea a Anei.
+  // Rețeta fără fotografie publică rămâne fără imagine pentru Carmen.
   await carmen.goto(recipe);
   await syncNow(carmen);
-  await expect(carmen.locator("main img").first()).toHaveAttribute("src", "/retete/ciorba-de-perisoare.webp");
+  await expect(carmen.locator("main img")).toHaveCount(0);
   await expect(carmen.getByRole("button", { name: "Adaugă fotografia ta" })).toBeVisible();
 
   // Deconectarea șterge datele gospodăriei de pe dispozitiv.

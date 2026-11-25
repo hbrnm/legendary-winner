@@ -7,10 +7,10 @@ import { start } from "./helpers";
 const JPEG = readFileSync("e2e/fixtures/ciorba-1600x1200.jpg");
 
 test("fotografia ta: adaugi, se micșorează, apare în listă, rămâne după reîncărcare, o ștergi", async ({ page }) => {
-  await start(page, "/retete/reteta/?id=ciorba-de-perisoare");
+  await start(page, "/retete/reteta/?id=ciorba-perisoare-curcan-bors");
   const big = page.locator("main img").first();
-  await expect(big).toHaveAttribute("src", "/retete/ciorba-de-perisoare.webp");
-  await expect(page.getByText(/^Foto: .+ \/ Wikimedia Commons/)).toBeVisible();
+  await expect(big).toHaveCount(0);
+  await expect(page.getByText(/^Foto: /)).toHaveCount(0);
 
   // O poză care nu se poate citi.
   await page.getByTestId("fotografie-fisier").setInputFiles({ name: "nu-e-poza.jpg", mimeType: "image/jpeg", buffer: Buffer.from("nu e o poză") });
@@ -35,23 +35,23 @@ test("fotografia ta: adaugi, se micșorează, apare în listă, rămâne după r
   await page.getByLabel("Caută rețete").fill("perisoare");
   await expect(page.getByRole("link", { name: /Ciorbă de perișoare/ }).locator("img")).toHaveAttribute("src", /^blob:/);
 
-  await page.goto("/retete/reteta/?id=ciorba-de-perisoare");
+  await page.goto("/retete/reteta/?id=ciorba-perisoare-curcan-bors");
   await page.getByRole("button", { name: "Șterge fotografia" }).click();
   await expect(page.getByText("Fotografia dispare de pe telefoanele tuturor membrilor.")).toBeVisible();
   await page.getByRole("button", { name: "Șterge", exact: true }).click();
-  await expect(big).toHaveAttribute("src", "/retete/ciorba-de-perisoare.webp");
+  await expect(big).toHaveCount(0);
   await expect(page.getByRole("button", { name: "Adaugă fotografia ta" })).toBeVisible();
 });
 
 test("catalogul fără fotografie reală nu afișează imagini AI sau inițiale", async ({ page }) => {
   await start(page, "/retete/");
-  await page.getByLabel("Caută rețete").fill("papanasi");
-  const recipe = page.getByRole("link", { name: /Papanași/ });
+  await page.getByLabel("Caută rețete").fill("chipsuri de kale");
+  const recipe = page.getByRole("link", { name: /Chipsuri de kale/ });
   await expect(recipe).toBeVisible();
   await expect(recipe.locator("img")).toHaveCount(0);
   await expect(recipe.getByTestId("avatar-reteta")).toHaveCount(0);
   await recipe.click();
-  await expect(page.getByRole("heading", { name: "Papanași" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Chipsuri de kale" })).toBeVisible();
   await expect(page.locator("main img")).toHaveCount(0);
   await expect(page.getByRole("button", { name: "Adaugă fotografia ta" })).toBeVisible();
 });

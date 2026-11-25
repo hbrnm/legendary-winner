@@ -258,7 +258,7 @@ export function HomeScreen({ captureRef }: { captureRef?: Ref<HTMLDivElement> })
         </Link>
       )}
 
-      <div className="grid items-start gap-6 min-[900px]:grid-cols-[1.25fr_1fr]">
+      <div className="grid grid-cols-1 items-start gap-6 min-[900px]:grid-cols-[1.25fr_1fr]">
         <div className="min-w-0 space-y-3">
           <section aria-labelledby="today-meal-title">
             <div className={`group/meal overflow-hidden rounded-[24px] text-ink ${data.cooking ? "border border-line bg-surface-container-low" : "bg-meal-hero shadow-card"}`} data-testid="home-meal">
@@ -418,7 +418,7 @@ export function HomeScreen({ captureRef }: { captureRef?: Ref<HTMLDivElement> })
         </section>
       </div>
 
-      <div className="grid items-start gap-6 min-[600px]:grid-cols-2">
+      <div className="grid grid-cols-1 items-start gap-6 min-[600px]:grid-cols-2">
         <section aria-labelledby="use-soon-title">
           <div className="mb-2 flex min-h-10 items-center justify-between gap-2">
             <h2 id="use-soon-title" className="text-section-title font-semibold text-ink">De folosit curând</h2>

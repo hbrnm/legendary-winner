@@ -18,7 +18,7 @@ test("veniturile se cumulează, iar plafonul de cheltuieli rămâne ales separat
  await expect(panel).toContainText(/1[.]?000,00\s+RON nealocați/);
  await page.reload();await expect(panel).toContainText("Salariu soție");
  await page.goto("/");
- await expect(page.getByText(/4[.]?000,00\s+RON rămași/)).toBeVisible();
+ await expect(page.getByRole("link",{name:/4[.]?000,00\s+RON\s+îți mai rămân/})).toBeVisible();
  await page.goto("/buget/");
  await page.getByRole("button",{name:"Modifică veniturile și alocarea",exact:true}).click();
  sheet=page.getByRole("dialog",{name:"Venituri și alocare",exact:true});

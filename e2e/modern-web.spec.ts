@@ -4,8 +4,9 @@ import { start } from './helpers';
 declare global { interface Window { receiptPreparationWorkers: number } }
 
 test('recipe detail prioritizes its photo and manifest retains the existing app identity', async ({ page }) => {
-  await start(page, '/retete/reteta/?id=ciorba-de-perisoare');
-  const photo = page.locator('img[src="/retete/ciorba-de-perisoare.webp"]');
+  await start(page, '/retete/reteta/?id=ciorba-perisoare-curcan-bors');
+  await page.getByTestId('fotografie-fisier').setInputFiles('e2e/fixtures/ciorba-1600x1200.jpg');
+  const photo = page.locator('main img[src^="blob:"]');
   await expect(photo).toHaveAttribute('loading', 'eager');
   await expect(photo).toHaveAttribute('fetchpriority', 'high');
   const manifest = await (await page.request.get('/manifest.webmanifest')).json();
