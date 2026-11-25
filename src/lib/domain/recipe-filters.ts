@@ -2,6 +2,20 @@ import type { Recipe, RecipeCategoryId } from "./types";
 import { normalize } from "./search";
 import { totalMinutes } from "./recipes";
 
+export const COLLECTION_MEALS = [
+  { id: "mic_dejun", label: "Mic dejun" },
+  { id: "pranz", label: "Prânz" },
+  { id: "cina", label: "Cină" },
+  { id: "gustari", label: "Gustări" },
+] as const;
+export type CollectionMeal = typeof COLLECTION_MEALS[number]["id"];
+
+export function matchesCollectionMeal(recipe: Recipe, meal: CollectionMeal | "alte"): boolean {
+  return meal === "alte"
+    ? !COLLECTION_MEALS.some(({ id }) => recipe.categories.includes(id))
+    : recipe.categories.includes(meal);
+}
+
 export const MEAL_CATEGORIES = [
   { id: "toate", label: "Toate" },
   { id: "mic_dejun", label: "Mic dejun" },

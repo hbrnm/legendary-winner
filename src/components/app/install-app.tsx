@@ -1,7 +1,7 @@
 "use client";
 
 import { createContext, useContext, useEffect, useRef, useState, type ReactNode } from 'react';
-import { Download } from 'lucide-react';
+import { Download } from '@/components/ui/icons';
 import { Button } from '@/components/ui/button';
 
 interface InstallPrompt extends Event {

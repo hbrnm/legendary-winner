@@ -1,8 +1,57 @@
+import {
+  AlertTriangle as LucideAlertTriangle,
+  Archive as LucideArchive,
+  ArrowLeft as LucideArrowLeft,
+  ArrowRight as LucideArrowRight,
+  Bell as LucideBell,
+  CalendarPlus as LucideCalendarPlus,
+  Camera as LucideCamera,
+  Check as LucideCheck,
+  ChefHat as LucideChefHat,
+  ChevronDown as LucideChevronDown,
+  ChevronLeft as LucideChevronLeft,
+  ChevronRight as LucideChevronRight,
+  Clock as LucideClock,
+  Cloud as LucideCloud,
+  CloudOff as LucideCloudOff,
+  Copy as LucideCopy,
+  Crown as LucideCrown,
+  Download as LucideDownload,
+  FileText as LucideFileText,
+  Heart as LucideHeart,
+  ImageIcon as LucideImageIcon,
+  ListFilter as LucideListFilter,
+  Loader2 as LucideLoader2,
+  LogOut as LucideLogOut,
+  MapPin as LucideMapPin,
+  Mic as LucideMic,
+  Minus as LucideMinus,
+  MoreHorizontal as LucideMoreHorizontal,
+  Pencil as LucidePencil,
+  Plus as LucidePlus,
+  RefreshCw as LucideRefreshCw,
+  Scale as LucideScale,
+  Search as LucideSearch,
+  Settings as LucideSettings,
+  Shapes as LucideShapes,
+  Share2 as LucideShare2,
+  Shield as LucideShield,
+  ShieldCheck as LucideShieldCheck,
+  SlidersHorizontal as LucideSlidersHorizontal,
+  Store as LucideStore,
+  Tags as LucideTags,
+  Trash2 as LucideTrash2,
+  Upload as LucideUpload,
+  UserMinus as LucideUserMinus,
+  Users as LucideUsers,
+  WifiOff as LucideWifiOff,
+  X as LucideX,
+  type LucideIcon,
+  type LucideProps,
+} from "lucide-react";
 import type { ReactNode } from "react";
 
-// Iconițele Cămarei, desenate pentru aplicație (.tasks/017, etapa 3): linie
-// rotunjită, ușor neregulată, ca trasă de mână. Același API ca lucide-react
-// (size, strokeWidth, className), ca să se poată pune în locul lor.
+const ICON_STROKE = 1.75;
 
 export interface IconProps {
   size?: number;
@@ -10,7 +59,7 @@ export interface IconProps {
   className?: string;
 }
 
-function Icon({ size = 24, strokeWidth = 1.75, className, children }: IconProps & { children: ReactNode }) {
+function Icon({ size = 24, strokeWidth = ICON_STROKE, className, children }: IconProps & { children: ReactNode }) {
   return (
     <svg
       width={size}
@@ -116,3 +165,112 @@ export function AgainIcon(props: IconProps) {
     </Icon>
   );
 }
+
+/** Mic dejun: ceașcă caldă. */
+export function MealMorningIcon(props: IconProps) {
+  return (
+    <Icon {...props}>
+      <path d="M5 10h11v4.5a5 5 0 0 1-5 5h-1a5 5 0 0 1-5-5V10z" />
+      <path d="M16 11h1.8a2.2 2.2 0 0 1 0 4.4H16" />
+      <path d="M8.5 5.2c0 1.1.8 1.5.8 2.5M12 4.5c0 1.1.8 1.5.8 2.5" />
+    </Icon>
+  );
+}
+
+/** Prânz: tacâmuri. */
+export function MealNoonIcon(props: IconProps) {
+  return (
+    <Icon {...props}>
+      <path d="M7 4v7.5a2.5 2.5 0 0 0 5 0V4" />
+      <path d="M9.5 4v16" />
+      <path d="M16.5 4v16" />
+      <path d="M16.5 4c2.2 1.2 2.5 4.8 2.5 7.5h-2.5" />
+    </Icon>
+  );
+}
+
+/** Cină: semilună calmă. */
+export function MealEveningIcon(props: IconProps) {
+  return (
+    <Icon {...props}>
+      <path d="M19.2 14.3A7.5 7.5 0 0 1 9.7 4.8a7.5 7.5 0 1 0 9.5 9.5z" />
+      <path d="M16.5 5.5v2.2M15.4 6.6h2.2" />
+    </Icon>
+  );
+}
+
+/** Gustări: măr. */
+export function MealSnackIcon(props: IconProps) {
+  return (
+    <Icon {...props}>
+      <path d="M12 7.5c-2.5-1.4-5.8.2-5.8 4.2 0 4.1 2.5 8 4.8 8 .8 0 1-.4 1-.4s.2.4 1 .4c2.3 0 4.8-3.9 4.8-8 0-4-3.3-5.6-5.8-4.2z" />
+      <path d="M12 7.5c.2-1.8 1.2-3 2.8-3.3" />
+    </Icon>
+  );
+}
+
+/** Bol cald cu abur (medalion decorativ pentru „Azi la masă” fără fotografie). */
+export function WarmBowlIcon(props: IconProps) {
+  return (
+    <Icon {...props}>
+      <path d="M4.5 12h15a7.5 7.5 0 0 1-15 0z" />
+      <path d="M8.5 19.2h7" />
+      <path d="M9 5.5c-.7.9.7 1.8 0 2.8M12 4.8c-.7.9.7 1.8 0 2.8M15 5.5c-.7.9.7 1.8 0 2.8" />
+    </Icon>
+  );
+}
+
+// Utility glyphs use the same rounded outline and default weight as the navigation.
+function utilityIcon(Glyph: LucideIcon) {
+  return function UtilityIcon({ strokeWidth = ICON_STROKE, ...props }: LucideProps) {
+    return <Glyph strokeWidth={strokeWidth} {...props} />;
+  };
+}
+
+export const AlertTriangle = utilityIcon(LucideAlertTriangle);
+export const Archive = utilityIcon(LucideArchive);
+export const ArrowLeft = utilityIcon(LucideArrowLeft);
+export const ArrowRight = utilityIcon(LucideArrowRight);
+export const Bell = utilityIcon(LucideBell);
+export const CalendarPlus = utilityIcon(LucideCalendarPlus);
+export const Camera = utilityIcon(LucideCamera);
+export const Check = utilityIcon(LucideCheck);
+export const ChefHat = utilityIcon(LucideChefHat);
+export const ChevronDown = utilityIcon(LucideChevronDown);
+export const ChevronLeft = utilityIcon(LucideChevronLeft);
+export const ChevronRight = utilityIcon(LucideChevronRight);
+export const Clock = utilityIcon(LucideClock);
+export const Cloud = utilityIcon(LucideCloud);
+export const CloudOff = utilityIcon(LucideCloudOff);
+export const Copy = utilityIcon(LucideCopy);
+export const Crown = utilityIcon(LucideCrown);
+export const Download = utilityIcon(LucideDownload);
+export const FileText = utilityIcon(LucideFileText);
+export const Heart = utilityIcon(LucideHeart);
+export const ImageIcon = utilityIcon(LucideImageIcon);
+export const ListFilter = utilityIcon(LucideListFilter);
+export const Loader2 = utilityIcon(LucideLoader2);
+export const LogOut = utilityIcon(LucideLogOut);
+export const MapPin = utilityIcon(LucideMapPin);
+export const Mic = utilityIcon(LucideMic);
+export const Minus = utilityIcon(LucideMinus);
+export const MoreHorizontal = utilityIcon(LucideMoreHorizontal);
+export const Pencil = utilityIcon(LucidePencil);
+export const Plus = utilityIcon(LucidePlus);
+export const RefreshCw = utilityIcon(LucideRefreshCw);
+export const Scale = utilityIcon(LucideScale);
+export const Search = utilityIcon(LucideSearch);
+export const Settings = utilityIcon(LucideSettings);
+export const Shapes = utilityIcon(LucideShapes);
+export const Share2 = utilityIcon(LucideShare2);
+export const Shield = utilityIcon(LucideShield);
+export const ShieldCheck = utilityIcon(LucideShieldCheck);
+export const SlidersHorizontal = utilityIcon(LucideSlidersHorizontal);
+export const Store = utilityIcon(LucideStore);
+export const Tags = utilityIcon(LucideTags);
+export const Trash2 = utilityIcon(LucideTrash2);
+export const Upload = utilityIcon(LucideUpload);
+export const UserMinus = utilityIcon(LucideUserMinus);
+export const Users = utilityIcon(LucideUsers);
+export const WifiOff = utilityIcon(LucideWifiOff);
+export const X = utilityIcon(LucideX);

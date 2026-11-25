@@ -4,22 +4,25 @@ import { useMemo, useState } from "react";
 import Link from "next/link";
 import { RecipeNavigation } from "@/components/recipes/navigation";
 import { useRouter } from "next/navigation";
-import { ChevronLeft, ChevronRight, Copy, Plus, Search, ShoppingBasket, Trash2 } from "lucide-react";
+import { BasketIcon, ChevronLeft, ChevronRight, Copy, Heart, Search, Trash2 } from "@/components/ui/icons";
 import { AppShell } from "@/components/app/shell";
 import { useAction, useData } from "@/components/app/hooks";
-import { Button, IconButton } from "@/components/ui/button";
+import { AddButton, Button, IconButton } from "@/components/ui/button";
 import { Card, PageHeader, Spinner } from "@/components/ui/misc";
 import { Sheet } from "@/components/ui/sheet";
 import { LabeledInput, LabeledSelect, Toggle } from "@/components/ui/fields";
 import { useToast } from "@/components/ui/toast";
 import { SLOT_LABELS } from "@/components/recipes/recipe-visual";
+import { isAvailableRecipe } from "@/data/recipes/visibility";
 import { RecipeImage } from "@/components/recipes/recipe-photo";
 import { costAmount, partialCostLabel } from "@/components/recipes/recipe-cost";
 import { owned, priceIndex, visible } from "@/lib/services/queries";
 import { addMeal, copyWeek, duplicateMeal, generateListFromPlan, moveMeal, removeMeal, updateMealServings } from "@/lib/services/kitchen";
 import { createList } from "@/lib/services/shopping";
 import { addDays, formatLongDate, formatShortDate, formatWeekdayShort, startOfWeek, toISODate } from "@/lib/domain/dates";
-import { recipeCost } from "@/lib/domain/recipes";
+import { recipeCost, recipeNeeds, STAPLE_PRODUCT_IDS, totalMinutes } from "@/lib/domain/recipes";
+import { aggregateNeeds, productUnitsOf, subtractStock } from "@/lib/domain/quantities";
+import { pantryStock } from "@/lib/domain/pantry";
 import { normalize } from "@/lib/domain/search";
 import { sumMoney } from "@/lib/domain/money";
 import { now } from "@/lib/clock";
@@ -42,30 +45,50 @@ function PlanScreen() {
   const [genList, setGenList] = useState("");
   const [genPantry, setGenPantry] = useState(true);
   const [genFromToday, setGenFromToday] = useState(true);
+  const [activeDay, setActiveDay] = useState<string>(today);
 
   const days = useMemo(() => Array.from({ length: 7 }, (_, k) => addDays(week, k)), [week]);
 
   const data = useData(
     async (ctx) => {
-      const [meals, recipes, ingredients, prices, lists, favorites] = await Promise.all([
+      const [meals, recipes, ingredients, prices, lists, favorites, pantry, products] = await Promise.all([
         owned(ctx.db, "meal_plan_items", ctx.householdId),
         visible(ctx.db, "recipes", ctx.householdId),
         visible(ctx.db, "recipe_ingredients", ctx.householdId),
         priceIndex(ctx.db, ctx.householdId),
         owned(ctx.db, "shopping_lists", ctx.householdId),
         owned(ctx.db, "favorite_recipes", ctx.householdId),
+        owned(ctx.db, "pantry_items", ctx.householdId),
+        visible(ctx.db, "products", ctx.householdId),
       ]);
       const weekMeals = meals.filter((m) => m.date >= week && m.date <= addDays(week, 6));
       const recipeMap = new Map(recipes.map((r) => [r.id, r]));
+      const stock = pantryStock(pantry);
+      const unitsMap = productUnitsOf(products);
+      const ingByRecipe = new Map<string, typeof ingredients>();
+      for (const ing of ingredients) {
+        if (ing.deleted_at) continue;
+        ingByRecipe.set(ing.recipe_id, [...(ingByRecipe.get(ing.recipe_id) ?? []), ing]);
+      }
+      const mealPantry = new Map<string, { have: number; total: number }>();
+      for (const m of weekMeals) {
+        const r = recipeMap.get(m.recipe_id);
+        if (!r) continue;
+        const needs = aggregateNeeds(recipeNeeds(r, ingByRecipe.get(r.id) ?? [], m.servings)).filter((n) => !STAPLE_PRODUCT_IDS.has(n.product_id));
+        if (needs.length === 0) continue;
+        const { remaining } = subtractStock(needs, stock, unitsMap);
+        mealPantry.set(m.id, { have: needs.length - remaining.length, total: needs.length });
+      }
       const costs = weekMeals.map((m) => {
         const r = recipeMap.get(m.recipe_id);
-        return r ? recipeCost(r, ingredients.filter((i) => i.recipe_id === r.id), m.servings, prices) : null;
+        return r ? recipeCost(r, ingByRecipe.get(r.id) ?? [], m.servings, prices) : null;
       });
       const favs = new Set(favorites.map((f) => f.recipe_id));
       return {
         meals: weekMeals,
         recipeMap,
-        recipes: recipes.sort((a, b) => Number(favs.has(b.id)) - Number(favs.has(a.id)) || a.name.localeCompare(b.name, "ro")),
+        mealPantry,
+        recipes: recipes.filter(isAvailableRecipe).sort((a, b) => Number(favs.has(b.id)) - Number(favs.has(a.id)) || a.name.localeCompare(b.name, "ro")),
         favs,
         weekCost: sumMoney(costs.map((c) => c?.total ?? 0)),
         weekPriced: costs.reduce((n, c) => n + (c?.priced_count ?? 0), 0),
@@ -120,13 +143,13 @@ function PlanScreen() {
       <RecipeNavigation active="plan" />
 
       <div className="mb-4 flex items-center gap-2">
-        <IconButton label="Săptămâna trecută" onClick={() => setWeek(addDays(week, -7))} className="border border-line bg-surface transition-transform active:scale-[0.94]">
+        <IconButton label="Săptămâna trecută" onClick={() => setWeek(addDays(week, -7))} className="bg-surface-container-low shadow-card transition-transform hover:bg-surface-container active:scale-[0.94]">
           <ChevronLeft size={20} />
         </IconButton>
         <Button variant="secondary" size="sm" onClick={() => setWeek(startOfWeek(today))} disabled={week === startOfWeek(today)} className="transition-transform active:scale-[0.98]">
           Săptămâna asta
         </Button>
-        <IconButton label="Săptămâna viitoare" onClick={() => setWeek(addDays(week, 7))} className="border border-line bg-surface transition-transform active:scale-[0.94]">
+        <IconButton label="Săptămâna viitoare" onClick={() => setWeek(addDays(week, 7))} className="bg-surface-container-low shadow-card transition-transform hover:bg-surface-container active:scale-[0.94]">
           <ChevronRight size={20} />
         </IconButton>
         <div className="flex-1" />
@@ -140,21 +163,43 @@ function PlanScreen() {
               setWeek(addDays(week, 7));
             }
           }}
-          className="border border-line bg-surface transition-transform active:scale-[0.94]"
+          className="bg-surface-container-low shadow-card transition-transform hover:bg-surface-container active:scale-[0.94]"
         >
           <Copy size={18} />
         </IconButton>
       </div>
 
-      <Button block size="lg" icon={<ShoppingBasket size={20} />} disabled={data.meals.length === 0} onClick={() => setGenerating(true)} className="transition-transform active:scale-[0.99]">
+      <div className="app-card mb-4 grid grid-cols-7 gap-1 p-1.5" role="group" aria-label="Zilele săptămânii">
+        {days.map((d) => {
+          const hasMeals = data.meals.some((m) => m.date === d);
+          const selected = activeDay === d || (activeDay < week || activeDay > addDays(week, 6)) && d === week;
+          return (
+            <button
+              key={d}
+              type="button"
+              onClick={() => {
+                setActiveDay(d);
+                document.getElementById(`plan-day-${d}`)?.scrollIntoView({ behavior: "smooth", block: "nearest" });
+              }}
+              className={`flex min-h-14 flex-col items-center justify-center gap-0.5 rounded-2xl px-1 py-1.5 text-center transition-colors focus-visible:outline-2 focus-visible:outline-brand ${selected ? "bg-secondary text-on-secondary" : "text-ink hover:bg-surface-2"}`}
+            >
+              <span className="text-xs font-medium capitalize opacity-80">{formatWeekdayShort(d).replace(".", "")}</span>
+              <span className="text-sm font-bold tabular-nums">{Number(d.slice(8, 10))}</span>
+              <span className={`size-1.5 rounded-full ${hasMeals ? (selected ? "bg-on-secondary" : "bg-brand") : "bg-transparent"}`} aria-hidden />
+            </button>
+          );
+        })}
+      </div>
+
+      <Button block size="lg" icon={<BasketIcon size={20} />} disabled={data.meals.length === 0} onClick={() => setGenerating(true)} className="transition-transform active:scale-[0.99]">
         Generează lista de cumpărături
       </Button>
 
       <div className="mt-6 grid gap-4 min-[900px]:grid-cols-2">
         {days.map((d) => (
-          <Card key={d} as="section" aria-label={formatLongDate(d)} className={`rounded-[24px] border border-line/60 p-4 sm:p-5 ${d === today ? "ring-2 ring-brand ring-offset-2 ring-offset-bg" : ""}`}>
+          <Card id={`plan-day-${d}`} key={d} as="section" aria-label={formatLongDate(d)} className={`p-4 sm:p-5 scroll-mt-20 ${d === today ? "ring-2 ring-brand ring-offset-2 ring-offset-bg" : d === activeDay ? "ring-2 ring-secondary/45" : ""}`}>
             <h2 className="mb-2.5 flex items-baseline gap-2 px-1">
-              <span className="font-sans text-lg font-bold capitalize text-ink">{formatWeekdayShort(d)}</span>
+              <span className="text-section-title font-semibold capitalize text-on-surface">{formatWeekdayShort(d)}</span>
               <span className="text-xs text-ink-2 tabular">{formatShortDate(d)}</span>
               {d === today && <span className="text-xs font-semibold uppercase tracking-wider text-brand">azi</span>}
             </h2>
@@ -165,19 +210,18 @@ function PlanScreen() {
                   <div key={slot} className="flex min-h-16 flex-col gap-1.5 rounded-2xl bg-surface-container/70 p-2.5 sm:p-3">
                     <div className="flex items-center justify-between pl-1">
                       <span className="text-xs font-medium text-ink-2">{SLOT_LABELS[slot]}</span>
-                      <IconButton
-                        label={`Adaugă la ${SLOT_LABELS[slot]}, ${formatShortDate(d)}`}
+                      <AddButton
+                        aria-label={`Adaugă la ${SLOT_LABELS[slot]}, ${formatShortDate(d)}`}
                         onClick={() => {
                           setPicker({ date: d, slot });
                           setPickQuery("");
                         }}
                         className="-mr-1 -my-1"
-                      >
-                        <Plus size={16} />
-                      </IconButton>
+                      />
                     </div>
                     {meals.map((m) => {
                       const r = data.recipeMap.get(m.recipe_id);
+                      const coverage = data.mealPantry.get(m.id);
                       return (
                         <button
                           key={m.id}
@@ -187,10 +231,22 @@ function PlanScreen() {
                             setMoveDate(m.date);
                             setMoveSlot(m.slot);
                           }}
-                          className="flex min-h-12 items-center gap-1.5 rounded-xl border border-line/40 bg-surface px-3 py-2 text-left text-[13px] leading-tight transition-all duration-150 ease-out hover:border-outline/40 hover:bg-surface-2/40 active:scale-[0.98]"
+                          className="flex min-h-12 flex-col items-stretch gap-1.5 rounded-xl bg-surface-container-low px-3 py-2 text-left text-sm leading-tight shadow-card transition-all duration-150 ease-out hover:bg-surface-2/50 active:scale-[0.98]"
                         >
-                          <span className="min-w-0 flex-1 font-sans text-sm font-semibold text-ink">{r?.name ?? "Rețetă ștearsă"}</span>
-                          <span className="shrink-0 text-[11px] text-ink-2 tabular">{m.servings} p.</span>
+                          <span className="flex items-start gap-1.5">
+                            <span className="min-w-0 flex-1 font-sans text-sm font-semibold text-ink">{r?.name ?? "Rețetă ștearsă"}</span>
+                            <span className="shrink-0 text-xs text-ink-2 tabular">{m.servings} p.</span>
+                          </span>
+                          {(r || coverage) && (
+                            <span className="flex flex-wrap items-center gap-1.5 text-xs text-ink-2">
+                              {r && <span className="tabular-nums">{totalMinutes(r)} min</span>}
+                              {coverage && (
+                                <span className={`rounded-full px-2 py-0.5 font-medium tabular-nums ${coverage.have === coverage.total ? "bg-info-soft text-info" : "bg-surface-2 text-ink-2"}`}>
+                                  {coverage.have}/{coverage.total} în cămară
+                                </span>
+                              )}
+                            </span>
+                          )}
                         </button>
                       );
                     })}
@@ -220,9 +276,9 @@ function PlanScreen() {
                 className="flex min-h-14 w-full items-center gap-3 rounded-md px-2 text-left transition-colors duration-150 ease-out hover:bg-surface-2 active:bg-surface-2"
               >
                 <RecipeImage recipe={r} size="sm" avatar />
-                <span className="flex-1 font-sans text-[17px] font-medium leading-snug">
+                <span className="flex-1 text-base font-medium leading-snug">
                   {r.name}
-                  {data.favs.has(r.id) && <span className="ml-1 text-xs text-accent">♥</span>}
+                  {data.favs.has(r.id) && <Heart size={14} className="ml-1.5 inline fill-accent text-accent align-middle" aria-label="Favorită" />}
                 </span>
                 <span className="shrink-0 text-xs text-ink-2">
                   <span>{r.servings}</span> porții
@@ -279,7 +335,7 @@ function PlanScreen() {
               </Button>
             </div>
             <div className="flex gap-2">
-              <Link href={`/retete/reteta/?id=${editing.recipe_id}`} className="inline-flex h-12 flex-1 items-center justify-center rounded-full border border-line font-medium transition-colors duration-150 ease-out hover:bg-surface-2">
+              <Link href={`/retete/reteta/?id=${editing.recipe_id}`} className="inline-flex h-12 flex-1 items-center justify-center rounded-full bg-secondary-container font-medium text-on-secondary-container transition duration-150 ease-out hover:brightness-95">
                 Vezi rețeta
               </Link>
               <Button

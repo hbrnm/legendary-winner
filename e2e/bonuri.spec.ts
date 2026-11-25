@@ -121,7 +121,9 @@ test("fără bon: scrii cumpărăturile, le verifici, intră în istoric", async
 
   // În cămară, produsul venit din cumpărături are ziua de „consumat”.
   await page.goto("/camara/");
+  await page.getByRole("searchbox", { name: "Caută în cămară" }).fill("Lapte integral");
   await expect(page.getByRole("button", { name: /Lapte integral/i }).first()).toBeVisible();
+  await page.getByRole("searchbox", { name: "Caută în cămară" }).fill("Ceapă galbenă");
   await page.getByRole("button", { name: /Ceapă galbenă/ }).first().click();
   await expect(page.getByLabel("Consumat până pe")).toHaveValue(/^\d{4}-\d{2}-\d{2}$/);
 });

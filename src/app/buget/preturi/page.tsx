@@ -1,15 +1,15 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import Link from "next/link";
-import { ArrowLeft, Plus, Tags, Trash2 } from "lucide-react";
+import { Tags, Trash2 } from "@/components/ui/icons";
 import { AppShell } from "@/components/app/shell";
 import { useAction, useData } from "@/components/app/hooks";
 import { useApp } from "@/components/app/app-provider";
 import { VariantPicker } from "@/components/shopping/variant-picker";
 import { ProductSearch } from "@/components/shopping/product-search";
-import { Button, IconButton } from "@/components/ui/button";
-import { EmptyState, SectionTitle, Spinner } from "@/components/ui/misc";
+import { BudgetNavigation } from "@/components/budget/navigation";
+import { AddMark, Button, IconButton } from "@/components/ui/button";
+import { EmptyState, SectionTitle, Spinner, PageHeader } from "@/components/ui/misc";
 import { Sheet } from "@/components/ui/sheet";
 import { LabeledInput, LabeledSelect, Segmented } from "@/components/ui/fields";
 import { owned, priceIndex, visible } from "@/lib/services/queries";
@@ -27,7 +27,7 @@ import type { PriceType, Product, ProductPrice, PurchaseSource, UnitCode } from 
 const TYPE_LABELS: Record<PriceType, string> = { platit: "plătit", observat: "văzut", promotie: "promoție", estimat: "estimat" };
 
 /** Etichetele ca ștampile: majuscule, fără pastilă (decizia proprietarului, 18 oct. 2026). */
-const STAMP = "whitespace-nowrap text-[11px] font-medium uppercase tracking-wider";
+const STAMP = "whitespace-nowrap text-xs font-medium uppercase tracking-wider";
 
 /** Prețul pe unitatea de referință a produsului (ex. lei/kg), dacă se poate converti. */
 function perUnit(p: ProductPrice, unit: UnitCode): number | null {
@@ -140,12 +140,8 @@ function PricesScreen() {
 
   return (
     <>
-      <div className="mb-4 flex items-center gap-1">
-        <Link href="/buget/" aria-label="Înapoi la buget" className="-ml-2 inline-flex h-12 w-12 shrink-0 items-center justify-center rounded-full text-ink-2 transition-colors duration-150 ease-out hover:bg-surface-2">
-          <ArrowLeft size={20} />
-        </Link>
-        <h1 className="min-w-0 break-words text-[32px] font-bold leading-tight tracking-tight">Prețuri</h1>
-      </div>
+      <PageHeader back={{ href: "/buget/", label: "Înapoi la buget" }} title="Prețuri" />
+      <BudgetNavigation active="preturi" />
       <p className="mb-3 text-sm text-ink-2">
         Prețurile sunt cele plătite sau văzute de gospodăria ta. Aplicația nu preia prețuri din magazine și nu afișează prețuri oficiale.
       </p>
@@ -156,14 +152,14 @@ function PricesScreen() {
         <>
           <div className="mt-4 flex items-center justify-between gap-2">
             <div>
-              <h2 className="font-sans text-xl font-semibold leading-snug">{product.name}</h2>
+              <h2 className="text-section-title font-semibold leading-snug tracking-tight text-on-surface">{product.name}</h2>
               <p className="text-xs text-ink-2">Comparație pe {unitLabel(product.default_unit, 1)}</p>
             </div>
             <div className="flex gap-2">
               <Button variant="ghost" size="sm" onClick={() => setProduct(null)}>
                 Toate
               </Button>
-              <Button size="sm" icon={<Plus size={16} />} onClick={openAdd}>
+              <Button size="sm" icon={<AddMark size={16} />} onClick={openAdd}>
                 Preț
               </Button>
             </div>
@@ -178,7 +174,7 @@ function PricesScreen() {
               {view.brands.length > 0 && (
                 <>
                   <SectionTitle>{view.brands.every((r) => r.unit === "l") ? "Prețul pe litru, pe mărci" : "Prețul pe kg, pe mărci"}</SectionTitle>
-                  <ul className="divide-y divide-line overflow-hidden rounded-[28px] bg-surface">
+                  <ul className="app-card divide-y divide-line overflow-hidden">
                     {view.brands.map((r) => {
                       const p = data.prices.find((x) => x.id === r.price_id)!;
                       return (
@@ -199,7 +195,7 @@ function PricesScreen() {
                 </>
               )}
               <SectionTitle>Cel mai recent preț, pe locuri</SectionTitle>
-              <ul className="divide-y divide-line overflow-hidden rounded-[28px] bg-surface">
+              <ul className="app-card divide-y divide-line overflow-hidden">
                 {view.compare.map(({ p, unitPrice }, k) => (
                   <li key={p.id} className="flex items-center gap-3 px-4 py-3">
                     <div className="min-w-0 flex-1">
@@ -219,7 +215,7 @@ function PricesScreen() {
                 ))}
               </ul>
               <SectionTitle>Istoric</SectionTitle>
-              <ul className="divide-y divide-line overflow-hidden rounded-[28px] bg-surface">
+              <ul className="app-card divide-y divide-line overflow-hidden">
                 {view.history.map((p) => (
                   <li key={p.id} className="flex items-center gap-3 px-4 py-2.5">
                     <div className="min-w-0 flex-1 text-sm">
@@ -255,7 +251,7 @@ function PricesScreen() {
               Caută un produs mai sus ca să-i notezi prețul. Prețurile plătite în magazin se salvează singure când finalizezi cumpărăturile.
             </EmptyState>
           ) : (
-            <ul className="divide-y divide-line overflow-hidden rounded-[28px] bg-surface">
+            <ul className="app-card divide-y divide-line overflow-hidden">
               {view.recent.map((p) => {
                 const prod = data.products.get(p.product_id);
                 return (

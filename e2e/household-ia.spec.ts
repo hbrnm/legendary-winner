@@ -64,6 +64,7 @@ test("IA: total fără preț individual, listă parțială și cămară fără d
   await page.goto("/cumparaturi/istoric/");
   await expect(page.locator("main").getByRole("button").filter({hasText:"Auchan"}).first()).toContainText("14,75");
   await page.goto("/camara/");
+  await page.getByRole("searchbox", { name: "Caută în cămară" }).fill("Lapte integral");
   await expect(page.getByText("Lapte integral",{exact:true}).first()).toBeVisible();
   await page.goto(listUrl);
   await expect(page.getByRole("button",{name:"Am plătit",exact:true})).toBeDisabled();

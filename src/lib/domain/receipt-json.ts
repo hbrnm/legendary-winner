@@ -27,7 +27,7 @@ export interface ReceiptJsonLine {
 }
 
 /** Categoriile din care poate propune modelul: cele 20 ale catalogului comun. */
-export const RECEIPT_CATEGORIES: string[] = CATEGORY_SEEDS.map((c) => c.id);
+export const RECEIPT_CATEGORIES: string[] = CATEGORY_SEEDS.filter((c) => c.id !== "ingrediente-retete").map((c) => c.id);
 
 export interface ReceiptJson {
   /** Fotografia nu e un bon sau nu se poate citi; atunci restul e gol. */

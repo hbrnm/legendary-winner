@@ -1,6 +1,6 @@
 import { StandalonePage } from "@/components/ui/standalone-page";
-import { WifiOff } from "lucide-react";
-import { Card } from "@/components/ui/misc";
+import { WifiOff } from "@/components/ui/icons";
+import { Card, PageTitle } from "@/components/ui/misc";
 
 export const metadata = { title: "Fără conexiune" };
 
@@ -12,7 +12,7 @@ export default function Offline() {
         <span className="mb-5 inline-flex h-16 w-16 items-center justify-center rounded-full bg-warn-soft text-warn">
           <WifiOff size={28} />
         </span>
-        <h1 className="min-w-0 break-words text-[32px] font-bold leading-tight tracking-tight">Nu ai conexiune la internet</h1>
+        <PageTitle>Nu ai conexiune la internet</PageTitle>
         <p className="mt-2 text-ink-2">Listele tale sunt salvate pe telefon. Deschide aplicația de la început și le găsești acolo; modificările se trimit când revine internetul.</p>
         {/* Navigare completă (nu client-side): pornește aplicația din cache. */}
         {/* eslint-disable-next-line @next/next/no-html-link-for-pages */}

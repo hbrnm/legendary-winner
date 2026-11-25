@@ -2,12 +2,12 @@
 
 import { useId, useState } from "react";
 import { useRouter } from "next/navigation";
-import { ArrowLeft, Plus, Trash2 } from "lucide-react";
+import { Trash2 } from "@/components/ui/icons";
 import { useApp } from "@/components/app/app-provider";
 import { useAction, useData } from "@/components/app/hooks";
 import { ProductSearch } from "@/components/shopping/product-search";
-import { Button, IconButton } from "@/components/ui/button";
-import { Chip, SectionTitle } from "@/components/ui/misc";
+import { AddMark, Button, IconButton } from "@/components/ui/button";
+import { Chip, SectionTitle, PageHeader } from "@/components/ui/misc";
 import { Field, Input, LabeledInput, LabeledSelect, Select, TextArea } from "@/components/ui/fields";
 import { RECIPE_CATEGORY_LABELS } from "@/components/recipes/recipe-visual";
 import { saveRecipe } from "@/lib/services/kitchen";
@@ -138,13 +138,7 @@ export function RecipeEditor({ id, isGlobal, source, imported, onBack }: { id: s
         void save();
       }}
     >
-      <div className="mb-4 flex items-center gap-1">
-        <button type="button" onClick={() => (onBack ? onBack() : router.back())} aria-label="Înapoi" className="-ml-2 inline-flex h-12 w-12 shrink-0 items-center justify-center rounded-full text-ink-2 hover:bg-surface-2">
-          <ArrowLeft size={20} />
-        </button>
-        <h1 className="min-w-0 break-words text-[32px] font-bold leading-tight tracking-tight">{imported ? "Verifică rețeta" : id ? "Modifică rețeta" : "Rețetă nouă"}</h1>
-        {isGlobal && <span className="ml-2 rounded-full bg-info-soft px-2 py-0.5 text-xs text-info">catalog comun</span>}
-      </div>
+      <PageHeader variant="compact" back={{ onClick: () => (onBack ? onBack() : router.back()), label: "Înapoi" }} title={imported ? "Verifică rețeta" : id ? "Modifică rețeta" : "Rețetă nouă"} action={isGlobal && <span className="ml-2 rounded-full bg-info-soft px-2 py-0.5 text-xs text-info">catalog comun</span>} />
       {imported && (
         <p className="mb-4 text-sm text-ink-2">
           Am citit rețeta{d?.source_url ? ` de pe ${new URL(d.source_url).hostname.replace(/^www\./, "")}` : ""}
@@ -219,7 +213,7 @@ export function RecipeEditor({ id, isGlobal, source, imported, onBack }: { id: s
       <ul className="mt-3 flex flex-col gap-2">
         {ingredients.map((i) =>
           i.product_id ? (
-            <li key={i.key} className="rounded-[28px] bg-surface p-4">
+            <li key={i.key} className="app-card p-4">
               <div className="flex items-center gap-2">
                 <span className="min-w-0 flex-1">
                   <span className="font-medium">{i.name}</span>
@@ -269,7 +263,7 @@ export function RecipeEditor({ id, isGlobal, source, imported, onBack }: { id: s
           </li>
         ))}
       </ol>
-      <Button variant="secondary" className="mt-2" icon={<Plus size={18} />} onClick={() => setSteps((xs) => [...xs, ""])}>
+      <Button variant="secondary" className="mt-2" icon={<AddMark size={18} />} onClick={() => setSteps((xs) => [...xs, ""])}>
         Adaugă un pas
       </Button>
 
@@ -297,7 +291,7 @@ function PendingIngredient({ item, onChoose, onRemove }: { item: IngredientDraft
   }
 
   return (
-    <li className="rounded-[28px] bg-warn-soft p-4">
+    <li className="rounded-[20px] bg-warn-soft p-4">
       <div className="flex items-start gap-2">
         <p className="min-w-0 flex-1 text-sm">
           <span className="font-medium">De ales:</span> {item.text}

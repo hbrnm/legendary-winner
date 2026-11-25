@@ -1,8 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { ArrowLeft, ShieldCheck } from "lucide-react";
-import { Card } from "@/components/ui/misc";
+import { ArrowLeft, ShieldCheck } from "@/components/ui/icons";
+import { Card, PageTitle } from "@/components/ui/misc";
 import { StandalonePage } from "@/components/ui/standalone-page";
 
 export default function ConfidentialitatePage() {
@@ -21,9 +21,9 @@ export default function ConfidentialitatePage() {
         <div className="mb-3 inline-flex items-center gap-2 rounded-full bg-brand-soft px-3 py-1 text-xs font-semibold uppercase tracking-wider text-brand">
           <ShieldCheck size={14} /> Confidențialitate
         </div>
-        <h1 className="break-words text-[32px] font-bold leading-tight tracking-tight text-ink">
+        <PageTitle>
           Politica de Confidențialitate
-        </h1>
+        </PageTitle>
         <p className="mt-2 text-sm text-ink-2">
           Ultima actualizare: 1 noiembrie 2026 · Ciornă de lucru pentru lansare
         </p>
@@ -31,7 +31,7 @@ export default function ConfidentialitatePage() {
 
       <Card className="flex flex-col gap-6 p-6 leading-relaxed">
         <section>
-          <h2 className="font-sans text-lg font-semibold text-ink">1. Cine suntem (Operatorul de date)</h2>
+          <h2 className="text-section-title font-semibold tracking-tight text-on-surface">1. Cine suntem (Operatorul de date)</h2>
           <p className="mt-2 text-[15px] text-ink-2">
             Aplicația <strong>Cămara</strong> este un serviciu dedicat organizării cumpărăturilor, rețetelor, alimentelor din cămară și bugetului gospodăriei.
           </p>
@@ -44,7 +44,7 @@ export default function ConfidentialitatePage() {
         </section>
 
         <section>
-          <h2 className="font-sans text-lg font-semibold text-ink">2. Principiul Local-First și Datele colectate</h2>
+          <h2 className="text-section-title font-semibold tracking-tight text-on-surface">2. Principiul Local-First și Datele colectate</h2>
           <p className="mt-2 text-[15px] text-ink-2">
             Cămara este proiectată pe o arhitectură <em>local-first</em>. Asta înseamnă că datele tale sunt stocate și procesate în primul rând direct pe dispozitivul tău, într-o bază de date locală (IndexedDB).
           </p>
@@ -59,7 +59,7 @@ export default function ConfidentialitatePage() {
         </section>
 
         <section>
-          <h2 className="font-sans text-lg font-semibold text-ink">3. Unde stau datele și cum sunt protejate</h2>
+          <h2 className="text-section-title font-semibold tracking-tight text-on-surface">3. Unde stau datele și cum sunt protejate</h2>
           <p className="mt-2 text-[15px] text-ink-2">
             Pentru utilizatorii autentificați, datele sincronizate sunt găzduite prin infrastructura securizată Supabase în Uniunea Europeană (regiunea Frankfurt, Germania — <code>eu-central-1</code>).
           </p>
@@ -69,7 +69,7 @@ export default function ConfidentialitatePage() {
         </section>
 
         <section>
-          <h2 className="font-sans text-lg font-semibold text-ink">4. Servicii externe și prelucrări asistate</h2>
+          <h2 className="text-section-title font-semibold tracking-tight text-on-surface">4. Servicii externe și prelucrări asistate</h2>
           <ul className="mt-2 list-disc pl-5 text-[15px] text-ink-2 space-y-2">
             <li>
               <strong>Citirea bonurilor (OCR):</strong> Recunoașterea textului de pe bon se realizează local pe telefon (Tesseract.js) sau opțional prin asistent AI (Gemini). Imaginea decupată a bonului este trimisă exclusiv pentru extragerea liniilor de produse și nu este stocată pe server.
@@ -84,7 +84,7 @@ export default function ConfidentialitatePage() {
         </section>
 
         <section>
-          <h2 className="font-sans text-lg font-semibold text-ink">5. Drepturile tale conform GDPR (Art. 15–22)</h2>
+          <h2 className="text-section-title font-semibold tracking-tight text-on-surface">5. Drepturile tale conform GDPR (Art. 15–22)</h2>
           <p className="mt-2 text-[15px] text-ink-2">
             Conform Regulamentului General privind Protecția Datelor (GDPR), beneficiezi de drepturi depline asupra datelor tale:
           </p>
@@ -102,7 +102,7 @@ export default function ConfidentialitatePage() {
         </section>
 
         <section>
-          <h2 className="font-sans text-lg font-semibold text-ink">6. Contact</h2>
+          <h2 className="text-section-title font-semibold tracking-tight text-on-surface">6. Contact</h2>
           <p className="mt-2 text-[15px] text-ink-2">
             Pentru orice întrebări sau solicitări legate de confidențialitatea datelor tale, ne poți contacta la adresa de email: <strong>[DE COMPLETAT: contact@appcamara.ro]</strong>.
           </p>

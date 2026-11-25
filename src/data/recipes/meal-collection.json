@@ -1,0 +1,502 @@
+[
+  {
+    "meal": "mic_dejun",
+    "recipes": [
+      {
+        "name": "Omletă cu spanac și brânză feta",
+        "time": "10 minute",
+        "ingredients": "3 ouă, o mână de spanac proaspăt, 50g brânză feta, 1 linguriță ulei de măsline, sare, piper",
+        "steps": "Bate ouăle cu sare și piper. Călește spanacul în uleiul de măsline timp de 1 minut, toarnă ouăle și presară brânza feta sfărâmată. Gătește până se încheagă și împăturește."
+      },
+      {
+        "name": "Terci de ovăz cu fructe de pădure și unt de arahide",
+        "time": "10 minute",
+        "ingredients": "50g fulgi de ovăz, 200ml lapte (sau băutură vegetală), 1 lingură unt de arahide, 50g fructe de pădure, 1 linguriță miere",
+        "steps": "Fierbe ovăzul în lapte la foc mic timp de 5-7 minute amestecând continuu. Transferă într-un bol și adaugă toppingurile."
+      },
+      {
+        "name": "Toast cu avocado și ou poșat",
+        "time": "15 minute",
+        "ingredients": "2 felii pâine integrală, 1 avocado copt, 2 ouă, zeamă de lămâie, fulgi de chili, sare, piper",
+        "steps": "Prăjește pâinea. Pasează avocado cu zeama de lămâie, sare și piper. Întinde pasta pe pâine și așază deasupra ouăle poșate în apă clocotită cu oțet timp de 3 minute."
+      },
+      {
+        "name": "Clătite americane cu banane (Pancakes)",
+        "time": "20 minute",
+        "ingredients": "1 banană coaptă, 1 ou, 80g făină de ovăz, 50ml lapte, 1/2 linguriță praf de copt, scorțișoară",
+        "steps": "Pasează banana, amestecă cu oul și laptele, apoi încorporează făina, praful de copt și scorțișoara. Coace clătite mici într-o tigaie antiaderentă câte 2 minute pe fiecare parte."
+      },
+      {
+        "name": "Budincă de chia cu mango și cocos",
+        "time": "5 minute (+ hidratare peste noapte)",
+        "ingredients": "3 linguri semințe de chia, 200ml lapte de cocos, 1/2 mango tăiat cubulețe, 1 linguriță sirop de arțar",
+        "steps": "Amestecă semințele de chia cu laptele de cocos și siropul. Lasă la frigider peste noapte, iar dimineața adaugă cuburile de mango."
+      },
+      {
+        "name": "Shakshuka (Ouă în sos de roșii)",
+        "time": "20 minute",
+        "ingredients": "3 ouă, 1 conservă roșii cuburi, 1 ardei gras, 1 ceapă mică, 2 căței de usturoi, chimion, boia dulce, pătrunjel",
+        "steps": "Călește ceapa, ardeiul și usturoiul, adaugă roșiile și condimentele și fierbe 10 minute. Fă 3 adâncituri, sparge ouăle în ele, acoperă cu un capac și gătește până se albesc albușurile."
+      },
+      {
+        "name": "Sandwich cald cu curcan și cașcaval (Panini)",
+        "time": "10 minute",
+        "ingredients": "2 felii pâine ciabatta, 60g piept de curcan afumat, 2 felii cașcaval, 2 felii roșie, frunze de rucola, 1 linguriță muștar",
+        "steps": "Unge pâinea cu muștar, așază restul ingredientelor și rumenește sandwich-ul într-un grill electric sau într-o tigaie presată."
+      },
+      {
+        "name": "Iaurt grecesc cu granola de casă și nuci",
+        "time": "5 minute",
+        "ingredients": "200g iaurt grecesc (2% sau 10%), 40g granola crocantă, 20g miez de nucă, 1 linguriță miere",
+        "steps": "Pune iaurtul într-un bol, adaugă granola, nucile rupte bucăți și stropește cu miere."
+      },
+      {
+        "name": "Scramble din tofu cu turmeric și legume",
+        "time": "15 minute",
+        "ingredients": "150g tofu natur, 1/2 linguriță turmeric, 1/2 ardei roșu, 3-4 roșii cherry, 1 lingură drojdie inactivă, ulei de măsline",
+        "steps": "Sfărâmă tofu cu o furculiță. Călește legumele tăiate mărunt, adaugă tofu, turmericul și drojdia inactivă și gătește 5-7 minute amestecând."
+      },
+      {
+        "name": "Frigănele (French Toast) cu scorțișoară",
+        "time": "15 minute",
+        "ingredients": "2 felii pâine brioche sau toast gros, 1 ou, 50ml lapte, 1/2 linguriță esență de vanilie, scorțișoară, unt pentru prăjit",
+        "steps": "Bate oul cu laptele, vanilia și scorțișoara. Înmoaie feliile de pâine și prăjește-le în unt încins câte 2 minute pe fiecare parte."
+      },
+      {
+        "name": "Smoothie Bowl verde energizant",
+        "time": "10 minute",
+        "ingredients": "1 banană congelată, 1/2 avocado, o mână de spanac, 100ml lapte de migdale, topping: semințe de dovleac și felii de kiwi",
+        "steps": "Mixează banana, avocado, spanacul și laptele până obții o cremă groasă. Toarnă în bol și decorează cu semințe și kiwi."
+      },
+      {
+        "name": "Omletă ruladă cu somon afumat și cremă de brânză",
+        "time": "12 minute",
+        "ingredients": "3 ouă, 50g somon afumat, 2 linguri cremă de brânză, mărar proaspăt, piper",
+        "steps": "Fă o omletă subțire dintr-o singură bucată. După ce s-a răcit puțin, unge-o cu cremă de brânză, pune feliile de somon și mărarul, rulează strâns și taie rondele."
+      },
+      {
+        "name": "Lipie integrală cu omletă și fasole neagră (Breakfast Burrito)",
+        "time": "15 minute",
+        "ingredients": "1 lipie integrală mare, 2 ouă bătute, 50g fasole neagră din conservă, 30g brânză cheddar rasă, salsa de roșii",
+        "steps": "Fă ouăle jumări. Încălzește lipia, pune ouăle, fasolea, brânza și salsa, apoi rulează strâns sub formă de burrito."
+      },
+      {
+        "name": "Brânză de vaci (Cottage Cheese) cu ridichi și ceapă verde",
+        "time": "5 minute",
+        "ingredients": "200g brânză perle de brânză (cottage cheese), 4 ridichi, 2 fire ceapă verde, sare, piper, 2 felii pâine prăjită",
+        "steps": "Taie ridichile și ceapa mărunt, amestecă-le cu brânza, asezonează și servește alături de pâinea prăjită."
+      },
+      {
+        "name": "Ouă coapte în avocado",
+        "time": "20 minute",
+        "ingredients": "1 avocado mare, 2 ouă mici, sare, piper, boia afumată, pătrunjel tocat",
+        "steps": "Taie avocado în jumătate, scoate sâmburele și scobește puțin din miez. Sparge câte un ou în fiecare jumătate, condimentează și coace la cuptor la 200°C timp de 12-15 minute."
+      },
+      {
+        "name": "Croissant umplut cu șuncă și brânză Brie",
+        "time": "8 minute",
+        "ingredients": "1 croissant mare cu unt, 2 felii șuncă de Praga, 40g brânză Brie, câteva frunze de baby spanac",
+        "steps": "Taie croissantul pe lungime, așază șunca, brânza Brie și spanacul și bagă-l la cuptor sau airfryer 4-5 minute până se topește brânza."
+      },
+      {
+        "name": "Terci de mei cu mere coapte și nuci",
+        "time": "20 minute",
+        "ingredients": "60g mei decorticat, 250ml apă sau lapte, 1 măr ras, scorțișoară, 15g nuci",
+        "steps": "Clătește meiul, apoi fierbe-l 15 minute. Spre final adaugă mărul ras și scorțișoara. Servește cu nuci deasupra."
+      },
+      {
+        "name": "Bruschete cu roșii, busuioc și mozzarella",
+        "time": "10 minute",
+        "ingredients": "3 felii baghetă integrală, 2 roșii coapte, 60g mozzarella proaspătă, busuioc proaspăt, 1 cățel usturoi, ulei de măsline",
+        "steps": "Prăjește pâinea și freac-o cu cățelul de usturoi. Așază roșiile tăiate cubulețe, mozzarella, busuiocul și stropește cu ulei de măsline."
+      },
+      {
+        "name": "Muffins sărate cu ou și legume (la tavă)",
+        "time": "25 minute",
+        "ingredients": "4 ouă, 1/2 ardei gras, 2 ciuperci, 30g cașcaval ras, sare, piper",
+        "steps": "Bate ouăle cu legumele tăiate mărunt și cașcavalul. Toarnă în forme de brioșe și coace la 180°C timp de 15-18 minute."
+      },
+      {
+        "name": "Griș cu lapte și dulceață de vișine",
+        "time": "12 minute",
+        "ingredients": "250ml lapte, 35g griș de grâu, 1 linguriță zahăr sau miere, un praf de sare, 1 lingură dulceață de vișine",
+        "steps": "Pune laptele la fiert cu sarea. Când dă în clocot, toarnă grișul în ploaie amestecând energic cu un tel timp de 3-4 minute. Servește cu dulceață."
+      }
+    ]
+  },
+  {
+    "meal": "pranz",
+    "recipes": [
+      {
+        "name": "Piept de pui la grătar cu piure de cartofi dulci și broccoli",
+        "time": "30 minute",
+        "ingredients": "180g piept de pui, 200g cartof dulce, 100g buchețele de broccoli, 10g unt, ulei de măsline, usturoi pudră, sare, piper",
+        "steps": "Fierbe cartoful dulce și pasează-l cu unt și sare. Opărește broccoli 4 minute. Gătește pieptul de pui condimentat pe grill 5-6 minute pe fiecare parte."
+      },
+      {
+        "name": "Paste integrale cu sos pesto, roșii cherry și parmezan",
+        "time": "15 minute",
+        "ingredients": "100g paste integrale (penne sau fusilli), 2 linguri sos pesto verde, 6-7 roșii cherry, 20g parmezan ras, muguri de pin",
+        "steps": "Fierbe pastele conform instrucțiunilor. Scurge-le, păstrând 2 linguri din apa lor, și amestecă-le cu pesto, roșiile tăiate în jumătate și parmezanul."
+      },
+      {
+        "name": "Somon la cuptor cu sparanghel și lămâie",
+        "time": "25 minute",
+        "ingredients": "180g file de somon, 150g sparanghel, 2 felii lămâie, 1 lingură ulei de măsline, mărar, sare, piper",
+        "steps": "Așază somonul și sparanghelul într-o tavă, stropește cu ulei, condimentează și pune lămâia peste pește. Coace la 200°C timp de 15-18 minute."
+      },
+      {
+        "name": "Bowl Buddha cu năut crocant, quinoa și avocado",
+        "time": "25 minute",
+        "ingredients": "80g quinoa fiartă, 100g năut din conservă, 1/2 avocado, 1/2 castravete, morcov ras, 2 linguri sos tahini cu lămâie",
+        "steps": "Rumenește năutul cu boia și ulei în tigaie 8 minute. Asamblează toate ingredientele într-un bol și toarnă sosul tahini deasupra."
+      },
+      {
+        "name": "Tocăniță de linte roșie cu lapte de cocos (Dhal)",
+        "time": "25 minute",
+        "ingredients": "100g linte roșie, 150ml lapte de cocos, 100ml suc de roșii, 1 ceapă, 1 cățel usturoi, 1 linguriță pudră de curry, ghimbir ras",
+        "steps": "Călește ceapa, usturoiul și condimentele. Adaugă lintea clătită, sucul de roșii și laptele de cocos. Fierbe la foc mic 15-20 minute până se leagă."
+      },
+      {
+        "name": "Mușchiuleț de porc la tigaie cu orez basmati și legume trase la wok",
+        "time": "25 minute",
+        "ingredients": "160g mușchiuleț de porc, 80g orez basmati, 1/2 dovlecel, 1/2 ardei gras, 1 lingură sos de soia, ulei de susan",
+        "steps": "Fierbe orezul. Taie porcul fâșii și rumenește-l rapid la foc iute, scoate-l, apoi trage legumele la wok 3-4 minute. Combină carnea, legumele și sosul de soia."
+      },
+      {
+        "name": "Salată Caesar cu piept de pui și crutoane",
+        "time": "20 minute",
+        "ingredients": "150g piept de pui, 1 salată romana, 30g parmezan, crutoane integrale, sos Caesar (iaurt grecesc, muștar, usturoi, zeamă de lămâie, anșoa)",
+        "steps": "Gătește puiul și taie-l fâșii. Rupe salata, amestec-o cu sosul, adaugă puiul, crutoanele și fulgii de parmezan."
+      },
+      {
+        "name": "Burger de vită de casă cu cartofi copți la cuptor",
+        "time": "35 minute",
+        "ingredients": "180g carne tocată de vită, 1 chiflă burger, 1 felie cheddar, salată, roșie, castraveți murați, 200g cartofi albi",
+        "steps": "Taie cartofii wedges și coace-i la 200°C timp de 25 min. Formează chifteaua de vită, condimentează cu sare și piper și prăjește-o câte 3-4 min pe parte. Asamblează burgerul."
+      },
+      {
+        "name": "Risotto cu ciuperci și parmezan",
+        "time": "30 minute",
+        "ingredients": "100g orez Arborio, 150g ciuperci champignon, 1/2 ceapă, 500ml supă de legume fierbinte, 30g parmezan, 15g unt, 30ml vin alb",
+        "steps": "Călește ceapa și ciupercile. Adaugă orezul 1 minut, stinge cu vin, apoi adaugă supa câte un polonic pe rând amestecând continuu 18 minute. La final încorporează untul și parmezanul."
+      },
+      {
+        "name": "Pulpe de pui dezosate la cuptor cu fasole verde și usturoi",
+        "time": "35 minute",
+        "ingredients": "2 pulpe de pui dezosate fără piele, 200g păstăi de fasole verde, 2 căței de usturoi, cimbru, ulei de măsline, sare, piper",
+        "steps": "Condimentează puiul și coace-l la 200°C timp de 25-30 minute. În ultimele 10 minute, trage fasolea verde fiartă în tigaie cu ulei de măsline și usturoi."
+      },
+      {
+        "name": "Quesadilla cu pui, porumb și fasole roșie",
+        "time": "15 minute",
+        "ingredients": "2 lipii tortilla, 100g piept de pui gătit și mărunțit, 50g brânză cheddar, 2 linguri porumb, 2 linguri fasole roșie, boia afumată",
+        "steps": "Pune pe o lipie brânza, puiul, porumbul, fasolea și boiaua. Acoperă cu a doua lipie și rumenește într-o tigaie uscată câte 2-3 minute pe parte, apoi taie în triunghiuri."
+      },
+      {
+        "name": "Păstrăv la cuptor cu mămăliguță și mujdei",
+        "time": "35 minute",
+        "ingredients": "1 păstrăv eviscerat, 60g mălai, 250ml apă, 3 căței usturoi, lămâie, sare, piper",
+        "steps": "Condimentează păstrăvul, pune felii de lămâie în interior și coace-l 25 minute la 190°C. Fierbe mălaiul în apă cu sare timp de 15 minute pentru mămăligă."
+      },
+      {
+        "name": "Chifteluțe de curcan la cuptor cu piure de mazăre",
+        "time": "30 minute",
+        "ingredients": "180g carne tocată de curcan, 1/2 ceapă rasă, pătrunjel, 150g mazăre congelată, 1 lingură cremă de brânză, mentă",
+        "steps": "Amestecă carnea cu ceapa, pătrunjelul și condimentele, formează chifteluțe și coace-le 20 min la 200°C. Fierbe mazărea 6 min și paseaz-o cu crema de brânză."
+      },
+      {
+        "name": "Paste Bolognese cu carne de vită",
+        "time": "30 minute",
+        "ingredients": "100g spaghete, 150g carne tocată de vită, 150ml pasata de roșii, 1/2 ceapă, 1/2 morcov ras, oregano, busuioc",
+        "steps": "Călește ceapa și morcovul, adaugă carnea și rumenește-o. Toarnă sosul de roșii și ierburile, fierbe 15 minute și servește peste spaghetele fierte."
+      },
+      {
+        "name": "Salată caldă cu halloumi la grătar, sfeclă roșie și nuci",
+        "time": "15 minute",
+        "ingredients": "100g brânză halloumi, 1 sfeclă roșie fiartă, mix de salată verde, 20g nuci, 1 lingură oțet balsamic, ulei de măsline",
+        "steps": "Taie brânza felii și frige-o pe grill câte 2 minute pe parte. Așază salata, sfecla cuburi, nucile și brânza caldă, apoi stropește cu dressingul balsamic."
+      },
+      {
+        "name": "Curry verde thailandez cu creveți și orez jasmin",
+        "time": "20 minute",
+        "ingredients": "150g creveți decorticați, 150ml lapte de cocos, 1 lingură pastă curry verde, 1/2 ardei gras, 80g orez jasmin, lime",
+        "steps": "Fierbe orezul. Încălzește pasta curry, adaugă laptele de cocos și ardeiul fâșii, fierbe 5 minute, apoi pune creveții pentru încă 3-4 minute. Stropește cu lime."
+      },
+      {
+        "name": "Ardei umpluți cu orez, ciuperci și legume (de post)",
+        "time": "45 minute",
+        "ingredients": "2 ardei grași mari, 80g orez, 100g ciuperci tocate, 1 ceapă, 1 morcov, 200ml suc de roșii, mărar",
+        "steps": "Călește ceapa, morcovul, ciupercile și orezul. Umple ardeii curățați, așază-i într-o cratiță cu sucul de roșii și apă cât să-i acopere pe jumătate și fierbe-i acoperit 30-35 minute."
+      },
+      {
+        "name": "Friptură de vită (Ribeye) cu cartofi zdrobiți și rozmarin",
+        "time": "25 minute",
+        "ingredients": "200g antricot de vită, 200g cartofi noi mici, 1 crenguță rozmarin, 15g unt, usturoi, sare grunjoasă",
+        "steps": "Fierbe cartofii, zdrobește-i ușor cu furculița și rumenește-i la cuptor sau tigaie. Frige vita în tigaia încinsă 3-4 minute pe fiecare parte, adăugând untul, usturoiul și rozmarinul în ultimul minut."
+      },
+      {
+        "name": "Wraps cu falafel, humus și legume proaspete",
+        "time": "15 minute",
+        "ingredients": "1 lipie libaneză, 4 chifteluțe falafel (coapte), 2 linguri humus, roșii, castraveți, ceapă roșie, pătrunjel",
+        "steps": "Încălzește falafelul. Unge lipia cu humus, adaugă legumele tăiate și chifteluțele zdrobite ușor, apoi rulează."
+      },
+      {
+        "name": "Ciorbă de perișoare de curcan acrită cu borș",
+        "time": "45 minute",
+        "ingredients": "200g carne tocată de curcan, 1 lingură orez, 1 morcov, 1 ceapă, 1/2 țelină, 250ml borș, leuștean, 1 ou",
+        "steps": "Fierbe legumele tăiate cubulețe. Formează perișoarele din carne, orez și albuș și pune-le la fiert 20 minute. Adaugă borșul fiert separat, drege cu gălbenuș și presară leuștean."
+      }
+    ]
+  },
+  {
+    "meal": "cina",
+    "recipes": [
+      {
+        "name": "Supă cremă de dovleac copt cu semințe",
+        "time": "35 minute",
+        "ingredients": "300g dovleac plăcintar, 1 morcov, 1/2 ceapă, 1 cățel usturoi, 300ml supă de legume, nucșoară, semințe de dovleac",
+        "steps": "Coace dovleacul cuburi 25 minute la 200°C. Fierbe-l apoi 10 minute cu restul legumelor în supă, pasează cu blenderul vertical și asezonează cu nucșoară și semințe."
+      },
+      {
+        "name": "Cod la cuptor în pergament (En Papillote) cu dovlecei",
+        "time": "25 minute",
+        "ingredients": "180g file de cod, 1/2 dovlecel feliat subțire, 4 roșii cherry, 1 lingură ulei de măsline, cimbru, lămâie",
+        "steps": "Pune legumele și codul pe o foaie de copt, stropește cu ulei și lămâie, împachetează ermetic și coace 15-18 minute la 190°C."
+      },
+      {
+        "name": "Salată grecească cu brânză feta și măsline Kalamata",
+        "time": "10 minute",
+        "ingredients": "2 roșii, 1/2 castravete, 1/2 ardei verde, 1/4 ceapă roșie, 80g brânză feta, 8 măsline Kalamata, oregano, ulei de măsline",
+        "steps": "Taie legumele bucăți mari, adaugă măslinele și felia de feta deasupra, presară oregano uscat și stropește generos cu ulei de măsline extravirgin."
+      },
+      {
+        "name": "Dovlecei umpluți cu brânză de vaci și mărar la cuptor",
+        "time": "30 minute",
+        "ingredients": "2 dovlecei mici, 150g brânză de vaci, 1 ou, mărar proaspăt, 20g cașcaval ras, sare, piper",
+        "steps": "Taie dovleceii pe lungime și scobește miezul. Amestecă miezul tocat cu brânza, oul și mărarul, umple bărcuțele, presară cașcaval și coace 20-25 minute la 190°C."
+      },
+      {
+        "name": "Frigărui de pui cu legume la grill și sos tzatziki",
+        "time": "25 minute",
+        "ingredients": "160g piept de pui cuburi, 1/2 ardei gras, 1/2 ceapă roșie, 4 ciuperci, 100g sos tzatziki",
+        "steps": "Înșiră alternat carnea condimentată și legumele pe bețe de frigărui. Frige-le pe grill 12-15 minute întorcându-le regulat și servește cu tzatziki."
+      },
+      {
+        "name": "Supă cremă de linte cu chimion și crutoane",
+        "time": "25 minute",
+        "ingredients": "100g linte roșie, 1 morcov, 1/2 ceapă, 1/2 linguriță chimion măcinat, 400ml apă, zeamă de lămâie",
+        "steps": "Fierbe lintea și legumele 15-20 minute. Pasează totul cu blenderul, adaugă chimionul și zeama de lămâie și servește caldă."
+      },
+      {
+        "name": "Salată Nicoise cu ton și ou fiert",
+        "time": "15 minute",
+        "ingredients": "1 conservă ton în suc propriu, 1 ou fiert tare, 100g fasole verde fiartă, mix salată, 5 roșii cherry, măsline negre, dressing muștar",
+        "steps": "Așază salata pe farfurie, adaugă tonul scurs, oul tăiat sferturi, fasolea verde, roșiile și măslinele, apoi stropește cu dressingul."
+      },
+      {
+        "name": "Ciuperci Portobello umplute cu spanac și mozzarella",
+        "time": "25 minute",
+        "ingredients": "2 ciuperci Portobello mari, o mână de spanac, 1 cățel usturoi, 60g mozzarella rasă, ulei de măsline",
+        "steps": "Scoate codițele ciupercilor. Călește spanacul cu usturoiul 2 minute, umple pălăriile ciupercilor, acoperă cu mozzarella și coace 15 minute la 200°C."
+      },
+      {
+        "name": "Omletă spaniolă (Tortilla de Patatas) ușoară",
+        "time": "25 minute",
+        "ingredients": "3 ouă, 1 cartof mediu fiert în prealabil, 1/2 ceapă mică, 1 lingură ulei de măsline, sare, piper",
+        "steps": "Călește ceapa și cartoful tăiat felii subțiri 5 minute. Toarnă ouăle bătute, gătește la foc mic acoperit 7-8 minute, apoi întoarce tortilla cu ajutorul unei farfurii pentru încă 3 minute."
+      },
+      {
+        "name": "File de biban de mare la tigaie cu sos de capere și lămâie",
+        "time": "15 minute",
+        "ingredients": "180g file de biban de mare, 1 lingură capere, 15g unt, zeama de la 1/2 lămâie, pătrunjel, sparanghel sau salată verde",
+        "steps": "Prăjește peștele cu pielea în jos 4 minute, apoi întoarce-l pentru 2 minute. Scoate peștele, topește untul în tigaie cu caperele, zeama de lămâie și pătrunjelul și toarnă sosul peste pește."
+      },
+      {
+        "name": "Conopidă la cuptor cu parmezan și usturoi",
+        "time": "30 minute",
+        "ingredients": "250g buchețele de conopidă, 30g parmezan ras, 1 lingură ulei de măsline, usturoi granulat, boia dulce, iaurt grecesc pentru servit",
+        "steps": "Amestecă conopida cu uleiul, condimentele și parmezanul. Coace pe hârtie de copt 25 minute la 200°C până devine aurie și crocantă."
+      },
+      {
+        "name": "Salată caldă cu piept de curcan, merișoare și brânză de capră",
+        "time": "15 minute",
+        "ingredients": "150g piept de curcan la grătar, baby spanac, 40g brânză de capră, 1 lingură merișoare uscate, dressing de miere cu muștar",
+        "steps": "Taie curcanul cald fâșii și așază-l peste patul de spanac, presară brânza de capră sfărâmată și merișoarele și adaugă dressingul."
+      },
+      {
+        "name": "Dovlecel spaghetti (Zoodles) cu sos marinara și chifteluțe de pui",
+        "time": "25 minute",
+        "ingredients": "2 dovlecei dați prin spiralizator, 150ml sos de roșii cu busuioc, 120g chifteluțe de pui la cuptor, 15g parmezan",
+        "steps": "Trage tăițeii de dovlecel în tigaie 2-3 minute (să rămână crocanți). Încălzește sosul cu chifteluțele și servește peste dovlecei cu parmezan."
+      },
+      {
+        "name": "Supă clară de legume cu tăiței de casă",
+        "time": "30 minute",
+        "ingredients": "1 morcov, 1 rădăcină pătrunjel, 1/2 țelină, 1/2 ceapă, 30g tăiței subțiri, pătrunjel verde, 500ml apă",
+        "steps": "Fierbe legumele tăiate rondele 20 minute în apă cu sare. Adaugă tăițeii în ultimele 5 minute și presară pătrunjel proaspăt la final."
+      },
+      {
+        "name": "Tacos cu pește alb și salată de varză roșie",
+        "time": "20 minute",
+        "ingredients": "2 mini-tortilla de porumb, 150g file de șalău sau cod, 100g varză roșie tocată fin, 2 linguri iaurt grecesc, lime, coriandru",
+        "steps": "Condimentează peștele și gătește-l la tigaie 6 minute, apoi rupe-l bucăți. Umple tortilla încălzite cu pește, varză amestecată cu iaurt și zeamă de lime."
+      },
+      {
+        "name": "Vinete coapte la cuptor cu pastă tahini și rodie",
+        "time": "35 minute",
+        "ingredients": "1 vânătă medie, 2 linguri tahini, 1 lingură zeamă de lămâie, 2 linguri semințe de rodie, pătrunjel, ulei de măsline",
+        "steps": "Taie vânăta în jumătate, crestează miezul, unge cu ulei și coace 30 minute la 200°C. Stropește cu sosul tahini diluat cu lămâie și apă, apoi presară rodie."
+      },
+      {
+        "name": "Creveți saganaki (în sos de roșii cu brânză feta)",
+        "time": "20 minute",
+        "ingredients": "160g creveți, 150g roșii pasate, 50g brânză feta, 1 cățel usturoi, fulgi de chili, oregano, ulei de măsline",
+        "steps": "Călește usturoiul, adaugă roșiile și oregano și fierbe 8 minute. Pune creveții și brânza feta sfărâmată și mai lasă pe foc 4 minute."
+      },
+      {
+        "name": "Salată de sfeclă roșie cu hrean și piept de pui afumat",
+        "time": "10 minute",
+        "ingredients": "150g sfeclă roșie fiartă rasă, 1 linguriță hrean ras, 1 lingură iaurt grecesc, 120g piept de pui afumat feliat",
+        "steps": "Amestecă sfecla cu hreanul, iaurtul și un praf de sare. Servește alături de feliile de piept de pui afumat."
+      },
+      {
+        "name": "Omletă la cuptor (Frittata) cu broccoli și brânză cheddar",
+        "time": "25 minute",
+        "ingredients": "3 ouă, 100g buchețele mici de broccoli opărite, 40g cheddar ras, 2 linguri lapte, sare, piper",
+        "steps": "Bate ouăle cu laptele, sarea și piperul. Pune broccoli într-un vas mic termorezistent, toarnă ouăle, presară cheddar și coace 15-18 minute la 180°C."
+      },
+      {
+        "name": "Iaurt grecesc cu castraveți, usturoi și nuci (Supă rece Tarator)",
+        "time": "10 minute",
+        "ingredients": "250g iaurt grecesc, 100ml apă rece, 1 castravete ras, 1 cățel usturoi zdrobit, 20g nuci mărunțite, mărar, 1 linguriță ulei de măsline",
+        "steps": "Subțiază iaurtul cu apa rece, adaugă castravetele, usturoiul, mărarul, nucile și uleiul de măsline. Servește foarte rece."
+      }
+    ]
+  },
+  {
+    "meal": "gustari",
+    "recipes": [
+      {
+        "name": "Felii de măr cu unt de arahide și scorțișoară",
+        "time": "3 minute",
+        "ingredients": "1 măr mediu, 1 lingură unt de arahide 100%, un praf de scorțișoară",
+        "steps": "Taie mărul felii, unge fiecare felie cu unt de arahide și presară scorțișoară."
+      },
+      {
+        "name": "Batoane energizante fără coacere cu ovăz și curmale",
+        "time": "15 minute (+ răcire)",
+        "ingredients": "100g curmale fără sâmburi, 80g fulgi de ovăz, 2 linguri unt de migdale, 1 lingură cacao pudră",
+        "steps": "Mixează toate ingredientele într-un robot de bucătărie până obții o pastă lipicioasă. Presează compoziția într-o tavă mică, lasă la frigider 1 oră și taie batoane."
+      },
+      {
+        "name": "Humus cu bastonașe de morcov și castravete",
+        "time": "5 minute",
+        "ingredients": "3 linguri humus, 1 morcov mare, 1/2 castravete, un praf de boia dulce",
+        "steps": "Taie legumele bastonașe subțiri și servește-le alături de humusul presărat cu boia."
+      },
+      {
+        "name": "Edamame fierte cu sare de mare",
+        "time": "8 minute",
+        "ingredients": "150g păstăi de edamame congelate, sare grunjoasă de mare",
+        "steps": "Fierbe păstăile în apă clocotită timp de 5 minute, scurge-le bine și presară sare de mare."
+      },
+      {
+        "name": "Iaurt cu semințe de dovleac și afine",
+        "time": "2 minute",
+        "ingredients": "150g iaurt natural, 50g afine proaspete, 1 lingură semințe de dovleac crude",
+        "steps": "Amestecă ingredientele într-un bol mic."
+      },
+      {
+        "name": "Rondele de orez expandat cu avocado și roșii cherry",
+        "time": "5 minute",
+        "ingredients": "2 rondele de orez integral, 1/2 avocado, 4 roșii cherry, sare, piper",
+        "steps": "Pasează avocado pe rondelele de orez și așază deasupra roșiile cherry tăiate felii."
+      },
+      {
+        "name": "Năut crocant copt cu condimente",
+        "time": "25 minute",
+        "ingredients": "150g năut fiert (din conservă), 1 linguriță ulei de măsline, boia afumată, usturoi pudră, sare",
+        "steps": "Usucă boabele de năut cu un șervețel, amestecă-le cu uleiul și condimentele și coace-le 20 minute la 200°C până devin crocante."
+      },
+      {
+        "name": "Smoothie proteic cu banană și cacao",
+        "time": "5 minute",
+        "ingredients": "1 banană, 200ml lapte, 1 linguriță cacao, 1 măsură pudră proteică (opțional) sau 2 linguri iaurt grecesc",
+        "steps": "Mixează toate ingredientele în blender până devin spumoase."
+      },
+      {
+        "name": "Ou fiert tare cu puțină sare și boia",
+        "time": "10 minute",
+        "ingredients": "2 ouă, sare, boia dulce sau piper",
+        "steps": "Fierbe ouăle 8-9 minute, curăță-le, taie-le în jumătate și asezonează."
+      },
+      {
+        "name": "Mix de nuci crude și fructe uscate (Trail Mix)",
+        "time": "1 minut",
+        "ingredients": "15g migdale, 15g caju, 10g merișoare sau stafide, 2 cuburi ciocolată neagră (85%)",
+        "steps": "Combină ingredientele într-un recipient mic pentru o gustare rapidă la birou."
+      },
+      {
+        "name": "Guacamole rapid cu nachos integrali la cuptor",
+        "time": "10 minute",
+        "ingredients": "1 avocado, 1/4 ceapă roșie tocată fin, zeamă de lime, sare, 30g chipsuri de tortilla coapte",
+        "steps": "Pasează avocado cu ceapa, sarea și zeama de lime și servește cu chipsurile."
+      },
+      {
+        "name": "Rulouri din felii de curcan cu cremă de brânză și ardei",
+        "time": "5 minute",
+        "ingredients": "3 felii piept de curcan, 2 linguri cremă de brânză light, 3 fâșii subțiri de ardei gras",
+        "steps": "Unge feliile de curcan cu cremă de brânză, pune câte o fâșie de ardei și rulează."
+      },
+      {
+        "name": "Popcorn făcut în casă fără ulei (la aer cald sau în pungă de hârtie)",
+        "time": "5 minute",
+        "ingredients": "30g boabe de porumb pentru floricele, sare fină, 1 linguriță drojdie inactivă (pentru gust de brânză)",
+        "steps": "Prepară floricelele fără grăsime și presară sare și drojdie inactivă."
+      },
+      {
+        "name": "Brânză cottage cu felii de piersică sau ananas",
+        "time": "3 minute",
+        "ingredients": "150g brânză perle, 1/2 piersică proaspătă tăiată cubulețe, un praf de scorțișoară",
+        "steps": "Combină brânza cu bucățile de fruct pentru un contrast dulce-sărat."
+      },
+      {
+        "name": "Chipsuri de kale la cuptor",
+        "time": "15 minute",
+        "ingredients": "100g frunze de kale fără cotor, 1 linguriță ulei de măsline, sare de mare",
+        "steps": "Masează frunzele rupte bucăți cu ulei și sare și coace-le 10-12 minute la 175°C până devin crocante."
+      },
+      {
+        "name": "Banană congelată trasă în ciocolată neagră",
+        "time": "10 minute (+ congelare)",
+        "ingredients": "1 banană tăiată rondele groase, 30g ciocolată neagră topită, fulgi de cocos",
+        "steps": "Înmoaie rondelele de banană în ciocolata topită, presară cocos și lasă-le la congelator 30 de minute."
+      },
+      {
+        "name": "Apio (țelină apio) cu cremă de brânză și stafide",
+        "time": "5 minute",
+        "ingredients": "2 tije de țelină apio, 2 linguri cremă de brânză, 1 lingură stafide",
+        "steps": "Umple canalul tijelor de apio cu cremă de brânză și așază stafidele deasupra."
+      },
+      {
+        "name": "Măsline marinate cu ierburi aromatice și coajă de portocală",
+        "time": "5 minute",
+        "ingredients": "80g măsline verzi și negre fără sâmburi, 1 linguriță ulei de măsline, oregano, puțină coajă rasă de portocală bio",
+        "steps": "Amestecă măslinele cu uleiul și aromele și lasă-le 10 minute să se întrepătrundă gusturile."
+      },
+      {
+        "name": "Brioșă rapidă la cană (Mug Cake) cu ovăz și banană",
+        "time": "5 minute",
+        "ingredients": "1/2 banană pasată, 1 ou, 3 linguri făină de ovăz, 1/2 linguriță praf de copt, 3-4 picături de ciocolată",
+        "steps": "Amestecă totul direct într-o cană mare și gătește la cuptorul cu microunde 90 de secunde."
+      },
+      {
+        "name": "Chefir cu semințe de in măcinate",
+        "time": "2 minute",
+        "ingredients": "250ml chefir sau sana, 1 lingură semințe de in proaspăt măcinate",
+        "steps": "Amestecă semințele de in în paharul cu chefir, lasă 2 minute să se hidrateze ușor și consumă."
+      }
+    ]
+  }
+]

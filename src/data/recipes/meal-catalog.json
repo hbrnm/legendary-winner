@@ -1,0 +1,5978 @@
+{
+  "recipes": [
+    {
+      "id": "omleta-spanac-feta",
+      "name": "Omletă cu spanac și brânză feta",
+      "description": "Timp indicat: 10 minute. Gramaj final estimat: ~240 g total (240 g / porție).",
+      "categories": [
+        "mic_dejun"
+      ],
+      "cuisine": "internationala",
+      "servings": 1,
+      "prep": 10,
+      "cook": 0,
+      "difficulty": "usor",
+      "nutrition": {
+        "kcal": 365,
+        "protein_g": 24,
+        "carbs_g": 4,
+        "fat_g": 28,
+        "fiber_g": 1.5
+      },
+      "ingredients": [
+        {
+          "p": "oua",
+          "q": 150,
+          "u": "g",
+          "note": "3 ouă medii (150 g)"
+        },
+        {
+          "p": "spanac",
+          "q": 50,
+          "u": "g",
+          "note": "Spanac proaspăt (50 g)"
+        },
+        {
+          "p": "feta",
+          "q": 50,
+          "u": "g",
+          "note": "Brânză feta (50 g)"
+        },
+        {
+          "p": "ulei-masline",
+          "q": 5,
+          "u": "g",
+          "note": "Ulei de măsline extravirgin (5 g / 1 linguriță)"
+        },
+        {
+          "p": "sare",
+          "q": 1,
+          "u": "g",
+          "note": "Sare (1 g)"
+        },
+        {
+          "p": "piper-negru-macinat",
+          "q": 0.5,
+          "u": "g",
+          "note": "piper negru măcinat (0.5 g)"
+        }
+      ],
+      "steps": [
+        "Bate ouăle cu sare și piper.",
+        "Călește spanacul în uleiul de măsline timp de 1 minut, toarnă ouăle și presară brânza feta sfărâmată.",
+        "Gătește la foc mic până se încheagă și împăturește."
+      ]
+    },
+    {
+      "id": "terci-ovaz-fructe-padure-unt-arahide",
+      "name": "Terci de ovăz cu fructe de pădure și unt de arahide",
+      "description": "Timp indicat: 10 minute. Gramaj final estimat: ~320 g total (320 g / porție).",
+      "categories": [
+        "mic_dejun"
+      ],
+      "cuisine": "internationala",
+      "servings": 1,
+      "prep": 10,
+      "cook": 0,
+      "difficulty": "usor",
+      "nutrition": {
+        "kcal": 435,
+        "protein_g": 16,
+        "carbs_g": 52,
+        "fat_g": 17,
+        "fiber_g": 8
+      },
+      "ingredients": [
+        {
+          "p": "reteta-fulgi-de-ovaz-integrali-uscati",
+          "q": 50,
+          "u": "g",
+          "note": "Fulgi de ovăz integrali uscați (50 g)"
+        },
+        {
+          "p": "reteta-lapte-semidegresat-1-5-sau-bautura-vegetala",
+          "q": 200,
+          "u": "ml",
+          "note": "Lapte semidegresat 1.5% sau băutură vegetală (200 ml)"
+        },
+        {
+          "p": "reteta-unt-de-arahide-100",
+          "q": 15,
+          "u": "g",
+          "note": "Unt de arahide 100% (15 g / 1 lingură)"
+        },
+        {
+          "p": "fructe-padure-congelate",
+          "q": 50,
+          "u": "g",
+          "note": "Fructe de pădure proaspete/congelate (50 g)"
+        },
+        {
+          "p": "miere",
+          "q": 7,
+          "u": "g",
+          "note": "Miere de albine (7 g / 1 linguriță)"
+        }
+      ],
+      "steps": [
+        "Fierbe ovăzul în lapte la foc mic timp de 5-7 minute, amestecând continuu până absoarbe lichidul.",
+        "Transferă într-un bol și adaugă fructele de pădure, untul de arahide și mierea."
+      ]
+    },
+    {
+      "id": "toast-avocado-ou-posat",
+      "name": "Toast cu avocado și ou poșat",
+      "description": "Timp indicat: 15 minute. Gramaj final estimat: ~340 g total (170 g / porție).",
+      "categories": [
+        "mic_dejun"
+      ],
+      "cuisine": "internationala",
+      "servings": 2,
+      "prep": 15,
+      "cook": 0,
+      "difficulty": "usor",
+      "nutrition": {
+        "kcal": 330,
+        "protein_g": 13,
+        "carbs_g": 24,
+        "fat_g": 20,
+        "fiber_g": 6.5
+      },
+      "ingredients": [
+        {
+          "p": "reteta-paine-integrala-cu-maia",
+          "q": 80,
+          "u": "g",
+          "note": "Pâine integrală cu maia (80 g / 2 felii)"
+        },
+        {
+          "p": "avocado",
+          "q": 140,
+          "u": "g",
+          "note": "Avocado copt, miez curățat (140 g / 1 bucată medie)"
+        },
+        {
+          "p": "oua",
+          "q": 100,
+          "u": "g",
+          "note": "Ouă medii (100 g / 2 bucăți)"
+        },
+        {
+          "p": "reteta-zeama-de-lamaie",
+          "q": 10,
+          "u": "ml",
+          "note": "Zeamă de lămâie (10 ml)"
+        },
+        {
+          "p": "reteta-fulgi-de-chili",
+          "q": 0.5,
+          "u": "g",
+          "note": "fulgi de chili (0.5 g)"
+        },
+        {
+          "p": "sare",
+          "q": 1,
+          "u": "g",
+          "note": "sare (1 g)"
+        },
+        {
+          "p": "piper-negru-macinat",
+          "q": 0.5,
+          "u": "g",
+          "note": "piper (0.5 g)"
+        }
+      ],
+      "steps": [
+        "Prăjește pâinea.",
+        "Pasează miezul de avocado cu zeama de lămâie, sare și piper.",
+        "Întinde pasta pe felii și așază deasupra ouăle poșate în apă aproape de punctul de fierbere timp de 3 minute."
+      ]
+    },
+    {
+      "id": "clatite-americane-banane-pancakes",
+      "name": "Clătite americane cu banane (Pancakes)",
+      "description": "Timp indicat: 20 minute. Gramaj final estimat: ~280 g total (140 g / porție).",
+      "categories": [
+        "mic_dejun"
+      ],
+      "cuisine": "internationala",
+      "servings": 2,
+      "prep": 20,
+      "cook": 0,
+      "difficulty": "usor",
+      "nutrition": {
+        "kcal": 265,
+        "protein_g": 10,
+        "carbs_g": 43,
+        "fat_g": 6,
+        "fiber_g": 5
+      },
+      "ingredients": [
+        {
+          "p": "banane",
+          "q": 120,
+          "u": "g",
+          "note": "Banană coaptă, curățată (120 g / 1 bucată)"
+        },
+        {
+          "p": "oua",
+          "q": 50,
+          "u": "g",
+          "note": "Ou mediu (50 g / 1 bucată)"
+        },
+        {
+          "p": "reteta-faina-de-ovaz",
+          "q": 80,
+          "u": "g",
+          "note": "Făină de ovăz (80 g)"
+        },
+        {
+          "p": "lapte-semidegresat",
+          "q": 50,
+          "u": "ml",
+          "note": "Lapte 1.5% (50 ml)"
+        },
+        {
+          "p": "praf-copt",
+          "q": 3,
+          "u": "g",
+          "note": "Praf de copt (3 g)"
+        },
+        {
+          "p": "scortisoara",
+          "q": 1,
+          "u": "g",
+          "note": "scorțișoară măcinată (1 g)"
+        }
+      ],
+      "steps": [
+        "Pasează banana, amestecă cu oul și laptele, apoi încorporează făina de ovăz, praful de copt și scorțișoara.",
+        "Coace clătite mici într-o tigaie antiaderentă câte 2 minute pe fiecare parte."
+      ]
+    },
+    {
+      "id": "budinca-chia-mango-cocos",
+      "name": "Budincă de chia cu mango și cocos",
+      "description": "Timp indicat: 5 minute (+ hidratare peste noapte). Gramaj final estimat: ~325 g total (325 g / porție).",
+      "categories": [
+        "mic_dejun"
+      ],
+      "cuisine": "internationala",
+      "servings": 1,
+      "prep": 5,
+      "cook": 0,
+      "difficulty": "usor",
+      "nutrition": {
+        "kcal": 340,
+        "protein_g": 7,
+        "carbs_g": 34,
+        "fat_g": 19,
+        "fiber_g": 12
+      },
+      "ingredients": [
+        {
+          "p": "reteta-seminte-de-chia-uscate",
+          "q": 30,
+          "u": "g",
+          "note": "Semințe de chia uscate (30 g / 3 linguri)"
+        },
+        {
+          "p": "reteta-lapte-de-cocos-la-conserva",
+          "q": 200,
+          "u": "ml",
+          "note": "Lapte de cocos la conservă (200 ml)"
+        },
+        {
+          "p": "mango",
+          "q": 80,
+          "u": "g",
+          "note": "Mango proaspăt, cubulețe (80 g)"
+        },
+        {
+          "p": "reteta-sirop-de-artar",
+          "q": 7,
+          "u": "g",
+          "note": "Sirop de arțar (7 g / 1 linguriță)"
+        }
+      ],
+      "steps": [
+        "Amestecă semințele de chia cu laptele de cocos și siropul de arțar.",
+        "Lasă la frigider minimum 4 ore sau peste noapte, iar dimineața adaugă cuburile de mango deasupra."
+      ]
+    },
+    {
+      "id": "shakshuka-oua-sos-rosii",
+      "name": "Shakshuka (Ouă în sos de roșii)",
+      "description": "Timp indicat: 20 minute. Gramaj final estimat: ~620 g total (310 g / porție).",
+      "categories": [
+        "mic_dejun"
+      ],
+      "cuisine": "internationala",
+      "servings": 2,
+      "prep": 20,
+      "cook": 0,
+      "difficulty": "usor",
+      "nutrition": {
+        "kcal": 275,
+        "protein_g": 15,
+        "carbs_g": 18,
+        "fat_g": 15,
+        "fiber_g": 4.5
+      },
+      "ingredients": [
+        {
+          "p": "oua",
+          "q": 200,
+          "u": "g",
+          "note": "Ouă medii (200 g / 4 bucăți)"
+        },
+        {
+          "p": "rosii-conserva",
+          "q": 400,
+          "u": "g",
+          "note": "Roșii cuburi în suc propriu (400 g / 1 conservă)"
+        },
+        {
+          "p": "ardei-gras",
+          "q": 100,
+          "u": "g",
+          "note": "Ardei gras roșu (100 g)"
+        },
+        {
+          "p": "ceapa-galbena",
+          "q": 60,
+          "u": "g",
+          "note": "Ceapă galbenă (60 g)"
+        },
+        {
+          "p": "usturoi",
+          "q": 8,
+          "u": "g",
+          "note": "usturoi (8 g / 2 căței)"
+        },
+        {
+          "p": "ulei-masline",
+          "q": 10,
+          "u": "g",
+          "note": "Ulei de măsline (10 g)"
+        },
+        {
+          "p": "chimen",
+          "q": 1,
+          "u": "g",
+          "note": "chimion (1 g)"
+        },
+        {
+          "p": "boia-dulce",
+          "q": 2,
+          "u": "g",
+          "note": "boia dulce (2 g)"
+        },
+        {
+          "p": "patrunjel-verde",
+          "q": 10,
+          "u": "g",
+          "note": "pătrunjel proaspăt (10 g)"
+        },
+        {
+          "p": "sare",
+          "q": 2,
+          "u": "g",
+          "note": "sare (2 g)"
+        }
+      ],
+      "steps": [
+        "Călește ceapa, ardeiul și usturoiul în ulei, adaugă roșiile și condimentele și fierbe 10 minute.",
+        "Fă 4 adâncituri, sparge ouăle în ele, acoperă cu un capac și gătește 5-6 minute până se albesc albușurile."
+      ]
+    },
+    {
+      "id": "sandwich-cald-curcan-cascaval-panini",
+      "name": "Sandwich cald cu curcan și cașcaval (Panini)",
+      "description": "Timp indicat: 10 minute. Gramaj final estimat: ~265 g total (265 g / porție).",
+      "categories": [
+        "mic_dejun"
+      ],
+      "cuisine": "internationala",
+      "servings": 1,
+      "prep": 10,
+      "cook": 0,
+      "difficulty": "usor",
+      "nutrition": {
+        "kcal": 445,
+        "protein_g": 28,
+        "carbs_g": 44,
+        "fat_g": 17,
+        "fiber_g": 3.5
+      },
+      "ingredients": [
+        {
+          "p": "reteta-paine-ciabatta",
+          "q": 90,
+          "u": "g",
+          "note": "Pâine ciabatta (90 g)"
+        },
+        {
+          "p": "reteta-piept-de-curcan-afumat-feliat",
+          "q": 60,
+          "u": "g",
+          "note": "Piept de curcan afumat feliat (60 g)"
+        },
+        {
+          "p": "reteta-cascaval-feliat",
+          "q": 40,
+          "u": "g",
+          "note": "Cașcaval feliat (40 g)"
+        },
+        {
+          "p": "rosii",
+          "q": 50,
+          "u": "g",
+          "note": "Roșie proaspătă (50 g)"
+        },
+        {
+          "p": "rucola",
+          "q": 15,
+          "u": "g",
+          "note": "rucola (15 g)"
+        },
+        {
+          "p": "reteta-mustar-clasic",
+          "q": 10,
+          "u": "g",
+          "note": "muștar clasic (10 g)"
+        }
+      ],
+      "steps": [
+        "Taie chifla pe lungime, unge-o cu muștar, așază curcanul, cașcavalul, feliile de roșie și rucola.",
+        "Rumenește sandwich-ul într-un grill electric sau într-o tigaie presată timp de 4-5 minute."
+      ]
+    },
+    {
+      "id": "iaurt-grecesc-granola-nuci",
+      "name": "Iaurt grecesc cu granola de casă și nuci",
+      "description": "Timp indicat: 5 minute. Gramaj final estimat: ~267 g total (267 g / porție).",
+      "categories": [
+        "mic_dejun"
+      ],
+      "cuisine": "internationala",
+      "servings": 1,
+      "prep": 5,
+      "cook": 0,
+      "difficulty": "usor",
+      "nutrition": {
+        "kcal": 475,
+        "protein_g": 23,
+        "carbs_g": 38,
+        "fat_g": 26,
+        "fiber_g": 4.5
+      },
+      "ingredients": [
+        {
+          "p": "reteta-iaurt-grecesc-2-grasime",
+          "q": 200,
+          "u": "g",
+          "note": "Iaurt grecesc 2% grăsime (200 g)"
+        },
+        {
+          "p": "reteta-granola-crocanta-fara-zahar-adaugat",
+          "q": 40,
+          "u": "g",
+          "note": "Granola crocantă fără zahăr adăugat (40 g)"
+        },
+        {
+          "p": "nuci-miez",
+          "q": 20,
+          "u": "g",
+          "note": "Miez de nucă crud (20 g)"
+        },
+        {
+          "p": "miere",
+          "q": 7,
+          "u": "g",
+          "note": "Miere de albine (7 g / 1 linguriță)"
+        }
+      ],
+      "steps": [
+        "Pune iaurtul grecesc într-un bol, presară granola crocantă și miezul de nucă rupt bucăți, apoi stropește cu miere."
+      ]
+    },
+    {
+      "id": "scramble-tofu-turmeric-legume",
+      "name": "Scramble din tofu cu turmeric și legume",
+      "description": "Timp indicat: 15 minute. Gramaj final estimat: ~270 g total (270 g / porție).",
+      "categories": [
+        "mic_dejun"
+      ],
+      "cuisine": "internationala",
+      "servings": 1,
+      "prep": 15,
+      "cook": 0,
+      "difficulty": "usor",
+      "nutrition": {
+        "kcal": 295,
+        "protein_g": 21,
+        "carbs_g": 11,
+        "fat_g": 18,
+        "fiber_g": 4
+      },
+      "ingredients": [
+        {
+          "p": "reteta-tofu-natur-ferm",
+          "q": 150,
+          "u": "g",
+          "note": "Tofu natur ferm (150 g)"
+        },
+        {
+          "p": "ardei-gras",
+          "q": 60,
+          "u": "g",
+          "note": "Ardei gras roșu (60 g)"
+        },
+        {
+          "p": "rosii-cherry",
+          "q": 60,
+          "u": "g",
+          "note": "roșii cherry (60 g)"
+        },
+        {
+          "p": "reteta-drojdie-inactiva",
+          "q": 8,
+          "u": "g",
+          "note": "Drojdie inactivă (8 g / 1 lingură)"
+        },
+        {
+          "p": "ulei-masline",
+          "q": 8,
+          "u": "g",
+          "note": "Ulei de măsline (8 g)"
+        },
+        {
+          "p": "reteta-turmeric-pudra",
+          "q": 2,
+          "u": "g",
+          "note": "turmeric pudră (2 g)"
+        },
+        {
+          "p": "sare",
+          "q": 1,
+          "u": "g",
+          "note": "sare (1 g)"
+        },
+        {
+          "p": "piper-negru-macinat",
+          "q": 0.5,
+          "u": "g",
+          "note": "piper (0.5 g)"
+        }
+      ],
+      "steps": [
+        "Sfărâmă tofu cu o furculiță.",
+        "Călește legumele tăiate mărunt 3 minute, adaugă tofu, turmericul, sarea și drojdia inactivă și gătește încă 5-7 minute amestecând constant."
+      ]
+    },
+    {
+      "id": "friganele-french-toast-scortisoara",
+      "name": "Frigănele (French Toast) cu scorțișoară",
+      "description": "Timp indicat: 15 minute. Gramaj final estimat: ~185 g total (185 g / porție).",
+      "categories": [
+        "mic_dejun"
+      ],
+      "cuisine": "internationala",
+      "servings": 1,
+      "prep": 15,
+      "cook": 0,
+      "difficulty": "usor",
+      "nutrition": {
+        "kcal": 360,
+        "protein_g": 14,
+        "carbs_g": 41,
+        "fat_g": 15,
+        "fiber_g": 2.5
+      },
+      "ingredients": [
+        {
+          "p": "reteta-paine-brioche-sau-toast-gros",
+          "q": 80,
+          "u": "g",
+          "note": "Pâine brioche sau toast gros (80 g / 2 felii)"
+        },
+        {
+          "p": "oua",
+          "q": 50,
+          "u": "g",
+          "note": "Ou mediu (50 g / 1 bucată)"
+        },
+        {
+          "p": "lapte-semidegresat",
+          "q": 50,
+          "u": "ml",
+          "note": "Lapte 1.5% (50 ml)"
+        },
+        {
+          "p": "reteta-unt-82-grasime",
+          "q": 8,
+          "u": "g",
+          "note": "Unt 82% grăsime (8 g)"
+        },
+        {
+          "p": "esenta-vanilie",
+          "q": 2,
+          "u": "ml",
+          "note": "Esență de vanilie (2 ml)"
+        },
+        {
+          "p": "scortisoara",
+          "q": 1,
+          "u": "g",
+          "note": "scorțișoară (1 g)"
+        }
+      ],
+      "steps": [
+        "Bate oul cu laptele, vanilia și scorțișoara.",
+        "Înmoaie feliile de pâine pe ambele părți și prăjește-le în untul încins câte 2 minute pe fiecare parte până devin aurii."
+      ]
+    },
+    {
+      "id": "smoothie-bowl-verde-energizant",
+      "name": "Smoothie Bowl verde energizant",
+      "description": "Timp indicat: 10 minute. Gramaj final estimat: ~370 g total (370 g / porție).",
+      "categories": [
+        "mic_dejun"
+      ],
+      "cuisine": "internationala",
+      "servings": 1,
+      "prep": 10,
+      "cook": 0,
+      "difficulty": "usor",
+      "nutrition": {
+        "kcal": 355,
+        "protein_g": 9,
+        "carbs_g": 44,
+        "fat_g": 17,
+        "fiber_g": 9.5
+      },
+      "ingredients": [
+        {
+          "p": "banane",
+          "q": 120,
+          "u": "g",
+          "note": "Banană congelată (120 g)"
+        },
+        {
+          "p": "avocado",
+          "q": 70,
+          "u": "g",
+          "note": "Avocado copt (70 g / 1/2 bucată)"
+        },
+        {
+          "p": "spanac",
+          "q": 30,
+          "u": "g",
+          "note": "Spanac proaspăt (30 g)"
+        },
+        {
+          "p": "reteta-bautura-de-migdale-neindulcita",
+          "q": 100,
+          "u": "ml",
+          "note": "Băutură de migdale neîndulcită (100 ml)"
+        },
+        {
+          "p": "reteta-topping-kiwi-proaspat-feliat",
+          "q": 50,
+          "u": "g",
+          "note": "Topping: kiwi proaspăt feliat (50 g)"
+        },
+        {
+          "p": "seminte-dovleac",
+          "q": 15,
+          "u": "g",
+          "note": "semințe de dovleac crude (15 g)"
+        }
+      ],
+      "steps": [
+        "Mixează banana, avocado, spanacul și băutura de migdale până obții o cremă densă.",
+        "Toarnă în bol și decorează cu feliile de kiwi și semințele de dovleac."
+      ]
+    },
+    {
+      "id": "omleta-rulada-somon-afumat-crema-branza",
+      "name": "Omletă ruladă cu somon afumat și cremă de brânză",
+      "description": "Timp indicat: 12 minute. Gramaj final estimat: ~270 g total (135 g / porție).",
+      "categories": [
+        "mic_dejun"
+      ],
+      "cuisine": "internationala",
+      "servings": 2,
+      "prep": 12,
+      "cook": 0,
+      "difficulty": "usor",
+      "nutrition": {
+        "kcal": 260,
+        "protein_g": 19,
+        "carbs_g": 2,
+        "fat_g": 19,
+        "fiber_g": 0
+      },
+      "ingredients": [
+        {
+          "p": "oua",
+          "q": 150,
+          "u": "g",
+          "note": "Ouă medii (150 g / 3 bucăți)"
+        },
+        {
+          "p": "reteta-somon-afumat-feliat",
+          "q": 70,
+          "u": "g",
+          "note": "Somon afumat feliat (70 g)"
+        },
+        {
+          "p": "reteta-crema-de-branza-light",
+          "q": 40,
+          "u": "g",
+          "note": "Cremă de brânză light (40 g)"
+        },
+        {
+          "p": "reteta-marar-proaspat-tocat",
+          "q": 5,
+          "u": "g",
+          "note": "Mărar proaspăt tocat (5 g)"
+        },
+        {
+          "p": "reteta-piper-negru",
+          "q": 0.5,
+          "u": "g",
+          "note": "piper negru (0.5 g)"
+        },
+        {
+          "p": "reteta-ulei-pentru-uns-tigaia",
+          "q": 3,
+          "u": "g",
+          "note": "ulei pentru uns tigaia (3 g)"
+        }
+      ],
+      "steps": [
+        "Coace o omletă subțire dintr-o singură bucată într-o tigaie antiaderentă.",
+        "Las-o să se tempereze 2 minute, unge-o cu crema de brânză, așază somonul și mărarul, rulează strâns și taie rondele."
+      ]
+    },
+    {
+      "id": "lipie-integrala-omleta-fasole-neagra-burrito",
+      "name": "Lipie integrală cu omletă și fasole neagră (Breakfast Burrito)",
+      "description": "Timp indicat: 15 minute. Gramaj final estimat: ~285 g total (285 g / porție).",
+      "categories": [
+        "mic_dejun"
+      ],
+      "cuisine": "internationala",
+      "servings": 1,
+      "prep": 15,
+      "cook": 0,
+      "difficulty": "usor",
+      "nutrition": {
+        "kcal": 465,
+        "protein_g": 27,
+        "carbs_g": 43,
+        "fat_g": 20,
+        "fiber_g": 8
+      },
+      "ingredients": [
+        {
+          "p": "reteta-lipie-tortilla-integrala-mare",
+          "q": 65,
+          "u": "g",
+          "note": "Lipie tortilla integrală mare (65 g)"
+        },
+        {
+          "p": "oua",
+          "q": 100,
+          "u": "g",
+          "note": "Ouă medii (100 g / 2 bucăți)"
+        },
+        {
+          "p": "reteta-fasole-neagra-fiarta-scursa",
+          "q": 60,
+          "u": "g",
+          "note": "Fasole neagră fiartă, scursă (60 g)"
+        },
+        {
+          "p": "reteta-branza-cheddar-rasa",
+          "q": 30,
+          "u": "g",
+          "note": "Brânză cheddar rasă (30 g)"
+        },
+        {
+          "p": "reteta-sos-salsa-de-rosii",
+          "q": 30,
+          "u": "g",
+          "note": "Sos salsa de roșii (30 g)"
+        },
+        {
+          "p": "sare",
+          "q": 1,
+          "u": "g",
+          "note": "sare (1 g)"
+        }
+      ],
+      "steps": [
+        "Gătește ouăle bătute sub formă de jumări cremoase.",
+        "Încălzește lipia 20 de secunde, așază ouăle, fasolea neagră, brânza rasă și salsa, apoi rulează strâns cu marginile pliate spre interior."
+      ]
+    },
+    {
+      "id": "branza-cottage-ridichi-ceapa-verde",
+      "name": "Brânză cottage cu ridichi și ceapă verde",
+      "description": "Timp indicat: 5 minute. Gramaj final estimat: ~315 g total (315 g / porție).",
+      "categories": [
+        "mic_dejun"
+      ],
+      "cuisine": "internationala",
+      "servings": 1,
+      "prep": 5,
+      "cook": 0,
+      "difficulty": "usor",
+      "nutrition": {
+        "kcal": 345,
+        "protein_g": 29,
+        "carbs_g": 38,
+        "fat_g": 8,
+        "fiber_g": 4.5
+      },
+      "ingredients": [
+        {
+          "p": "reteta-branza-perle-de-branza-cottage-cheese-2",
+          "q": 200,
+          "u": "g",
+          "note": "Brânză perle de brânză / cottage cheese 2% (200 g)"
+        },
+        {
+          "p": "reteta-ridichi-rosii-proaspete",
+          "q": 40,
+          "u": "g",
+          "note": "Ridichi roșii proaspete (40 g)"
+        },
+        {
+          "p": "ceapa-verde",
+          "q": 15,
+          "u": "g",
+          "note": "Ceapă verde (15 g)"
+        },
+        {
+          "p": "reteta-paine-integrala-prajita",
+          "q": 60,
+          "u": "g",
+          "note": "Pâine integrală prăjită (60 g / 2 felii)"
+        },
+        {
+          "p": "sare",
+          "q": 1,
+          "u": "g",
+          "note": "Sare (1 g)"
+        },
+        {
+          "p": "reteta-piper-negru",
+          "q": 0.5,
+          "u": "g",
+          "note": "piper negru (0.5 g)"
+        }
+      ],
+      "steps": [
+        "Taie ridichile cubulețe și ceapa verde rondele fine, amestecă-le cu brânza cottage, asezonează cu sare și piper și servește alături de feliile de pâine prăjită."
+      ]
+    },
+    {
+      "id": "oua-coapte-in-avocado",
+      "name": "Ouă coapte în avocado",
+      "description": "Timp indicat: 20 minute. Gramaj final estimat: ~230 g total (230 g / porție).",
+      "categories": [
+        "mic_dejun"
+      ],
+      "cuisine": "internationala",
+      "servings": 1,
+      "prep": 20,
+      "cook": 0,
+      "difficulty": "usor",
+      "nutrition": {
+        "kcal": 380,
+        "protein_g": 15,
+        "carbs_g": 12,
+        "fat_g": 31,
+        "fiber_g": 9.5
+      },
+      "ingredients": [
+        {
+          "p": "avocado",
+          "q": 150,
+          "u": "g",
+          "note": "Avocado mare copt, fără coajă și sâmbure (150 g)"
+        },
+        {
+          "p": "oua",
+          "q": 80,
+          "u": "g",
+          "note": "Ouă mici (80 g / 2 bucăți)"
+        },
+        {
+          "p": "boia-afumata",
+          "q": 1,
+          "u": "g",
+          "note": "Boia afumată (1 g)"
+        },
+        {
+          "p": "patrunjel-verde",
+          "q": 5,
+          "u": "g",
+          "note": "pătrunjel tocat (5 g)"
+        },
+        {
+          "p": "sare",
+          "q": 1,
+          "u": "g",
+          "note": "sare (1 g)"
+        },
+        {
+          "p": "piper-negru-macinat",
+          "q": 0.5,
+          "u": "g",
+          "note": "piper (0.5 g)"
+        }
+      ],
+      "steps": [
+        "Taie avocado în jumătate, scoate sâmburele și scobește câte o linguriță din miez pentru a face loc oului.",
+        "Sparge câte un ou în fiecare jumătate, condimentează și coace la 200°C timp de 12-15 minute."
+      ]
+    },
+    {
+      "id": "croissant-umplut-sunca-branza-brie",
+      "name": "Croissant umplut cu șuncă și brânză Brie",
+      "description": "Timp indicat: 8 minute. Gramaj final estimat: ~165 g total (165 g / porție).",
+      "categories": [
+        "mic_dejun"
+      ],
+      "cuisine": "internationala",
+      "servings": 1,
+      "prep": 8,
+      "cook": 0,
+      "difficulty": "usor",
+      "nutrition": {
+        "kcal": 440,
+        "protein_g": 19,
+        "carbs_g": 28,
+        "fat_g": 28,
+        "fiber_g": 1.5
+      },
+      "ingredients": [
+        {
+          "p": "reteta-croissant-cu-unt",
+          "q": 60,
+          "u": "g",
+          "note": "Croissant cu unt (60 g / 1 bucată)"
+        },
+        {
+          "p": "reteta-sunca-presata-de-curcan-sau-praga",
+          "q": 50,
+          "u": "g",
+          "note": "Șuncă presată de curcan sau Praga (50 g)"
+        },
+        {
+          "p": "reteta-branza-brie",
+          "q": 40,
+          "u": "g",
+          "note": "Brânză Brie (40 g)"
+        },
+        {
+          "p": "reteta-baby-spanac-proaspat",
+          "q": 15,
+          "u": "g",
+          "note": "Baby spanac proaspăt (15 g)"
+        }
+      ],
+      "steps": [
+        "Taie croissantul pe lungime, așază șunca, brânza Brie feliată și spanacul, apoi coace-l la cuptor sau airfryer 4-5 minute la 180°C până se topește brânza."
+      ]
+    },
+    {
+      "id": "terci-mei-mere-coapte-nuci",
+      "name": "Terci de mei cu mere coapte și nuci",
+      "description": "Timp indicat: 20 minute. Gramaj final estimat: ~540 g total (270 g / porție).",
+      "categories": [
+        "mic_dejun"
+      ],
+      "cuisine": "internationala",
+      "servings": 2,
+      "prep": 20,
+      "cook": 0,
+      "difficulty": "usor",
+      "nutrition": {
+        "kcal": 325,
+        "protein_g": 8,
+        "carbs_g": 53,
+        "fat_g": 9,
+        "fiber_g": 5.5
+      },
+      "ingredients": [
+        {
+          "p": "reteta-mei-decorticat-uscat",
+          "q": 100,
+          "u": "g",
+          "note": "Mei decorticat uscat (100 g)"
+        },
+        {
+          "p": "reteta-lapte-1-5-sau-bautura-vegetala",
+          "q": 400,
+          "u": "ml",
+          "note": "Lapte 1.5% sau băutură vegetală (400 ml)"
+        },
+        {
+          "p": "mere",
+          "q": 120,
+          "u": "g",
+          "note": "Măr proaspăt ras (120 g)"
+        },
+        {
+          "p": "nuci-miez",
+          "q": 20,
+          "u": "g",
+          "note": "Miez de nucă (20 g)"
+        },
+        {
+          "p": "scortisoara",
+          "q": 2,
+          "u": "g",
+          "note": "scorțișoară măcinată (2 g)"
+        }
+      ],
+      "steps": [
+        "Clătește meiul în apă fierbinte, apoi fierbe-l în lapte timp de 15 minute la foc mic.",
+        "În ultimele 3 minute încorporează mărul ras și scorțișoara.",
+        "Servește presărat cu nuci mărunțite."
+      ]
+    },
+    {
+      "id": "bruschete-rosii-busuioc-mozzarella",
+      "name": "Bruschete cu roșii, busuioc și mozzarella",
+      "description": "Timp indicat: 10 minute. Gramaj final estimat: ~350 g total (175 g / porție).",
+      "categories": [
+        "mic_dejun"
+      ],
+      "cuisine": "internationala",
+      "servings": 2,
+      "prep": 10,
+      "cook": 0,
+      "difficulty": "usor",
+      "nutrition": {
+        "kcal": 290,
+        "protein_g": 14,
+        "carbs_g": 26,
+        "fat_g": 14,
+        "fiber_g": 3
+      },
+      "ingredients": [
+        {
+          "p": "reteta-bagheta-integrala",
+          "q": 100,
+          "u": "g",
+          "note": "Baghetă integrală (100 g)"
+        },
+        {
+          "p": "rosii",
+          "q": 150,
+          "u": "g",
+          "note": "Roșii coapte (150 g)"
+        },
+        {
+          "p": "mozzarella",
+          "q": 80,
+          "u": "g",
+          "note": "Mozzarella proaspătă (80 g)"
+        },
+        {
+          "p": "ulei-masline",
+          "q": 10,
+          "u": "g",
+          "note": "Ulei de măsline extravirgin (10 g)"
+        },
+        {
+          "p": "usturoi",
+          "q": 4,
+          "u": "g",
+          "note": "usturoi (4 g / 1 cățel)"
+        },
+        {
+          "p": "busuioc-proaspat",
+          "q": 5,
+          "u": "g",
+          "note": "busuioc proaspăt (5 g)"
+        },
+        {
+          "p": "sare",
+          "q": 1,
+          "u": "g",
+          "note": "sare (1 g)"
+        }
+      ],
+      "steps": [
+        "Prăjește feliile de baghetă și freacă-le cu cățelul de usturoi.",
+        "Așază deasupra roșiile tăiate cubulețe, mozzarella ruptă bucăți, busuiocul și stropește cu ulei de măsline."
+      ]
+    },
+    {
+      "id": "muffins-sarate-ou-legume",
+      "name": "Muffins sărate cu ou și legume (la tavă)",
+      "description": "Timp indicat: 25 minute. Gramaj final estimat: ~340 g total (170 g / porție).",
+      "categories": [
+        "mic_dejun"
+      ],
+      "cuisine": "internationala",
+      "servings": 2,
+      "prep": 25,
+      "cook": 0,
+      "difficulty": "usor",
+      "nutrition": {
+        "kcal": 230,
+        "protein_g": 17,
+        "carbs_g": 4,
+        "fat_g": 16,
+        "fiber_g": 1.5
+      },
+      "ingredients": [
+        {
+          "p": "oua",
+          "q": 200,
+          "u": "g",
+          "note": "Ouă medii (200 g / 4 bucăți)"
+        },
+        {
+          "p": "ardei-gras",
+          "q": 60,
+          "u": "g",
+          "note": "Ardei gras roșu (60 g)"
+        },
+        {
+          "p": "ciuperci-champignon",
+          "q": 60,
+          "u": "g",
+          "note": "ciuperci champignon (60 g)"
+        },
+        {
+          "p": "cascaval",
+          "q": 40,
+          "u": "g",
+          "note": "Cașcaval ras (40 g)"
+        },
+        {
+          "p": "sare",
+          "q": 1.5,
+          "u": "g",
+          "note": "Sare (1.5 g)"
+        },
+        {
+          "p": "piper-negru-macinat",
+          "q": 0.5,
+          "u": "g",
+          "note": "piper (0.5 g)"
+        }
+      ],
+      "steps": [
+        "Bate ouăle cu sare și piper, apoi adaugă ardeiul și ciupercile tăiate cubulețe mici și cașcavalul ras.",
+        "Toarnă în 4 forme de brioșe și coace la 180°C timp de 15-18 minute."
+      ]
+    },
+    {
+      "id": "gris-cu-lapte-dulceata-visine",
+      "name": "Griș cu lapte și dulceață de vișine",
+      "description": "Timp indicat: 12 minute. Gramaj final estimat: ~300 g total (300 g / porție).",
+      "categories": [
+        "mic_dejun"
+      ],
+      "cuisine": "internationala",
+      "servings": 1,
+      "prep": 12,
+      "cook": 0,
+      "difficulty": "usor",
+      "nutrition": {
+        "kcal": 295,
+        "protein_g": 12,
+        "carbs_g": 49,
+        "fat_g": 5,
+        "fiber_g": 1.5
+      },
+      "ingredients": [
+        {
+          "p": "reteta-lapte-1-5-grasime",
+          "q": 250,
+          "u": "ml",
+          "note": "Lapte 1.5% grăsime (250 ml)"
+        },
+        {
+          "p": "gris",
+          "q": 35,
+          "u": "g",
+          "note": "Griș de grâu uscat (35 g)"
+        },
+        {
+          "p": "reteta-dulceata-de-visine-fara-zahar-sau-clasica",
+          "q": 20,
+          "u": "g",
+          "note": "Dulceață de vișine fără zahăr sau clasică (20 g / 1 lingură)"
+        },
+        {
+          "p": "reteta-un-praf-de-sare",
+          "q": 0.5,
+          "u": "g",
+          "note": "Un praf de sare (0.5 g)"
+        },
+        {
+          "p": "esenta-vanilie",
+          "q": 1,
+          "u": "ml",
+          "note": "esență de vanilie (1 ml)"
+        }
+      ],
+      "steps": [
+        "Pune laptele la fiert cu un praf de sare.",
+        "Când clocotește, toarnă grișul în ploaie amestecând energic cu un tel timp de 3-4 minute până se îngroașă.",
+        "Servește cu dulceața de vișine deasupra."
+      ]
+    },
+    {
+      "id": "piept-pui-gratar-piure-cartofi-dulci-broccoli",
+      "name": "Piept de pui la grătar cu piure de cartofi dulci și broccoli",
+      "description": "Timp indicat: 30 minute. Gramaj final estimat: ~860 g total (430 g / porție).",
+      "categories": [
+        "pranz"
+      ],
+      "cuisine": "internationala",
+      "servings": 2,
+      "prep": 30,
+      "cook": 0,
+      "difficulty": "usor",
+      "nutrition": {
+        "kcal": 445,
+        "protein_g": 44,
+        "carbs_g": 42,
+        "fat_g": 11,
+        "fiber_g": 8
+      },
+      "ingredients": [
+        {
+          "p": "piept-pui",
+          "q": 350,
+          "u": "g",
+          "note": "Piept de pui dezosat fără piele, crud (350 g)"
+        },
+        {
+          "p": "cartofi-dulci",
+          "q": 350,
+          "u": "g",
+          "note": "Cartof dulce curățat, crud (350 g)"
+        },
+        {
+          "p": "reteta-buchetele-de-broccoli-crude",
+          "q": 200,
+          "u": "g",
+          "note": "Buchețele de broccoli crude (200 g)"
+        },
+        {
+          "p": "reteta-unt-82-grasime",
+          "q": 15,
+          "u": "g",
+          "note": "Unt 82% grăsime (15 g)"
+        },
+        {
+          "p": "ulei-masline",
+          "q": 5,
+          "u": "g",
+          "note": "ulei de măsline (5 g)"
+        },
+        {
+          "p": "usturoi",
+          "q": 2,
+          "u": "g",
+          "note": "usturoi pudră (2 g)"
+        },
+        {
+          "p": "sare",
+          "q": 3,
+          "u": "g",
+          "note": "sare (3 g)"
+        },
+        {
+          "p": "piper-negru-macinat",
+          "q": 1,
+          "u": "g",
+          "note": "piper (1 g)"
+        }
+      ],
+      "steps": [
+        "Fierbe cartoful dulce 15 minute și pasează-l cu untul și un praf de sare.",
+        "Opărește broccoli 4 minute.",
+        "Frige pieptul de pui condimentat pe grill încins câte 5-6 minute pe fiecare parte."
+      ]
+    },
+    {
+      "id": "paste-integrale-sos-pesto-rosii-cherry-parmezan",
+      "name": "Paste integrale cu sos pesto, roșii cherry și parmezan",
+      "description": "Timp indicat: 15 minute. Gramaj final estimat: ~540 g total (270 g / porție).",
+      "categories": [
+        "pranz"
+      ],
+      "cuisine": "internationala",
+      "servings": 2,
+      "prep": 15,
+      "cook": 0,
+      "difficulty": "usor",
+      "nutrition": {
+        "kcal": 475,
+        "protein_g": 18,
+        "carbs_g": 58,
+        "fat_g": 19,
+        "fiber_g": 8.5
+      },
+      "ingredients": [
+        {
+          "p": "reteta-paste-integrale-uscate-penne-sau-fusilli",
+          "q": 160,
+          "u": "g",
+          "note": "Paste integrale uscate (penne sau fusilli) (160 g)"
+        },
+        {
+          "p": "reteta-sos-pesto-verde-genovese",
+          "q": 40,
+          "u": "g",
+          "note": "Sos pesto verde Genovese (40 g / 2 linguri)"
+        },
+        {
+          "p": "rosii-cherry",
+          "q": 120,
+          "u": "g",
+          "note": "Roșii cherry (120 g)"
+        },
+        {
+          "p": "parmezan",
+          "q": 30,
+          "u": "g",
+          "note": "Parmezan ras (30 g)"
+        },
+        {
+          "p": "reteta-muguri-de-pin",
+          "q": 10,
+          "u": "g",
+          "note": "muguri de pin (10 g)"
+        },
+        {
+          "p": "sare",
+          "q": 4,
+          "u": "g",
+          "note": "sare pentru fiert (4 g)"
+        }
+      ],
+      "steps": [
+        "Fierbe pastele al dente în apă cu sare.",
+        "Scurge-le păstrând 30 ml din apa de fierbere și amestecă-le imediat cu sosul pesto, apa păstrată, roșiile tăiate jumătăți, parmezanul și mugurii de pin."
+      ]
+    },
+    {
+      "id": "somon-cuptor-sparanghel-lamaie",
+      "name": "Somon la cuptor cu sparanghel și lămâie",
+      "description": "Timp indicat: 25 minute. Gramaj final estimat: ~620 g total (310 g / porție).",
+      "categories": [
+        "pranz"
+      ],
+      "cuisine": "internationala",
+      "servings": 2,
+      "prep": 25,
+      "cook": 0,
+      "difficulty": "usor",
+      "nutrition": {
+        "kcal": 440,
+        "protein_g": 39,
+        "carbs_g": 6,
+        "fat_g": 29,
+        "fiber_g": 3.5
+      },
+      "ingredients": [
+        {
+          "p": "somon-file",
+          "q": 360,
+          "u": "g",
+          "note": "File de somon proaspăt, crud (360 g / 2 bucăți)"
+        },
+        {
+          "p": "sparanghel",
+          "q": 300,
+          "u": "g",
+          "note": "Sparanghel verde curățat (300 g)"
+        },
+        {
+          "p": "ulei-masline",
+          "q": 10,
+          "u": "g",
+          "note": "Ulei de măsline (10 g / 1 lingură)"
+        },
+        {
+          "p": "reteta-lamaie-feliata",
+          "q": 40,
+          "u": "g",
+          "note": "Lămâie feliată (40 g)"
+        },
+        {
+          "p": "marar",
+          "q": 5,
+          "u": "g",
+          "note": "mărar proaspăt (5 g)"
+        },
+        {
+          "p": "sare",
+          "q": 2,
+          "u": "g",
+          "note": "sare (2 g)"
+        },
+        {
+          "p": "piper-negru-macinat",
+          "q": 1,
+          "u": "g",
+          "note": "piper (1 g)"
+        }
+      ],
+      "steps": [
+        "Așază somonul și sparanghelul într-o tavă tapetată cu hârtie de copt, stropește cu ulei de măsline, asezonează și pune feliile de lămâie peste pește.",
+        "Coace la 200°C timp de 15-18 minute."
+      ]
+    },
+    {
+      "id": "bowl-buddha-naut-crocant-quinoa-avocado",
+      "name": "Bowl Buddha cu năut crocant, quinoa și avocado",
+      "description": "Timp indicat: 25 minute. Gramaj final estimat: ~720 g total (360 g / porție).",
+      "categories": [
+        "pranz"
+      ],
+      "cuisine": "internationala",
+      "servings": 2,
+      "prep": 25,
+      "cook": 0,
+      "difficulty": "usor",
+      "nutrition": {
+        "kcal": 490,
+        "protein_g": 16,
+        "carbs_g": 54,
+        "fat_g": 23,
+        "fiber_g": 12
+      },
+      "ingredients": [
+        {
+          "p": "quinoa",
+          "q": 100,
+          "u": "g",
+          "note": "Quinoa uscată (100 g)"
+        },
+        {
+          "p": "reteta-naut-fiert-din-conserva-scurs",
+          "q": 180,
+          "u": "g",
+          "note": "Năut fiert din conservă, scurs (180 g)"
+        },
+        {
+          "p": "avocado",
+          "q": 120,
+          "u": "g",
+          "note": "Avocado copt (120 g / 1 bucată)"
+        },
+        {
+          "p": "castraveti",
+          "q": 100,
+          "u": "g",
+          "note": "castravete (100 g)"
+        },
+        {
+          "p": "morcovi",
+          "q": 80,
+          "u": "g",
+          "note": "morcov ras (80 g)"
+        },
+        {
+          "p": "reteta-pasta-tahini",
+          "q": 25,
+          "u": "g",
+          "note": "Pastă tahini (25 g)"
+        },
+        {
+          "p": "reteta-zeama-de-lamaie",
+          "q": 15,
+          "u": "ml",
+          "note": "zeamă de lămâie (15 ml)"
+        },
+        {
+          "p": "ulei-masline",
+          "q": 5,
+          "u": "g",
+          "note": "ulei de măsline (5 g)"
+        },
+        {
+          "p": "boia-dulce",
+          "q": 2,
+          "u": "g",
+          "note": "boia dulce (2 g)"
+        },
+        {
+          "p": "sare",
+          "q": 2,
+          "u": "g",
+          "note": "sare (2 g)"
+        }
+      ],
+      "steps": [
+        "Fierbe quinoa clătită 15 minute în 250 ml apă.",
+        "Rumenește năutul cu boia și ulei în tigaie 8 minute.",
+        "Asamblează bolurile cu quinoa, năut, legume și sosul tahini diluat cu zeamă de lămâie și 2 linguri de apă."
+      ]
+    },
+    {
+      "id": "tocanita-linte-rosie-lapte-cocos-dhal",
+      "name": "Tocăniță de linte roșie cu lapte de cocos (Dhal)",
+      "description": "Timp indicat: 25 minute. Gramaj final estimat: ~840 g total (280 g / porție).",
+      "categories": [
+        "pranz"
+      ],
+      "cuisine": "internationala",
+      "servings": 3,
+      "prep": 25,
+      "cook": 0,
+      "difficulty": "usor",
+      "nutrition": {
+        "kcal": 365,
+        "protein_g": 16,
+        "carbs_g": 42,
+        "fat_g": 14,
+        "fiber_g": 9
+      },
+      "ingredients": [
+        {
+          "p": "reteta-linte-rosie-decorticata-uscata",
+          "q": 180,
+          "u": "g",
+          "note": "Linte roșie decorticată, uscată (180 g)"
+        },
+        {
+          "p": "reteta-lapte-de-cocos-la-conserva",
+          "q": 200,
+          "u": "ml",
+          "note": "Lapte de cocos la conservă (200 ml)"
+        },
+        {
+          "p": "reteta-passata-suc-de-rosii",
+          "q": 150,
+          "u": "ml",
+          "note": "Passata / suc de roșii (150 ml)"
+        },
+        {
+          "p": "apa-plata",
+          "q": 300,
+          "u": "ml",
+          "note": "apă (300 ml)"
+        },
+        {
+          "p": "ceapa-galbena",
+          "q": 80,
+          "u": "g",
+          "note": "Ceapă galbenă (80 g)"
+        },
+        {
+          "p": "usturoi",
+          "q": 8,
+          "u": "g",
+          "note": "usturoi (8 g)"
+        },
+        {
+          "p": "ghimbir",
+          "q": 5,
+          "u": "g",
+          "note": "ghimbir proaspăt ras (5 g)"
+        },
+        {
+          "p": "curry",
+          "q": 5,
+          "u": "g",
+          "note": "Pudră de curry (5 g)"
+        },
+        {
+          "p": "ulei-masline",
+          "q": 10,
+          "u": "g",
+          "note": "ulei de măsline (10 g)"
+        },
+        {
+          "p": "sare",
+          "q": 3,
+          "u": "g",
+          "note": "sare (3 g)"
+        }
+      ],
+      "steps": [
+        "Călește ceapa, usturoiul, ghimbirul și pudra de curry 3 minute.",
+        "Adaugă lintea clătită, sucul de roșii, laptele de cocos și apa.",
+        "Fierbe la foc mic 15-18 minute până se leagă cremos."
+      ]
+    },
+    {
+      "id": "muschiulet-porc-orez-basmati-legume-wok",
+      "name": "Mușchiuleț de porc la tigaie cu orez basmati și legume trase la wok",
+      "description": "Timp indicat: 25 minute. Gramaj final estimat: ~820 g total (410 g / porție).",
+      "categories": [
+        "pranz"
+      ],
+      "cuisine": "internationala",
+      "servings": 2,
+      "prep": 25,
+      "cook": 0,
+      "difficulty": "usor",
+      "nutrition": {
+        "kcal": 475,
+        "protein_g": 41,
+        "carbs_g": 53,
+        "fat_g": 10,
+        "fiber_g": 4
+      },
+      "ingredients": [
+        {
+          "p": "muschi-porc",
+          "q": 320,
+          "u": "g",
+          "note": "Mușchiuleț de porc curățat, crud (320 g)"
+        },
+        {
+          "p": "reteta-orez-basmati-uscat",
+          "q": 130,
+          "u": "g",
+          "note": "Orez basmati uscat (130 g)"
+        },
+        {
+          "p": "dovlecei",
+          "q": 120,
+          "u": "g",
+          "note": "Dovlecel (120 g)"
+        },
+        {
+          "p": "ardei-gras",
+          "q": 100,
+          "u": "g",
+          "note": "ardei gras (100 g)"
+        },
+        {
+          "p": "reteta-sos-de-soia-redus-in-sare",
+          "q": 20,
+          "u": "ml",
+          "note": "Sos de soia redus în sare (20 ml)"
+        },
+        {
+          "p": "reteta-ulei-de-susan",
+          "q": 8,
+          "u": "g",
+          "note": "ulei de susan (8 g)"
+        },
+        {
+          "p": "piper-negru-macinat",
+          "q": 1,
+          "u": "g",
+          "note": "piper (1 g)"
+        }
+      ],
+      "steps": [
+        "Fierbe orezul basmati prin absorbție (130 g orez la 260 ml apă, 12 minute).",
+        "Taie porcul fâșii și rumenește-l la foc iute 4 minute, scoate-l, trage legumele 3 minute în wok, apoi combină carnea, legumele și sosul de soia."
+      ]
+    },
+    {
+      "id": "salata-caesar-piept-pui-crutoane-integrale",
+      "name": "Salată Caesar cu piept de pui și crutoane integrale",
+      "description": "Timp indicat: 20 minute. Gramaj final estimat: ~660 g total (330 g / porție).",
+      "categories": [
+        "pranz"
+      ],
+      "cuisine": "internationala",
+      "servings": 2,
+      "prep": 20,
+      "cook": 0,
+      "difficulty": "usor",
+      "nutrition": {
+        "kcal": 430,
+        "protein_g": 45,
+        "carbs_g": 24,
+        "fat_g": 17,
+        "fiber_g": 4.5
+      },
+      "ingredients": [
+        {
+          "p": "piept-pui",
+          "q": 300,
+          "u": "g",
+          "note": "Piept de pui crud (300 g)"
+        },
+        {
+          "p": "reteta-salata-romana-proaspata",
+          "q": 200,
+          "u": "g",
+          "note": "Salată Romana proaspătă (200 g)"
+        },
+        {
+          "p": "reteta-crutoane-din-paine-integrala",
+          "q": 50,
+          "u": "g",
+          "note": "Crutoane din pâine integrală (50 g)"
+        },
+        {
+          "p": "parmezan",
+          "q": 30,
+          "u": "g",
+          "note": "parmezan ras (30 g)"
+        },
+        {
+          "p": "reteta-sos-iaurt-grecesc-2",
+          "q": 80,
+          "u": "g",
+          "note": "Sos: iaurt grecesc 2% (80 g)"
+        },
+        {
+          "p": "mustar",
+          "q": 10,
+          "u": "g",
+          "note": "muștar Dijon (10 g)"
+        },
+        {
+          "p": "ulei-masline",
+          "q": 10,
+          "u": "g",
+          "note": "ulei de măsline (10 g)"
+        },
+        {
+          "p": "usturoi",
+          "q": 3,
+          "u": "g",
+          "note": "usturoi (3 g)"
+        },
+        {
+          "p": "reteta-zeama-de-lamaie",
+          "q": 10,
+          "u": "ml",
+          "note": "zeamă de lămâie (10 ml)"
+        },
+        {
+          "p": "sare",
+          "q": 1.5,
+          "u": "g",
+          "note": "sare (1.5 g)"
+        }
+      ],
+      "steps": [
+        "Gătește puiul pe grill și taie-l fâșii.",
+        "Amestecă ingredientele sosului.",
+        "Rupe frunzele de salată, încorporează dressingul, apoi adaugă puiul cald, crutoanele și parmezanul."
+      ]
+    },
+    {
+      "id": "burger-vita-casa-cartofi-copti",
+      "name": "Burger de vită de casă cu cartofi copți la cuptor",
+      "description": "Timp indicat: 35 minute. Gramaj final estimat: ~920 g total (460 g / porție).",
+      "categories": [
+        "pranz"
+      ],
+      "cuisine": "internationala",
+      "servings": 2,
+      "prep": 35,
+      "cook": 0,
+      "difficulty": "usor",
+      "nutrition": {
+        "kcal": 620,
+        "protein_g": 42,
+        "carbs_g": 62,
+        "fat_g": 22,
+        "fiber_g": 6.5
+      },
+      "ingredients": [
+        {
+          "p": "reteta-carne-tocata-slaba-de-vita-cruda",
+          "q": 340,
+          "u": "g",
+          "note": "Carne tocată slabă de vită, crudă (340 g)"
+        },
+        {
+          "p": "reteta-chifle-integrale-de-burger",
+          "q": 140,
+          "u": "g",
+          "note": "Chifle integrale de burger (140 g / 2 bucăți)"
+        },
+        {
+          "p": "reteta-branza-cheddar-feliata",
+          "q": 40,
+          "u": "g",
+          "note": "Brânză cheddar feliată (40 g / 2 felii)"
+        },
+        {
+          "p": "reteta-cartofi-albi-curatati-cruzi",
+          "q": 400,
+          "u": "g",
+          "note": "Cartofi albi curățați, cruzi (400 g)"
+        },
+        {
+          "p": "rosii",
+          "q": 80,
+          "u": "g",
+          "note": "Roșie (80 g)"
+        },
+        {
+          "p": "salata-verde",
+          "q": 30,
+          "u": "g",
+          "note": "salată verde (30 g)"
+        },
+        {
+          "p": "castraveti-murati",
+          "q": 40,
+          "u": "g",
+          "note": "castraveți murați (40 g)"
+        },
+        {
+          "p": "ulei-masline",
+          "q": 10,
+          "u": "g",
+          "note": "ulei de măsline (10 g)"
+        },
+        {
+          "p": "sare",
+          "q": 3,
+          "u": "g",
+          "note": "sare (3 g)"
+        },
+        {
+          "p": "piper-negru-macinat",
+          "q": 1,
+          "u": "g",
+          "note": "piper (1 g)"
+        }
+      ],
+      "steps": [
+        "Taie cartofii wedges, stropește-i cu ulei și coace-i la 200°C timp de 25 minute.",
+        "Formează 2 chiftele plate de vită, condimentează-le și prăjește-le câte 3-4 minute pe parte, punând cheddarul în ultimul minut.",
+        "Asamblează burgerii."
+      ]
+    },
+    {
+      "id": "risotto-ciuperci-parmezan",
+      "name": "Risotto cu ciuperci și parmezan",
+      "description": "Timp indicat: 30 minute. Gramaj final estimat: ~760 g total (380 g / porție).",
+      "categories": [
+        "pranz"
+      ],
+      "cuisine": "internationala",
+      "servings": 2,
+      "prep": 30,
+      "cook": 0,
+      "difficulty": "usor",
+      "nutrition": {
+        "kcal": 485,
+        "protein_g": 16,
+        "carbs_g": 68,
+        "fat_g": 15,
+        "fiber_g": 4
+      },
+      "ingredients": [
+        {
+          "p": "reteta-orez-arborio-sau-carnaroli-uscat",
+          "q": 160,
+          "u": "g",
+          "note": "Orez Arborio sau Carnaroli uscat (160 g)"
+        },
+        {
+          "p": "ciuperci-champignon",
+          "q": 250,
+          "u": "g",
+          "note": "Ciuperci champignon proaspete (250 g)"
+        },
+        {
+          "p": "reteta-supa-clara-de-legume-fierbinte",
+          "q": 650,
+          "u": "ml",
+          "note": "Supă clară de legume fierbinte (650 ml)"
+        },
+        {
+          "p": "parmezan",
+          "q": 40,
+          "u": "g",
+          "note": "Parmezan ras (40 g)"
+        },
+        {
+          "p": "unt",
+          "q": 20,
+          "u": "g",
+          "note": "unt 82% (20 g)"
+        },
+        {
+          "p": "ceapa-galbena",
+          "q": 60,
+          "u": "g",
+          "note": "ceapă (60 g)"
+        },
+        {
+          "p": "vin-alb",
+          "q": 40,
+          "u": "ml",
+          "note": "vin alb sec (40 ml)"
+        },
+        {
+          "p": "sare",
+          "q": 2,
+          "u": "g",
+          "note": "sare (2 g)"
+        },
+        {
+          "p": "piper-negru-macinat",
+          "q": 0.5,
+          "u": "g",
+          "note": "piper (0.5 g)"
+        }
+      ],
+      "steps": [
+        "Călește ceapa tocată și ciupercile feliate 5 minute.",
+        "Adaugă orezul uscat 1 minut, stinge cu vinul alb, apoi toarnă supa fierbinte câte un polonic pe rând amestecând 18 minute.",
+        "La final, oprește focul și încorporează untul rece și parmezanul."
+      ]
+    },
+    {
+      "id": "pulpe-pui-dezosate-cuptor-fasole-verde",
+      "name": "Pulpe de pui dezosate la cuptor cu fasole verde și usturoi",
+      "description": "Timp indicat: 35 minute. Gramaj final estimat: ~660 g total (330 g / porție).",
+      "categories": [
+        "pranz"
+      ],
+      "cuisine": "internationala",
+      "servings": 2,
+      "prep": 35,
+      "cook": 0,
+      "difficulty": "usor",
+      "nutrition": {
+        "kcal": 390,
+        "protein_g": 37,
+        "carbs_g": 14,
+        "fat_g": 20,
+        "fiber_g": 6
+      },
+      "ingredients": [
+        {
+          "p": "reteta-pulpe-de-pui-dezosate-fara-piele-crude",
+          "q": 340,
+          "u": "g",
+          "note": "Pulpe de pui dezosate fără piele, crude (340 g)"
+        },
+        {
+          "p": "reteta-pastai-de-fasole-verde-crude-congelate",
+          "q": 350,
+          "u": "g",
+          "note": "Păstăi de fasole verde crude/congelate (350 g)"
+        },
+        {
+          "p": "ulei-masline",
+          "q": 10,
+          "u": "g",
+          "note": "Ulei de măsline (10 g)"
+        },
+        {
+          "p": "usturoi",
+          "q": 10,
+          "u": "g",
+          "note": "usturoi (10 g / 3 căței)"
+        },
+        {
+          "p": "cimbru-uscat",
+          "q": 2,
+          "u": "g",
+          "note": "cimbru uscat (2 g)"
+        },
+        {
+          "p": "sare",
+          "q": 2.5,
+          "u": "g",
+          "note": "sare (2.5 g)"
+        },
+        {
+          "p": "piper-negru-macinat",
+          "q": 1,
+          "u": "g",
+          "note": "piper (1 g)"
+        }
+      ],
+      "steps": [
+        "Condimentează pulpele și coace-le la 200°C timp de 25-30 minute.",
+        "Fierbe fasolea verde 6 minute, scurge-o și trage-o 2 minute în tigaie cu uleiul de măsline și usturoiul zdrobit."
+      ]
+    },
+    {
+      "id": "quesadilla-pui-porumb-fasole-rosie",
+      "name": "Quesadilla cu pui, porumb și fasole roșie",
+      "description": "Timp indicat: 15 minute. Gramaj final estimat: ~480 g total (240 g / porție).",
+      "categories": [
+        "pranz"
+      ],
+      "cuisine": "internationala",
+      "servings": 2,
+      "prep": 15,
+      "cook": 0,
+      "difficulty": "usor",
+      "nutrition": {
+        "kcal": 475,
+        "protein_g": 34,
+        "carbs_g": 46,
+        "fat_g": 17,
+        "fiber_g": 6.5
+      },
+      "ingredients": [
+        {
+          "p": "reteta-lipii-tortilla-integrale",
+          "q": 130,
+          "u": "g",
+          "note": "Lipii tortilla integrale (130 g / 2 bucăți mari)"
+        },
+        {
+          "p": "piept-pui",
+          "q": 180,
+          "u": "g",
+          "note": "Piept de pui crud (180 g)"
+        },
+        {
+          "p": "reteta-branza-cheddar-rasa",
+          "q": 60,
+          "u": "g",
+          "note": "Brânză cheddar rasă (60 g)"
+        },
+        {
+          "p": "reteta-porumb-dulce-scurs",
+          "q": 60,
+          "u": "g",
+          "note": "Porumb dulce scurs (60 g)"
+        },
+        {
+          "p": "reteta-fasole-rosie-scursa",
+          "q": 60,
+          "u": "g",
+          "note": "fasole roșie scursă (60 g)"
+        },
+        {
+          "p": "boia-afumata",
+          "q": 2,
+          "u": "g",
+          "note": "Boia afumată (2 g)"
+        },
+        {
+          "p": "ulei-masline",
+          "q": 5,
+          "u": "g",
+          "note": "ulei de măsline (5 g)"
+        },
+        {
+          "p": "sare",
+          "q": 1.5,
+          "u": "g",
+          "note": "sare (1.5 g)"
+        }
+      ],
+      "steps": [
+        "Gătește pieptul de pui tăiat cubulețe mici cu boia și sare timp de 6 minute.",
+        "Pune pe o lipie jumătate din brânză, puiul, porumbul, fasolea și restul de brânză, acoperă cu a doua lipie și rumenește într-o tigaie uscată câte 2-3 minute pe parte."
+      ]
+    },
+    {
+      "id": "pastrav-cuptor-mamaliguta-mujdei",
+      "name": "Păstrăv la cuptor cu mămăliguță și mujdei",
+      "description": "Timp indicat: 35 minute. Gramaj final estimat: ~920 g total (460 g / porție).",
+      "categories": [
+        "pranz"
+      ],
+      "cuisine": "internationala",
+      "servings": 2,
+      "prep": 35,
+      "cook": 0,
+      "difficulty": "usor",
+      "nutrition": {
+        "kcal": 445,
+        "protein_g": 43,
+        "carbs_g": 44,
+        "fat_g": 10,
+        "fiber_g": 3
+      },
+      "ingredients": [
+        {
+          "p": "reteta-pastrav-eviscerat-crud",
+          "q": 500,
+          "u": "g",
+          "note": "Păstrăv eviscerat, crud (500 g / 2 bucăți)"
+        },
+        {
+          "p": "reteta-malai-grisat-uscat",
+          "q": 120,
+          "u": "g",
+          "note": "Mălai grisat uscat (120 g)"
+        },
+        {
+          "p": "apa-plata",
+          "q": 480,
+          "u": "ml",
+          "note": "Apă pentru mămăligă (480 ml)"
+        },
+        {
+          "p": "usturoi",
+          "q": 15,
+          "u": "g",
+          "note": "Usturoi (15 g / 4 căței)"
+        },
+        {
+          "p": "ulei-masline",
+          "q": 5,
+          "u": "g",
+          "note": "ulei de măsline (5 g)"
+        },
+        {
+          "p": "lamai",
+          "q": 40,
+          "u": "g",
+          "note": "lămâie (40 g)"
+        },
+        {
+          "p": "sare",
+          "q": 3,
+          "u": "g",
+          "note": "sare (3 g)"
+        },
+        {
+          "p": "piper-negru-macinat",
+          "q": 1,
+          "u": "g",
+          "note": "piper (1 g)"
+        }
+      ],
+      "steps": [
+        "Condimentează păstrăvii, pune felii de lămâie în interior și coace-i 25 minute la 190°C.",
+        "Fierbe mălaiul în apa cu sare timp de 15 minute.",
+        "Pasează usturoiul cu sare, ulei și 30 ml apă caldă pentru mujdei."
+      ]
+    },
+    {
+      "id": "chiftelute-curcan-cuptor-piure-mazare",
+      "name": "Chifteluțe de curcan la cuptor cu piure de mazăre",
+      "description": "Timp indicat: 30 minute. Gramaj final estimat: ~640 g total (320 g / porție).",
+      "categories": [
+        "pranz"
+      ],
+      "cuisine": "internationala",
+      "servings": 2,
+      "prep": 30,
+      "cook": 0,
+      "difficulty": "usor",
+      "nutrition": {
+        "kcal": 385,
+        "protein_g": 42,
+        "carbs_g": 26,
+        "fat_g": 12,
+        "fiber_g": 8
+      },
+      "ingredients": [
+        {
+          "p": "reteta-carne-tocata-slaba-de-curcan-cruda",
+          "q": 340,
+          "u": "g",
+          "note": "Carne tocată slabă de curcan, crudă (340 g)"
+        },
+        {
+          "p": "mazare-congelata",
+          "q": 300,
+          "u": "g",
+          "note": "Mazăre verde congelată (300 g)"
+        },
+        {
+          "p": "ceapa-galbena",
+          "q": 50,
+          "u": "g",
+          "note": "Ceapă rasă (50 g)"
+        },
+        {
+          "p": "reteta-crema-de-branza-light",
+          "q": 30,
+          "u": "g",
+          "note": "cremă de brânză light (30 g)"
+        },
+        {
+          "p": "patrunjel-verde",
+          "q": 10,
+          "u": "g",
+          "note": "Pătrunjel proaspăt (10 g)"
+        },
+        {
+          "p": "menta-proaspata",
+          "q": 3,
+          "u": "g",
+          "note": "mentă proaspătă (3 g)"
+        },
+        {
+          "p": "sare",
+          "q": 2.5,
+          "u": "g",
+          "note": "sare (2.5 g)"
+        },
+        {
+          "p": "piper-negru-macinat",
+          "q": 1,
+          "u": "g",
+          "note": "piper (1 g)"
+        }
+      ],
+      "steps": [
+        "Amestecă carnea de curcan cu ceapa stoarsă, pătrunjelul și condimentele, formează 10 chifteluțe și coace-le 20 minute la 200°C.",
+        "Fierbe mazărea 6 minute și paseaz-o cu crema de brânză și frunzele de mentă."
+      ]
+    },
+    {
+      "id": "paste-bolognese-carne-vita",
+      "name": "Paste Bolognese cu carne de vită",
+      "description": "Timp indicat: 30 minute. Gramaj final estimat: ~760 g total (380 g / porție).",
+      "categories": [
+        "pranz"
+      ],
+      "cuisine": "internationala",
+      "servings": 2,
+      "prep": 30,
+      "cook": 0,
+      "difficulty": "usor",
+      "nutrition": {
+        "kcal": 545,
+        "protein_g": 38,
+        "carbs_g": 64,
+        "fat_g": 14,
+        "fiber_g": 5.5
+      },
+      "ingredients": [
+        {
+          "p": "reteta-spaghete-de-grau-dur-uscate",
+          "q": 160,
+          "u": "g",
+          "note": "Spaghete de grâu dur uscate (160 g)"
+        },
+        {
+          "p": "reteta-carne-tocata-slaba-de-vita-cruda",
+          "q": 280,
+          "u": "g",
+          "note": "Carne tocată slabă de vită, crudă (280 g)"
+        },
+        {
+          "p": "reteta-passata-de-rosii",
+          "q": 250,
+          "u": "ml",
+          "note": "Passata de roșii (250 ml)"
+        },
+        {
+          "p": "ceapa-galbena",
+          "q": 60,
+          "u": "g",
+          "note": "Ceapă (60 g)"
+        },
+        {
+          "p": "morcovi",
+          "q": 60,
+          "u": "g",
+          "note": "morcov ras (60 g)"
+        },
+        {
+          "p": "ulei-masline",
+          "q": 5,
+          "u": "g",
+          "note": "Ulei de măsline (5 g)"
+        },
+        {
+          "p": "oregano",
+          "q": 2,
+          "u": "g",
+          "note": "oregano uscat (2 g)"
+        },
+        {
+          "p": "reteta-busuioc",
+          "q": 2,
+          "u": "g",
+          "note": "busuioc (2 g)"
+        },
+        {
+          "p": "sare",
+          "q": 3,
+          "u": "g",
+          "note": "sare (3 g)"
+        }
+      ],
+      "steps": [
+        "Călește ceapa și morcovul în ulei, adaugă carnea și rumenește-o 6 minute.",
+        "Toarnă passata de roșii și ierburile, fierbe la foc mic 15 minute și servește peste spaghetele fierte al dente."
+      ]
+    },
+    {
+      "id": "salata-calda-halloumi-gratar-sfecla-nuci",
+      "name": "Salată caldă cu halloumi la grătar, sfeclă roșie și nuci",
+      "description": "Timp indicat: 15 minute. Gramaj final estimat: ~540 g total (270 g / porție).",
+      "categories": [
+        "pranz"
+      ],
+      "cuisine": "internationala",
+      "servings": 2,
+      "prep": 15,
+      "cook": 0,
+      "difficulty": "usor",
+      "nutrition": {
+        "kcal": 475,
+        "protein_g": 24,
+        "carbs_g": 19,
+        "fat_g": 34,
+        "fiber_g": 5
+      },
+      "ingredients": [
+        {
+          "p": "reteta-branza-halloumi",
+          "q": 180,
+          "u": "g",
+          "note": "Brânză halloumi (180 g)"
+        },
+        {
+          "p": "reteta-sfecla-rosie-fiarta-curatata",
+          "q": 200,
+          "u": "g",
+          "note": "Sfeclă roșie fiartă, curățată (200 g)"
+        },
+        {
+          "p": "reteta-mix-de-salata-verde-rucola",
+          "q": 100,
+          "u": "g",
+          "note": "Mix de salată verde / rucola (100 g)"
+        },
+        {
+          "p": "nuci-miez",
+          "q": 30,
+          "u": "g",
+          "note": "Miez de nucă (30 g)"
+        },
+        {
+          "p": "ulei-masline",
+          "q": 10,
+          "u": "g",
+          "note": "ulei de măsline (10 g)"
+        },
+        {
+          "p": "reteta-otet-balsamic",
+          "q": 15,
+          "u": "ml",
+          "note": "oțet balsamic (15 ml)"
+        },
+        {
+          "p": "piper-negru-macinat",
+          "q": 0.5,
+          "u": "g",
+          "note": "piper (0.5 g)"
+        }
+      ],
+      "steps": [
+        "Taie brânza halloumi felii de 1 cm și frige-o pe grill încins câte 2 minute pe parte.",
+        "Așază patul de salată, cuburile de sfeclă, nucile și brânza caldă, apoi stropește cu emulsia de ulei și oțet balsamic."
+      ]
+    },
+    {
+      "id": "curry-verde-thailandez-creveti-orez-jasmin",
+      "name": "Curry verde thailandez cu creveți și orez jasmin",
+      "description": "Timp indicat: 20 minute. Gramaj final estimat: ~740 g total (370 g / porție).",
+      "categories": [
+        "pranz"
+      ],
+      "cuisine": "internationala",
+      "servings": 2,
+      "prep": 20,
+      "cook": 0,
+      "difficulty": "usor",
+      "nutrition": {
+        "kcal": 465,
+        "protein_g": 31,
+        "carbs_g": 54,
+        "fat_g": 14,
+        "fiber_g": 3
+      },
+      "ingredients": [
+        {
+          "p": "reteta-creveti-decorticati-cruzi",
+          "q": 280,
+          "u": "g",
+          "note": "Creveți decorticați cruzi (280 g)"
+        },
+        {
+          "p": "reteta-orez-jasmin-uscat",
+          "q": 130,
+          "u": "g",
+          "note": "Orez jasmin uscat (130 g)"
+        },
+        {
+          "p": "reteta-lapte-de-cocos-la-conserva",
+          "q": 200,
+          "u": "ml",
+          "note": "Lapte de cocos la conservă (200 ml)"
+        },
+        {
+          "p": "reteta-pasta-curry-verde",
+          "q": 20,
+          "u": "g",
+          "note": "Pastă curry verde (20 g / 1 lingură)"
+        },
+        {
+          "p": "ardei-gras",
+          "q": 100,
+          "u": "g",
+          "note": "ardei gras roșu (100 g)"
+        },
+        {
+          "p": "reteta-zeama-de-lime",
+          "q": 15,
+          "u": "ml",
+          "note": "zeamă de lime (15 ml)"
+        }
+      ],
+      "steps": [
+        "Fierbe orezul jasmin în 260 ml apă timp de 12 minute.",
+        "Încălzește pasta curry 1 minut, toarnă laptele de cocos și adaugă ardeiul fâșii.",
+        "Fierbe 5 minute, pune creveții pentru încă 3-4 minute și stropește cu zeamă de lime."
+      ]
+    },
+    {
+      "id": "ardei-umpluti-orez-ciuperci-legume",
+      "name": "Ardei umpluți cu orez, ciuperci și legume (de post)",
+      "description": "Timp indicat: 45 minute. Gramaj final estimat: ~920 g total (460 g / porție).",
+      "categories": [
+        "pranz"
+      ],
+      "cuisine": "internationala",
+      "servings": 2,
+      "prep": 45,
+      "cook": 0,
+      "difficulty": "usor",
+      "nutrition": {
+        "kcal": 325,
+        "protein_g": 8,
+        "carbs_g": 58,
+        "fat_g": 6,
+        "fiber_g": 7.5
+      },
+      "ingredients": [
+        {
+          "p": "reteta-ardei-grasi-curatati-de-cotor",
+          "q": 400,
+          "u": "g",
+          "note": "Ardei grași curățați de cotor (400 g / 4 bucăți)"
+        },
+        {
+          "p": "orez-bob-rotund",
+          "q": 120,
+          "u": "g",
+          "note": "Orez cu bob rotund uscat (120 g)"
+        },
+        {
+          "p": "ciuperci-champignon",
+          "q": 150,
+          "u": "g",
+          "note": "Ciuperci champignon tocate (150 g)"
+        },
+        {
+          "p": "ceapa-galbena",
+          "q": 70,
+          "u": "g",
+          "note": "ceapă (70 g)"
+        },
+        {
+          "p": "morcovi",
+          "q": 60,
+          "u": "g",
+          "note": "morcov ras (60 g)"
+        },
+        {
+          "p": "bulion",
+          "q": 250,
+          "u": "ml",
+          "note": "Suc de roșii (250 ml)"
+        },
+        {
+          "p": "ulei-masline",
+          "q": 10,
+          "u": "g",
+          "note": "ulei de măsline (10 g)"
+        },
+        {
+          "p": "marar",
+          "q": 10,
+          "u": "g",
+          "note": "mărar proaspăt (10 g)"
+        },
+        {
+          "p": "sare",
+          "q": 3,
+          "u": "g",
+          "note": "sare (3 g)"
+        },
+        {
+          "p": "piper-negru-macinat",
+          "q": 1,
+          "u": "g",
+          "note": "piper (1 g)"
+        }
+      ],
+      "steps": [
+        "Călește ceapa, morcovul, ciupercile și orezul clătit 4 minute.",
+        "Umple ardeii, așază-i într-o cratiță cu sucul de roșii și apă cât să-i acopere pe jumătate și fierbe-i acoperit la foc mic 30-35 minute."
+      ]
+    },
+    {
+      "id": "friptura-vita-antricot-cartofi-zdrobiti",
+      "name": "Friptură de vită (Antricot) cu cartofi zdrobiți și rozmarin",
+      "description": "Timp indicat: 25 minute. Gramaj final estimat: ~720 g total (360 g / porție).",
+      "categories": [
+        "pranz"
+      ],
+      "cuisine": "internationala",
+      "servings": 2,
+      "prep": 25,
+      "cook": 0,
+      "difficulty": "usor",
+      "nutrition": {
+        "kcal": 530,
+        "protein_g": 43,
+        "carbs_g": 36,
+        "fat_g": 23,
+        "fiber_g": 4
+      },
+      "ingredients": [
+        {
+          "p": "reteta-antricot-de-vita-maturat-crud",
+          "q": 360,
+          "u": "g",
+          "note": "Antricot de vită maturat, crud (360 g / 2 felii)"
+        },
+        {
+          "p": "reteta-cartofi-noi-mici-cruzi",
+          "q": 400,
+          "u": "g",
+          "note": "Cartofi noi mici, cruzi (400 g)"
+        },
+        {
+          "p": "reteta-unt-82-grasime",
+          "q": 20,
+          "u": "g",
+          "note": "Unt 82% grăsime (20 g)"
+        },
+        {
+          "p": "usturoi",
+          "q": 8,
+          "u": "g",
+          "note": "usturoi (8 g / 2 căței)"
+        },
+        {
+          "p": "rozmarin-proaspat",
+          "q": 5,
+          "u": "g",
+          "note": "rozmarin proaspăt (5 g)"
+        },
+        {
+          "p": "sare-grunjoasa",
+          "q": 3,
+          "u": "g",
+          "note": "sare grunjoasă (3 g)"
+        },
+        {
+          "p": "piper-negru-macinat",
+          "q": 1,
+          "u": "g",
+          "note": "piper (1 g)"
+        }
+      ],
+      "steps": [
+        "Fierbe cartofii 15 minute, zdrobește-i ușor cu furculița și rumenește-i la cuptor 10 minute.",
+        "Frige friptura în tigaia încinsă 3-4 minute pe fiecare parte, adăugând untul, usturoiul zdrobit și rozmarinul în ultimul minut pentru aromatizare."
+      ]
+    },
+    {
+      "id": "wraps-falafel-humus-legume",
+      "name": "Wraps cu falafel, humus și legume proaspete",
+      "description": "Timp indicat: 15 minute. Gramaj final estimat: ~600 g total (300 g / porție).",
+      "categories": [
+        "pranz"
+      ],
+      "cuisine": "internationala",
+      "servings": 2,
+      "prep": 15,
+      "cook": 0,
+      "difficulty": "usor",
+      "nutrition": {
+        "kcal": 460,
+        "protein_g": 16,
+        "carbs_g": 58,
+        "fat_g": 18,
+        "fiber_g": 11
+      },
+      "ingredients": [
+        {
+          "p": "reteta-lipii-libaneze-integrale",
+          "q": 120,
+          "u": "g",
+          "note": "Lipii libaneze integrale (120 g / 2 bucăți)"
+        },
+        {
+          "p": "reteta-chiftelute-falafel-preparate-coapte",
+          "q": 160,
+          "u": "g",
+          "note": "Chifteluțe falafel preparate/coapte (160 g / 6-8 bucăți)"
+        },
+        {
+          "p": "reteta-humus-clasic",
+          "q": 80,
+          "u": "g",
+          "note": "Humus clasic (80 g)"
+        },
+        {
+          "p": "rosii",
+          "q": 100,
+          "u": "g",
+          "note": "Roșii (100 g)"
+        },
+        {
+          "p": "castraveti",
+          "q": 100,
+          "u": "g",
+          "note": "castraveți (100 g)"
+        },
+        {
+          "p": "ceapa-rosie",
+          "q": 30,
+          "u": "g",
+          "note": "ceapă roșie (30 g)"
+        },
+        {
+          "p": "patrunjel-verde",
+          "q": 10,
+          "u": "g",
+          "note": "pătrunjel proaspăt (10 g)"
+        }
+      ],
+      "steps": [
+        "Încălzește chifteluțele falafel la cuptor sau airfryer 6 minute.",
+        "Unge fiecare lipie cu humus, așază legumele tăiate și falafelul zdrobit ușor cu furculița, apoi rulează strâns."
+      ]
+    },
+    {
+      "id": "ciorba-perisoare-curcan-bors",
+      "name": "Ciorbă de perișoare de curcan acrită cu borș",
+      "description": "Timp indicat: 45 minute. Gramaj final estimat: ~1600 g total (400 g / porție).",
+      "categories": [
+        "pranz"
+      ],
+      "cuisine": "internationala",
+      "servings": 4,
+      "prep": 45,
+      "cook": 0,
+      "difficulty": "usor",
+      "nutrition": {
+        "kcal": 235,
+        "protein_g": 23,
+        "carbs_g": 18,
+        "fat_g": 8,
+        "fiber_g": 3
+      },
+      "ingredients": [
+        {
+          "p": "reteta-carne-tocata-slaba-de-curcan-cruda",
+          "q": 350,
+          "u": "g",
+          "note": "Carne tocată slabă de curcan, crudă (350 g)"
+        },
+        {
+          "p": "orez-bob-rotund",
+          "q": 30,
+          "u": "g",
+          "note": "Orez cu bob rotund uscat (30 g)"
+        },
+        {
+          "p": "oua",
+          "q": 50,
+          "u": "g",
+          "note": "Ou mediu (50 g / 1 bucată)"
+        },
+        {
+          "p": "morcovi",
+          "q": 100,
+          "u": "g",
+          "note": "Morcov (100 g)"
+        },
+        {
+          "p": "ceapa-galbena",
+          "q": 80,
+          "u": "g",
+          "note": "ceapă (80 g)"
+        },
+        {
+          "p": "telina-radacina",
+          "q": 80,
+          "u": "g",
+          "note": "rădăcină de țelină (80 g)"
+        },
+        {
+          "p": "ardei-gras",
+          "q": 60,
+          "u": "g",
+          "note": "ardei gras (60 g)"
+        },
+        {
+          "p": "reteta-bors-de-tarate",
+          "q": 350,
+          "u": "ml",
+          "note": "Borș de tărâțe (350 ml)"
+        },
+        {
+          "p": "apa-plata",
+          "q": 1100,
+          "u": "ml",
+          "note": "apă (1100 ml)"
+        },
+        {
+          "p": "leustean",
+          "q": 15,
+          "u": "g",
+          "note": "leuștean proaspăt (15 g)"
+        },
+        {
+          "p": "sare",
+          "q": 4,
+          "u": "g",
+          "note": "sare (4 g)"
+        }
+      ],
+      "steps": [
+        "Fierbe legumele tăiate cubulețe 15 minute.",
+        "Formează perișoarele din carne, orez și albușul de ou și pune-le la fiert 20 minute la foc mic.",
+        "Adaugă borșul clocotit separat, drege cu gălbenușul bătut cu puțină zeamă și presară leuștean."
+      ]
+    },
+    {
+      "id": "supa-crema-dovleac-copt-seminte",
+      "name": "Supă cremă de dovleac copt cu semințe",
+      "description": "Timp indicat: 35 minute. Gramaj final estimat: ~740 g total (370 g / porție).",
+      "categories": [
+        "cina"
+      ],
+      "cuisine": "internationala",
+      "servings": 2,
+      "prep": 35,
+      "cook": 0,
+      "difficulty": "usor",
+      "nutrition": {
+        "kcal": 245,
+        "protein_g": 8,
+        "carbs_g": 32,
+        "fat_g": 10,
+        "fiber_g": 6
+      },
+      "ingredients": [
+        {
+          "p": "reteta-dovleac-placintar-curatat-crud",
+          "q": 450,
+          "u": "g",
+          "note": "Dovleac plăcintar curățat, crud (450 g)"
+        },
+        {
+          "p": "morcovi",
+          "q": 80,
+          "u": "g",
+          "note": "Morcov (80 g)"
+        },
+        {
+          "p": "ceapa-galbena",
+          "q": 60,
+          "u": "g",
+          "note": "ceapă (60 g)"
+        },
+        {
+          "p": "usturoi",
+          "q": 4,
+          "u": "g",
+          "note": "usturoi (4 g / 1 cățel)"
+        },
+        {
+          "p": "reteta-supa-clara-de-legume",
+          "q": 400,
+          "u": "ml",
+          "note": "Supă clară de legume (400 ml)"
+        },
+        {
+          "p": "seminte-dovleac",
+          "q": 20,
+          "u": "g",
+          "note": "Semințe de dovleac crude (20 g)"
+        },
+        {
+          "p": "nucsoara",
+          "q": 1,
+          "u": "g",
+          "note": "nucșoară rasă (1 g)"
+        },
+        {
+          "p": "sare",
+          "q": 2,
+          "u": "g",
+          "note": "sare (2 g)"
+        }
+      ],
+      "steps": [
+        "Coace cuburile de dovleac 25 minute la 200°C.",
+        "Fierbe morcovul, ceapa și usturoiul 10 minute în supă, adaugă dovleacul copt, pasează fin cu blenderul vertical și servește cu nucșoară și semințe de dovleac."
+      ]
+    },
+    {
+      "id": "cod-cuptor-pergament-en-papillote-dovlecei",
+      "name": "Cod la cuptor în pergament (En Papillote) cu dovlecei",
+      "description": "Timp indicat: 25 minute. Gramaj final estimat: ~660 g total (330 g / porție).",
+      "categories": [
+        "cina"
+      ],
+      "cuisine": "internationala",
+      "servings": 2,
+      "prep": 25,
+      "cook": 0,
+      "difficulty": "usor",
+      "nutrition": {
+        "kcal": 245,
+        "protein_g": 34,
+        "carbs_g": 7,
+        "fat_g": 9,
+        "fiber_g": 2.5
+      },
+      "ingredients": [
+        {
+          "p": "reteta-file-de-cod-proaspat-decongelat-crud",
+          "q": 350,
+          "u": "g",
+          "note": "File de cod proaspăt/decongelat, crud (350 g / 2 bucăți)"
+        },
+        {
+          "p": "reteta-dovlecel-proaspat-feliat-subtire",
+          "q": 250,
+          "u": "g",
+          "note": "Dovlecel proaspăt feliat subțire (250 g)"
+        },
+        {
+          "p": "rosii-cherry",
+          "q": 100,
+          "u": "g",
+          "note": "Roșii cherry (100 g)"
+        },
+        {
+          "p": "ulei-masline",
+          "q": 12,
+          "u": "g",
+          "note": "Ulei de măsline extravirgin (12 g)"
+        },
+        {
+          "p": "cimbru-proaspat",
+          "q": 3,
+          "u": "g",
+          "note": "cimbru proaspăt (3 g)"
+        },
+        {
+          "p": "lamai",
+          "q": 30,
+          "u": "g",
+          "note": "lămâie (30 g)"
+        },
+        {
+          "p": "sare",
+          "q": 2,
+          "u": "g",
+          "note": "sare (2 g)"
+        },
+        {
+          "p": "piper-negru-macinat",
+          "q": 0.5,
+          "u": "g",
+          "note": "piper (0.5 g)"
+        }
+      ],
+      "steps": [
+        "Așază legumele și fileurile de cod pe două foi de copt, stropește cu ulei și zeamă de lămâie, condimentează, împăturește pachețelele ermetic și coace 15-18 minute la 190°C."
+      ]
+    },
+    {
+      "id": "salata-greceasca-feta-masline-kalamata",
+      "name": "Salată grecească cu brânză feta și măsline Kalamata",
+      "description": "Timp indicat: 10 minute. Gramaj final estimat: ~680 g total (340 g / porție).",
+      "categories": [
+        "cina"
+      ],
+      "cuisine": "internationala",
+      "servings": 2,
+      "prep": 10,
+      "cook": 0,
+      "difficulty": "usor",
+      "nutrition": {
+        "kcal": 325,
+        "protein_g": 13,
+        "carbs_g": 13,
+        "fat_g": 25,
+        "fiber_g": 3.5
+      },
+      "ingredients": [
+        {
+          "p": "rosii",
+          "q": 250,
+          "u": "g",
+          "note": "Roșii coapte (250 g)"
+        },
+        {
+          "p": "castraveti",
+          "q": 150,
+          "u": "g",
+          "note": "castravete (150 g)"
+        },
+        {
+          "p": "ardei-gras",
+          "q": 80,
+          "u": "g",
+          "note": "ardei gras verde (80 g)"
+        },
+        {
+          "p": "ceapa-rosie",
+          "q": 40,
+          "u": "g",
+          "note": "ceapă roșie (40 g)"
+        },
+        {
+          "p": "feta",
+          "q": 140,
+          "u": "g",
+          "note": "Brânză feta (140 g)"
+        },
+        {
+          "p": "reteta-masline-kalamata-fara-samburi",
+          "q": 40,
+          "u": "g",
+          "note": "Măsline Kalamata fără sâmburi (40 g)"
+        },
+        {
+          "p": "ulei-masline",
+          "q": 15,
+          "u": "g",
+          "note": "Ulei de măsline extravirgin (15 g)"
+        },
+        {
+          "p": "oregano",
+          "q": 2,
+          "u": "g",
+          "note": "oregano uscat (2 g)"
+        },
+        {
+          "p": "sare",
+          "q": 1,
+          "u": "g",
+          "note": "sare (1 g)"
+        }
+      ],
+      "steps": [
+        "Taie legumele bucăți mari, adaugă măslinele și feliile de feta deasupra, presară oregano uscat și stropește cu ulei de măsline extravirgin."
+      ]
+    },
+    {
+      "id": "dovlecei-umpluti-branza-vaci-marar",
+      "name": "Dovlecei umpluți cu brânză de vaci și mărar la cuptor",
+      "description": "Timp indicat: 30 minute. Gramaj final estimat: ~640 g total (320 g / porție).",
+      "categories": [
+        "cina"
+      ],
+      "cuisine": "internationala",
+      "servings": 2,
+      "prep": 30,
+      "cook": 0,
+      "difficulty": "usor",
+      "nutrition": {
+        "kcal": 265,
+        "protein_g": 26,
+        "carbs_g": 9,
+        "fat_g": 14,
+        "fiber_g": 2.5
+      },
+      "ingredients": [
+        {
+          "p": "dovlecei",
+          "q": 450,
+          "u": "g",
+          "note": "Dovlecei medii (450 g / 2 bucăți)"
+        },
+        {
+          "p": "reteta-branza-de-vaci-semidegresata",
+          "q": 250,
+          "u": "g",
+          "note": "Brânză de vaci semidegresată (250 g)"
+        },
+        {
+          "p": "oua",
+          "q": 50,
+          "u": "g",
+          "note": "Ou mediu (50 g / 1 bucată)"
+        },
+        {
+          "p": "cascaval",
+          "q": 40,
+          "u": "g",
+          "note": "Cașcaval ras (40 g)"
+        },
+        {
+          "p": "marar",
+          "q": 10,
+          "u": "g",
+          "note": "mărar proaspăt (10 g)"
+        },
+        {
+          "p": "sare",
+          "q": 2,
+          "u": "g",
+          "note": "sare (2 g)"
+        },
+        {
+          "p": "piper-negru-macinat",
+          "q": 0.5,
+          "u": "g",
+          "note": "piper (0.5 g)"
+        }
+      ],
+      "steps": [
+        "Taie dovleceii pe lungime și scobește miezul.",
+        "Amestecă miezul tocat cu brânza de vaci, oul, mărarul și condimentele, umple bărcuțele, presară cașcavalul și coace 20-25 minute la 190°C."
+      ]
+    },
+    {
+      "id": "frigarui-pui-legume-grill-tzatziki",
+      "name": "Frigărui de pui cu legume la grill și sos tzatziki",
+      "description": "Timp indicat: 25 minute. Gramaj final estimat: ~660 g total (330 g / porție).",
+      "categories": [
+        "cina"
+      ],
+      "cuisine": "internationala",
+      "servings": 2,
+      "prep": 25,
+      "cook": 0,
+      "difficulty": "usor",
+      "nutrition": {
+        "kcal": 315,
+        "protein_g": 41,
+        "carbs_g": 11,
+        "fat_g": 12,
+        "fiber_g": 3
+      },
+      "ingredients": [
+        {
+          "p": "piept-pui",
+          "q": 320,
+          "u": "g",
+          "note": "Piept de pui crud tăiat cuburi (320 g)"
+        },
+        {
+          "p": "ardei-gras",
+          "q": 100,
+          "u": "g",
+          "note": "Ardei gras (100 g)"
+        },
+        {
+          "p": "ceapa-rosie",
+          "q": 80,
+          "u": "g",
+          "note": "ceapă roșie (80 g)"
+        },
+        {
+          "p": "ciuperci-champignon",
+          "q": 100,
+          "u": "g",
+          "note": "ciuperci champignon (100 g)"
+        },
+        {
+          "p": "reteta-sos-tzatziki-din-iaurt-grecesc",
+          "q": 140,
+          "u": "g",
+          "note": "Sos tzatziki din iaurt grecesc (140 g)"
+        },
+        {
+          "p": "ulei-masline",
+          "q": 5,
+          "u": "g",
+          "note": "Ulei de măsline (5 g)"
+        },
+        {
+          "p": "oregano",
+          "q": 2,
+          "u": "g",
+          "note": "oregano uscat (2 g)"
+        },
+        {
+          "p": "sare",
+          "q": 2,
+          "u": "g",
+          "note": "sare (2 g)"
+        },
+        {
+          "p": "piper-negru-macinat",
+          "q": 0.5,
+          "u": "g",
+          "note": "piper (0.5 g)"
+        }
+      ],
+      "steps": [
+        "Înșiră alternat cuburile de pui condimentate și legumele pe bețe de frigărui.",
+        "Frige-le pe grill 12-15 minute întorcându-le regulat și servește alături de sosul tzatziki rece."
+      ]
+    },
+    {
+      "id": "supa-crema-linte-chimion-crutoane",
+      "name": "Supă cremă de linte cu chimion și crutoane",
+      "description": "Timp indicat: 25 minute. Gramaj final estimat: ~720 g total (360 g / porție).",
+      "categories": [
+        "cina"
+      ],
+      "cuisine": "internationala",
+      "servings": 2,
+      "prep": 25,
+      "cook": 0,
+      "difficulty": "usor",
+      "nutrition": {
+        "kcal": 295,
+        "protein_g": 16,
+        "carbs_g": 48,
+        "fat_g": 4,
+        "fiber_g": 9
+      },
+      "ingredients": [
+        {
+          "p": "reteta-linte-rosie-uscata",
+          "q": 120,
+          "u": "g",
+          "note": "Linte roșie uscată (120 g)"
+        },
+        {
+          "p": "morcovi",
+          "q": 80,
+          "u": "g",
+          "note": "Morcov (80 g)"
+        },
+        {
+          "p": "ceapa-galbena",
+          "q": 60,
+          "u": "g",
+          "note": "ceapă (60 g)"
+        },
+        {
+          "p": "apa-plata",
+          "q": 550,
+          "u": "ml",
+          "note": "Apă sau supă de legume (550 ml)"
+        },
+        {
+          "p": "reteta-crutoane-integrale",
+          "q": 30,
+          "u": "g",
+          "note": "Crutoane integrale (30 g)"
+        },
+        {
+          "p": "reteta-chimion-macinat",
+          "q": 2,
+          "u": "g",
+          "note": "chimion măcinat (2 g)"
+        },
+        {
+          "p": "reteta-zeama-de-lamaie",
+          "q": 10,
+          "u": "ml",
+          "note": "zeamă de lămâie (10 ml)"
+        },
+        {
+          "p": "sare",
+          "q": 2,
+          "u": "g",
+          "note": "sare (2 g)"
+        }
+      ],
+      "steps": [
+        "Fierbe lintea clătită împreună cu morcovul și ceapa timp de 15-20 minute.",
+        "Pasează fin cu blenderul, adaugă chimionul și zeama de lămâie și servește cu crutoanele integrale."
+      ]
+    },
+    {
+      "id": "salata-nicoise-ton-ou-fiert",
+      "name": "Salată Nicoise cu ton și ou fiert",
+      "description": "Timp indicat: 15 minute. Gramaj final estimat: ~680 g total (340 g / porție).",
+      "categories": [
+        "cina"
+      ],
+      "cuisine": "internationala",
+      "servings": 2,
+      "prep": 15,
+      "cook": 0,
+      "difficulty": "usor",
+      "nutrition": {
+        "kcal": 310,
+        "protein_g": 30,
+        "carbs_g": 12,
+        "fat_g": 16,
+        "fiber_g": 5
+      },
+      "ingredients": [
+        {
+          "p": "reteta-ton-bucati-in-suc-propriu-scurs",
+          "q": 160,
+          "u": "g",
+          "note": "Ton bucăți în suc propriu, scurs (160 g)"
+        },
+        {
+          "p": "oua",
+          "q": 100,
+          "u": "g",
+          "note": "Ouă medii (100 g / 2 bucăți)"
+        },
+        {
+          "p": "reteta-pastai-de-fasole-verde",
+          "q": 180,
+          "u": "g",
+          "note": "Păstăi de fasole verde (180 g)"
+        },
+        {
+          "p": "reteta-mix-de-salata-verde",
+          "q": 100,
+          "u": "g",
+          "note": "mix de salată verde (100 g)"
+        },
+        {
+          "p": "rosii-cherry",
+          "q": 100,
+          "u": "g",
+          "note": "roșii cherry (100 g)"
+        },
+        {
+          "p": "masline",
+          "q": 30,
+          "u": "g",
+          "note": "măsline negre (30 g)"
+        },
+        {
+          "p": "reteta-dressing-ulei-de-masline",
+          "q": 12,
+          "u": "g",
+          "note": "Dressing: ulei de măsline (12 g)"
+        },
+        {
+          "p": "mustar",
+          "q": 8,
+          "u": "g",
+          "note": "muștar Dijon (8 g)"
+        },
+        {
+          "p": "reteta-zeama-de-lamaie",
+          "q": 10,
+          "u": "ml",
+          "note": "zeamă de lămâie (10 ml)"
+        },
+        {
+          "p": "sare",
+          "q": 1,
+          "u": "g",
+          "note": "sare (1 g)"
+        }
+      ],
+      "steps": [
+        "Fierbe ouăle tari (8 minute) și opărește fasolea verde (5 minute).",
+        "Așază salata, tonul scurs, sferturile de ou, fasolea, roșiile și măslinele, apoi stropește cu dressingul."
+      ]
+    },
+    {
+      "id": "ciuperci-portobello-umplute-spanac-mozzarella",
+      "name": "Ciuperci Portobello umplute cu spanac și mozzarella",
+      "description": "Timp indicat: 25 minute. Gramaj final estimat: ~420 g total (210 g / porție).",
+      "categories": [
+        "cina"
+      ],
+      "cuisine": "internationala",
+      "servings": 2,
+      "prep": 25,
+      "cook": 0,
+      "difficulty": "usor",
+      "nutrition": {
+        "kcal": 235,
+        "protein_g": 17,
+        "carbs_g": 9,
+        "fat_g": 15,
+        "fiber_g": 3.5
+      },
+      "ingredients": [
+        {
+          "p": "reteta-ciuperci-portobello-mari",
+          "q": 300,
+          "u": "g",
+          "note": "Ciuperci Portobello mari (300 g / 4 bucăți)"
+        },
+        {
+          "p": "spanac",
+          "q": 100,
+          "u": "g",
+          "note": "Spanac proaspăt (100 g)"
+        },
+        {
+          "p": "mozzarella",
+          "q": 100,
+          "u": "g",
+          "note": "Mozzarella rasă (100 g)"
+        },
+        {
+          "p": "ulei-masline",
+          "q": 8,
+          "u": "g",
+          "note": "Ulei de măsline (8 g)"
+        },
+        {
+          "p": "usturoi",
+          "q": 4,
+          "u": "g",
+          "note": "usturoi (4 g / 1 cățel)"
+        },
+        {
+          "p": "sare",
+          "q": 1.5,
+          "u": "g",
+          "note": "sare (1.5 g)"
+        },
+        {
+          "p": "piper-negru-macinat",
+          "q": 0.5,
+          "u": "g",
+          "note": "piper (0.5 g)"
+        }
+      ],
+      "steps": [
+        "Scoate codițele ciupercilor.",
+        "Călește spanacul cu usturoiul 2 minute, umple pălăriile ciupercilor, acoperă cu mozzarella rasă și coace 15 minute la 200°C."
+      ]
+    },
+    {
+      "id": "omleta-spaniola-tortilla-de-patatas",
+      "name": "Omletă spaniolă (Tortilla de Patatas) ușoară",
+      "description": "Timp indicat: 25 minute. Gramaj final estimat: ~440 g total (220 g / porție).",
+      "categories": [
+        "cina"
+      ],
+      "cuisine": "internationala",
+      "servings": 2,
+      "prep": 25,
+      "cook": 0,
+      "difficulty": "usor",
+      "nutrition": {
+        "kcal": 295,
+        "protein_g": 15,
+        "carbs_g": 24,
+        "fat_g": 16,
+        "fiber_g": 2.5
+      },
+      "ingredients": [
+        {
+          "p": "oua",
+          "q": 200,
+          "u": "g",
+          "note": "Ouă medii (200 g / 4 bucăți)"
+        },
+        {
+          "p": "reteta-cartofi-albi-curatati-cruzi",
+          "q": 220,
+          "u": "g",
+          "note": "Cartofi albi curățați, cruzi (220 g)"
+        },
+        {
+          "p": "ceapa-galbena",
+          "q": 60,
+          "u": "g",
+          "note": "Ceapă galbenă (60 g)"
+        },
+        {
+          "p": "ulei-masline",
+          "q": 12,
+          "u": "g",
+          "note": "Ulei de măsline (12 g)"
+        },
+        {
+          "p": "sare",
+          "q": 2,
+          "u": "g",
+          "note": "sare (2 g)"
+        },
+        {
+          "p": "piper-negru-macinat",
+          "q": 0.5,
+          "u": "g",
+          "note": "piper (0.5 g)"
+        }
+      ],
+      "steps": [
+        "Taie cartofii felii foarte subțiri și gătește-i acoperit cu ceapa și uleiul timp de 10 minute până se înmoaie.",
+        "Toarnă ouăle bătute, gătește la foc mic 6 minute, apoi întoarce tortilla cu ajutorul unei farfurii pentru încă 3 minute."
+      ]
+    },
+    {
+      "id": "file-biban-mare-sos-capere-lamaie",
+      "name": "File de biban de mare la tigaie cu sos de capere și lămâie",
+      "description": "Timp indicat: 15 minute. Gramaj final estimat: ~540 g total (270 g / porție).",
+      "categories": [
+        "cina"
+      ],
+      "cuisine": "internationala",
+      "servings": 2,
+      "prep": 15,
+      "cook": 0,
+      "difficulty": "usor",
+      "nutrition": {
+        "kcal": 320,
+        "protein_g": 35,
+        "carbs_g": 5,
+        "fat_g": 18,
+        "fiber_g": 2.5
+      },
+      "ingredients": [
+        {
+          "p": "reteta-file-de-biban-de-mare-cu-piele-crud",
+          "q": 350,
+          "u": "g",
+          "note": "File de biban de mare cu piele, crud (350 g / 2 bucăți)"
+        },
+        {
+          "p": "reteta-sparanghel-sau-fasole-verde-pentru-garnitura",
+          "q": 200,
+          "u": "g",
+          "note": "Sparanghel sau fasole verde pentru garnitură (200 g)"
+        },
+        {
+          "p": "reteta-unt-82-grasime",
+          "q": 20,
+          "u": "g",
+          "note": "Unt 82% grăsime (20 g)"
+        },
+        {
+          "p": "reteta-capere-scurse",
+          "q": 20,
+          "u": "g",
+          "note": "capere scurse (20 g)"
+        },
+        {
+          "p": "reteta-zeama-de-lamaie",
+          "q": 15,
+          "u": "ml",
+          "note": "zeamă de lămâie (15 ml)"
+        },
+        {
+          "p": "patrunjel-verde",
+          "q": 5,
+          "u": "g",
+          "note": "pătrunjel (5 g)"
+        },
+        {
+          "p": "sare",
+          "q": 2,
+          "u": "g",
+          "note": "sare (2 g)"
+        }
+      ],
+      "steps": [
+        "Prăjește bibanul în tigaie antiaderentă cu pielea în jos 4 minute, apoi întoarce-l 2 minute.",
+        "Scoate peștele, topește untul cu caperele, zeama de lămâie și pătrunjelul și toarnă sosul peste pește și garnitura opărită."
+      ]
+    },
+    {
+      "id": "conopida-cuptor-parmezan-usturoi",
+      "name": "Conopidă la cuptor cu parmezan și usturoi",
+      "description": "Timp indicat: 30 minute. Gramaj final estimat: ~480 g total (240 g / porție).",
+      "categories": [
+        "cina"
+      ],
+      "cuisine": "internationala",
+      "servings": 2,
+      "prep": 30,
+      "cook": 0,
+      "difficulty": "usor",
+      "nutrition": {
+        "kcal": 245,
+        "protein_g": 15,
+        "carbs_g": 16,
+        "fat_g": 14,
+        "fiber_g": 5.5
+      },
+      "ingredients": [
+        {
+          "p": "conopida-congelata",
+          "q": 450,
+          "u": "g",
+          "note": "Buchețele de conopidă proaspătă (450 g)"
+        },
+        {
+          "p": "parmezan",
+          "q": 50,
+          "u": "g",
+          "note": "Parmezan ras (50 g)"
+        },
+        {
+          "p": "reteta-iaurt-grecesc-2-pentru-servit",
+          "q": 100,
+          "u": "g",
+          "note": "Iaurt grecesc 2% pentru servit (100 g)"
+        },
+        {
+          "p": "ulei-masline",
+          "q": 12,
+          "u": "g",
+          "note": "Ulei de măsline (12 g)"
+        },
+        {
+          "p": "usturoi",
+          "q": 2,
+          "u": "g",
+          "note": "usturoi granulat (2 g)"
+        },
+        {
+          "p": "boia-dulce",
+          "q": 2,
+          "u": "g",
+          "note": "boia dulce (2 g)"
+        },
+        {
+          "p": "sare",
+          "q": 2,
+          "u": "g",
+          "note": "sare (2 g)"
+        }
+      ],
+      "steps": [
+        "Amestecă buchețelele de conopidă cu uleiul, condimentele și parmezanul ras.",
+        "Coace pe hârtie de copt 25 minute la 200°C până devin aurii și servește cu iaurtul grecesc."
+      ]
+    },
+    {
+      "id": "salata-calda-piept-curcan-merisoare-branza-capra",
+      "name": "Salată caldă cu piept de curcan, merișoare și brânză de capră",
+      "description": "Timp indicat: 15 minute. Gramaj final estimat: ~540 g total (270 g / porție).",
+      "categories": [
+        "cina"
+      ],
+      "cuisine": "internationala",
+      "servings": 2,
+      "prep": 15,
+      "cook": 0,
+      "difficulty": "usor",
+      "nutrition": {
+        "kcal": 345,
+        "protein_g": 40,
+        "carbs_g": 14,
+        "fat_g": 14,
+        "fiber_g": 3
+      },
+      "ingredients": [
+        {
+          "p": "piept-curcan",
+          "q": 280,
+          "u": "g",
+          "note": "Piept de curcan crud (280 g)"
+        },
+        {
+          "p": "reteta-baby-spanac-proaspat",
+          "q": 140,
+          "u": "g",
+          "note": "Baby spanac proaspăt (140 g)"
+        },
+        {
+          "p": "branza-capra",
+          "q": 60,
+          "u": "g",
+          "note": "Brânză de capră proaspătă (60 g)"
+        },
+        {
+          "p": "reteta-merisoare-uscate",
+          "q": 20,
+          "u": "g",
+          "note": "Merișoare uscate (20 g)"
+        },
+        {
+          "p": "reteta-dressing-ulei-de-masline",
+          "q": 8,
+          "u": "g",
+          "note": "Dressing: ulei de măsline (8 g)"
+        },
+        {
+          "p": "mustar",
+          "q": 6,
+          "u": "g",
+          "note": "muștar (6 g)"
+        },
+        {
+          "p": "miere",
+          "q": 5,
+          "u": "g",
+          "note": "miere (5 g)"
+        },
+        {
+          "p": "reteta-zeama-de-lamaie",
+          "q": 10,
+          "u": "ml",
+          "note": "zeamă de lămâie (10 ml)"
+        },
+        {
+          "p": "sare",
+          "q": 1.5,
+          "u": "g",
+          "note": "sare (1.5 g)"
+        }
+      ],
+      "steps": [
+        "Gătește pieptul de curcan pe grill și taie-l fâșii.",
+        "Așază-l cald peste patul de baby spanac, presară brânza de capră sfărâmată și merișoarele și stropește cu dressingul."
+      ]
+    },
+    {
+      "id": "dovlecel-spaghetti-zoodles-sos-marinara-chiftelute",
+      "name": "Dovlecel spaghetti (Zoodles) cu sos marinara și chifteluțe de pui",
+      "description": "Timp indicat: 25 minute. Gramaj final estimat: ~760 g total (380 g / porție).",
+      "categories": [
+        "cina"
+      ],
+      "cuisine": "internationala",
+      "servings": 2,
+      "prep": 25,
+      "cook": 0,
+      "difficulty": "usor",
+      "nutrition": {
+        "kcal": 315,
+        "protein_g": 37,
+        "carbs_g": 16,
+        "fat_g": 11,
+        "fiber_g": 4.5
+      },
+      "ingredients": [
+        {
+          "p": "dovlecei",
+          "q": 400,
+          "u": "g",
+          "note": "Dovlecei proaspeți dați prin spiralizator (400 g)"
+        },
+        {
+          "p": "reteta-carne-tocata-slaba-de-pui-cruda",
+          "q": 260,
+          "u": "g",
+          "note": "Carne tocată slabă de pui, crudă (260 g)"
+        },
+        {
+          "p": "reteta-sos-marinara-de-rosii-cu-busuioc",
+          "q": 250,
+          "u": "ml",
+          "note": "Sos marinara de roșii cu busuioc (250 ml)"
+        },
+        {
+          "p": "parmezan",
+          "q": 25,
+          "u": "g",
+          "note": "Parmezan ras (25 g)"
+        },
+        {
+          "p": "oregano",
+          "q": 2,
+          "u": "g",
+          "note": "oregano (2 g)"
+        },
+        {
+          "p": "sare",
+          "q": 2,
+          "u": "g",
+          "note": "sare (2 g)"
+        }
+      ],
+      "steps": [
+        "Formează chifteluțe mici din carnea de pui condimentată și coace-le 15 minute la 200°C, apoi încălzește-le în sosul marinara.",
+        "Trage tăițeii de dovlecel în tigaie 2 minute (să rămână crocanți) și servește cu sos, chifteluțe și parmezan."
+      ]
+    },
+    {
+      "id": "supa-clara-legume-taitei-casa",
+      "name": "Supă clară de legume cu tăiței de casă",
+      "description": "Timp indicat: 30 minute. Gramaj final estimat: ~780 g total (390 g / porție).",
+      "categories": [
+        "cina"
+      ],
+      "cuisine": "internationala",
+      "servings": 2,
+      "prep": 30,
+      "cook": 0,
+      "difficulty": "usor",
+      "nutrition": {
+        "kcal": 165,
+        "protein_g": 5,
+        "carbs_g": 31,
+        "fat_g": 2,
+        "fiber_g": 4
+      },
+      "ingredients": [
+        {
+          "p": "morcovi",
+          "q": 100,
+          "u": "g",
+          "note": "Morcov (100 g)"
+        },
+        {
+          "p": "reteta-radacina-patrunjel",
+          "q": 60,
+          "u": "g",
+          "note": "rădăcină pătrunjel (60 g)"
+        },
+        {
+          "p": "telina-radacina",
+          "q": 60,
+          "u": "g",
+          "note": "țelină (60 g)"
+        },
+        {
+          "p": "ceapa-galbena",
+          "q": 50,
+          "u": "g",
+          "note": "ceapă (50 g)"
+        },
+        {
+          "p": "reteta-taitei-subtiri-cu-ou-uscati",
+          "q": 50,
+          "u": "g",
+          "note": "Tăiței subțiri cu ou uscați (50 g)"
+        },
+        {
+          "p": "apa-plata",
+          "q": 750,
+          "u": "ml",
+          "note": "Apă (750 ml)"
+        },
+        {
+          "p": "patrunjel-verde",
+          "q": 10,
+          "u": "g",
+          "note": "pătrunjel verde tocat (10 g)"
+        },
+        {
+          "p": "sare",
+          "q": 2.5,
+          "u": "g",
+          "note": "sare (2.5 g)"
+        }
+      ],
+      "steps": [
+        "Fierbe legumele tăiate rondele 20 minute în apă cu sare.",
+        "Adaugă tăițeii în ultimele 5 minute de fierbere și presară pătrunjel proaspăt la final."
+      ]
+    },
+    {
+      "id": "tacos-peste-alb-salata-varza-rosie",
+      "name": "Tacos cu pește alb și salată de varză roșie",
+      "description": "Timp indicat: 20 minute. Gramaj final estimat: ~580 g total (290 g / porție).",
+      "categories": [
+        "cina"
+      ],
+      "cuisine": "internationala",
+      "servings": 2,
+      "prep": 20,
+      "cook": 0,
+      "difficulty": "usor",
+      "nutrition": {
+        "kcal": 335,
+        "protein_g": 33,
+        "carbs_g": 34,
+        "fat_g": 7,
+        "fiber_g": 5
+      },
+      "ingredients": [
+        {
+          "p": "reteta-mini-tortilla-de-porumb",
+          "q": 100,
+          "u": "g",
+          "note": "Mini-tortilla de porumb (100 g / 4 bucăți)"
+        },
+        {
+          "p": "reteta-file-de-salau-sau-cod-crud",
+          "q": 280,
+          "u": "g",
+          "note": "File de șalău sau cod crud (280 g)"
+        },
+        {
+          "p": "varza-rosie",
+          "q": 160,
+          "u": "g",
+          "note": "Varză roșie tocată fin (160 g)"
+        },
+        {
+          "p": "reteta-iaurt-grecesc-2",
+          "q": 50,
+          "u": "g",
+          "note": "Iaurt grecesc 2% (50 g)"
+        },
+        {
+          "p": "reteta-zeama-de-lime",
+          "q": 15,
+          "u": "ml",
+          "note": "zeamă de lime (15 ml)"
+        },
+        {
+          "p": "reteta-coriandru-sau-patrunjel",
+          "q": 5,
+          "u": "g",
+          "note": "coriandru sau pătrunjel (5 g)"
+        },
+        {
+          "p": "reteta-boia",
+          "q": 1,
+          "u": "g",
+          "note": "boia (1 g)"
+        },
+        {
+          "p": "sare",
+          "q": 2,
+          "u": "g",
+          "note": "sare (2 g)"
+        }
+      ],
+      "steps": [
+        "Condimentează peștele și gătește-l la tigaie 6 minute, apoi rupe-l bucăți.",
+        "Amestecă varza roșie cu iaurtul și zeama de lime.",
+        "Umple tortilla încălzite cu salata de varză și bucățile de pește."
+      ]
+    },
+    {
+      "id": "vinete-coapte-cuptor-tahini-rodie",
+      "name": "Vinete coapte la cuptor cu pastă tahini și rodie",
+      "description": "Timp indicat: 35 minute. Gramaj final estimat: ~480 g total (240 g / porție).",
+      "categories": [
+        "cina"
+      ],
+      "cuisine": "internationala",
+      "servings": 2,
+      "prep": 35,
+      "cook": 0,
+      "difficulty": "usor",
+      "nutrition": {
+        "kcal": 265,
+        "protein_g": 7,
+        "carbs_g": 24,
+        "fat_g": 17,
+        "fiber_g": 9
+      },
+      "ingredients": [
+        {
+          "p": "vinete",
+          "q": 450,
+          "u": "g",
+          "note": "Vinete medii proaspete (450 g / 2 bucăți mici)"
+        },
+        {
+          "p": "reteta-pasta-tahini",
+          "q": 30,
+          "u": "g",
+          "note": "Pastă tahini (30 g / 2 linguri)"
+        },
+        {
+          "p": "reteta-seminte-de-rodie-proaspete",
+          "q": 40,
+          "u": "g",
+          "note": "Semințe de rodie proaspete (40 g)"
+        },
+        {
+          "p": "ulei-masline",
+          "q": 10,
+          "u": "g",
+          "note": "Ulei de măsline (10 g)"
+        },
+        {
+          "p": "reteta-zeama-de-lamaie",
+          "q": 15,
+          "u": "ml",
+          "note": "zeamă de lămâie (15 ml)"
+        },
+        {
+          "p": "patrunjel-verde",
+          "q": 5,
+          "u": "g",
+          "note": "pătrunjel (5 g)"
+        },
+        {
+          "p": "sare",
+          "q": 2,
+          "u": "g",
+          "note": "sare (2 g)"
+        }
+      ],
+      "steps": [
+        "Taie vinetele pe lungime, crestează miezul în romburi, unge cu ulei și sare și coace 30 minute la 200°C.",
+        "Stropește cu sosul tahini diluat cu lămâie și 2 linguri de apă, apoi presară rodie și pătrunjel."
+      ]
+    },
+    {
+      "id": "creveti-saganaki-sos-rosii-feta",
+      "name": "Creveți saganaki (în sos de roșii cu brânză feta)",
+      "description": "Timp indicat: 20 minute. Gramaj final estimat: ~600 g total (300 g / porție).",
+      "categories": [
+        "cina"
+      ],
+      "cuisine": "internationala",
+      "servings": 2,
+      "prep": 20,
+      "cook": 0,
+      "difficulty": "usor",
+      "nutrition": {
+        "kcal": 275,
+        "protein_g": 33,
+        "carbs_g": 9,
+        "fat_g": 12,
+        "fiber_g": 2.5
+      },
+      "ingredients": [
+        {
+          "p": "reteta-creveti-decorticati-cruzi",
+          "q": 280,
+          "u": "g",
+          "note": "Creveți decorticați cruzi (280 g)"
+        },
+        {
+          "p": "rosii",
+          "q": 280,
+          "u": "g",
+          "note": "Roșii pasate / cuburi (280 g)"
+        },
+        {
+          "p": "feta",
+          "q": 80,
+          "u": "g",
+          "note": "Brânză feta (80 g)"
+        },
+        {
+          "p": "ulei-masline",
+          "q": 8,
+          "u": "g",
+          "note": "Ulei de măsline (8 g)"
+        },
+        {
+          "p": "usturoi",
+          "q": 8,
+          "u": "g",
+          "note": "usturoi (8 g / 2 căței)"
+        },
+        {
+          "p": "oregano",
+          "q": 2,
+          "u": "g",
+          "note": "oregano uscat (2 g)"
+        },
+        {
+          "p": "reteta-fulgi-de-chili",
+          "q": 0.5,
+          "u": "g",
+          "note": "fulgi de chili (0.5 g)"
+        }
+      ],
+      "steps": [
+        "Călește usturoiul în ulei 30 de secunde, adaugă roșiile, oregano și chili și fierbe 8 minute.",
+        "Pune creveții și brânza feta sfărâmată și mai lasă pe foc acoperit 4 minute."
+      ]
+    },
+    {
+      "id": "salata-sfecla-rosie-hrean-pui-afumat",
+      "name": "Salată de sfeclă roșie cu hrean și piept de pui afumat",
+      "description": "Timp indicat: 10 minute. Gramaj final estimat: ~540 g total (270 g / porție).",
+      "categories": [
+        "cina"
+      ],
+      "cuisine": "internationala",
+      "servings": 2,
+      "prep": 10,
+      "cook": 0,
+      "difficulty": "usor",
+      "nutrition": {
+        "kcal": 265,
+        "protein_g": 31,
+        "carbs_g": 18,
+        "fat_g": 7,
+        "fiber_g": 4.5
+      },
+      "ingredients": [
+        {
+          "p": "piept-pui",
+          "q": 240,
+          "u": "g",
+          "note": "Piept de pui afumat / fiert și afumat (240 g)"
+        },
+        {
+          "p": "reteta-sfecla-rosie-fiarta-curatata",
+          "q": 260,
+          "u": "g",
+          "note": "Sfeclă roșie fiartă, curățată (260 g)"
+        },
+        {
+          "p": "reteta-iaurt-grecesc-2",
+          "q": 50,
+          "u": "g",
+          "note": "Iaurt grecesc 2% (50 g)"
+        },
+        {
+          "p": "hrean-borcan",
+          "q": 15,
+          "u": "g",
+          "note": "hrean ras la borcan (15 g)"
+        },
+        {
+          "p": "sare",
+          "q": 1,
+          "u": "g",
+          "note": "sare (1 g)"
+        }
+      ],
+      "steps": [
+        "Rade sfecla roșie pe răzătoarea mare și amestec-o cu hreanul, iaurtul grecesc și un praf de sare.",
+        "Servește alături de feliile de piept de pui afumat."
+      ]
+    },
+    {
+      "id": "omleta-cuptor-frittata-broccoli-cheddar",
+      "name": "Omletă la cuptor (Frittata) cu broccoli și brânză cheddar",
+      "description": "Timp indicat: 25 minute. Gramaj final estimat: ~460 g total (230 g / porție).",
+      "categories": [
+        "cina"
+      ],
+      "cuisine": "internationala",
+      "servings": 2,
+      "prep": 25,
+      "cook": 0,
+      "difficulty": "usor",
+      "nutrition": {
+        "kcal": 285,
+        "protein_g": 23,
+        "carbs_g": 7,
+        "fat_g": 19,
+        "fiber_g": 3
+      },
+      "ingredients": [
+        {
+          "p": "oua",
+          "q": 200,
+          "u": "g",
+          "note": "Ouă medii (200 g / 4 bucăți)"
+        },
+        {
+          "p": "reteta-buchetele-mici-de-broccoli",
+          "q": 180,
+          "u": "g",
+          "note": "Buchețele mici de broccoli (180 g)"
+        },
+        {
+          "p": "reteta-branza-cheddar-rasa",
+          "q": 60,
+          "u": "g",
+          "note": "Brânză cheddar rasă (60 g)"
+        },
+        {
+          "p": "lapte-semidegresat",
+          "q": 30,
+          "u": "ml",
+          "note": "Lapte 1.5% (30 ml)"
+        },
+        {
+          "p": "sare",
+          "q": 1.5,
+          "u": "g",
+          "note": "sare (1.5 g)"
+        },
+        {
+          "p": "piper-negru-macinat",
+          "q": 0.5,
+          "u": "g",
+          "note": "piper (0.5 g)"
+        }
+      ],
+      "steps": [
+        "Opărește buchețelele de broccoli 3 minute.",
+        "Bate ouăle cu laptele, sarea și piperul.",
+        "Așază broccoli într-un vas termorezistent, toarnă ouăle, presară cheddar și coace 15-18 minute la 180°C."
+      ]
+    },
+    {
+      "id": "supa-rece-iaurt-castraveti-nuci-tarator",
+      "name": "Supă rece de iaurt grecesc cu castraveți și nuci (Tarator)",
+      "description": "Timp indicat: 10 minute. Gramaj final estimat: ~760 g total (380 g / porție).",
+      "categories": [
+        "cina"
+      ],
+      "cuisine": "internationala",
+      "servings": 2,
+      "prep": 10,
+      "cook": 0,
+      "difficulty": "usor",
+      "nutrition": {
+        "kcal": 275,
+        "protein_g": 21,
+        "carbs_g": 12,
+        "fat_g": 16,
+        "fiber_g": 2
+      },
+      "ingredients": [
+        {
+          "p": "reteta-iaurt-grecesc-2-grasime",
+          "q": 400,
+          "u": "g",
+          "note": "Iaurt grecesc 2% grăsime (400 g)"
+        },
+        {
+          "p": "apa-plata",
+          "q": 150,
+          "u": "ml",
+          "note": "Apă rece (150 ml)"
+        },
+        {
+          "p": "castraveti",
+          "q": 180,
+          "u": "g",
+          "note": "Castravete proaspăt ras (180 g)"
+        },
+        {
+          "p": "reteta-miez-de-nuca-maruntit",
+          "q": 30,
+          "u": "g",
+          "note": "Miez de nucă mărunțit (30 g)"
+        },
+        {
+          "p": "ulei-masline",
+          "q": 8,
+          "u": "g",
+          "note": "ulei de măsline (8 g)"
+        },
+        {
+          "p": "usturoi",
+          "q": 4,
+          "u": "g",
+          "note": "usturoi (4 g / 1 cățel)"
+        },
+        {
+          "p": "marar",
+          "q": 10,
+          "u": "g",
+          "note": "mărar proaspăt (10 g)"
+        },
+        {
+          "p": "sare",
+          "q": 2,
+          "u": "g",
+          "note": "sare (2 g)"
+        }
+      ],
+      "steps": [
+        "Subțiază iaurtul grecesc cu apa rece, încorporează castravetele ras, usturoiul zdrobit, mărarul tocat, nucile mărunțite și uleiul de măsline.",
+        "Servește foarte rece."
+      ]
+    },
+    {
+      "id": "felii-mar-unt-arahide-scortisoara",
+      "name": "Felii de măr cu unt de arahide și scorțișoară",
+      "description": "Timp indicat: 3 minute. Gramaj final estimat: ~165 g total (165 g / porție).",
+      "categories": [
+        "gustari"
+      ],
+      "cuisine": "internationala",
+      "servings": 1,
+      "prep": 3,
+      "cook": 0,
+      "difficulty": "usor",
+      "nutrition": {
+        "kcal": 170,
+        "protein_g": 4,
+        "carbs_g": 23,
+        "fat_g": 8,
+        "fiber_g": 4.5
+      },
+      "ingredients": [
+        {
+          "p": "reteta-mar-proaspat-curatat-de-cotor",
+          "q": 150,
+          "u": "g",
+          "note": "Măr proaspăt curățat de cotor (150 g / 1 bucată medie)"
+        },
+        {
+          "p": "reteta-unt-de-arahide-100",
+          "q": 15,
+          "u": "g",
+          "note": "Unt de arahide 100% (15 g / 1 lingură)"
+        },
+        {
+          "p": "scortisoara",
+          "q": 0.5,
+          "u": "g",
+          "note": "Scorțișoară măcinată (0.5 g)"
+        }
+      ],
+      "steps": [
+        "Taie mărul felii subțiri, unge fiecare felie cu unt de arahide și presară scorțișoară."
+      ]
+    },
+    {
+      "id": "batoane-energizante-ovaz-curmale",
+      "name": "Batoane energizante fără coacere cu ovăz și curmale",
+      "description": "Timp indicat: 15 minute (+ răcire). Gramaj final estimat: ~220 g total (55 g / porție).",
+      "categories": [
+        "gustari"
+      ],
+      "cuisine": "internationala",
+      "servings": 4,
+      "prep": 15,
+      "cook": 0,
+      "difficulty": "usor",
+      "nutrition": {
+        "kcal": 195,
+        "protein_g": 4.5,
+        "carbs_g": 31,
+        "fat_g": 6,
+        "fiber_g": 4
+      },
+      "ingredients": [
+        {
+          "p": "curmale-proaspete",
+          "q": 100,
+          "u": "g",
+          "note": "Curmale fără sâmburi (100 g)"
+        },
+        {
+          "p": "reteta-fulgi-de-ovaz-fini",
+          "q": 80,
+          "u": "g",
+          "note": "Fulgi de ovăz fini (80 g)"
+        },
+        {
+          "p": "reteta-unt-de-migdale-100",
+          "q": 30,
+          "u": "g",
+          "note": "Unt de migdale 100% (30 g / 2 linguri)"
+        },
+        {
+          "p": "cacao",
+          "q": 10,
+          "u": "g",
+          "note": "Pudră de cacao crudă (10 g / 1 lingură)"
+        }
+      ],
+      "steps": [
+        "Mixează toate ingredientele într-un robot de bucătărie până obții o pastă lipicioasă.",
+        "Presează compoziția într-o tavă mică, lasă la frigider 1 oră și taie 4 batoane egale."
+      ]
+    },
+    {
+      "id": "humus-bastonase-morcov-castravete",
+      "name": "Humus cu bastonașe de morcov și castravete",
+      "description": "Timp indicat: 5 minute. Gramaj final estimat: ~210 g total (210 g / porție).",
+      "categories": [
+        "gustari"
+      ],
+      "cuisine": "internationala",
+      "servings": 1,
+      "prep": 5,
+      "cook": 0,
+      "difficulty": "usor",
+      "nutrition": {
+        "kcal": 165,
+        "protein_g": 6,
+        "carbs_g": 21,
+        "fat_g": 6.5,
+        "fiber_g": 6.5
+      },
+      "ingredients": [
+        {
+          "p": "reteta-humus-clasic",
+          "q": 60,
+          "u": "g",
+          "note": "Humus clasic (60 g / 3 linguri)"
+        },
+        {
+          "p": "morcovi",
+          "q": 80,
+          "u": "g",
+          "note": "Morcov curățat (80 g)"
+        },
+        {
+          "p": "castraveti",
+          "q": 70,
+          "u": "g",
+          "note": "castravete (70 g)"
+        },
+        {
+          "p": "boia-dulce",
+          "q": 0.5,
+          "u": "g",
+          "note": "Boia dulce (0.5 g)"
+        }
+      ],
+      "steps": [
+        "Taie morcovul și castravetele bastonașe subțiri și servește-le alături de humusul presărat cu boia."
+      ]
+    },
+    {
+      "id": "edamame-fierte-sare-mare",
+      "name": "Edamame fierte cu sare de mare",
+      "description": "Timp indicat: 8 minute. Gramaj final estimat: ~150 g total (150 g / porție).",
+      "categories": [
+        "gustari"
+      ],
+      "cuisine": "internationala",
+      "servings": 1,
+      "prep": 8,
+      "cook": 0,
+      "difficulty": "usor",
+      "nutrition": {
+        "kcal": 185,
+        "protein_g": 17,
+        "carbs_g": 14,
+        "fat_g": 8,
+        "fiber_g": 8
+      },
+      "ingredients": [
+        {
+          "p": "reteta-pastai-de-edamame-congelate",
+          "q": 150,
+          "u": "g",
+          "note": "Păstăi de edamame congelate (150 g)"
+        },
+        {
+          "p": "sare",
+          "q": 1,
+          "u": "g",
+          "note": "Sare grunjoasă de mare (1 g)"
+        }
+      ],
+      "steps": [
+        "Fierbe păstăile în apă clocotită timp de 5 minute, scurge-le bine și presară sare de mare.",
+        "Se consumă doar boabele din interiorul păstăilor."
+      ]
+    },
+    {
+      "id": "iaurt-seminte-dovleac-afine",
+      "name": "Iaurt cu semințe de dovleac și afine",
+      "description": "Timp indicat: 2 minute. Gramaj final estimat: ~215 g total (215 g / porție).",
+      "categories": [
+        "gustari"
+      ],
+      "cuisine": "internationala",
+      "servings": 1,
+      "prep": 2,
+      "cook": 0,
+      "difficulty": "usor",
+      "nutrition": {
+        "kcal": 195,
+        "protein_g": 11,
+        "carbs_g": 15,
+        "fat_g": 10,
+        "fiber_g": 3
+      },
+      "ingredients": [
+        {
+          "p": "reteta-iaurt-natural-3-5-grasime",
+          "q": 150,
+          "u": "g",
+          "note": "Iaurt natural 3.5% grăsime (150 g)"
+        },
+        {
+          "p": "afine",
+          "q": 50,
+          "u": "g",
+          "note": "Afine proaspete (50 g)"
+        },
+        {
+          "p": "seminte-dovleac",
+          "q": 15,
+          "u": "g",
+          "note": "Semințe de dovleac crude (15 g / 1 lingură)"
+        }
+      ],
+      "steps": [
+        "Amestecă iaurtul cu afinele și semințele de dovleac într-un bol mic."
+      ]
+    },
+    {
+      "id": "rondele-orez-expandat-avocado-rosii-cherry",
+      "name": "Rondele de orez expandat cu avocado și roșii cherry",
+      "description": "Timp indicat: 5 minute. Gramaj final estimat: ~145 g total (145 g / porție).",
+      "categories": [
+        "gustari"
+      ],
+      "cuisine": "internationala",
+      "servings": 1,
+      "prep": 5,
+      "cook": 0,
+      "difficulty": "usor",
+      "nutrition": {
+        "kcal": 185,
+        "protein_g": 3.5,
+        "carbs_g": 21,
+        "fat_g": 10,
+        "fiber_g": 5
+      },
+      "ingredients": [
+        {
+          "p": "reteta-rondele-de-orez-brun-expandat",
+          "q": 20,
+          "u": "g",
+          "note": "Rondele de orez brun expandat (20 g / 2 bucăți)"
+        },
+        {
+          "p": "avocado",
+          "q": 65,
+          "u": "g",
+          "note": "Avocado copt (65 g / 1/2 bucată)"
+        },
+        {
+          "p": "rosii-cherry",
+          "q": 60,
+          "u": "g",
+          "note": "Roșii cherry (60 g)"
+        },
+        {
+          "p": "sare",
+          "q": 0.5,
+          "u": "g",
+          "note": "sare (0.5 g)"
+        },
+        {
+          "p": "piper-negru-macinat",
+          "q": 0.5,
+          "u": "g",
+          "note": "piper (0.5 g)"
+        }
+      ],
+      "steps": [
+        "Pasează avocado pe rondelele de orez și așază deasupra roșiile cherry tăiate felii."
+      ]
+    },
+    {
+      "id": "naut-crocant-copt-condimente",
+      "name": "Năut crocant copt cu condimente",
+      "description": "Timp indicat: 25 minute. Gramaj final estimat: ~140 g total (70 g / porție).",
+      "categories": [
+        "gustari"
+      ],
+      "cuisine": "internationala",
+      "servings": 2,
+      "prep": 25,
+      "cook": 0,
+      "difficulty": "usor",
+      "nutrition": {
+        "kcal": 160,
+        "protein_g": 7.5,
+        "carbs_g": 22,
+        "fat_g": 5,
+        "fiber_g": 6
+      },
+      "ingredients": [
+        {
+          "p": "reteta-naut-fiert-din-conserva-scurs",
+          "q": 180,
+          "u": "g",
+          "note": "Năut fiert din conservă, scurs (180 g)"
+        },
+        {
+          "p": "ulei-masline",
+          "q": 5,
+          "u": "g",
+          "note": "Ulei de măsline (5 g / 1 linguriță)"
+        },
+        {
+          "p": "boia-afumata",
+          "q": 1.5,
+          "u": "g",
+          "note": "Boia afumată (1.5 g)"
+        },
+        {
+          "p": "usturoi",
+          "q": 1,
+          "u": "g",
+          "note": "usturoi pudră (1 g)"
+        },
+        {
+          "p": "sare",
+          "q": 1,
+          "u": "g",
+          "note": "sare (1 g)"
+        }
+      ],
+      "steps": [
+        "Usucă boabele de năut cu un șervețel de hârtie, amestecă-le cu uleiul și condimentele și coace-le 20 minute la 200°C până devin crocante."
+      ]
+    },
+    {
+      "id": "smoothie-proteic-banana-cacao",
+      "name": "Smoothie proteic cu banană și cacao",
+      "description": "Timp indicat: 5 minute. Gramaj final estimat: ~365 g total (365 g / porție).",
+      "categories": [
+        "gustari"
+      ],
+      "cuisine": "internationala",
+      "servings": 1,
+      "prep": 5,
+      "cook": 0,
+      "difficulty": "usor",
+      "nutrition": {
+        "kcal": 235,
+        "protein_g": 16,
+        "carbs_g": 34,
+        "fat_g": 4.5,
+        "fiber_g": 4.5
+      },
+      "ingredients": [
+        {
+          "p": "banane",
+          "q": 100,
+          "u": "g",
+          "note": "Banană coaptă (100 g)"
+        },
+        {
+          "p": "reteta-lapte-1-5-grasime",
+          "q": 200,
+          "u": "ml",
+          "note": "Lapte 1.5% grăsime (200 ml)"
+        },
+        {
+          "p": "reteta-iaurt-grecesc-2",
+          "q": 60,
+          "u": "g",
+          "note": "Iaurt grecesc 2% (60 g / 2 linguri)"
+        },
+        {
+          "p": "cacao",
+          "q": 5,
+          "u": "g",
+          "note": "Pudră de cacao (5 g / 1 linguriță)"
+        }
+      ],
+      "steps": [
+        "Mixează toate ingredientele în blender timp de 30 de secunde până devin cremoase și spumoase."
+      ]
+    },
+    {
+      "id": "oua-fierte-tari-sare-boia",
+      "name": "Ouă fierte tari cu sare și boia",
+      "description": "Timp indicat: 10 minute. Gramaj final estimat: ~100 g total (100 g / porție).",
+      "categories": [
+        "gustari"
+      ],
+      "cuisine": "internationala",
+      "servings": 1,
+      "prep": 10,
+      "cook": 0,
+      "difficulty": "usor",
+      "nutrition": {
+        "kcal": 150,
+        "protein_g": 12.5,
+        "carbs_g": 1,
+        "fat_g": 10.5,
+        "fiber_g": 0
+      },
+      "ingredients": [
+        {
+          "p": "oua",
+          "q": 100,
+          "u": "g",
+          "note": "Ouă medii (100 g / 2 bucăți)"
+        },
+        {
+          "p": "sare",
+          "q": 0.5,
+          "u": "g",
+          "note": "Sare (0.5 g)"
+        },
+        {
+          "p": "boia-dulce",
+          "q": 0.5,
+          "u": "g",
+          "note": "boia dulce (0.5 g)"
+        }
+      ],
+      "steps": [
+        "Fierbe ouăle 8-9 minute, trece-le sub jet de apă rece, curăță-le, taie-le în jumătate și presară sare și boia."
+      ]
+    },
+    {
+      "id": "mix-nuci-crude-fructe-uscate-trail-mix",
+      "name": "Mix de nuci crude și fructe uscate (Trail Mix)",
+      "description": "Timp indicat: 1 minut. Gramaj final estimat: ~45 g total (45 g / porție).",
+      "categories": [
+        "gustari"
+      ],
+      "cuisine": "internationala",
+      "servings": 1,
+      "prep": 1,
+      "cook": 0,
+      "difficulty": "usor",
+      "nutrition": {
+        "kcal": 230,
+        "protein_g": 5.5,
+        "carbs_g": 14,
+        "fat_g": 17,
+        "fiber_g": 3.5
+      },
+      "ingredients": [
+        {
+          "p": "migdale",
+          "q": 15,
+          "u": "g",
+          "note": "Migdale crude (15 g)"
+        },
+        {
+          "p": "reteta-caju-crud",
+          "q": 15,
+          "u": "g",
+          "note": "caju crud (15 g)"
+        },
+        {
+          "p": "reteta-merisoare-uscate",
+          "q": 10,
+          "u": "g",
+          "note": "Merișoare uscate (10 g)"
+        },
+        {
+          "p": "reteta-ciocolata-neagra-85-cacao",
+          "q": 5,
+          "u": "g",
+          "note": "Ciocolată neagră 85% cacao (5 g / 1 pătrățel)"
+        }
+      ],
+      "steps": [
+        "Combină ingredientele într-un recipient mic pentru o gustare rapidă, bogată în grăsimi sănătoase."
+      ]
+    },
+    {
+      "id": "guacamole-rapid-nachos-integrali",
+      "name": "Guacamole rapid cu nachos integrali la cuptor",
+      "description": "Timp indicat: 10 minute. Gramaj final estimat: ~165 g total (165 g / porție).",
+      "categories": [
+        "gustari"
+      ],
+      "cuisine": "internationala",
+      "servings": 1,
+      "prep": 10,
+      "cook": 0,
+      "difficulty": "usor",
+      "nutrition": {
+        "kcal": 245,
+        "protein_g": 4,
+        "carbs_g": 24,
+        "fat_g": 16,
+        "fiber_g": 6.5
+      },
+      "ingredients": [
+        {
+          "p": "avocado",
+          "q": 100,
+          "u": "g",
+          "note": "Avocado copt (100 g / 1 bucată mică)"
+        },
+        {
+          "p": "ceapa-rosie",
+          "q": 20,
+          "u": "g",
+          "note": "Ceapă roșie tocată fin (20 g)"
+        },
+        {
+          "p": "reteta-zeama-de-lime",
+          "q": 10,
+          "u": "ml",
+          "note": "zeamă de lime (10 ml)"
+        },
+        {
+          "p": "sare",
+          "q": 0.5,
+          "u": "g",
+          "note": "sare (0.5 g)"
+        },
+        {
+          "p": "reteta-chipsuri-de-tortilla-din-porumb-coapte-la-cuptor",
+          "q": 30,
+          "u": "g",
+          "note": "Chipsuri de tortilla din porumb coapte la cuptor (30 g)"
+        }
+      ],
+      "steps": [
+        "Pasează avocado cu ceapa roșie, sarea și zeama de lime și servește alături de chipsurile coapte."
+      ]
+    },
+    {
+      "id": "rulouri-felii-curcan-crema-branza-ardei",
+      "name": "Rulouri din felii de curcan cu cremă de brânză și ardei",
+      "description": "Timp indicat: 5 minute. Gramaj final estimat: ~130 g total (130 g / porție).",
+      "categories": [
+        "gustari"
+      ],
+      "cuisine": "internationala",
+      "servings": 1,
+      "prep": 5,
+      "cook": 0,
+      "difficulty": "usor",
+      "nutrition": {
+        "kcal": 135,
+        "protein_g": 18,
+        "carbs_g": 4,
+        "fat_g": 5,
+        "fiber_g": 1
+      },
+      "ingredients": [
+        {
+          "p": "reteta-sunca-slaba-din-piept-de-curcan",
+          "q": 60,
+          "u": "g",
+          "note": "Șuncă slabă din piept de curcan (60 g / 3 felii)"
+        },
+        {
+          "p": "reteta-crema-de-branza-light",
+          "q": 30,
+          "u": "g",
+          "note": "Cremă de brânză light (30 g / 2 linguri)"
+        },
+        {
+          "p": "ardei-gras",
+          "q": 40,
+          "u": "g",
+          "note": "Ardei gras roșu (40 g)"
+        }
+      ],
+      "steps": [
+        "Unge feliile de curcan cu crema de brânză, așază câte o fâșie subțire de ardei gras și rulează strâns."
+      ]
+    },
+    {
+      "id": "popcorn-fara-ulei-drojdie-inactiva",
+      "name": "Popcorn făcut în casă fără ulei cu drojdie inactivă",
+      "description": "Timp indicat: 5 minute. Gramaj final estimat: ~35 g total (35 g / porție).",
+      "categories": [
+        "gustari"
+      ],
+      "cuisine": "internationala",
+      "servings": 1,
+      "prep": 5,
+      "cook": 0,
+      "difficulty": "usor",
+      "nutrition": {
+        "kcal": 125,
+        "protein_g": 5,
+        "carbs_g": 24,
+        "fat_g": 1.5,
+        "fiber_g": 5
+      },
+      "ingredients": [
+        {
+          "p": "reteta-boabe-de-porumb-pentru-floricele-uscate",
+          "q": 30,
+          "u": "g",
+          "note": "Boabe de porumb pentru floricele uscate (30 g)"
+        },
+        {
+          "p": "reteta-drojdie-inactiva-fulgi",
+          "q": 5,
+          "u": "g",
+          "note": "Drojdie inactivă fulgi (5 g / 1 linguriță)"
+        },
+        {
+          "p": "sare",
+          "q": 0.5,
+          "u": "g",
+          "note": "sare fină (0.5 g)"
+        }
+      ],
+      "steps": [
+        "Prepară floricelele la aparatul cu aer cald (fără ulei) și presară imediat sarea fină și fulgii de drojdie inactivă."
+      ]
+    },
+    {
+      "id": "branza-cottage-felii-piersica-scortisoara",
+      "name": "Brânză cottage cu felii de piersică și scorțișoară",
+      "description": "Timp indicat: 3 minute. Gramaj final estimat: ~230 g total (230 g / porție).",
+      "categories": [
+        "gustari"
+      ],
+      "cuisine": "internationala",
+      "servings": 1,
+      "prep": 3,
+      "cook": 0,
+      "difficulty": "usor",
+      "nutrition": {
+        "kcal": 160,
+        "protein_g": 19,
+        "carbs_g": 13,
+        "fat_g": 3.5,
+        "fiber_g": 1.5
+      },
+      "ingredients": [
+        {
+          "p": "reteta-branza-cottage-perle-de-branza-2",
+          "q": 150,
+          "u": "g",
+          "note": "Brânză cottage / perle de brânză 2% (150 g)"
+        },
+        {
+          "p": "piersici",
+          "q": 80,
+          "u": "g",
+          "note": "Piersică proaspătă cubulețe (80 g)"
+        },
+        {
+          "p": "scortisoara",
+          "q": 0.5,
+          "u": "g",
+          "note": "Scorțișoară măcinată (0.5 g)"
+        }
+      ],
+      "steps": [
+        "Combină brânza cottage cu bucățile de piersică și presară un praf de scorțișoară."
+      ]
+    },
+    {
+      "id": "chipsuri-kale-cuptor",
+      "name": "Chipsuri de kale la cuptor",
+      "description": "Timp indicat: 15 minute. Gramaj final estimat: ~45 g total (45 g / porție).",
+      "categories": [
+        "gustari"
+      ],
+      "cuisine": "internationala",
+      "servings": 1,
+      "prep": 15,
+      "cook": 0,
+      "difficulty": "usor",
+      "nutrition": {
+        "kcal": 95,
+        "protein_g": 4,
+        "carbs_g": 9,
+        "fat_g": 5.5,
+        "fiber_g": 3.5
+      },
+      "ingredients": [
+        {
+          "p": "reteta-frunze-proaspete-de-varza-kale-fara-cotor",
+          "q": 100,
+          "u": "g",
+          "note": "Frunze proaspete de varză kale fără cotor (100 g)"
+        },
+        {
+          "p": "ulei-masline",
+          "q": 5,
+          "u": "g",
+          "note": "Ulei de măsline (5 g / 1 linguriță)"
+        },
+        {
+          "p": "sare",
+          "q": 0.5,
+          "u": "g",
+          "note": "sare de mare (0.5 g)"
+        }
+      ],
+      "steps": [
+        "Masează frunzele rupte bucăți cu uleiul și sarea, așază-le într-un singur strat pe tavă și coace-le 10-12 minute la 175°C până devin crocante."
+      ]
+    },
+    {
+      "id": "banana-congelata-ciocolata-neagra",
+      "name": "Banană congelată trasă în ciocolată neagră",
+      "description": "Timp indicat: 10 minute (+ congelare). Gramaj final estimat: ~160 g total (80 g / porție).",
+      "categories": [
+        "gustari"
+      ],
+      "cuisine": "internationala",
+      "servings": 2,
+      "prep": 10,
+      "cook": 0,
+      "difficulty": "usor",
+      "nutrition": {
+        "kcal": 160,
+        "protein_g": 2,
+        "carbs_g": 21,
+        "fat_g": 8,
+        "fiber_g": 3
+      },
+      "ingredients": [
+        {
+          "p": "banane",
+          "q": 120,
+          "u": "g",
+          "note": "Banană coaptă tăiată rondele groase (120 g)"
+        },
+        {
+          "p": "reteta-ciocolata-neagra-85-cacao",
+          "q": 30,
+          "u": "g",
+          "note": "Ciocolată neagră 85% cacao (30 g)"
+        },
+        {
+          "p": "reteta-fulgi-de-cocos-uscati",
+          "q": 10,
+          "u": "g",
+          "note": "Fulgi de cocos uscați (10 g)"
+        }
+      ],
+      "steps": [
+        "Topește ciocolata pe baie de aburi, înmoaie rondelele de banană, presară fulgii de cocos și lasă-le la congelator 30 de minute pe hârtie de copt."
+      ]
+    },
+    {
+      "id": "tije-telina-apio-crema-branza-stafide",
+      "name": "Tije de țelină apio cu cremă de brânză și stafide",
+      "description": "Timp indicat: 5 minute. Gramaj final estimat: ~125 g total (125 g / porție).",
+      "categories": [
+        "gustari"
+      ],
+      "cuisine": "internationala",
+      "servings": 1,
+      "prep": 5,
+      "cook": 0,
+      "difficulty": "usor",
+      "nutrition": {
+        "kcal": 105,
+        "protein_g": 4,
+        "carbs_g": 14,
+        "fat_g": 4,
+        "fiber_g": 2
+      },
+      "ingredients": [
+        {
+          "p": "reteta-tije-de-telina-apio-curatate",
+          "q": 80,
+          "u": "g",
+          "note": "Tije de țelină apio curățate (80 g / 2 tije)"
+        },
+        {
+          "p": "reteta-crema-de-branza-light",
+          "q": 30,
+          "u": "g",
+          "note": "Cremă de brânză light (30 g)"
+        },
+        {
+          "p": "stafide",
+          "q": 15,
+          "u": "g",
+          "note": "Stafide uscate (15 g)"
+        }
+      ],
+      "steps": [
+        "Umple canalul tijelor de apio cu crema de brânză și așază stafidele deasupra."
+      ]
+    },
+    {
+      "id": "masline-marinate-ierburi-portocala",
+      "name": "Măsline marinate cu ierburi aromatice și portocală",
+      "description": "Timp indicat: 5 minute. Gramaj final estimat: ~75 g total (75 g / porție).",
+      "categories": [
+        "gustari"
+      ],
+      "cuisine": "internationala",
+      "servings": 1,
+      "prep": 5,
+      "cook": 0,
+      "difficulty": "usor",
+      "nutrition": {
+        "kcal": 135,
+        "protein_g": 1,
+        "carbs_g": 4,
+        "fat_g": 13,
+        "fiber_g": 2.5
+      },
+      "ingredients": [
+        {
+          "p": "reteta-masline-verzi-si-negre-fara-samburi",
+          "q": 70,
+          "u": "g",
+          "note": "Măsline verzi și negre fără sâmburi (70 g)"
+        },
+        {
+          "p": "ulei-masline",
+          "q": 5,
+          "u": "g",
+          "note": "Ulei de măsline extravirgin (5 g / 1 linguriță)"
+        },
+        {
+          "p": "oregano",
+          "q": 1,
+          "u": "g",
+          "note": "Oregano uscat (1 g)"
+        },
+        {
+          "p": "reteta-coaja-rasa-de-portocala-bio",
+          "q": 2,
+          "u": "g",
+          "note": "coajă rasă de portocală bio (2 g)"
+        }
+      ],
+      "steps": [
+        "Amestecă măslinele cu uleiul, oregano și coaja rasă de portocală și lasă-le 10 minute la temperatura camerei."
+      ]
+    },
+    {
+      "id": "briosa-rapida-cana-mug-cake-ovaz-banana",
+      "name": "Brioșă rapidă la cană (Mug Cake) cu ovăz și banană",
+      "description": "Timp indicat: 5 minute. Gramaj final estimat: ~145 g total (145 g / porție).",
+      "categories": [
+        "gustari"
+      ],
+      "cuisine": "internationala",
+      "servings": 1,
+      "prep": 5,
+      "cook": 0,
+      "difficulty": "usor",
+      "nutrition": {
+        "kcal": 275,
+        "protein_g": 10,
+        "carbs_g": 38,
+        "fat_g": 9,
+        "fiber_g": 4.5
+      },
+      "ingredients": [
+        {
+          "p": "banane",
+          "q": 60,
+          "u": "g",
+          "note": "Banană coaptă pasată (60 g / 1/2 bucată)"
+        },
+        {
+          "p": "oua",
+          "q": 50,
+          "u": "g",
+          "note": "Ou mediu (50 g / 1 bucată)"
+        },
+        {
+          "p": "reteta-faina-de-ovaz",
+          "q": 30,
+          "u": "g",
+          "note": "Făină de ovăz (30 g / 3 linguri)"
+        },
+        {
+          "p": "reteta-picaturi-de-ciocolata-neagra",
+          "q": 8,
+          "u": "g",
+          "note": "Picături de ciocolată neagră (8 g)"
+        },
+        {
+          "p": "praf-copt",
+          "q": 2,
+          "u": "g",
+          "note": "praf de copt (2 g)"
+        }
+      ],
+      "steps": [
+        "Amestecă toate ingredientele direct într-o cană mare și gătește la cuptorul cu microunde (800W) timp de 90 de secunde."
+      ]
+    },
+    {
+      "id": "chefir-seminte-in-macinate",
+      "name": "Chefir cu semințe de in măcinate",
+      "description": "Timp indicat: 2 minute. Gramaj final estimat: ~260 g total (260 g / porție).",
+      "categories": [
+        "gustari"
+      ],
+      "cuisine": "internationala",
+      "servings": 1,
+      "prep": 2,
+      "cook": 0,
+      "difficulty": "usor",
+      "nutrition": {
+        "kcal": 175,
+        "protein_g": 10,
+        "carbs_g": 13,
+        "fat_g": 9,
+        "fiber_g": 3
+      },
+      "ingredients": [
+        {
+          "p": "reteta-chefir-2-5-grasime",
+          "q": 250,
+          "u": "ml",
+          "note": "Chefir 2.5% grăsime (250 ml)"
+        },
+        {
+          "p": "reteta-seminte-de-in-aurii-proaspat-macinate",
+          "q": 10,
+          "u": "g",
+          "note": "Semințe de in aurii proaspăt măcinate (10 g / 1 lingură)"
+        }
+      ],
+      "steps": [
+        "Încorporează semințele de in măcinate în paharul cu chefir, lasă 2 minute să se hidrateze ușor și consumă."
+      ]
+    }
+  ],
+  "products": [
+    {
+      "id": "reteta-fulgi-de-ovaz-integrali-uscati",
+      "name": "Fulgi de ovăz integrali uscați",
+      "category": "ingrediente-retete",
+      "unit": "g"
+    },
+    {
+      "id": "reteta-lapte-semidegresat-1-5-sau-bautura-vegetala",
+      "name": "Lapte semidegresat 1.5% sau băutură vegetală",
+      "category": "ingrediente-retete",
+      "unit": "ml"
+    },
+    {
+      "id": "reteta-unt-de-arahide-100",
+      "name": "Unt de arahide 100%",
+      "category": "ingrediente-retete",
+      "unit": "g"
+    },
+    {
+      "id": "reteta-paine-integrala-cu-maia",
+      "name": "Pâine integrală cu maia",
+      "category": "ingrediente-retete",
+      "unit": "g"
+    },
+    {
+      "id": "reteta-zeama-de-lamaie",
+      "name": "Zeamă de lămâie",
+      "category": "ingrediente-retete",
+      "unit": "ml"
+    },
+    {
+      "id": "reteta-fulgi-de-chili",
+      "name": "fulgi de chili",
+      "category": "ingrediente-retete",
+      "unit": "g"
+    },
+    {
+      "id": "reteta-faina-de-ovaz",
+      "name": "Făină de ovăz",
+      "category": "ingrediente-retete",
+      "unit": "g"
+    },
+    {
+      "id": "reteta-seminte-de-chia-uscate",
+      "name": "Semințe de chia uscate",
+      "category": "ingrediente-retete",
+      "unit": "g"
+    },
+    {
+      "id": "reteta-lapte-de-cocos-la-conserva",
+      "name": "Lapte de cocos la conservă",
+      "category": "ingrediente-retete",
+      "unit": "ml"
+    },
+    {
+      "id": "reteta-sirop-de-artar",
+      "name": "Sirop de arțar",
+      "category": "ingrediente-retete",
+      "unit": "g"
+    },
+    {
+      "id": "reteta-paine-ciabatta",
+      "name": "Pâine ciabatta",
+      "category": "ingrediente-retete",
+      "unit": "g"
+    },
+    {
+      "id": "reteta-piept-de-curcan-afumat-feliat",
+      "name": "Piept de curcan afumat feliat",
+      "category": "ingrediente-retete",
+      "unit": "g"
+    },
+    {
+      "id": "reteta-cascaval-feliat",
+      "name": "Cașcaval feliat",
+      "category": "ingrediente-retete",
+      "unit": "g"
+    },
+    {
+      "id": "reteta-mustar-clasic",
+      "name": "muștar clasic",
+      "category": "ingrediente-retete",
+      "unit": "g"
+    },
+    {
+      "id": "reteta-iaurt-grecesc-2-grasime",
+      "name": "Iaurt grecesc 2% grăsime",
+      "category": "ingrediente-retete",
+      "unit": "g"
+    },
+    {
+      "id": "reteta-granola-crocanta-fara-zahar-adaugat",
+      "name": "Granola crocantă fără zahăr adăugat",
+      "category": "ingrediente-retete",
+      "unit": "g"
+    },
+    {
+      "id": "reteta-tofu-natur-ferm",
+      "name": "Tofu natur ferm",
+      "category": "ingrediente-retete",
+      "unit": "g"
+    },
+    {
+      "id": "reteta-drojdie-inactiva",
+      "name": "Drojdie inactivă",
+      "category": "ingrediente-retete",
+      "unit": "g"
+    },
+    {
+      "id": "reteta-turmeric-pudra",
+      "name": "turmeric pudră",
+      "category": "ingrediente-retete",
+      "unit": "g"
+    },
+    {
+      "id": "reteta-paine-brioche-sau-toast-gros",
+      "name": "Pâine brioche sau toast gros",
+      "category": "ingrediente-retete",
+      "unit": "g"
+    },
+    {
+      "id": "reteta-unt-82-grasime",
+      "name": "Unt 82% grăsime",
+      "category": "ingrediente-retete",
+      "unit": "g"
+    },
+    {
+      "id": "reteta-bautura-de-migdale-neindulcita",
+      "name": "Băutură de migdale neîndulcită",
+      "category": "ingrediente-retete",
+      "unit": "ml"
+    },
+    {
+      "id": "reteta-topping-kiwi-proaspat-feliat",
+      "name": "Topping: kiwi proaspăt feliat",
+      "category": "ingrediente-retete",
+      "unit": "g"
+    },
+    {
+      "id": "reteta-somon-afumat-feliat",
+      "name": "Somon afumat feliat",
+      "category": "ingrediente-retete",
+      "unit": "g"
+    },
+    {
+      "id": "reteta-crema-de-branza-light",
+      "name": "Cremă de brânză light",
+      "category": "ingrediente-retete",
+      "unit": "g"
+    },
+    {
+      "id": "reteta-marar-proaspat-tocat",
+      "name": "Mărar proaspăt tocat",
+      "category": "ingrediente-retete",
+      "unit": "g"
+    },
+    {
+      "id": "reteta-piper-negru",
+      "name": "piper negru",
+      "category": "ingrediente-retete",
+      "unit": "g"
+    },
+    {
+      "id": "reteta-ulei-pentru-uns-tigaia",
+      "name": "ulei pentru uns tigaia",
+      "category": "ingrediente-retete",
+      "unit": "g"
+    },
+    {
+      "id": "reteta-lipie-tortilla-integrala-mare",
+      "name": "Lipie tortilla integrală mare",
+      "category": "ingrediente-retete",
+      "unit": "g"
+    },
+    {
+      "id": "reteta-fasole-neagra-fiarta-scursa",
+      "name": "Fasole neagră fiartă, scursă",
+      "category": "ingrediente-retete",
+      "unit": "g"
+    },
+    {
+      "id": "reteta-branza-cheddar-rasa",
+      "name": "Brânză cheddar rasă",
+      "category": "ingrediente-retete",
+      "unit": "g"
+    },
+    {
+      "id": "reteta-sos-salsa-de-rosii",
+      "name": "Sos salsa de roșii",
+      "category": "ingrediente-retete",
+      "unit": "g"
+    },
+    {
+      "id": "reteta-branza-perle-de-branza-cottage-cheese-2",
+      "name": "Brânză perle de brânză / cottage cheese 2%",
+      "category": "ingrediente-retete",
+      "unit": "g"
+    },
+    {
+      "id": "reteta-ridichi-rosii-proaspete",
+      "name": "Ridichi roșii proaspete",
+      "category": "ingrediente-retete",
+      "unit": "g"
+    },
+    {
+      "id": "reteta-paine-integrala-prajita",
+      "name": "Pâine integrală prăjită",
+      "category": "ingrediente-retete",
+      "unit": "g"
+    },
+    {
+      "id": "reteta-croissant-cu-unt",
+      "name": "Croissant cu unt",
+      "category": "ingrediente-retete",
+      "unit": "g"
+    },
+    {
+      "id": "reteta-sunca-presata-de-curcan-sau-praga",
+      "name": "Șuncă presată de curcan sau Praga",
+      "category": "ingrediente-retete",
+      "unit": "g"
+    },
+    {
+      "id": "reteta-branza-brie",
+      "name": "Brânză Brie",
+      "category": "ingrediente-retete",
+      "unit": "g"
+    },
+    {
+      "id": "reteta-baby-spanac-proaspat",
+      "name": "Baby spanac proaspăt",
+      "category": "ingrediente-retete",
+      "unit": "g"
+    },
+    {
+      "id": "reteta-mei-decorticat-uscat",
+      "name": "Mei decorticat uscat",
+      "category": "ingrediente-retete",
+      "unit": "g"
+    },
+    {
+      "id": "reteta-lapte-1-5-sau-bautura-vegetala",
+      "name": "Lapte 1.5% sau băutură vegetală",
+      "category": "ingrediente-retete",
+      "unit": "ml"
+    },
+    {
+      "id": "reteta-bagheta-integrala",
+      "name": "Baghetă integrală",
+      "category": "ingrediente-retete",
+      "unit": "g"
+    },
+    {
+      "id": "reteta-lapte-1-5-grasime",
+      "name": "Lapte 1.5% grăsime",
+      "category": "ingrediente-retete",
+      "unit": "ml"
+    },
+    {
+      "id": "reteta-dulceata-de-visine-fara-zahar-sau-clasica",
+      "name": "Dulceață de vișine fără zahăr sau clasică",
+      "category": "ingrediente-retete",
+      "unit": "g"
+    },
+    {
+      "id": "reteta-un-praf-de-sare",
+      "name": "Un praf de sare",
+      "category": "ingrediente-retete",
+      "unit": "g"
+    },
+    {
+      "id": "reteta-buchetele-de-broccoli-crude",
+      "name": "Buchețele de broccoli crude",
+      "category": "ingrediente-retete",
+      "unit": "g"
+    },
+    {
+      "id": "reteta-paste-integrale-uscate-penne-sau-fusilli",
+      "name": "Paste integrale uscate (penne sau fusilli)",
+      "category": "ingrediente-retete",
+      "unit": "g"
+    },
+    {
+      "id": "reteta-sos-pesto-verde-genovese",
+      "name": "Sos pesto verde Genovese",
+      "category": "ingrediente-retete",
+      "unit": "g"
+    },
+    {
+      "id": "reteta-muguri-de-pin",
+      "name": "muguri de pin",
+      "category": "ingrediente-retete",
+      "unit": "g"
+    },
+    {
+      "id": "reteta-lamaie-feliata",
+      "name": "Lămâie feliată",
+      "category": "ingrediente-retete",
+      "unit": "g"
+    },
+    {
+      "id": "reteta-naut-fiert-din-conserva-scurs",
+      "name": "Năut fiert din conservă, scurs",
+      "category": "ingrediente-retete",
+      "unit": "g"
+    },
+    {
+      "id": "reteta-pasta-tahini",
+      "name": "Pastă tahini",
+      "category": "ingrediente-retete",
+      "unit": "g"
+    },
+    {
+      "id": "reteta-linte-rosie-decorticata-uscata",
+      "name": "Linte roșie decorticată, uscată",
+      "category": "ingrediente-retete",
+      "unit": "g"
+    },
+    {
+      "id": "reteta-passata-suc-de-rosii",
+      "name": "Passata / suc de roșii",
+      "category": "ingrediente-retete",
+      "unit": "ml"
+    },
+    {
+      "id": "reteta-orez-basmati-uscat",
+      "name": "Orez basmati uscat",
+      "category": "ingrediente-retete",
+      "unit": "g"
+    },
+    {
+      "id": "reteta-sos-de-soia-redus-in-sare",
+      "name": "Sos de soia redus în sare",
+      "category": "ingrediente-retete",
+      "unit": "ml"
+    },
+    {
+      "id": "reteta-ulei-de-susan",
+      "name": "ulei de susan",
+      "category": "ingrediente-retete",
+      "unit": "g"
+    },
+    {
+      "id": "reteta-salata-romana-proaspata",
+      "name": "Salată Romana proaspătă",
+      "category": "ingrediente-retete",
+      "unit": "g"
+    },
+    {
+      "id": "reteta-crutoane-din-paine-integrala",
+      "name": "Crutoane din pâine integrală",
+      "category": "ingrediente-retete",
+      "unit": "g"
+    },
+    {
+      "id": "reteta-sos-iaurt-grecesc-2",
+      "name": "Sos: iaurt grecesc 2%",
+      "category": "ingrediente-retete",
+      "unit": "g"
+    },
+    {
+      "id": "reteta-carne-tocata-slaba-de-vita-cruda",
+      "name": "Carne tocată slabă de vită, crudă",
+      "category": "ingrediente-retete",
+      "unit": "g"
+    },
+    {
+      "id": "reteta-chifle-integrale-de-burger",
+      "name": "Chifle integrale de burger",
+      "category": "ingrediente-retete",
+      "unit": "g"
+    },
+    {
+      "id": "reteta-branza-cheddar-feliata",
+      "name": "Brânză cheddar feliată",
+      "category": "ingrediente-retete",
+      "unit": "g"
+    },
+    {
+      "id": "reteta-cartofi-albi-curatati-cruzi",
+      "name": "Cartofi albi curățați, cruzi",
+      "category": "ingrediente-retete",
+      "unit": "g"
+    },
+    {
+      "id": "reteta-orez-arborio-sau-carnaroli-uscat",
+      "name": "Orez Arborio sau Carnaroli uscat",
+      "category": "ingrediente-retete",
+      "unit": "g"
+    },
+    {
+      "id": "reteta-supa-clara-de-legume-fierbinte",
+      "name": "Supă clară de legume fierbinte",
+      "category": "ingrediente-retete",
+      "unit": "ml"
+    },
+    {
+      "id": "reteta-pulpe-de-pui-dezosate-fara-piele-crude",
+      "name": "Pulpe de pui dezosate fără piele, crude",
+      "category": "ingrediente-retete",
+      "unit": "g"
+    },
+    {
+      "id": "reteta-pastai-de-fasole-verde-crude-congelate",
+      "name": "Păstăi de fasole verde crude/congelate",
+      "category": "ingrediente-retete",
+      "unit": "g"
+    },
+    {
+      "id": "reteta-lipii-tortilla-integrale",
+      "name": "Lipii tortilla integrale",
+      "category": "ingrediente-retete",
+      "unit": "g"
+    },
+    {
+      "id": "reteta-porumb-dulce-scurs",
+      "name": "Porumb dulce scurs",
+      "category": "ingrediente-retete",
+      "unit": "g"
+    },
+    {
+      "id": "reteta-fasole-rosie-scursa",
+      "name": "fasole roșie scursă",
+      "category": "ingrediente-retete",
+      "unit": "g"
+    },
+    {
+      "id": "reteta-pastrav-eviscerat-crud",
+      "name": "Păstrăv eviscerat, crud",
+      "category": "ingrediente-retete",
+      "unit": "g"
+    },
+    {
+      "id": "reteta-malai-grisat-uscat",
+      "name": "Mălai grisat uscat",
+      "category": "ingrediente-retete",
+      "unit": "g"
+    },
+    {
+      "id": "reteta-carne-tocata-slaba-de-curcan-cruda",
+      "name": "Carne tocată slabă de curcan, crudă",
+      "category": "ingrediente-retete",
+      "unit": "g"
+    },
+    {
+      "id": "reteta-spaghete-de-grau-dur-uscate",
+      "name": "Spaghete de grâu dur uscate",
+      "category": "ingrediente-retete",
+      "unit": "g"
+    },
+    {
+      "id": "reteta-passata-de-rosii",
+      "name": "Passata de roșii",
+      "category": "ingrediente-retete",
+      "unit": "ml"
+    },
+    {
+      "id": "reteta-busuioc",
+      "name": "busuioc",
+      "category": "ingrediente-retete",
+      "unit": "g"
+    },
+    {
+      "id": "reteta-branza-halloumi",
+      "name": "Brânză halloumi",
+      "category": "ingrediente-retete",
+      "unit": "g"
+    },
+    {
+      "id": "reteta-sfecla-rosie-fiarta-curatata",
+      "name": "Sfeclă roșie fiartă, curățată",
+      "category": "ingrediente-retete",
+      "unit": "g"
+    },
+    {
+      "id": "reteta-mix-de-salata-verde-rucola",
+      "name": "Mix de salată verde / rucola",
+      "category": "ingrediente-retete",
+      "unit": "g"
+    },
+    {
+      "id": "reteta-otet-balsamic",
+      "name": "oțet balsamic",
+      "category": "ingrediente-retete",
+      "unit": "ml"
+    },
+    {
+      "id": "reteta-creveti-decorticati-cruzi",
+      "name": "Creveți decorticați cruzi",
+      "category": "ingrediente-retete",
+      "unit": "g"
+    },
+    {
+      "id": "reteta-orez-jasmin-uscat",
+      "name": "Orez jasmin uscat",
+      "category": "ingrediente-retete",
+      "unit": "g"
+    },
+    {
+      "id": "reteta-pasta-curry-verde",
+      "name": "Pastă curry verde",
+      "category": "ingrediente-retete",
+      "unit": "g"
+    },
+    {
+      "id": "reteta-zeama-de-lime",
+      "name": "zeamă de lime",
+      "category": "ingrediente-retete",
+      "unit": "ml"
+    },
+    {
+      "id": "reteta-ardei-grasi-curatati-de-cotor",
+      "name": "Ardei grași curățați de cotor",
+      "category": "ingrediente-retete",
+      "unit": "g"
+    },
+    {
+      "id": "reteta-antricot-de-vita-maturat-crud",
+      "name": "Antricot de vită maturat, crud",
+      "category": "ingrediente-retete",
+      "unit": "g"
+    },
+    {
+      "id": "reteta-cartofi-noi-mici-cruzi",
+      "name": "Cartofi noi mici, cruzi",
+      "category": "ingrediente-retete",
+      "unit": "g"
+    },
+    {
+      "id": "reteta-lipii-libaneze-integrale",
+      "name": "Lipii libaneze integrale",
+      "category": "ingrediente-retete",
+      "unit": "g"
+    },
+    {
+      "id": "reteta-chiftelute-falafel-preparate-coapte",
+      "name": "Chifteluțe falafel preparate/coapte",
+      "category": "ingrediente-retete",
+      "unit": "g"
+    },
+    {
+      "id": "reteta-humus-clasic",
+      "name": "Humus clasic",
+      "category": "ingrediente-retete",
+      "unit": "g"
+    },
+    {
+      "id": "reteta-bors-de-tarate",
+      "name": "Borș de tărâțe",
+      "category": "ingrediente-retete",
+      "unit": "ml"
+    },
+    {
+      "id": "reteta-dovleac-placintar-curatat-crud",
+      "name": "Dovleac plăcintar curățat, crud",
+      "category": "ingrediente-retete",
+      "unit": "g"
+    },
+    {
+      "id": "reteta-supa-clara-de-legume",
+      "name": "Supă clară de legume",
+      "category": "ingrediente-retete",
+      "unit": "ml"
+    },
+    {
+      "id": "reteta-file-de-cod-proaspat-decongelat-crud",
+      "name": "File de cod proaspăt/decongelat, crud",
+      "category": "ingrediente-retete",
+      "unit": "g"
+    },
+    {
+      "id": "reteta-dovlecel-proaspat-feliat-subtire",
+      "name": "Dovlecel proaspăt feliat subțire",
+      "category": "ingrediente-retete",
+      "unit": "g"
+    },
+    {
+      "id": "reteta-masline-kalamata-fara-samburi",
+      "name": "Măsline Kalamata fără sâmburi",
+      "category": "ingrediente-retete",
+      "unit": "g"
+    },
+    {
+      "id": "reteta-branza-de-vaci-semidegresata",
+      "name": "Brânză de vaci semidegresată",
+      "category": "ingrediente-retete",
+      "unit": "g"
+    },
+    {
+      "id": "reteta-sos-tzatziki-din-iaurt-grecesc",
+      "name": "Sos tzatziki din iaurt grecesc",
+      "category": "ingrediente-retete",
+      "unit": "g"
+    },
+    {
+      "id": "reteta-linte-rosie-uscata",
+      "name": "Linte roșie uscată",
+      "category": "ingrediente-retete",
+      "unit": "g"
+    },
+    {
+      "id": "reteta-crutoane-integrale",
+      "name": "Crutoane integrale",
+      "category": "ingrediente-retete",
+      "unit": "g"
+    },
+    {
+      "id": "reteta-chimion-macinat",
+      "name": "chimion măcinat",
+      "category": "ingrediente-retete",
+      "unit": "g"
+    },
+    {
+      "id": "reteta-ton-bucati-in-suc-propriu-scurs",
+      "name": "Ton bucăți în suc propriu, scurs",
+      "category": "ingrediente-retete",
+      "unit": "g"
+    },
+    {
+      "id": "reteta-pastai-de-fasole-verde",
+      "name": "Păstăi de fasole verde",
+      "category": "ingrediente-retete",
+      "unit": "g"
+    },
+    {
+      "id": "reteta-mix-de-salata-verde",
+      "name": "mix de salată verde",
+      "category": "ingrediente-retete",
+      "unit": "g"
+    },
+    {
+      "id": "reteta-dressing-ulei-de-masline",
+      "name": "Dressing: ulei de măsline",
+      "category": "ingrediente-retete",
+      "unit": "g"
+    },
+    {
+      "id": "reteta-ciuperci-portobello-mari",
+      "name": "Ciuperci Portobello mari",
+      "category": "ingrediente-retete",
+      "unit": "g"
+    },
+    {
+      "id": "reteta-file-de-biban-de-mare-cu-piele-crud",
+      "name": "File de biban de mare cu piele, crud",
+      "category": "ingrediente-retete",
+      "unit": "g"
+    },
+    {
+      "id": "reteta-sparanghel-sau-fasole-verde-pentru-garnitura",
+      "name": "Sparanghel sau fasole verde pentru garnitură",
+      "category": "ingrediente-retete",
+      "unit": "g"
+    },
+    {
+      "id": "reteta-capere-scurse",
+      "name": "capere scurse",
+      "category": "ingrediente-retete",
+      "unit": "g"
+    },
+    {
+      "id": "reteta-iaurt-grecesc-2-pentru-servit",
+      "name": "Iaurt grecesc 2% pentru servit",
+      "category": "ingrediente-retete",
+      "unit": "g"
+    },
+    {
+      "id": "reteta-merisoare-uscate",
+      "name": "Merișoare uscate",
+      "category": "ingrediente-retete",
+      "unit": "g"
+    },
+    {
+      "id": "reteta-carne-tocata-slaba-de-pui-cruda",
+      "name": "Carne tocată slabă de pui, crudă",
+      "category": "ingrediente-retete",
+      "unit": "g"
+    },
+    {
+      "id": "reteta-sos-marinara-de-rosii-cu-busuioc",
+      "name": "Sos marinara de roșii cu busuioc",
+      "category": "ingrediente-retete",
+      "unit": "ml"
+    },
+    {
+      "id": "reteta-radacina-patrunjel",
+      "name": "rădăcină pătrunjel",
+      "category": "ingrediente-retete",
+      "unit": "g"
+    },
+    {
+      "id": "reteta-taitei-subtiri-cu-ou-uscati",
+      "name": "Tăiței subțiri cu ou uscați",
+      "category": "ingrediente-retete",
+      "unit": "g"
+    },
+    {
+      "id": "reteta-mini-tortilla-de-porumb",
+      "name": "Mini-tortilla de porumb",
+      "category": "ingrediente-retete",
+      "unit": "g"
+    },
+    {
+      "id": "reteta-file-de-salau-sau-cod-crud",
+      "name": "File de șalău sau cod crud",
+      "category": "ingrediente-retete",
+      "unit": "g"
+    },
+    {
+      "id": "reteta-iaurt-grecesc-2",
+      "name": "Iaurt grecesc 2%",
+      "category": "ingrediente-retete",
+      "unit": "g"
+    },
+    {
+      "id": "reteta-coriandru-sau-patrunjel",
+      "name": "coriandru sau pătrunjel",
+      "category": "ingrediente-retete",
+      "unit": "g"
+    },
+    {
+      "id": "reteta-boia",
+      "name": "boia",
+      "category": "ingrediente-retete",
+      "unit": "g"
+    },
+    {
+      "id": "reteta-seminte-de-rodie-proaspete",
+      "name": "Semințe de rodie proaspete",
+      "category": "ingrediente-retete",
+      "unit": "g"
+    },
+    {
+      "id": "reteta-buchetele-mici-de-broccoli",
+      "name": "Buchețele mici de broccoli",
+      "category": "ingrediente-retete",
+      "unit": "g"
+    },
+    {
+      "id": "reteta-miez-de-nuca-maruntit",
+      "name": "Miez de nucă mărunțit",
+      "category": "ingrediente-retete",
+      "unit": "g"
+    },
+    {
+      "id": "reteta-mar-proaspat-curatat-de-cotor",
+      "name": "Măr proaspăt curățat de cotor",
+      "category": "ingrediente-retete",
+      "unit": "g"
+    },
+    {
+      "id": "reteta-fulgi-de-ovaz-fini",
+      "name": "Fulgi de ovăz fini",
+      "category": "ingrediente-retete",
+      "unit": "g"
+    },
+    {
+      "id": "reteta-unt-de-migdale-100",
+      "name": "Unt de migdale 100%",
+      "category": "ingrediente-retete",
+      "unit": "g"
+    },
+    {
+      "id": "reteta-pastai-de-edamame-congelate",
+      "name": "Păstăi de edamame congelate",
+      "category": "ingrediente-retete",
+      "unit": "g"
+    },
+    {
+      "id": "reteta-iaurt-natural-3-5-grasime",
+      "name": "Iaurt natural 3.5% grăsime",
+      "category": "ingrediente-retete",
+      "unit": "g"
+    },
+    {
+      "id": "reteta-rondele-de-orez-brun-expandat",
+      "name": "Rondele de orez brun expandat",
+      "category": "ingrediente-retete",
+      "unit": "g"
+    },
+    {
+      "id": "reteta-caju-crud",
+      "name": "caju crud",
+      "category": "ingrediente-retete",
+      "unit": "g"
+    },
+    {
+      "id": "reteta-ciocolata-neagra-85-cacao",
+      "name": "Ciocolată neagră 85% cacao",
+      "category": "ingrediente-retete",
+      "unit": "g"
+    },
+    {
+      "id": "reteta-chipsuri-de-tortilla-din-porumb-coapte-la-cuptor",
+      "name": "Chipsuri de tortilla din porumb coapte la cuptor",
+      "category": "ingrediente-retete",
+      "unit": "g"
+    },
+    {
+      "id": "reteta-sunca-slaba-din-piept-de-curcan",
+      "name": "Șuncă slabă din piept de curcan",
+      "category": "ingrediente-retete",
+      "unit": "g"
+    },
+    {
+      "id": "reteta-boabe-de-porumb-pentru-floricele-uscate",
+      "name": "Boabe de porumb pentru floricele uscate",
+      "category": "ingrediente-retete",
+      "unit": "g"
+    },
+    {
+      "id": "reteta-drojdie-inactiva-fulgi",
+      "name": "Drojdie inactivă fulgi",
+      "category": "ingrediente-retete",
+      "unit": "g"
+    },
+    {
+      "id": "reteta-branza-cottage-perle-de-branza-2",
+      "name": "Brânză cottage / perle de brânză 2%",
+      "category": "ingrediente-retete",
+      "unit": "g"
+    },
+    {
+      "id": "reteta-frunze-proaspete-de-varza-kale-fara-cotor",
+      "name": "Frunze proaspete de varză kale fără cotor",
+      "category": "ingrediente-retete",
+      "unit": "g"
+    },
+    {
+      "id": "reteta-fulgi-de-cocos-uscati",
+      "name": "Fulgi de cocos uscați",
+      "category": "ingrediente-retete",
+      "unit": "g"
+    },
+    {
+      "id": "reteta-tije-de-telina-apio-curatate",
+      "name": "Tije de țelină apio curățate",
+      "category": "ingrediente-retete",
+      "unit": "g"
+    },
+    {
+      "id": "reteta-masline-verzi-si-negre-fara-samburi",
+      "name": "Măsline verzi și negre fără sâmburi",
+      "category": "ingrediente-retete",
+      "unit": "g"
+    },
+    {
+      "id": "reteta-coaja-rasa-de-portocala-bio",
+      "name": "coajă rasă de portocală bio",
+      "category": "ingrediente-retete",
+      "unit": "g"
+    },
+    {
+      "id": "reteta-picaturi-de-ciocolata-neagra",
+      "name": "Picături de ciocolată neagră",
+      "category": "ingrediente-retete",
+      "unit": "g"
+    },
+    {
+      "id": "reteta-chefir-2-5-grasime",
+      "name": "Chefir 2.5% grăsime",
+      "category": "ingrediente-retete",
+      "unit": "ml"
+    },
+    {
+      "id": "reteta-seminte-de-in-aurii-proaspat-macinate",
+      "name": "Semințe de in aurii proaspăt măcinate",
+      "category": "ingrediente-retete",
+      "unit": "g"
+    }
+  ]
+}

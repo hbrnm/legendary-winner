@@ -4,15 +4,15 @@ import { start, createList } from './helpers';
 test('recipe FAB owns creation/import and pantry FAB opens a single compact form',async({page})=>{
  await start(page,'/retete/');
  await expect(page.locator('main').getByRole('link',{name:'Importă',exact:true})).toHaveCount(0);
- await page.getByRole('button',{name:'Acțiuni rețete',exact:true}).click();
+ await page.locator('main header').getByRole('button',{name:'Acțiuni rețete',exact:true}).click();
  const recipes=page.getByRole('dialog',{name:'Rețete',exact:true});
  await expect(recipes.getByRole('button',{name:'Adaugă rețetă nouă'})).toBeVisible();
  await recipes.getByRole('button',{name:'Importă rețetă',exact:true}).click();
  await expect(page).toHaveURL(/\/retete\/import\//);
- await expect(page.locator('.capture-fab')).toHaveCount(0);
+ await expect(page.getByRole('button',{name:'Acțiuni rețete',exact:true})).toHaveCount(0);
  await page.goto('/camara/');
  await expect(page.getByRole('button',{name:'Adaugă în cămară',exact:true})).toHaveCount(1);
- await page.getByRole('button',{name:'Adaugă în cămară',exact:true}).click();
+ await page.locator('main header').getByRole('button',{name:'Adaugă în cămară',exact:true}).click();
  const pantry=page.getByRole('dialog',{name:'Adaugă în cămară',exact:true});
  await expect(pantry.getByLabel('Cantitate',{exact:true})).toBeVisible();
  await expect(pantry.getByLabel('Expiră pe')).not.toBeVisible();
@@ -76,6 +76,7 @@ test('ready-only excludes partial stock and reacts to stock changes offline',asy
  await page.goto('/retete/');await page.getByRole('button',{name:'Gata de gătit',exact:true}).click();
  await expect(page.getByRole('link',{name:/Mămăligă cu lapte/}).first()).toBeVisible();
  await page.goto('/camara/');
+ await page.getByRole('searchbox',{name:'Caută în cămară'}).fill('Mălai');
  await page.getByRole('button',{name:'Acțiuni pentru Mălai',exact:true}).click();
  await page.getByRole('button',{name:'S-a terminat → Pe listă',exact:true}).click();
  await expect(page.getByRole('button',{name:'Acțiuni pentru Mălai',exact:true})).toHaveCount(0);

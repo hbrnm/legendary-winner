@@ -32,6 +32,13 @@ describe("unified budget transaction projection", () => {
     expect(projectTransactions([], [{ ...tx, deleted_at: "2026-11-02" }])).toEqual([]);
   });
 
+  it("shows only amounts in the selected scope and omits receipts outside it", () => {
+    const outside = { ...tx, id: "outside" };
+    const rows = projectTransactions([item({ id: "a", amount: 7 })], [tx, outside], true);
+    expect(rows).toHaveLength(1);
+    expect(rows[0]).toMatchObject({ id: "trip:trip", amount: 7, itemCount: 1 });
+  });
+
   it("requires real nonzero spend in two months before showing historical charts", () => {
     const november = item();
     const octoberUnknown = item({ id: "oct", purchased_at: "2026-10-01T12:00:00", amount: null });

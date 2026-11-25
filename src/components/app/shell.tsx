@@ -3,11 +3,10 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, type ReactNode } from "react";
-import { Check, Cloud, CloudOff, Loader2, RefreshCw, Settings, AlertTriangle } from "lucide-react";
+import { AlertTriangle, BasketIcon, Check, Cloud, CloudOff, HouseIcon, JarIcon, Loader2, PurseIcon, RecipeBookIcon, RefreshCw, Settings } from "@/components/ui/icons";
 import { CaptureHost } from "@/components/capture/capture-host";
 import { BrandMark } from "@/components/ui/brand-mark";
 import { isCloudConfigured } from "@/lib/supabase/client";
-import { BasketIcon, HouseIcon, JarIcon, PurseIcon, RecipeBookIcon } from "@/components/ui/icons";
 import { useApp } from "./app-provider";
 import { Spinner } from "@/components/ui/misc";
 import { useData } from "./hooks";
@@ -173,12 +172,12 @@ export function AppShell({ children, wide = false, hideMobileNav = false, captur
 
       <div className="min-w-0 flex-1">
         <header className="app-topbar sticky top-0 z-30">
-          <div className={`mx-auto flex h-16 items-center justify-between gap-2 px-4 min-[600px]:px-6 ${wide ? "max-w-5xl" : "max-w-3xl"}`}>
+          <div className={`mx-auto flex h-16 w-full items-center justify-between gap-2 px-5 min-[600px]:px-6 min-[1200px]:px-8 ${wide ? "max-w-[1200px]" : "max-w-[960px]"}`}>
             <Link href="/" className="flex min-h-12 min-w-0 flex-col justify-center rounded-md focus-visible:outline-2 focus-visible:outline-brand">
-              <span className="truncate font-sans text-[17px] font-semibold tracking-tight">{app.household?.name ?? "Cămara"}</span>
+              <span className="truncate font-sans text-base font-semibold tracking-tight">{app.household?.name ?? "Cămara"}</span>
               <span className="text-xs capitalize text-ink-2">{app.status === "ready" ? new Intl.DateTimeFormat("ro-RO", {weekday:"long", day:"numeric", month:"short"}).format(now()) : "\u00a0"}</span>
             </Link>
-            <div className="flex items-center gap-1">
+            <div className="flex items-center gap-2">
               <SyncIndicator />
               <Link href="/gospodarie/" aria-label="Gospodărie și setări" className="inline-flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-surface-2 text-ink-2 transition-colors duration-150 ease-out hover:bg-surface-container-high focus-visible:outline-2 focus-visible:outline-brand">
                 <Settings size={20} strokeWidth={1.75} />
@@ -187,11 +186,13 @@ export function AppShell({ children, wide = false, hideMobileNav = false, captur
           </div>
         </header>
         {app.mode === "demo" && (
-          <div className="mx-4 flex flex-wrap items-center justify-center gap-x-4 gap-y-2 rounded-2xl bg-surface-container px-4 py-3 text-center text-xs text-ink-2 min-[600px]:mx-6">
-            <p><span className="font-semibold uppercase tracking-wider text-ink">Mod demonstrativ</span>: datele rămân doar pe acest dispozitiv și nu se sincronizează.</p>
-            {isCloudConfigured && (
-              <a href="/autentificare/?demo=0" className="inline-flex min-h-12 items-center justify-center rounded-full bg-brand-soft px-4 font-semibold text-brand focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand">Intră în cont</a>
-            )}
+          <div className={`mx-auto w-full px-5 min-[600px]:px-6 min-[1200px]:px-8 ${wide ? "max-w-[1200px]" : "max-w-[960px]"}`}>
+            <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-2 rounded-2xl bg-surface-container px-4 py-3 text-center text-xs text-ink-2">
+              <p><span className="font-semibold uppercase tracking-wider text-ink">Mod demonstrativ</span>: datele rămân doar pe acest dispozitiv și nu se sincronizează.</p>
+              {isCloudConfigured && (
+                <a href="/autentificare/?demo=0" className="inline-flex min-h-12 items-center justify-center rounded-full bg-brand-soft px-4 font-semibold text-brand focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand">Intră în cont</a>
+              )}
+            </div>
           </div>
         )}
         <main id="continut-principal" tabIndex={-1} className={`app-main mx-auto focus:outline-none ${wide ? "app-main-wide" : ""} ${mainClassName}`}>
@@ -206,7 +207,7 @@ export function AppShell({ children, wide = false, hideMobileNav = false, captur
       {!hideMobileNav && <div aria-hidden="true" className="app-nav-fade" />}
       {!hideMobileNav && (
         <nav aria-label="Navigare principală" className="app-mobile-nav fixed z-40">
-          <div className="mx-auto flex max-w-lg">
+          <div className="flex w-full items-center">
             {NAV.map((n) => {
               const active = n.match(pathname);
               return (
@@ -214,9 +215,9 @@ export function AppShell({ children, wide = false, hideMobileNav = false, captur
                   key={n.href}
                   href={n.href}
                   aria-current={active ? "page" : undefined}
-                  className={`app-mobile-item relative flex flex-1 flex-col items-center justify-center font-medium transition-colors duration-150 ease-out focus-visible:outline-2 focus-visible:outline-brand ${active ? "font-semibold" : "text-ink-2 active:text-ink"}`}
+                  className={`app-mobile-item relative flex flex-col items-center justify-center font-medium transition-colors duration-150 ease-out focus-visible:outline-2 focus-visible:outline-brand ${active ? "font-semibold" : "text-ink-2 active:text-ink"}`}
                 >
-                  <span className="app-mobile-indicator transition-colors"><n.icon size={24} strokeWidth={active ? 2 : 1.75} /></span>
+                  <span className="app-mobile-indicator transition-colors"><n.icon size={22} strokeWidth={active ? 2.2 : 1.75} /></span>
                   {n.label}
                 </Link>
               );

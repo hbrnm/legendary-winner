@@ -7,7 +7,7 @@ import { describe, expect, it } from "vitest";
 
 const ROOT = join(__dirname, "..");
 // Metadatele (culoarea barei de sus a telefonului, manifestul) cer culori scrise direct.
-const ALLOWED = new Set(["app/manifest.ts", "app/layout.tsx"]);
+const ALLOWED = new Set(["app/manifest.ts", "lib/theme.ts"]);
 
 const PALETTE = "white|black|gray|slate|zinc|neutral|stone|red|orange|amber|yellow|lime|green|emerald|teal|cyan|sky|blue|indigo|violet|purple|fuchsia|pink|rose";
 const FORBIDDEN = [

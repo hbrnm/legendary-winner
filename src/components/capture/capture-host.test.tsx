@@ -42,6 +42,13 @@ it('offers Listă nouă, Copiază o listă mai veche and Importă listă on the 
  fireEvent.click(screen.getByRole('button',{name:'Copiază o listă mai veche'}));
  expect(screen.getByRole('dialog',{name:'Copiază o listă mai veche'})).toBeTruthy();
 });
+
+it('opens the Importă listă dialog from the shopping tab menu', () => {
+ state.path='/cumparaturi/';render(<CaptureHost/>);
+ fireEvent.click(screen.getByRole('button',{name:'Acțiuni cumpărături'}));
+ fireEvent.click(screen.getByRole('button',{name:'Importă listă'}));
+ expect(screen.getByRole('dialog',{name:'Importă listă'})).toBeTruthy();
+});
 it('opens pantry form directly without the universal menu',()=>{
  state.path='/camara/';render(<CaptureHost/>);
  fireEvent.click(screen.getByRole('button',{name:'Adaugă în cămară'}));

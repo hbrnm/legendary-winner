@@ -1,18 +1,20 @@
 "use client";
 
-import { Suspense, useMemo, useState } from "react";
+import { Suspense, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { ArrowLeft, CalendarPlus, Check, ChefHat, Clock, Heart, Minus, Pencil, Plus, ShoppingBasket, Trash2, Users } from "lucide-react";
+import { ArrowLeft, BasketIcon, CalendarPlus, Check, ChefHat, Clock, Heart, Minus, Pencil, Trash2, Users } from "@/components/ui/icons";
 import { AppShell } from "@/components/app/shell";
 import { useApp } from "@/components/app/app-provider";
 import { useAction, useData } from "@/components/app/hooks";
-import { Button, IconButton } from "@/components/ui/button";
-import { Badge, Card, EmptyState, SectionTitle, Spinner } from "@/components/ui/misc";
+import { AddButton, Button, IconButton } from "@/components/ui/button";
+import { Badge, Card, EmptyState, SectionTitle, Spinner, PageTitle } from "@/components/ui/misc";
 import { ConfirmSheet, Sheet } from "@/components/ui/sheet";
 import { LabeledInput, LabeledSelect, Toggle } from "@/components/ui/fields";
 import { useToast } from "@/components/ui/toast";
 import { ALLERGEN_LABELS, DIFFICULTY_LABELS, RECIPE_CATEGORY_LABELS, SLOT_LABELS } from "@/components/recipes/recipe-visual";
+import { CookingMode } from "@/components/recipes/cooking-mode";
+import { cookingProgressKey, readCookingProgress, writeCookingProgress, type CookingProgress } from "@/lib/cooking-progress";
 import { RecipePhotoPanel } from "@/components/recipes/recipe-photo";
 import { owned, priceIndex, productMap } from "@/lib/services/queries";
 import { addMeal, addRecipeToList, cookRecipe, deleteRecipe, toggleFavorite } from "@/lib/services/kitchen";
@@ -30,15 +32,34 @@ import { now } from "@/lib/clock";
 import type { MealSlot } from "@/lib/domain/types";
 
 function RecipeScreen() {
-  const id = useSearchParams().get("id") ?? "";
+  const params = useSearchParams();
+  const id = params.get("id") ?? "";
+  const cookingEntry = params.get("gatit");
+  const resume = cookingEntry === "reia" || cookingEntry === "incepe";
+  const startCooking = cookingEntry === "incepe";
+  const { ctx } = useApp();
+  if (!ctx) return <Spinner />;
+  const cookingKey = cookingProgressKey(ctx.householdId, ctx.userId, id);
+  return <RecipeDetails key={cookingKey + ":" + cookingEntry} id={id} cookingKey={cookingKey} resume={resume} startCooking={startCooking} />;
+}
+
+function RecipeDetails({ id, cookingKey, resume, startCooking }: { id: string; cookingKey: string; resume: boolean; startCooking: boolean }) {
   const router = useRouter();
   const toast = useToast();
   const { isAppAdmin } = useApp();
   const { run, busy } = useAction();
-  const [servingsOverride, setServings] = useState<number | null>(null);
+  const [cookingProgress, setCookingProgress] = useState(() => readCookingProgress(cookingKey));
+  const [servingsOverride, setServings] = useState<number | null>(resume ? cookingProgress?.servings ?? null : null);
   const [addOpen, setAddOpen] = useState(false);
   const [planOpen, setPlanOpen] = useState(false);
   const [cookOpen, setCookOpen] = useState(false);
+  const [cookingOpen, setCookingOpen] = useState(startCooking || (resume && cookingProgress !== null));
+  const confirmingCook = useRef(false);
+
+  function saveCookingProgress(next: CookingProgress | null) {
+    setCookingProgress(next);
+    writeCookingProgress(cookingKey, next);
+  }
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [listId, setListId] = useState("");
   const [onlyMissing, setOnlyMissing] = useState(true);
@@ -104,6 +125,8 @@ function RecipeScreen() {
   }
   if (!view || servings == null) return <Spinner />;
   const r = data.recipe;
+  const guidedProgress = cookingProgress ?? (cookingOpen ? { servings, stepId: null } : null);
+  const nutrition = r.nutrition ?? view.nutrition.per_serving;
   const lists = data.lists;
   const canEdit = r.household_id !== null || isAppAdmin;
   const missingNames = view.cost.missing_product_ids.map((p) => data.products.get(p)?.name ?? p);
@@ -133,7 +156,7 @@ function RecipeScreen() {
         <button type="button" onClick={() => router.back()} aria-label="Înapoi" className="-ml-2 inline-flex h-12 w-12 shrink-0 items-center justify-center rounded-full text-ink-2 transition-colors duration-150 ease-out hover:bg-surface-2">
           <ArrowLeft size={20} />
         </button>
-        <div className="flex items-center">
+        <div className="flex items-center gap-2">
           <IconButton label={data.favorite ? "Scoate de la favorite" : "Adaugă la favorite"} onClick={() => run((ctx) => toggleFavorite(ctx, id))}>
             <Heart size={20} className={data.favorite ? "fill-accent text-accent" : ""} />
           </IconButton>
@@ -150,8 +173,7 @@ function RecipeScreen() {
         </div>
       </div>
 
-      <RecipePhotoPanel recipe={r} />
-      <h1 className="mt-4 min-w-0 break-words text-[32px] font-bold leading-tight tracking-tight">{r.name}</h1>
+      <PageTitle variant="editorial" className="mt-4">{r.name}</PageTitle>
       <p className="mt-1 max-w-[70ch] text-[15px] text-ink-2">{r.description}</p>
       {r.source_url && <RecipeSource url={r.source_url} />}
       <div className="mt-3 flex flex-wrap gap-1.5">
@@ -161,21 +183,27 @@ function RecipeScreen() {
         <Badge>{r.cuisine === "romaneasca" ? "Bucătărie românească" : "Bucătărie internațională"}</Badge>
       </div>
 
+      <div className="kitchen-recipe-photo mt-4 empty:hidden"><RecipePhotoPanel recipe={r} /></div>
+      <nav aria-label="În această rețetă" className="mt-4 flex flex-wrap gap-2">
+        <a href="#ingrediente" className="inline-flex min-h-12 items-center rounded-full bg-surface-container px-4 text-sm font-semibold text-on-surface transition-colors hover:bg-surface-container-high">Ingrediente</a>
+        <a href="#preparare" className="inline-flex min-h-12 items-center rounded-full bg-surface-container px-4 text-sm font-semibold text-on-surface transition-colors hover:bg-surface-container-high">Mod de preparare</a>
+      </nav>
+
       {/* Timpul, dificultatea și porțiile pe aceeași foaie, separate de filete. */}
-      <Card className="mt-4 grid grid-cols-3 divide-x divide-line overflow-hidden rounded-[24px] border border-line/60 text-center">
-        <div className="p-3.5">
+      <Card className="mt-4 grid grid-cols-2 gap-px overflow-hidden bg-outline-variant min-[480px]:grid-cols-3 text-center">
+        <div className="bg-surface p-3.5">
           <Clock size={18} strokeWidth={1.75} className="mx-auto text-ink-2" />
           <p className="mt-1 text-sm font-semibold tabular text-ink">{totalMinutes(r)} min</p>
           <p className="text-xs text-ink-2 tabular">
             <span>{r.prep_minutes}</span> pregătire · <span>{r.cook_minutes}</span> gătire
           </p>
         </div>
-        <div className="p-3.5">
+        <div className="bg-surface p-3.5">
           <ChefHat size={18} strokeWidth={1.75} className="mx-auto text-ink-2" />
           <p className="mt-1 text-sm font-semibold text-ink">{DIFFICULTY_LABELS[r.difficulty]}</p>
           <p className="text-xs text-ink-2">dificultate</p>
         </div>
-        <div className="p-3.5">
+        <div className="col-span-2 bg-surface p-3.5 min-[480px]:col-span-1">
           <Users size={18} strokeWidth={1.75} className="mx-auto text-ink-2" />
           <div className="mt-1 flex items-center justify-center gap-1">
             <button type="button" aria-label="Mai puține porții" onClick={() => setServings(Math.max(1, servings - 1))} className="group inline-flex h-12 w-12 shrink-0 items-center justify-center">
@@ -186,18 +214,14 @@ function RecipeScreen() {
             <span className="w-6 text-sm font-bold tabular" aria-live="polite">
               {servings}
             </span>
-            <button type="button" aria-label="Mai multe porții" onClick={() => setServings(Math.min(50, servings + 1))} className="group inline-flex h-12 w-12 shrink-0 items-center justify-center">
-              <span className="inline-flex h-7 w-7 items-center justify-center rounded-full bg-surface-2 transition-all duration-150 ease-out group-active:scale-[0.92] group-active:bg-line">
-                <Plus size={14} />
-              </span>
-            </button>
+            <AddButton aria-label="Mai multe porții" onClick={() => setServings(Math.min(50, servings + 1))} disabled={servings >= 50} />
           </div>
           <p className="text-xs text-ink-2">porții</p>
         </div>
       </Card>
 
       {/* Suma apare doar peste 80% din ingrediente cu preț; altfel, pentru câte ingrediente e (decizia proprietarului, 18 oct. 2026). */}
-      <Card className="mt-3 overflow-hidden rounded-[24px] border border-line/60 p-4 sm:p-5">
+      <Card className="mt-3 overflow-hidden p-4 sm:p-5">
         <div className="flex items-baseline justify-between gap-3">
           <span className="text-sm font-medium text-ink-2">{coverage === "partial" ? capitalizeFirst(partialCostLabel(view.cost.priced_count, view.cost.costable_count)) : "Cost estimat"}</span>
           <span className="shrink-0 text-lg font-bold tabular text-ink">{coverage === "none" ? "—" : coverage === "partial" ? formatRon(view.cost.total) : costAmount(view.cost.total, view.cost.priced_count, view.cost.costable_count)}</span>
@@ -226,8 +250,19 @@ function RecipeScreen() {
         </p>
       )}
 
+      {data.steps.length > 0 && (
+        <Button block className="mt-4" icon={<ChefHat size={20} aria-hidden />} onClick={() => {
+          const progress = cookingProgress ?? { servings, stepId: null };
+          setServings(progress.servings);
+          saveCookingProgress(progress);
+          setCookingOpen(true);
+        }}>
+          {cookingProgress ? "Reia gătitul" : "Începe să gătești"}
+        </Button>
+      )}
+
       <div className="mt-4 grid grid-cols-3 gap-2">
-        <Button variant="primary" size="auto" onClick={() => setAddOpen(true)} className="flex-col min-h-14 py-2.5 rounded-2xl transition-transform active:scale-[0.96]" icon={<ShoppingBasket size={20} />}>
+        <Button variant={data.steps.length ? "secondary" : "primary"} size="auto" onClick={() => setAddOpen(true)} className="flex-col min-h-14 py-2.5 rounded-2xl transition-transform active:scale-[0.96]" icon={<BasketIcon size={20} />}>
           <span className="text-xs">În listă</span>
         </Button>
         <Button variant="secondary" size="auto" onClick={() => setPlanOpen(true)} className="flex-col min-h-14 py-2.5 rounded-2xl transition-transform active:scale-[0.96]" icon={<CalendarPlus size={20} />}>
@@ -238,8 +273,8 @@ function RecipeScreen() {
         </Button>
       </div>
 
-      <SectionTitle>Ingrediente</SectionTitle>
-      <ul className="divide-y divide-line overflow-hidden rounded-[24px] border border-line/60 bg-surface">
+      <SectionTitle><span id="ingrediente" className="scroll-mt-4">Ingrediente</span></SectionTitle>
+      <ul className="divide-y divide-line overflow-hidden app-card">
         {view.scaled.map((i) => {
           const p = data.products.get(i.product_id);
           const have = view.available.has(i.product_id);
@@ -262,41 +297,42 @@ function RecipeScreen() {
 
       <SectionTitle>Valori nutriționale</SectionTitle>
       {/* Parțial, cu ce lipsește (decizia proprietarului, 22 oct. 2026). */}
-      {view.nutrition.per_serving ? (
-        <Card as="section" className="overflow-hidden rounded-[24px] border border-line/60 p-4 sm:p-5" aria-label="Valori nutriționale">
+      {nutrition ? (
+        <Card as="section" className="overflow-hidden p-4 sm:p-5" aria-label="Valori nutriționale">
           <p className="text-sm text-ink-2">Pe porție, aproximativ</p>
-          <p className="mt-1 text-2xl font-bold tracking-tight tabular text-ink">{view.nutrition.per_serving.kcal} kcal</p>
+          <p className="mt-1 text-2xl font-bold tracking-tight tabular text-ink">{nutrition.kcal} kcal</p>
           <dl className="mt-3 flex flex-col gap-1.5 text-sm">
             {(
               [
-                ["Proteine", view.nutrition.per_serving.protein_g],
-                ["Glucide", view.nutrition.per_serving.carbs_g],
-                ["Grăsimi", view.nutrition.per_serving.fat_g],
+                ["Proteine", nutrition.protein_g],
+                ["Glucide", nutrition.carbs_g],
+                ["Grăsimi", nutrition.fat_g],
+                ["Fibre", r.nutrition?.fiber_g],
               ] as const
-            ).map(([label, g]) => (
+            ).filter(([, g]) => g != null).map(([label, g]) => (
               <div key={label} className="flex items-baseline justify-between border-b border-line/40 pb-1 last:border-b-0 last:pb-0">
                 <dt className="text-ink-2">{label}</dt>
                 <dd className="font-medium tabular text-ink">{g} g</dd>
               </div>
             ))}
           </dl>
-          {view.nutrition.missing.length > 0 && (
+          {!r.nutrition && view.nutrition.missing.length > 0 && (
             <p className="mt-2 text-xs text-ink-2">
               Fără: {view.nutrition.missing.map((m) => `${data.products.get(m.product_id)?.name ?? m.product_id}${m.frying ? " (pentru prăjit)" : ""}`).join(", ")}.
             </p>
           )}
-          <p className="mt-2 text-xs text-ink-2">Din CIQUAL (Franța) și USDA (SUA), pentru ingredientele crude.</p>
+          <p className="mt-2 text-xs text-ink-2">{r.nutrition ? "Valori declarate în colecția sursă." : "Din CIQUAL (Franța) și USDA (SUA), pentru ingredientele crude."}</p>
         </Card>
       ) : (
         <p className="text-xs text-ink-2">Valorile nutriționale nu sunt disponibile pentru această rețetă.</p>
       )}
 
-      <SectionTitle>Mod de preparare</SectionTitle>
-      <ol className="mt-2 flex flex-col gap-3.5">
+      <SectionTitle><span id="preparare" className="scroll-mt-4">Mod de preparare</span></SectionTitle>
+      <ol className="mt-2 flex flex-col gap-3">
         {data.steps.map((s, k) => (
-          <li key={s.id} className="flex gap-3.5">
+          <li key={s.id} className="app-card flex gap-3.5 p-4">
             <span className="w-7 shrink-0 text-right font-sans text-xl font-bold leading-7 text-brand">{k + 1}.</span>
-            <p className="max-w-[70ch] pt-0.5 text-[15px] leading-relaxed text-ink">{s.text}</p>
+            <p className="max-w-[70ch] pt-0.5 text-base leading-relaxed text-ink">{s.text}</p>
           </li>
         ))}
       </ol>
@@ -345,6 +381,30 @@ function RecipeScreen() {
         </div>
       </Sheet>
 
+      {guidedProgress && data.steps.length > 0 && (
+        <CookingMode
+          open={cookingOpen}
+          recipe={r.name}
+          progress={{ ...guidedProgress, servings }}
+          steps={data.steps}
+          ingredients={view.scaled.map(ingredient => ({
+            id: ingredient.id,
+            name: [
+              data.products.get(ingredient.product_id)?.name ?? ingredient.product_id,
+              servings === r.servings ? ingredient.note : null,
+              ingredient.optional ? "opțional" : null,
+            ].filter(Boolean).join(", "),
+            quantity: ingredient.quantity == null ? "după gust" : formatQuantity(ingredient.quantity, ingredient.unit),
+          }))}
+          onStep={stepId => saveCookingProgress({ servings, stepId })}
+          onClose={() => {
+            if (cookingOpen && !cookingProgress) saveCookingProgress(guidedProgress);
+            setCookingOpen(false);
+          }}
+          onFinish={() => setCookOpen(true)}
+        />
+      )}
+
       <Sheet
         open={cookOpen}
         onClose={() => setCookOpen(false)}
@@ -354,9 +414,18 @@ function RecipeScreen() {
             block
             disabled={busy}
             onClick={async () => {
-              const res = await run((ctx) => cookRecipe(ctx, id, servings));
-              setCookOpen(false);
-              if (res) toast(res.updated ? `Am scăzut ${res.updated} ${res.updated === 1 ? "produs" : "produse"} din cămară.` : "Nimic de scăzut: ingredientele nu erau în cămară.");
+              if (confirmingCook.current) return;
+              confirmingCook.current = true;
+              try {
+                const res = await run((ctx) => cookRecipe(ctx, id, servings));
+                if (!res) return;
+                setCookOpen(false);
+                setCookingOpen(false);
+                saveCookingProgress(null);
+                toast(res.updated ? `Am scăzut ${res.updated} ${res.updated === 1 ? "produs" : "produse"} din cămară.` : "Nimic de scăzut: ingredientele nu erau în cămară.");
+              } finally {
+                confirmingCook.current = false;
+              }
             }}
           >
             Am gătit
@@ -368,7 +437,7 @@ function RecipeScreen() {
           <div className="flex items-center gap-3">
             <Button variant="secondary" aria-label="Mai puține porții gătite" disabled={servings <= 1} onClick={() => setServings(Math.max(1, servings - 1))}>−</Button>
             <span className="min-w-6 text-center tabular-nums">{servings}</span>
-            <Button variant="secondary" aria-label="Mai multe porții gătite" disabled={servings >= 50} onClick={() => setServings(Math.min(50, servings + 1))}>+</Button>
+            <AddButton aria-label="Mai multe porții gătite" disabled={servings >= 50} onClick={() => setServings(Math.min(50, servings + 1))} />
           </div>
         </div>
         <p className="text-[15px] text-ink-2">

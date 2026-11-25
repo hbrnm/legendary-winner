@@ -318,9 +318,9 @@ describe("rețete și cămară", () => {
   });
 
   it("favoritele au un singur rând per rețetă și se pot scoate", async () => {
-    expect(await toggleFavorite(ctx, "sarmale")).toBe(true);
-    expect(await toggleFavorite(ctx, "sarmale")).toBe(false);
-    expect(await toggleFavorite(ctx, "sarmale")).toBe(true);
+    expect(await toggleFavorite(ctx, "omleta-spanac-feta")).toBe(true);
+    expect(await toggleFavorite(ctx, "omleta-spanac-feta")).toBe(false);
+    expect(await toggleFavorite(ctx, "omleta-spanac-feta")).toBe(true);
     expect(await ctx.db.favorite_recipes.count()).toBe(1);
   });
 

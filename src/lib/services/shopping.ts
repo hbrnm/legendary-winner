@@ -8,7 +8,7 @@ import { planMerge } from "@/lib/domain/shopping";
 import type { ShoppingNeed } from "@/lib/domain/quantities";
 import { sumMoney } from "@/lib/domain/money";
 import { localDateOf } from "@/lib/domain/dates";
-import { autoConsumeOn } from "@/lib/domain/pantry";
+import { autoConsumeOn, isLeafyGreen } from "@/lib/domain/pantry";
 import { CONSUME_DAYS } from "@/data/consume-days";
 import { type AppCtx, UserError, w } from "./context";
 import { parse, parsePatch, zMoney, zName, zNote, zQuantity, zSource, zUnit } from "./validation";
@@ -422,7 +422,7 @@ export async function addPurchaseToPantry(
       name: line.name,
       quantity: line.quantity,
       unit: line.unit,
-      location_id: guessLocation(product.category_id),
+      location_id: isLeafyGreen(product.id) ? "frigider" : guessLocation(product.category_id),
       purchased_on: purchasedOn,
       expires_on: null,
       note: null,

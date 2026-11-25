@@ -1,9 +1,9 @@
 "use client";
 
 import { useId, useState } from "react";
-import { Minus, Plus, Trash2 } from "lucide-react";
+import { Minus, Trash2 } from "@/components/ui/icons";
 import { Sheet } from "@/components/ui/sheet";
-import { Button } from "@/components/ui/button";
+import { AddButton, Button } from "@/components/ui/button";
 import { Field, Input, LabeledInput, LabeledSelect, Segmented, TextArea } from "@/components/ui/fields";
 import type { ProductCategory, ProductVariant, PurchaseSource, Retailer, ShoppingList, ShoppingListItem, UnitCode } from "@/lib/domain/types";
 import { VariantPicker, type NewVariant } from "./variant-picker";
@@ -161,14 +161,12 @@ function ItemSheetForm({ item, estimate, categories, retailers, lists, focusPric
               <Minus size={18} />
             </button>
             <Input inputMode="decimal" value={quantity} onChange={(e) => change({ quantity: e.target.value })} placeholder="—" className="min-w-0 flex-1 text-center tabular" aria-label="Cantitate" />
-            <button type="button" aria-label="Mai mult" onClick={() => bump(step)} className="inline-flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-surface-2">
-              <Plus size={18} />
-            </button>
+            <AddButton aria-label="Mai mult" onClick={() => bump(step)} />
             <select
               aria-label="Unitate"
               value={unit}
               onChange={(e) => change({ unit: e.target.value as UnitCode })}
-              className="h-14 w-28 shrink-0 rounded-2xl border border-outline bg-surface px-3 text-base text-ink focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/25"
+              className="h-auto min-h-14 w-28 shrink-0 rounded-2xl border-0 bg-surface-container-high px-3 py-4 text-base leading-normal text-ink shadow-card focus:bg-surface focus:outline-none focus:ring-2 focus:ring-brand"
             >
               <option value="">fără unitate</option>
               {SHOPPING_UNITS.map((u) => (
@@ -203,7 +201,7 @@ function ItemSheetForm({ item, estimate, categories, retailers, lists, focusPric
                 aria-label="Baza prețului la raft"
                 value={shelf.basis}
                 onChange={(e) => change({ basis: e.target.value as ShelfBasis })}
-                className="h-14 w-32 shrink-0 rounded-2xl border border-outline bg-surface px-3 text-base text-ink focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/25"
+                className="h-auto min-h-14 w-32 shrink-0 rounded-2xl border-0 bg-surface-container-high px-3 py-4 text-base leading-normal text-ink shadow-card focus:bg-surface focus:outline-none focus:ring-2 focus:ring-brand"
               >
                 {SHELF_BASES.map((b) => (
                   <option key={b.basis} value={b.basis}>

@@ -4,10 +4,10 @@ import { Suspense, useEffect, useState } from "react";
 import Link from "next/link";
 import { StandalonePage } from "@/components/ui/standalone-page";
 import { useRouter, useSearchParams } from "next/navigation";
-import { Users } from "lucide-react";
+import { Users } from "@/components/ui/icons";
 import { useApp } from "@/components/app/app-provider";
 import { Button } from "@/components/ui/button";
-import { Card, Spinner } from "@/components/ui/misc";
+import { Card, Spinner, PageTitle } from "@/components/ui/misc";
 import { acceptInvitation, previewInvitation } from "@/lib/services/household";
 import { UserError } from "@/lib/services/context";
 import { isCloudConfigured } from "@/lib/supabase/client";
@@ -85,7 +85,7 @@ function Centered({ title, children }: { title: string; children: React.ReactNod
         <span className="mb-5 inline-flex h-16 w-16 items-center justify-center rounded-full bg-brand-soft text-brand">
           <Users size={28} />
         </span>
-        <h1 className="min-w-0 break-words text-[32px] font-bold leading-tight tracking-tight">{title}</h1>
+        <PageTitle>{title}</PageTitle>
         <div className="mt-2 flex flex-col items-center text-ink-2">{children}</div>
       </Card>
     </StandalonePage>

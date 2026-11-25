@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { formatRon } from "@/lib/domain/money";
 
 // Grafice simple, o singură serie (o culoare: brand). Valorile sunt scrise
@@ -12,6 +13,7 @@ export interface Bar {
   value: number;
   /** Evidențiată (ex. luna curentă). */
   current?: boolean;
+  detail?: string;
 }
 
 /** Înălțimile (0–1) coloanelor-schiță din graficul gol: nu sunt date, doar forma graficului. */
@@ -98,7 +100,7 @@ function EmptyColumnChart({ bars, title }: { bars: Bar[]; title: string }) {
           );
         })}
       </svg>
-      <p className="absolute inset-x-0 top-1/3 mx-auto w-fit max-w-[85%] rounded-2xl border border-line bg-surface px-3 py-2 text-center text-sm text-ink-2">Graficul se umple după primele cumpărături.</p>
+      <p className="app-card absolute inset-x-0 top-1/3 mx-auto w-fit max-w-[85%] px-3 py-2 text-center text-sm text-ink-2">Graficul se umple după primele cumpărături.</p>
     </figure>
   );
 }
@@ -108,19 +110,21 @@ function roundedTop(x: number, y: number, w: number, h: number, r: number): stri
 }
 
 /** Bare orizontale cu eticheta și suma scrise (ex. pe categorii). Cu `onSelect`, fiecare bară deschide detaliile categoriei. */
-export function BarList({ bars, total, onSelect }: { bars: Bar[]; total: number; onSelect?: (key: string) => void }) {
+export function BarList({ bars, total, onSelect, hrefFor }: { bars: Bar[]; total: number; onSelect?: (key: string) => void; hrefFor?: (key: string) => string }) {
   const max = Math.max(1, ...bars.map((b) => b.value));
+  const rowClass = "block min-h-11 w-full min-w-0 rounded-xl px-2 py-1 text-left hover:bg-surface-2 focus-visible:outline-2 focus-visible:outline-brand";
   return (
     <ul className="flex flex-col gap-2.5">
       {bars.map((b) => {
         const content = (
           <>
             <div className="mb-1 flex items-baseline justify-between gap-2 text-sm">
-              <span className="truncate text-ink">{b.label}</span>
+              <span className="min-w-0 break-words text-ink">{b.label}</span>
               <span className="shrink-0 text-xs text-ink-2">
                 {formatRon(b.value)} <span>· {total > 0 ? Math.round((b.value / total) * 100) : 0}%</span>
               </span>
             </div>
+            {b.detail && <p className="mb-1 text-xs tabular text-ink-2">{b.detail}</p>}
             <div className="h-2 rounded-full bg-surface-2">
               <div className="h-full rounded-r rounded-l-sm bg-brand" style={{ width: `${Math.max(0, (b.value / max) * 100)}%` }} />
             </div>
@@ -128,7 +132,15 @@ export function BarList({ bars, total, onSelect }: { bars: Bar[]; total: number;
         );
         return (
           <li key={b.key} title={`${b.label}: ${formatRon(b.value)}`}>
-            {onSelect ? (
+            {hrefFor ? (
+              <div className="flex items-center gap-1">
+                <Link href={hrefFor(b.key)} aria-label={`Vezi cheltuielile din ${b.label}`}
+                  aria-description={`${formatRon(b.value)} · ${total > 0 ? Math.round(b.value / total * 100) : 0}%${b.detail ? ` · ${b.detail}` : ""}`}
+                  className={rowClass}>{content}</Link>
+                {onSelect && <button type="button" onClick={() => onSelect(b.key)} aria-label={`Evoluția cheltuielilor din ${b.label}`}
+                  className="min-h-11 shrink-0 rounded-xl px-2 text-xs font-medium text-brand hover:bg-surface-2 focus-visible:outline-2 focus-visible:outline-brand">Evoluție</button>}
+              </div>
+            ) : onSelect ? (
               <button
                 type="button"
                 onClick={() => onSelect(b.key)}

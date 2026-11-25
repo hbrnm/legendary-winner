@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState, type CSSProperties, type ReactNode } from "react";
-import { X } from "lucide-react";
+import { X } from "@/components/ui/icons";
 import { Button } from "./button";
 
 /** Cât din partea de jos a ecranului acoperă tastatura (pe iPhone pagina nu se micșorează când apare tastatura). */
@@ -39,6 +39,7 @@ export function Sheet({
   open,
   onClose,
   title,
+  fullscreen = false,
   headerAction,
   children,
   footer,
@@ -46,6 +47,7 @@ export function Sheet({
   open: boolean;
   onClose: () => void;
   title: string;
+  fullscreen?: boolean;
   headerAction?: ReactNode;
   children: ReactNode;
   footer?: ReactNode;
@@ -71,14 +73,14 @@ export function Sheet({
       }}
       aria-label={title}
       style={keyboardStyle}
-      className="m-0 mt-auto max-h-[92dvh] w-full max-w-none overflow-hidden rounded-t-[28px] border-0 bg-surface-container-low p-0 text-ink shadow-elevated backdrop:bg-backdrop-overlay min-[600px]:m-auto min-[600px]:max-w-lg min-[600px]:rounded-[28px]"
+      className={`w-full overflow-hidden border-0 bg-surface-container-low p-0 text-on-surface shadow-elevated backdrop:bg-backdrop-overlay ${fullscreen ? "inset-0 m-0 h-dvh max-h-none max-w-none min-[600px]:m-auto min-[600px]:h-[min(760px,92dvh)] min-[600px]:max-w-2xl min-[600px]:rounded-[28px]" : "m-0 mt-auto max-h-[92dvh] max-w-none rounded-t-[28px] min-[600px]:m-auto min-[600px]:max-w-lg min-[600px]:rounded-[28px]"}`}
     >
       {open && (
         <div
-          className="flex max-h-[inherit] flex-1 min-h-0 flex-col overflow-hidden"
+          className={`flex max-h-[inherit] min-h-0 flex-1 flex-col overflow-hidden ${fullscreen ? "h-full" : ""}`}
           style={keyboardStyle?.maxHeight ? { maxHeight: keyboardStyle.maxHeight } : undefined}
         >
-          <div className="flex shrink-0 items-center justify-between gap-2 px-6 pb-2 pt-5">
+          <div className={`flex shrink-0 items-center justify-between gap-2 px-6 pb-2 ${fullscreen ? "pt-[max(1.25rem,env(safe-area-inset-top))]" : "pt-5"}`}>
             <h2 className="min-w-0 break-words text-2xl font-bold leading-tight tracking-tight">{title}</h2>
             <div className="flex items-center gap-2">
               {headerAction}
@@ -94,7 +96,7 @@ export function Sheet({
           </div>
           <div className="flex-1 min-h-0 overflow-y-auto overscroll-contain px-6 py-4 scroll-pb-20">{children}</div>
           {footer && (
-            <div className={`shrink-0 border-t border-line px-6 pt-4 ${keyboardStyle?.marginBottom ? "pb-6" : "pb-safe pb-6"}`}>
+            <div className={`shrink-0 border-t border-outline-variant bg-surface-container px-6 pt-4 ${fullscreen ? "pb-[max(1.5rem,env(safe-area-inset-bottom))]" : keyboardStyle?.marginBottom ? "pb-6" : "pb-safe pb-6"}`}>
               {footer}
             </div>
           )}

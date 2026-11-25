@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Pencil, Trash2 } from "lucide-react";
+import { Pencil, Trash2 } from "@/components/ui/icons";
 import { useAction } from "@/components/app/hooks";
 import { Button, IconButton } from "@/components/ui/button";
 import { LabeledInput, LabeledSelect } from "@/components/ui/fields";

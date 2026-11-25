@@ -262,7 +262,7 @@ export interface Recipe extends SyncedRow {
   /** Pagina de pe site de unde a fost importată rețeta (.tasks/009); lipsește la rândurile mai vechi. */
   source_url?: string | null;
   /** Valori nutriționale per porție, doar dacă provin dintr-o sursă verificată. */
-  nutrition: { kcal: number; protein_g: number; carbs_g: number; fat_g: number } | null;
+  nutrition: { kcal: number; protein_g: number; carbs_g: number; fat_g: number; fiber_g?: number } | null;
 }
 
 /**

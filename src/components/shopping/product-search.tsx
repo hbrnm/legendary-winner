@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Plus, Search } from "lucide-react";
+import { Search } from "@/components/ui/icons";
+import { AddMark } from "@/components/ui/button";
 import { keyboardInset } from "@/components/ui/sheet";
 import { useData } from "@/components/app/hooks";
 import { productSearchIndex } from "@/lib/services/catalog";
@@ -95,7 +96,7 @@ export function ProductSearch({
   return (
     <div className="relative" onFocus={() => setFocused(true)} onBlur={(e) => { if (!e.currentTarget.contains(e.relatedTarget)) setFocused(false); }}>
       <div className="flex items-center gap-3 rounded-full border border-transparent bg-surface-container-high px-5 transition-colors duration-150 ease-out focus-within:border-brand focus-within:bg-surface focus-within:ring-2 focus-within:ring-brand/25">
-        {intent === "add" ? <Plus size={20} className="shrink-0 text-brand" aria-hidden /> : <Search size={18} className="shrink-0 text-ink-3" aria-hidden />}
+        {intent === "add" ? <AddMark size={20} /> : <Search size={18} className="shrink-0 text-ink-3" aria-hidden />}
         <input
           ref={inputRef}
           value={text}
@@ -135,8 +136,8 @@ export function ProductSearch({
         <div
           className={
             inline
-              ? "mt-2 flex flex-col gap-2 rounded-2xl border border-line bg-surface p-3"
-              : "inset-x-4 z-40 mx-auto flex max-w-xl flex-col gap-2 rounded-2xl border border-line bg-surface p-3 shadow-elevated"
+              ? "mt-2 flex flex-col gap-2 rounded-2xl bg-surface-container-low p-3 shadow-card"
+              : "inset-x-4 z-40 mx-auto flex max-w-xl flex-col gap-2 rounded-2xl bg-surface-container-low p-3 shadow-elevated"
           }
           style={
             inline
@@ -152,21 +153,21 @@ export function ProductSearch({
                 enterPending.current = false;
                 setActive(0);
                 inputRef.current?.focus();
-              }} className="min-h-11 min-w-11 shrink-0 rounded-xl border border-line bg-surface px-3 text-sm text-ink-2">{quantity} {unit}</button>
+              }} className="min-h-11 min-w-11 shrink-0 rounded-xl bg-surface-container px-3 text-sm text-ink-2 hover:bg-surface-container-high">{quantity} {unit}</button>
             ))}
           </div>
           {!parsed.text && (data?.frequent.length ?? 0) > 0 && <div role="group" aria-label="Cumperi des" className="flex gap-2 overflow-x-auto pb-1">
-            {data!.frequent.map((product) => <button key={product.id} type="button" aria-label={`Adaugă ${product.name}`} onMouseDown={(e) => e.preventDefault()} onClick={() => { onPick({ product, parsed: { ...parsed, text: product.name } }); setText(""); setActive(0); inputRef.current?.focus(); }} className="inline-flex min-h-11 shrink-0 items-center gap-1 rounded-xl bg-brand-soft px-3 text-sm text-brand"><Plus size={15} aria-hidden />{product.name}</button>)}
+            {data!.frequent.map((product) => <button key={product.id} type="button" aria-label={`Adaugă ${product.name}`} onMouseDown={(e) => e.preventDefault()} onClick={() => { onPick({ product, parsed: { ...parsed, text: product.name } }); setText(""); setActive(0); inputRef.current?.focus(); }} className="inline-flex min-h-11 shrink-0 items-center gap-1 rounded-xl bg-brand-soft px-3 text-sm text-brand"><AddMark size={15} />{product.name}</button>)}
           </div>}
         </div>
       )}
       {parsed.text.trim() && options.length === 0 && (
-        <p role="status" className={`${inline ? "" : "absolute inset-x-0 top-full z-20 shadow-card"} mt-1 rounded-2xl border border-line bg-surface px-4 py-3 text-sm text-ink-2`}>
+        <p role="status" className={`${inline ? "" : "absolute inset-x-0 top-full z-20 shadow-elevated"} app-card mt-1 px-4 py-3 text-sm text-ink-2`}>
           {data ? `Nu am găsit „${parsed.text}” în catalog.` : "Caut în catalog…"}
         </p>
       )}
       {parsed.text.trim() && options.length > 0 && (
-        <ul id="rezultate-produse" role="listbox" className={`${inline ? "" : "absolute inset-x-0 top-full z-20 shadow-card"} mt-1 overflow-hidden rounded-[28px] bg-surface`}>
+        <ul id="rezultate-produse" role="listbox" className={`${inline ? "" : "absolute inset-x-0 top-full z-20 shadow-elevated"} app-card mt-1 overflow-hidden`}>
           {options.map((p, i) => (
             <li
               key={p?.id ?? "_nou"}
@@ -184,7 +185,7 @@ export function ProductSearch({
                 </>
               ) : (
                 <span className="flex items-center gap-2 text-[15px] font-medium text-brand">
-                  <Plus size={16} />
+                  <AddMark size={16} />
                   Adaugă „{parsed.text}” ca produs nou
                 </span>
               )}

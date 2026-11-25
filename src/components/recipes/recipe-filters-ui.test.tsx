@@ -5,12 +5,13 @@ import type { ReactNode } from "react";
 import { recipe } from "@/test/factories";
 import RecipesPage from "@/app/retete/page";
 
+vi.mock("next/navigation", () => ({ useRouter: () => ({ push: vi.fn() }) }));
 vi.mock("@/components/app/shell", () => ({ AppShell: ({ children }: { children: ReactNode }) => children }));
 vi.mock("@/components/recipes/recipe-photo", () => ({ RecipeImage: () => null }));
-vi.mock("@/components/app/hooks", () => ({ useData: () => {
+vi.mock("@/components/app/hooks", () => ({ useAction: () => ({ run: vi.fn(), busy: false }), useData: () => {
   const recipes = [
     recipe({ id: "soup", name: "Supă rapidă", categories: ["pranz", "supe_ciorbe"], prep_minutes: 10, cook_minutes: 10 }),
-    recipe({ id: "main", name: "Pilaf", categories: ["cina", "vegetariene"], prep_minutes: 15, cook_minutes: 30 }),
+    recipe({ id: "main", name: "Pilaf", categories: ["pranz", "cina", "vegetariene"], prep_minutes: 15, cook_minutes: 30 }),
     recipe({ id: "prep", name: "Tocană", categories: ["pranz", "carne", "meal_prep"], prep_minutes: 20, cook_minutes: 60 }),
   ];
   return { recipes, searchText: new Map(recipes.map((r) => [r.id, r.name])), favorites: new Set(["main"]), costs: new Map(), ready: new Set(["main"]), cook: [{ recipe: recipes[1], missing: [] }], pantryCount: 1 };
@@ -19,18 +20,23 @@ vi.mock("@/components/app/hooks", () => ({ useData: () => {
 afterEach(cleanup);
 
 describe("recipe collection controls", () => {
-  it("shows the seven meal categories and routes collection and plan", () => {
+  it("starts with collapsed categories and offers the full collection", () => {
     render(<RecipesPage />);
-    const strip = screen.getByLabelText("Categoria mesei");
-    expect([...strip.querySelectorAll("button")].map((b) => b.textContent)).toEqual(["Toate", "Gata de gătit", "Mic dejun", "Supe & Ciorbe", "Fel principal", "Salate & Garnituri", "Deserturi", "Gustări"]);
     expect(screen.getByRole("link", { name: "Colecție" }).getAttribute("href")).toMatch(/^\/retete\/?$/);
     expect(screen.getByRole("link", { name: "Plan" }).getAttribute("href")).toMatch(/^\/plan\/?$/);
-    fireEvent.click(screen.getByRole("button", { name: "Fel principal" }));
-    expect(screen.queryByRole("link", { name: /Supă rapidă/ })).toBeNull();
-    expect(screen.getByRole("status").textContent).toBe("2 rețete");
+    const mainCategory = screen.getByText("Prânz").closest("details");
+    expect(mainCategory?.querySelector("summary")?.textContent).toBe("Prânz3 rețete");
+    expect(mainCategory?.hasAttribute("open")).toBe(false);
+    expect(mainCategory?.querySelectorAll("li")).toHaveLength(3);
+    expect(screen.getByText("Cină").closest("details")?.querySelectorAll("li")).toHaveLength(1);
+    fireEvent.click(screen.getByRole("button", { name: "Toate rețetele" }));
+    expect(screen.queryByText("Prânz")).toBeNull();
+    expect(screen.getAllByRole("listitem")).toHaveLength(3);
+    fireEvent.click(screen.getByRole("button", { name: "Pe categorii" }));
+    expect(screen.getByText("Cină")).toBeTruthy();
   });
 
-  it("combines pantry with search and category, and replaces the active time option", () => {
+  it("combines pantry with search and replaces the active time option", () => {
     render(<RecipesPage />);
     fireEvent.click(screen.getByRole("button", { name: "Filtre" }));
     fireEvent.click(screen.getByRole("button", { name: "Ce pot găti" }));

@@ -50,7 +50,7 @@ export function PantryItemSheet({onClose}:{onClose:()=>void}) {
         <LabeledSelect label="Unitate" value={unit} onChange={e=>setUnit(e.target.value as UnitCode)}>{SHOPPING_UNITS.map(u=><option key={u} value={u}>{unitLabel(u,2)}</option>)}</LabeledSelect>
       </div>
       <LabeledSelect label="Unde îl ții" value={location} onChange={e=>setLocation(e.target.value)}>{data?.locations.map(l=><option key={l.id} value={l.id}>{l.name}</option>)}</LabeledSelect>
-      <details className="rounded-xl border border-line p-3">
+      <details className="rounded-2xl bg-surface-container p-3">
         <summary className="flex min-h-11 cursor-pointer items-center text-sm font-medium">Detalii opționale (expirare, observații)</summary>
         <div className="mt-3 space-y-4"><LabeledInput label="Expiră pe" type="date" value={expires} onChange={e=>setExpires(e.target.value)}/><LabeledInput label="Cumpărat pe" type="date" value={purchased} onChange={e=>setPurchased(e.target.value)}/><LabeledInput label="Observații" value={note} maxLength={300} onChange={e=>setNote(e.target.value)}/></div>
       </details>

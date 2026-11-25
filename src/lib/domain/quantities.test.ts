@@ -93,6 +93,18 @@ describe("din rețetă pe lista de cumpărături", () => {
     expect(toShoppingNeed({ product_id: "oua", quantity: 1.5, unit: "buc" }, "buc")).toEqual({ product_id: "oua", quantity: 2, unit: "buc", note: null });
   });
 
+  it("păstrează masa pentru produse la bucată fără greutate cunoscută", () => {
+    expect(toShoppingNeed({ product_id: "feta", quantity: 50, unit: "g" }, "buc")).toEqual({
+      product_id: "feta", quantity: 50, unit: "g", note: null,
+    });
+    expect(toShoppingNeed({ product_id: "feta", quantity: 1.2, unit: "kg" }, "buc")).toEqual({
+      product_id: "feta", quantity: 1.2, unit: "kg", note: null,
+    });
+    expect(toShoppingNeed({ product_id: "feta", quantity: 50, unit: "g" }, "buc", { piece_grams: 200 })).toEqual({
+      product_id: "feta", quantity: 1, unit: "buc", note: "pentru rețete: 50 g",
+    });
+  });
+
   it("pune o unitate întreagă și o notă când unitățile nu se pot converti", () => {
     expect(toShoppingNeed({ product_id: "smantana", quantity: 3, unit: "lingura" }, "buc")).toEqual({
       product_id: "smantana",

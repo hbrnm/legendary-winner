@@ -19,7 +19,7 @@ export interface BudgetTransaction {
 }
 
 /** Read-only grouping: totals already include any authoritative-total adjustment. */
-export function projectTransactions(records: SpendRecord[], transactions: ShoppingTransaction[] = []): BudgetTransaction[] {
+export function projectTransactions(records: SpendRecord[], transactions: ShoppingTransaction[] = [], scoped = false): BudgetTransaction[] {
   const groups = new Map<string, SpendRecord[]>();
   const txMap = new Map(transactions.filter(tx => !tx.deleted_at).map(tx => [tx.id, tx]));
   const seen = new Set<string>();
@@ -33,7 +33,7 @@ export function projectTransactions(records: SpendRecord[], transactions: Shoppi
   }
   // A zero total needs no synthetic adjustment; keep the actual transaction visible.
   for (const tx of txMap.values()) {
-    if (tx.completed_at && tx.declared_total != null && !groups.has(`trip:${tx.id}`)) groups.set(`trip:${tx.id}`, []);
+    if (!scoped && tx.completed_at && tx.declared_total != null && !groups.has(`trip:${tx.id}`)) groups.set(`trip:${tx.id}`, []);
   }
   return [...groups].map(([id, rows]): BudgetTransaction => {
     const first = rows[0];
@@ -46,7 +46,7 @@ export function projectTransactions(records: SpendRecord[], transactions: Shoppi
     return {
       id, kind: manualId ? "manual" : "receipt", pending,
       date: tx?.completed_at ?? rows.reduce((latest, row) => row.purchased_at > latest ? row.purchased_at : latest, ""),
-      amount: tx?.declared_total ?? (known.length ? sumMoney(known.map(row => row.amount!)) : null),
+      amount: (!scoped ? tx?.declared_total : null) ?? (known.length ? sumMoney(known.map(row => row.amount!)) : null),
       itemCount: lines.length, unknownCount: lines.filter(row => row.amount == null).length,
       unallocated: sumMoney(rows.filter(row => row.unallocated).map(row => row.amount ?? 0)),
       title: manualId ? first.name : pending ? "Cumpărături în curs" : tx?.note || [...new Set(lines.filter(row => row.source === "piata" || row.source === "producator").map(row => SOURCE_LABELS[row.source]))].join(", ") || "Cumpărături",

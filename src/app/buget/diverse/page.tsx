@@ -1,10 +1,8 @@
 "use client";
 
-import Link from "next/link";
-import { ArrowLeft } from "lucide-react";
 import { AppShell } from "@/components/app/shell";
 import { useAction, useData } from "@/components/app/hooks";
-import { EmptyState, Spinner } from "@/components/ui/misc";
+import { EmptyState, Spinner, PageHeader } from "@/components/ui/misc";
 import { LabeledSelect } from "@/components/ui/fields";
 import { visible } from "@/lib/services/queries";
 import { diverseToSort, moveOutOfDiverse } from "@/lib/services/receipts";
@@ -29,18 +27,13 @@ function DiverseScreen() {
 
   return (
     <>
-      <div className="mb-4 flex items-center gap-1">
-        <Link href="/buget/" aria-label="Înapoi la buget" className="-ml-2 inline-flex h-12 w-12 shrink-0 items-center justify-center rounded-full text-ink-2 transition-colors duration-150 ease-out hover:bg-surface-2">
-          <ArrowLeft size={20} />
-        </Link>
-        <h1 className="min-w-0 break-words text-[32px] font-bold leading-tight tracking-tight">Produse din Diverse</h1>
-      </div>
+      <PageHeader variant="compact" back={{ href: "/buget/", label: "Înapoi la buget" }} title="Produse din Diverse" />
       {data.groups.length === 0 ? (
         <EmptyState title="Nu mai ai nimic în Diverse." />
       ) : (
         <>
           <p className="mb-3 text-sm text-ink-2">Alege categoria potrivită. Se mută și cumpărăturile de până acum, ca bugetul să arate unde s-au dus banii.</p>
-          <ul className="divide-y divide-line overflow-hidden rounded-[28px] bg-surface">
+          <ul className="app-card divide-y divide-line overflow-hidden">
             {data.groups.map((g) => (
               <li key={g.key} className="flex flex-col gap-2 px-4 py-3">
                 <div className="flex items-start justify-between gap-3">
