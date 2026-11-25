@@ -11,11 +11,12 @@ export async function start(page: Page, path = "/") {
   await expect(page.getByText("Mod demonstrativ")).toBeVisible();
 }
 
-export async function quickAdd(page: Page, text: string) {
+export async function quickAdd(page: Page, text: string, product?: string) {
   const box = page.getByRole("combobox", { name: "Caută sau adaugă un produs" });
   await box.fill(text);
   await expect(page.getByRole("listbox")).toBeVisible();
-  await box.press("Enter");
+  if (product) await page.getByRole("option", { name: product, exact: true }).click();
+  else await box.press("Enter");
   await expect(box).toHaveValue("");
 }
 

@@ -95,7 +95,7 @@ test("câmpurile au litera de cel puțin 16px, ca iPhone să nu mărească pagin
     expect(await smallFields(page), path).toEqual([]);
   }
   await createList(page, "Test câmpuri");
-  await quickAdd(page, "roșii");
+  await quickAdd(page, "roșii", "Roșii");
   await page.getByRole("button", { name: /^Roșii/ }).click();
   await expect(page.getByLabel("Cantitate")).toBeVisible();
   expect(await smallFields(page), "fișa produsului").toEqual([]);
