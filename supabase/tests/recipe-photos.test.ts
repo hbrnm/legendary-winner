@@ -42,7 +42,7 @@ async function softDelete(user: TestUser, id: string) {
 
 describe("rândurile recipe_photos", () => {
   it("un membru pune o fotografie la o rețetă din catalog; colegii o văd, alte gospodării nu", async () => {
-    const id = await addPhoto(ana, hA, "sarmale");
+    const id = await addPhoto(ana, hA, "chipsuri-kale-cuptor");
     const forBogdan = await asUser(bogdan, async (q) => (await q("select created_by from recipe_photos where id = $1", [id])).rows);
     expect(forBogdan).toEqual([{ created_by: ana.id }]);
     const forCarmen = await asUser(carmen, async (q) => (await q("select id from recipe_photos where household_id = $1", [hA])).rows);
@@ -53,7 +53,7 @@ describe("rândurile recipe_photos", () => {
   });
 
   it("nu poți adăuga fotografii în gospodăria altcuiva", async () => {
-    await expect(addPhoto(carmen, hA, "sarmale")).rejects.toThrow(/row-level security/);
+    await expect(addPhoto(carmen, hA, "chipsuri-kale-cuptor")).rejects.toThrow(/row-level security/);
   });
 
   it("nu poți pune o fotografie la rețeta proprie a altei gospodării", async () => {
@@ -63,7 +63,7 @@ describe("rândurile recipe_photos", () => {
   it("calea fișierului trebuie să fie a rândului (gospodăria, rețeta și id-ul lui)", async () => {
     await expect(addPhoto(ana, hA, "ciorba-anei", `${hB}/ciorba-anei/${randomUUID()}.webp`)).rejects.toThrow(/check constraint/);
     await expect(addPhoto(ana, hA, "ciorba-anei", `${hA}/ciorba-anei/alt-id.webp`)).rejects.toThrow(/check constraint/);
-    await expect(addPhoto(ana, hA, "ciorba-anei", `${hA}/sarmale/x.png`)).rejects.toThrow(/check constraint/);
+    await expect(addPhoto(ana, hA, "ciorba-anei", `${hA}/chipsuri-kale-cuptor/x.png`)).rejects.toThrow(/check constraint/);
   });
 
   it("dimensiunile sunt între 1 și 1280 px", async () => {
@@ -83,13 +83,13 @@ describe("rândurile recipe_photos", () => {
     const first = await addPhoto(ana, hA, "ciorba-anei");
     await expect(addPhoto(bogdan, hA, "ciorba-anei")).rejects.toThrow(/duplicate key/);
     // Altă gospodărie își pune fotografia ei la aceeași rețetă din catalog.
-    await addPhoto(carmen, hB, "sarmale");
+    await addPhoto(carmen, hB, "chipsuri-kale-cuptor");
     await softDelete(bogdan, first);
     await addPhoto(bogdan, hA, "ciorba-anei");
   });
 
   it("ștergerea fizică nu e permisă, iar rândul nu se mută în altă gospodărie", async () => {
-    const id = await addPhoto(carmen, hB, "ciorba-de-legume");
+    const id = await addPhoto(carmen, hB, "terci-ovaz-fructe-padure-unt-arahide");
     await expect(asUser(carmen, (q) => q("delete from recipe_photos where id = $1", [id]))).rejects.toThrow(/permission denied/);
     await expect(asUser(carmen, (q) => q("update recipe_photos set household_id = $1 where id = $2", [hA, id]))).rejects.toThrow();
   });
@@ -108,32 +108,32 @@ describe("fișierele din bucketul recipe-photos", () => {
   });
 
   it("membrii încarcă, văd și șterg fișierele gospodăriei; o altă gospodărie nu", async () => {
-    const name = `${hA}/sarmale/${randomUUID()}.webp`;
+    const name = `${hA}/chipsuri-kale-cuptor/${randomUUID()}.webp`;
     await upload(ana, name);
     expect(await names(bogdan, name)).toEqual([name]);
     expect(await names(carmen, hA)).toEqual([]);
     const stolen = await asUser(carmen, (q) => q("delete from storage.objects where name = $1", [name]));
     expect(stolen.rowCount).toBe(0);
-    const renamed = await asUser(carmen, (q) => q("update storage.objects set name = $1 where name = $2", [`${hB}/sarmale/x.webp`, name]));
+    const renamed = await asUser(carmen, (q) => q("update storage.objects set name = $1 where name = $2", [`${hB}/chipsuri-kale-cuptor/x.webp`, name]));
     expect(renamed.rowCount).toBe(0);
     const del = await asUser(bogdan, (q) => q("delete from storage.objects where name = $1", [name]));
     expect(del.rowCount).toBe(1);
   });
 
   it("nu poți încărca în dosarul altei gospodării și nici muta un fișier acolo", async () => {
-    await expect(upload(carmen, `${hA}/sarmale/${randomUUID()}.webp`)).rejects.toThrow(/row-level security/);
-    const name = `${hB}/sarmale/${randomUUID()}.webp`;
+    await expect(upload(carmen, `${hA}/chipsuri-kale-cuptor/${randomUUID()}.webp`)).rejects.toThrow(/row-level security/);
+    const name = `${hB}/chipsuri-kale-cuptor/${randomUUID()}.webp`;
     await upload(carmen, name);
-    await expect(asUser(carmen, (q) => q("update storage.objects set name = $1 where name = $2", [`${hA}/sarmale/x.webp`, name]))).rejects.toThrow(
+    await expect(asUser(carmen, (q) => q("update storage.objects set name = $1 where name = $2", [`${hA}/chipsuri-kale-cuptor/x.webp`, name]))).rejects.toThrow(
       /row-level security/,
     );
   });
 
   it("căile fără gospodărie, alte bucketuri și vizitatorii neautentificați sunt refuzați", async () => {
     await db().query("insert into storage.buckets (id, name) values ('altceva', 'altceva') on conflict do nothing");
-    await expect(upload(ana, `sarmale/${randomUUID()}.webp`)).rejects.toThrow(/row-level security/);
-    await expect(upload(ana, `${hA}/sarmale/${randomUUID()}.webp`, "altceva")).rejects.toThrow(/row-level security/);
-    await expect(upload(null, `${hA}/sarmale/${randomUUID()}.webp`)).rejects.toThrow(/row-level security/);
+    await expect(upload(ana, `chipsuri-kale-cuptor/${randomUUID()}.webp`)).rejects.toThrow(/row-level security/);
+    await expect(upload(ana, `${hA}/chipsuri-kale-cuptor/${randomUUID()}.webp`, "altceva")).rejects.toThrow(/row-level security/);
+    await expect(upload(null, `${hA}/chipsuri-kale-cuptor/${randomUUID()}.webp`)).rejects.toThrow(/row-level security/);
     await expect(asUser(null, (q) => q("select * from recipe_photos"))).rejects.toThrow(/permission denied/);
   });
 });
