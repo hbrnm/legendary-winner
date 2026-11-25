@@ -11,11 +11,12 @@ export async function start(page: Page, path = "/") {
   await expect(page.getByText("Mod demonstrativ")).toBeVisible();
 }
 
-export async function quickAdd(page: Page, text: string) {
+export async function quickAdd(page: Page, text: string, product?: string) {
   const box = page.getByRole("combobox", { name: "Caută sau adaugă un produs" });
   await box.fill(text);
   await expect(page.getByRole("listbox")).toBeVisible();
-  await box.press("Enter");
+  if (product) await page.getByRole("option", { name: product, exact: true }).click();
+  else await box.press("Enter");
   await expect(box).toHaveValue("");
 }
 
@@ -24,12 +25,11 @@ export async function createList(page: Page, name: string) {
   await page.getByRole("button", { name: "Acțiuni cumpărături" }).click();
   await page.getByRole("dialog", { name: "Cumpărături" }).getByRole("button", { name: "Listă nouă" }).click();
   await page.waitForURL(/\/cumparaturi\/lista\//);
-  const renameBtn = page.getByRole("button", { name: /^Redenumește/ });
-  await expect(renameBtn).toBeVisible();
-  await renameBtn.click();
-  const input = page.getByRole("textbox", { name: "Numele listei" });
-  await input.fill(name);
-  await input.press("Enter");
+  await page.getByRole("button", { name: "Opțiunile listei" }).click();
+  await page.getByRole("button", { name: "Schimbă numele", exact: true }).click();
+  const sheet = page.getByRole("dialog", { name: "Schimbă numele listei" });
+  await sheet.getByRole("textbox", { name: "Numele listei" }).fill(name);
+  await sheet.getByRole("button", { name: "Salvează", exact: true }).click();
   await expect(page.getByRole("heading", { name })).toBeVisible();
 }
 

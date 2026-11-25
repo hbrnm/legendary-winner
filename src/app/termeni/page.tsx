@@ -1,8 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { ArrowLeft, FileText } from "lucide-react";
-import { Card } from "@/components/ui/misc";
+import { ArrowLeft, FileText } from "@/components/ui/icons";
+import { Card, PageTitle } from "@/components/ui/misc";
 import { StandalonePage } from "@/components/ui/standalone-page";
 
 export default function TermeniPage() {
@@ -21,9 +21,9 @@ export default function TermeniPage() {
         <div className="mb-3 inline-flex items-center gap-2 rounded-full bg-brand-soft px-3 py-1 text-xs font-semibold uppercase tracking-wider text-brand">
           <FileText size={14} /> Condiții de utilizare
         </div>
-        <h1 className="break-words text-[32px] font-bold leading-tight tracking-tight text-ink">
+        <PageTitle>
           Termeni și Condiții
-        </h1>
+        </PageTitle>
         <p className="mt-2 text-sm text-ink-2">
           Ultima actualizare: 1 noiembrie 2026 · Ciornă de lucru pentru lansare
         </p>
@@ -31,7 +31,7 @@ export default function TermeniPage() {
 
       <Card className="flex flex-col gap-6 p-6 leading-relaxed">
         <section>
-          <h2 className="font-sans text-lg font-semibold text-ink">1. Acceptarea Termenilor</h2>
+          <h2 className="text-section-title font-semibold tracking-tight text-on-surface">1. Acceptarea Termenilor</h2>
           <p className="mt-2 text-[15px] text-ink-2">
             Prin accesarea sau utilizarea aplicației <strong>Cămara</strong> (disponibilă ca aplicație web progresivă la <code>appcamara.vercel.app</code> sau prin domenii asociate), confirmi că ai citit, înțeles și ești de acord cu acești Termeni și Condiții, precum și cu{" "}
             <Link href="/confidentialitate" className="text-brand underline underline-offset-2">
@@ -42,7 +42,7 @@ export default function TermeniPage() {
         </section>
 
         <section>
-          <h2 className="font-sans text-lg font-semibold text-ink">2. Descrierea Serviciului</h2>
+          <h2 className="text-section-title font-semibold tracking-tight text-on-surface">2. Descrierea Serviciului</h2>
           <p className="mt-2 text-[15px] text-ink-2">
             Cămara este un instrument de organizare domestică conceput pentru a ajuta membrii unei gospodării să țină evidența listelor de cumpărături, stocului de alimente din cămară, planului de mese și estimării bugetelor.
           </p>
@@ -52,7 +52,7 @@ export default function TermeniPage() {
         </section>
 
         <section>
-          <h2 className="font-sans text-lg font-semibold text-ink">3. Conturi, Gospodării și Colaborare</h2>
+          <h2 className="text-section-title font-semibold tracking-tight text-on-surface">3. Conturi, Gospodării și Colaborare</h2>
           <ul className="mt-2 list-disc pl-5 text-[15px] text-ink-2 space-y-2">
             <li>
               <strong>Securitatea contului:</strong> Ești responsabil pentru păstrarea confidențialității parolei tale și pentru toate activitățile desfășurate prin contul tău.
@@ -67,14 +67,14 @@ export default function TermeniPage() {
         </section>
 
         <section>
-          <h2 className="font-sans text-lg font-semibold text-ink">4. Conținutul introdus și Drepturile de autor</h2>
+          <h2 className="text-section-title font-semibold tracking-tight text-on-surface">4. Conținutul introdus și Drepturile de autor</h2>
           <p className="mt-2 text-[15px] text-ink-2">
             Datele pe care le introduci (liste, produse, note, fotografii ale rețetelor preparate) îți aparțin în totalitate. La utilizarea funcției de import de rețete de pe internet, ai obligația de a respecta drepturile de autor ale site-urilor sursă, folosind materialele importate strict pentru uz casnic personal.
           </p>
         </section>
 
         <section>
-          <h2 className="font-sans text-lg font-semibold text-ink">5. Disponibilitate și Limitări de răspundere</h2>
+          <h2 className="text-section-title font-semibold tracking-tight text-on-surface">5. Disponibilitate și Limitări de răspundere</h2>
           <p className="mt-2 text-[15px] text-ink-2">
             Aplicația Cămara este furnizată „așa cum este” (<em>as-is</em>). Deși depunem toate eforturile pentru securitate și integritatea sincronizării, recomandăm descărcarea periodică a unei copii de siguranță locale (format JSON) din meniul Gospodărie.
           </p>
@@ -84,7 +84,7 @@ export default function TermeniPage() {
         </section>
 
         <section>
-          <h2 className="font-sans text-lg font-semibold text-ink">6. Modificări și Contact</h2>
+          <h2 className="text-section-title font-semibold tracking-tight text-on-surface">6. Modificări și Contact</h2>
           <p className="mt-2 text-[15px] text-ink-2">
             Ne rezervăm dreptul de a actualiza acești termeni pe măsură ce aplicația evoluează. Pentru nelămuriri sau asistență, ne poți contacta la: <strong>[DE COMPLETAT: contact@appcamara.ro]</strong>.
           </p>

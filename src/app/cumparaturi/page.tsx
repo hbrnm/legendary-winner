@@ -1,15 +1,15 @@
 "use client";
 
-import { Suspense, useEffect, useRef, useState } from "react";
+import { Suspense, useEffect, useRef, useState, type Ref } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { ChevronRight } from "lucide-react";
-import { AgainIcon, BasketIcon } from "@/components/ui/icons";
+import { AgainIcon, BasketIcon, ChevronDown, ChevronRight, NotebookIcon } from "@/components/ui/icons";
 import { AppShell } from "@/components/app/shell";
 import { useActiveShoppingList } from "@/components/shopping/active-list-provider";
 import { useAction, useData } from "@/components/app/hooks";
 import { Button } from "@/components/ui/button";
-import { Badge, Card, EmptyState, PageHeader, SectionTitle, Spinner } from "@/components/ui/misc";
+import { Badge, EmptyState, PageHeader, Spinner } from "@/components/ui/misc";
+import { ShoppingNavigation } from "@/components/shopping/navigation";
 import { listItems, owned, priceIndex, visible } from "@/lib/services/queries";
 import { createList, restoreList } from "@/lib/services/shopping";
 import { listTotals } from "@/lib/domain/shopping";
@@ -17,7 +17,7 @@ import { formatRon } from "@/lib/domain/money";
 import { formatShortDate, toISODate } from "@/lib/domain/dates";
 import { now } from "@/lib/clock";
 
-function ListsScreen() {
+function ListsScreen({ captureRef }: { captureRef: Ref<HTMLDivElement> }) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const showAll = searchParams.get("toate") === "1";
@@ -89,8 +89,10 @@ function ListsScreen() {
     <>
       <PageHeader
         title="Cumpărături"
-        subtitle="Ce e de luat, pentru toată casa"
+        captureRef={captureRef}
+        subtitle={active.length === 1 ? "1 listă activă" : `${active.length} liste active`}
       />
+      <ShoppingNavigation active="liste" />
 
       {active.length === 0 ? (
         <EmptyState
@@ -101,40 +103,30 @@ function ListsScreen() {
           Apasă pe butonul de mai sus pentru a crea o listă nouă sau folosește butonul (+) pentru a copia o listă mai veche.
         </EmptyState>
       ) : (
-        <ul className="grid gap-3.5 min-[900px]:grid-cols-2">
+        <ul aria-label="Liste active" className="app-card divide-y divide-line overflow-hidden">
           {active.map(({ list, totals }) => (
             <li key={list.id}>
-              <Link href={`/cumparaturi/lista/?id=${list.id}`} className="block" onClick={() => selectList(list.id)}>
-                <Card className="group flex items-center gap-3.5 p-4 sm:p-5 transition-all duration-150 ease-out hover:border-outline/40 hover:bg-surface-2/30 active:scale-[0.99]">
-                  <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-surface-2 text-brand transition-colors duration-150 group-hover:bg-brand group-hover:text-brand-ink">
-                    <BasketIcon size={22} />
-                  </div>
-                  <div className="min-w-0 flex-1">
-                    <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
-                      <span className="line-clamp-2 break-words font-sans text-lg font-semibold leading-snug text-ink group-hover:text-brand transition-colors">
-                        {list.name}
-                      </span>
-                      {list.is_recurring && (
-                        <Badge tone="brand">
-                          <AgainIcon size={12} strokeWidth={2} /> se reia
-                        </Badge>
-                      )}
-                    </div>
-                    <p className="mt-1 text-sm text-ink-2 tabular">
-                      {totals.item_count === 0 ? "Încă goală" : `${totals.checked_count} din ${totals.item_count} în coș${totals.projected_total > 0 ? ` · ~${formatRon(totals.projected_total)}` : ""}`}
-                      {list.default_retailer_id && ` · ${retailerName.get(list.default_retailer_id) ?? ""}`}
-                    </p>
-                    {totals.item_count > 0 && (
-                      <div className="mt-2.5 h-1.5 overflow-hidden rounded-full bg-surface-2" aria-hidden>
-                        <div
-                          className="h-full rounded-full bg-sprout transition-[width] duration-300 ease-out"
-                          style={{ width: `${(totals.checked_count / totals.item_count) * 100}%` }}
-                        />
-                      </div>
+              <Link href={`/cumparaturi/lista/?id=${list.id}`} className="group flex min-h-16 items-center gap-3 px-3 py-2.5 hover:bg-surface-2/40 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-brand" onClick={() => selectList(list.id)}>
+                <div className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-surface-2 text-brand">
+                  <BasketIcon size={19} />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
+                    <span className="line-clamp-2 break-words text-[15px] font-semibold leading-snug text-ink group-hover:text-brand">
+                      {list.name}
+                    </span>
+                    {list.is_recurring && (
+                      <Badge tone="brand">
+                        <AgainIcon size={12} strokeWidth={2} /> se reia
+                      </Badge>
                     )}
                   </div>
-                  <ChevronRight size={20} className="shrink-0 text-ink-3 transition-transform duration-150 group-hover:translate-x-0.5" />
-                </Card>
+                  <p className="mt-0.5 text-xs text-ink-2 tabular">
+                    {totals.item_count === 0 ? "Încă goală" : `${totals.checked_count} din ${totals.item_count} în coș${totals.projected_total > 0 ? ` · ~${formatRon(totals.projected_total)}` : ""}`}
+                    {list.default_retailer_id && ` · ${retailerName.get(list.default_retailer_id) ?? ""}`}
+                  </p>
+                </div>
+                <ChevronRight size={20} className="shrink-0 text-ink-3 transition-transform duration-150 group-hover:translate-x-0.5" />
               </Link>
             </li>
           ))}
@@ -142,18 +134,16 @@ function ListsScreen() {
       )}
 
       {archived.length > 0 && (
-        <div className="mt-8">
-          <SectionTitle
-            action={
-              <Button variant="ghost" size="sm" onClick={() => setShowArchived((v) => !v)}>
-                {showArchived ? "Ascunde-le" : `Arată-le (${archived.length})`}
-              </Button>
-            }
+        <section aria-label="Puse deoparte" className="mt-3 app-card">
+          <button type="button" aria-expanded={showArchived} onClick={() => setShowArchived((v) => !v)}
+            className="flex min-h-12 w-full items-center gap-2 rounded-[20px] px-4 text-left text-sm font-semibold focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-brand"
           >
-            Puse deoparte
-          </SectionTitle>
+            <span className="flex-1">Puse deoparte</span>
+            <span className="text-xs font-medium tabular text-ink-2">{archived.length}</span>
+            <ChevronDown size={16} className={showArchived ? "rotate-180 text-ink-2" : "text-ink-2"} />
+          </button>
           {showArchived && (
-            <ul className="mt-2 flex flex-col divide-y divide-line overflow-hidden rounded-[20px] border border-line/60 bg-surface">
+            <ul className="divide-y divide-line border-t border-line">
               {archived.map(({ list, totals }) => (
                 <li key={list.id} className="flex items-center gap-3 px-4 py-3 transition-colors hover:bg-surface-2/40">
                   <Link href={`/cumparaturi/lista/?id=${list.id}`} className="min-w-0 flex-1 py-0.5">
@@ -167,17 +157,24 @@ function ListsScreen() {
               ))}
             </ul>
           )}
-        </div>
+        </section>
       )}
+      <Link href="/cumparaturi/istoric/" className="mt-3 flex min-h-12 items-center gap-2 app-card px-4 text-sm font-medium text-brand hover:bg-surface-2/40">
+        <NotebookIcon size={18} />
+        <span className="flex-1">Istoricul cumpărăturilor</span>
+        <ChevronRight size={16} />
+      </Link>
     </>
   );
 }
 
 export default function Page() {
+  const [captureTarget, setCaptureTarget] = useState<HTMLDivElement | null>(null);
+
   return (
-    <AppShell>
+    <AppShell captureTarget={captureTarget}>
       <Suspense fallback={<Spinner />}>
-        <ListsScreen />
+        <ListsScreen captureRef={setCaptureTarget} />
       </Suspense>
     </AppShell>
   );

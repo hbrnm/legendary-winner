@@ -2,11 +2,11 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { ArrowLeft, Trash2 } from "lucide-react";
-import { ReceiptIcon } from "@/components/ui/icons";
+import { ReceiptIcon, Trash2 } from "@/components/ui/icons";
 import { AppShell } from "@/components/app/shell";
 import { useAction, useData } from "@/components/app/hooks";
-import { EmptyState, Spinner } from "@/components/ui/misc";
+import { EmptyState, Spinner, PageHeader } from "@/components/ui/misc";
+import { ShoppingNavigation } from "@/components/shopping/navigation";
 import { ConfirmSheet, Sheet } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/fields";
@@ -89,12 +89,8 @@ function HistoryScreen() {
 
   return (
     <>
-      <div className="mb-4 flex items-center gap-1">
-        <Link href="/cumparaturi/" aria-label="Înapoi la liste" className="-ml-2 inline-flex h-12 w-12 shrink-0 items-center justify-center rounded-full text-ink-2 transition-colors duration-150 ease-out hover:bg-surface-2">
-          <ArrowLeft size={20} />
-        </Link>
-        <h1 className="min-w-0 break-words text-[32px] font-bold leading-tight tracking-tight">Istoric</h1>
-      </div>
+      <PageHeader back={{ href: "/cumparaturi/?toate=1", label: "Înapoi la liste" }} title="Istoric" />
+      <ShoppingNavigation active="istoric" />
 
       {byMonth.size === 0 ? (
         <EmptyState icon={<ReceiptIcon size={32} />} title="Încă nu ai cumpărături finalizate">
@@ -103,12 +99,12 @@ function HistoryScreen() {
       ) : (
         [...byMonth.entries()].sort(([a], [b]) => b.localeCompare(a)).map(([month, { trips, openTrips }]) => (
           <section key={month} className="mb-6">
-            {/* Registrul lunii: luna în serif, totalul cu cifre aliniate, cumpărăturile pe o foaie cu filete punctate. */}
+            {/* Registrul lunii: totalul cu cifre aliniate și cumpărăturile într-o listă unitară. */}
             <div className="mb-2 flex items-baseline justify-between gap-3 px-1">
-              <h2 className="font-sans text-xl font-semibold capitalize">{formatMonth(`${month}-01`)}</h2>
+              <h2 className="text-section-title font-semibold capitalize tracking-tight text-on-surface">{formatMonth(`${month}-01`)}</h2>
               <span className="text-[15px] font-medium">{formatRon(sumMoney([...openTrips, ...trips].map((t) => t.total)))}</span>
             </div>
-            <ul className="divide-y divide-dashed divide-line overflow-hidden rounded-[28px] bg-surface">
+            <ul className="app-card divide-y divide-dashed divide-line overflow-hidden">
               {openTrips.map((t) => (
                 <li key={t.listId}>
                   {/* Prețurile se schimbă pe listă, până la „Gata”. */}
@@ -121,7 +117,7 @@ function HistoryScreen() {
                     </span>
                     <span className="shrink-0 text-right">
                       <span className="block text-[15px] font-medium">{formatRon(t.total)}</span>
-                      {t.missing > 0 && <span className="block text-[11px] font-medium uppercase tracking-wider text-accent">{t.missing} fără preț</span>}
+                      {t.missing > 0 && <span className="block text-xs font-medium uppercase tracking-wider text-accent">{t.missing} fără preț</span>}
                     </span>
                   </Link>
                 </li>
@@ -138,7 +134,7 @@ function HistoryScreen() {
                     </span>
                     <span className="shrink-0 text-right">
                       <span className="block text-[15px] font-medium">{formatRon(t.total)}</span>
-                      {t.missing > 0 && <span className="block text-[11px] font-medium uppercase tracking-wider text-accent">{t.missing} fără preț</span>}
+                      {t.missing > 0 && <span className="block text-xs font-medium uppercase tracking-wider text-accent">{t.missing} fără preț</span>}
                     </span>
                   </button>
                 </li>

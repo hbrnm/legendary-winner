@@ -37,7 +37,7 @@ test("Ritm: bara plutitoare lasă spațiu conținutului și toate destinațiile 
     await expect(page).toHaveURL(path);
     await expect(link).toHaveAttribute("aria-current", "page");
     if (name === "Acasă") {
-      await expect(page.getByRole("heading", { level: 1, name: "Azi" })).toBeVisible();
+      await expect(page.getByRole("heading", { level: 1, name: /^(Bună dimineața|Bună ziua|Bună seara)/ })).toBeVisible();
       await expect(page.getByRole("heading", { name: "Azi la masă" })).toBeVisible();
     } else await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
   }

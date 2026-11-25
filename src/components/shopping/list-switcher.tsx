@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { ChevronDown } from "lucide-react";
+import { ChevronDown } from "@/components/ui/icons";
 import { Sheet } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { useActiveShoppingList } from "./active-list-provider";
@@ -16,9 +16,10 @@ export interface ListSwitcherProps {
   currentListId: string;
   lists: ListSwitcherItem[];
   className?: string;
+  compact?: boolean;
 }
 
-export function ListSwitcher({ currentListId, lists, className = "" }: ListSwitcherProps) {
+export function ListSwitcher({ currentListId, lists, className = "", compact = false }: ListSwitcherProps) {
   const router = useRouter();
   const { selectList } = useActiveShoppingList();
   const [open, setOpen] = useState(false);
@@ -35,10 +36,14 @@ export function ListSwitcher({ currentListId, lists, className = "" }: ListSwitc
         type="button"
         onClick={() => setOpen(true)}
         aria-label="Comută lista de cumpărături"
-        className={`inline-flex min-h-11 items-center gap-1.5 rounded-full bg-surface-2 px-3.5 text-xs font-semibold text-ink transition-colors hover:bg-surface-container-high focus-visible:outline-2 focus-visible:outline-brand ${className}`}
+        className={
+          compact
+            ? `inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-surface-2 text-ink-2 transition-colors hover:bg-surface-container-high hover:text-ink focus-visible:outline-2 focus-visible:outline-brand ${className}`
+            : `inline-flex min-h-11 items-center gap-1.5 rounded-full bg-surface-2 px-3.5 text-xs font-semibold text-ink transition-colors hover:bg-surface-container-high focus-visible:outline-2 focus-visible:outline-brand ${className}`
+        }
       >
-        <span>Comută lista</span>
-        <ChevronDown size={14} className="text-ink-2" />
+        {!compact && <span>Comută lista</span>}
+        <ChevronDown size={compact ? 17 : 14} className={compact ? "" : "text-ink-2"} />
       </button>
 
       <Sheet open={open} onClose={() => setOpen(false)} title="Comută lista de cumpărături">

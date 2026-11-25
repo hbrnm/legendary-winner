@@ -34,7 +34,17 @@ const PAIRS: [string, string, number][] = [
   ["outline", "surface", 3],
   ["on-primary", "primary", 4.5],
   ["on-primary-container", "primary-container", 4.5],
+  ["on-secondary", "secondary", 4.5],
   ["on-secondary-container", "secondary-container", 4.5],
+  ["on-tertiary", "tertiary", 4.5],
+  ["on-tertiary-container", "tertiary-container", 4.5],
+  ["on-surface", "nav-surface", 4.5],
+  ["ink-2", "nav-surface", 4.5],
+  ["brand", "nav-surface", 4.5],
+  ["sprout", "nav-surface", 4.5],
+  ["pill-active-ink", "pill-active", 4.5],
+  ["brand", "surface-container", 3],
+  ["outline", "surface-container", 3],
   ["secondary", "surface", 4.5],
   ["info", "surface", 4.5],
   ["on-error", "error", 4.5],
@@ -63,6 +73,12 @@ const PAIRS: [string, string, number][] = [
   ["wood", "bg", 4.5],
   ["wood", "surface", 4.5],
   ["wood", "surface-2", 4.5],
+  ["meal-morning-ink", "meal-morning", 4.5],
+  ["meal-noon-ink", "meal-noon", 4.5],
+  ["meal-evening-ink", "meal-evening", 4.5],
+  ["meal-snack-ink", "meal-snack", 4.5],
+  ["ink", "meal-hero-bg", 4.5],
+  ["ink-2", "meal-hero-bg", 4.5],
 ];
 
 const LIGHT = tokens(":root,\n::backdrop");
@@ -74,7 +90,7 @@ describe("contrastul tokenilor", () => {
     ["întunecat", DARK],
   ] as const) {
     it(`în modul ${name}, textul se citește pe fundalurile lui`, () => {
-      const weak = PAIRS.filter(([fg, bg, min]) => contrast(t[fg], t[bg]) < min).map(([fg, bg, min]) => `${fg} pe ${bg}: ${contrast(t[fg], t[bg]).toFixed(2)} < ${min}`);
+      const weak = PAIRS.filter(([fg, bg, min]) => !t[fg] || !t[bg] || contrast(t[fg], t[bg]) < min).map(([fg, bg, min]) => `${fg} pe ${bg}: ${contrast(t[fg], t[bg]).toFixed(2)} < ${min}`);
       expect(weak).toEqual([]);
     });
   }

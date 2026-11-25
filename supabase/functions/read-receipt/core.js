@@ -231,11 +231,12 @@ var CATEGORY_SEEDS = [
   { id: "copii", name: "Produse pentru copii", icon: "baby", is_food: true },
   { id: "curatenie", name: "Produse de curățenie", icon: "spray-can", is_food: false },
   { id: "igiena", name: "Igienă personală", icon: "bath", is_food: false },
-  { id: "diverse", name: "Diverse", icon: "package", is_food: false }
+  { id: "diverse", name: "Diverse", icon: "package", is_food: false },
+  { id: "ingrediente-retete", name: "Ingrediente diverse", icon: "tag", is_food: true }
 ];
 
 // src/lib/domain/receipt-json.ts
-var RECEIPT_CATEGORIES = CATEGORY_SEEDS.map((c) => c.id);
+var RECEIPT_CATEGORIES = CATEGORY_SEEDS.filter((c) => c.id !== "ingrediente-retete").map((c) => c.id);
 var RECEIPT_JSON_LIMITS = { maxLines: 200, maxLabel: 120 };
 var AMOUNT2 = /^\d{1,6}(\.\d{1,2})?$/;
 function money(text) {

@@ -22,4 +22,5 @@ export const CATEGORY_SEEDS: CategorySeed[] = [
   { id: "curatenie", name: "Produse de curățenie", icon: "spray-can", is_food: false },
   { id: "igiena", name: "Igienă personală", icon: "bath", is_food: false },
   { id: "diverse", name: "Diverse", icon: "package", is_food: false },
+  { id: "ingrediente-retete", name: "Ingrediente diverse", icon: "tag", is_food: true },
 ];

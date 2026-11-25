@@ -4,15 +4,15 @@ import { start, createList } from './helpers';
 test('recipe FAB owns creation/import and pantry FAB opens a single compact form',async({page})=>{
  await start(page,'/retete/');
  await expect(page.locator('main').getByRole('link',{name:'Importă',exact:true})).toHaveCount(0);
- await page.getByRole('button',{name:'Acțiuni rețete',exact:true}).click();
+ await page.locator('main header').getByRole('button',{name:'Acțiuni rețete',exact:true}).click();
  const recipes=page.getByRole('dialog',{name:'Rețete',exact:true});
  await expect(recipes.getByRole('button',{name:'Adaugă rețetă nouă'})).toBeVisible();
  await recipes.getByRole('button',{name:'Importă rețetă',exact:true}).click();
  await expect(page).toHaveURL(/\/retete\/import\//);
- await expect(page.locator('.capture-fab')).toHaveCount(0);
+ await expect(page.getByRole('button',{name:'Acțiuni rețete',exact:true})).toHaveCount(0);
  await page.goto('/camara/');
  await expect(page.getByRole('button',{name:'Adaugă în cămară',exact:true})).toHaveCount(1);
- await page.getByRole('button',{name:'Adaugă în cămară',exact:true}).click();
+ await page.locator('main header').getByRole('button',{name:'Adaugă în cămară',exact:true}).click();
  const pantry=page.getByRole('dialog',{name:'Adaugă în cămară',exact:true});
  await expect(pantry.getByLabel('Cantitate',{exact:true})).toBeVisible();
  await expect(pantry.getByLabel('Expiră pe')).not.toBeVisible();
@@ -22,6 +22,7 @@ test('recipe FAB owns creation/import and pantry FAB opens a single compact form
  await expect(pantry.getByLabel('Cantitate',{exact:true})).toHaveValue('500');
  await pantry.getByRole('button',{name:'Salvează',exact:true}).click();
  await expect(pantry).not.toBeVisible();
+ await page.getByRole('searchbox',{name:'Caută în cămară'}).fill('Făină albă');
  await expect(page.getByText('500 g',{exact:true})).toBeVisible();
 });
 
@@ -46,14 +47,15 @@ test('home camera selection reads immediately, supports reframe and keeps the pi
  await expect(page.getByText(/^Am citit/)).toBeVisible();
 });
 
-for(const theme of ['luminos','intunecat'])test(`home shows its three blocks without scroll, ${theme}`,async({page})=>{
+for(const theme of ['luminos','intunecat'])test(`home prioritizes the meal card and keeps the other sections reachable, ${theme}`,async({page})=>{
  await page.setViewportSize({width:390,height:844});
  await page.addInitScript(theme=>localStorage.setItem('camara-tema',theme),theme);
  // Seeded demo exercises the budget and recent transaction states as well.
  await page.clock.setFixedTime(new Date('2026-03-08T09:00:00+02:00'));await page.goto('/');
  const safeBottom=await page.locator('.app-mobile-nav').evaluate(el=>el.getBoundingClientRect().top);
  for(const id of ['home-meal','home-shopping-pantry','home-budget']){
-  const card=page.getByTestId(id);await expect(card).toBeVisible();const box=(await card.boundingBox())!;expect(box.y+box.height).toBeLessThanOrEqual(safeBottom);
+  const card=page.getByTestId(id);await expect(card).toBeVisible();const box=(await card.boundingBox())!;if(id==='home-meal') expect(box.y+box.height).toBeLessThanOrEqual(safeBottom);
+  else { await card.scrollIntoViewIfNeeded(); await expect(card).toBeInViewport(); }
  }
  await expect(page.locator('main').getByRole('button',{name:'Scanează bon',exact:true})).toHaveCount(0);
  await page.screenshot({path:`test-results/lot1-home-${theme}.png`,fullPage:true});
@@ -66,21 +68,23 @@ test('ready-only excludes partial stock and reacts to stock changes offline',asy
  await expect.poll(()=>page.evaluate(async()=>!!(await navigator.serviceWorker.ready).active)).toBe(true);
  await context.setOffline(true);
  await page.goto('/camara/');
- // The catalog recipe requires cornmeal and milk; water/salt are pantry staples.
- for(const text of ['1 kg mălai','2 l lapte integral']){
+ // The catalog recipe requires eggs, spinach, feta and oil.
+ for(const text of ['150 g ouă','50 g spanac','50 g feta','5 g ulei de măsline']){
   await page.getByRole('button',{name:'Adaugă în cămară',exact:true}).click();
   const sheet=page.getByRole('dialog',{name:'Adaugă în cămară',exact:true});
   const box=sheet.getByRole('combobox',{name:'Caută sau adaugă un produs'});await box.fill(text);await expect(sheet.getByRole('listbox')).toBeVisible();await box.press('Enter');
   await sheet.getByRole('button',{name:'Salvează',exact:true}).click();await expect(sheet).not.toBeVisible();
  }
  await page.goto('/retete/');await page.getByRole('button',{name:'Gata de gătit',exact:true}).click();
- await expect(page.getByRole('link',{name:/Mămăligă cu lapte/}).first()).toBeVisible();
+ await expect(page.getByRole('link',{name:'Începe să gătești Omletă cu spanac și brânză feta',exact:true})).toBeVisible();
  await page.goto('/camara/');
- await page.getByRole('button',{name:'Acțiuni pentru Mălai',exact:true}).click();
+ await page.getByRole('searchbox',{name:'Caută în cămară'}).fill('Spanac');
+ await page.getByRole('button',{name:'Acțiuni pentru Spanac',exact:true}).click();
  await page.getByRole('button',{name:'S-a terminat → Pe listă',exact:true}).click();
- await expect(page.getByRole('button',{name:'Acțiuni pentru Mălai',exact:true})).toHaveCount(0);
+ await expect(page.getByRole('button',{name:'Acțiuni pentru Spanac',exact:true})).toHaveCount(0);
  await page.goto('/retete/');await page.getByRole('button',{name:'Gata de gătit',exact:true}).click();
- await expect(page.getByRole('link',{name:/Mămăligă cu lapte/})).toHaveCount(0);
+ await expect(page.getByRole('link',{name:'Începe să gătești Omletă cu spanac și brânză feta',exact:true})).toHaveCount(0);
+ await expect(page.getByRole('region',{name:'Îți mai lipsesc câteva ingrediente'}).getByRole('link',{name:/Omletă cu spanac și brânză feta/})).toContainText('Lipsesc: Spanac');
 });
 
 test('shopping FAB creates a new list even when already on the lists route',async({page})=>{
@@ -88,7 +92,7 @@ test('shopping FAB creates a new list even when already on the lists route',asyn
  await page.getByRole('button',{name:'Acțiuni cumpărături',exact:true}).click();
  await page.getByRole('dialog',{name:'Cumpărături',exact:true}).getByRole('button',{name:'Listă nouă',exact:true}).click();
  await expect(page).toHaveURL(/\/cumparaturi\/lista\/\?id=/);
- await expect(page.getByRole('button',{name:/^Redenumește Cumpărături/})).toBeVisible();
+ await expect(page.getByRole('heading',{name:/^Cumpărături/})).toBeVisible();
 });
 
 test('income opened by contextual FAB returns keyboard focus to that FAB on close',async({page})=>{

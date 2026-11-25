@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { ChevronRight, History, ListFilter } from "lucide-react";
+import { ChevronRight, ListFilter, NotebookIcon } from "@/components/ui/icons";
 import { Sheet } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { LabeledInput } from "@/components/ui/fields";
@@ -169,7 +169,7 @@ export function ListActionsSheet({ open, onClose }: ListActionsSheetProps) {
                       className="flex w-full items-center justify-between p-3.5 text-left transition-colors hover:bg-surface-container-high focus-visible:outline-2 focus-visible:outline-brand"
                     >
                       <div className="min-w-0 flex-1 pr-2">
-                        <p className="font-medium text-ink">{choice.title}</p>
+                        <p className="text-[15px] font-medium text-ink">{choice.title}</p>
                         <p className="text-xs text-ink-2">{choice.subtitle}</p>
                       </div>
                       <ChevronRight size={18} className="shrink-0 text-ink-3" />
@@ -183,7 +183,7 @@ export function ListActionsSheet({ open, onClose }: ListActionsSheetProps) {
           {(data.txSources?.length ?? 0) > 0 && (
             <div>
               <h3 className="mb-2 flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-ink-2">
-                <History size={14} /> Din istoric
+                <NotebookIcon size={14} /> Din istoric
               </h3>
               <ul className="divide-y divide-line overflow-hidden rounded-[20px] bg-surface-2">
                 {data.txSources.map((choice) => (
@@ -194,7 +194,7 @@ export function ListActionsSheet({ open, onClose }: ListActionsSheetProps) {
                       className="flex w-full items-center justify-between p-3.5 text-left transition-colors hover:bg-surface-container-high focus-visible:outline-2 focus-visible:outline-brand"
                     >
                       <div className="min-w-0 flex-1 pr-2">
-                        <p className="font-medium text-ink">{choice.title}</p>
+                        <p className="text-[15px] font-medium text-ink">{choice.title}</p>
                         <p className="text-xs text-ink-2">{choice.subtitle}</p>
                       </div>
                       <ChevronRight size={18} className="shrink-0 text-ink-3" />

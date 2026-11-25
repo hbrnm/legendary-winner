@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 import { describe, expect, it, vi } from "vitest";
 import { render } from "@testing-library/react";
-import { RecipeAvatar, RecipePhotoCredit, RecipeVisual, hasRecipeVisual, recipeInitial } from "./recipe-visual";
+import { RecipeAvatar, RecipeMealBadge, RecipePhotoCredit, RecipeVisual, hasRecipeVisual, recipeInitial } from "./recipe-visual";
 
 vi.mock("@/data/recipe-photos", async (load) => {
   const real = await load<typeof import("@/data/recipe-photos")>();
@@ -81,5 +81,12 @@ describe("RecipeAvatar", () => {
     expect(hasRecipeVisual({ image_url: null })).toBe(false);
     expect(hasRecipeVisual({ image_url: "/retete/retrasa.webp" })).toBe(false);
     expect(hasRecipeVisual({ image_url: "/retete/bulz.webp" })).toBe(true);
+  });
+
+  it("afișează insigna colorată pe tip de masă, fără imagine img", () => {
+    const { container } = render(<RecipeMealBadge categories={["mic_dejun"]} />);
+    expect(container.querySelector("img")).toBeNull();
+    expect(container.querySelector("svg")).not.toBeNull();
+    expect(container.firstElementChild?.className).toContain("bg-meal-morning");
   });
 });

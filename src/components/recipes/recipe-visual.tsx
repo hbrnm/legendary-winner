@@ -2,6 +2,7 @@
 
 import type { MealSlot, Recipe, RecipeCategoryId } from "@/lib/domain/types";
 import { RECIPE_PHOTO_SOURCE_LABELS, catalogPhotoByUrl, recipePhotoLicenseLabel } from "@/data/recipe-photos";
+import { ChefHat, MealEveningIcon, MealMorningIcon, MealNoonIcon, MealSnackIcon } from "@/components/ui/icons";
 
 export const SLOT_LABELS: Record<MealSlot, string> = { mic_dejun: "Mic dejun", pranz: "Prânz", cina: "Cină", gustare: "Gustare" };
 
@@ -51,6 +52,51 @@ export function RecipeAvatar({ recipe, size = "md" }: { recipe: Pick<Recipe, "na
   void recipe;
   void size;
   return null;
+}
+
+export type MealBadgeKey = "mic_dejun" | "pranz" | "cina" | "gustari" | "alte";
+
+const MEAL_BADGE_STYLES: Record<MealBadgeKey, { classes: string; Icon: typeof MealMorningIcon }> = {
+  mic_dejun: { classes: "bg-meal-morning text-meal-morning-ink", Icon: MealMorningIcon },
+  pranz: { classes: "bg-meal-noon text-meal-noon-ink", Icon: MealNoonIcon },
+  cina: { classes: "bg-meal-evening text-meal-evening-ink", Icon: MealEveningIcon },
+  gustari: { classes: "bg-meal-snack text-meal-snack-ink", Icon: MealSnackIcon },
+  alte: { classes: "bg-surface-2 text-brand", Icon: ChefHat },
+};
+
+export function resolveMealBadge(categories?: RecipeCategoryId[], meal?: MealSlot | MealBadgeKey): MealBadgeKey {
+  if (meal === "gustare") return "gustari";
+  if (meal && meal in MEAL_BADGE_STYLES) return meal as MealBadgeKey;
+  if (categories) {
+    for (const key of ["mic_dejun", "pranz", "cina", "gustari"] as const) {
+      if (categories.includes(key)) return key;
+    }
+  }
+  return "alte";
+}
+
+export function mealBadgeClasses(meal: MealSlot | MealBadgeKey): string {
+  return MEAL_BADGE_STYLES[resolveMealBadge(undefined, meal)].classes;
+}
+
+/** Insignă colorată pe tip de masă pentru rețetele fără fotografie și etichetele de categorie. */
+export function RecipeMealBadge({
+  categories,
+  meal,
+  size = "md",
+}: {
+  categories?: RecipeCategoryId[];
+  meal?: MealSlot | MealBadgeKey;
+  size?: "sm" | "md";
+}) {
+  const key = resolveMealBadge(categories, meal);
+  const { classes, Icon } = MEAL_BADGE_STYLES[key];
+  const dims = size === "sm" ? "h-12 w-12 rounded-xl" : "h-16 w-16 rounded-2xl";
+  return (
+    <span aria-hidden="true" className={`inline-flex shrink-0 items-center justify-center ${dims} ${classes}`}>
+      <Icon size={size === "sm" ? 21 : 26} strokeWidth={1.75} />
+    </span>
+  );
 }
 
 /** Dacă fotografia rețetei se poate afișa (există și nu e o poză retrasă din catalog). */

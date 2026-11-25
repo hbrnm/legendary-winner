@@ -22,6 +22,7 @@ export type CategoryId =
   | "congelate"
   | "bauturi"
   | "dulciuri-gustari"
+  | "ingrediente-retete"
   | "copii"
   | "curatenie"
   | "igiena"
@@ -79,6 +80,7 @@ export interface RecipeSeed {
   prep: number;
   cook: number;
   difficulty: Difficulty;
+  nutrition?: NonNullable<import("@/lib/domain/types").Recipe["nutrition"]>;
   ingredients: RecipeIngredientSeed[];
   steps: string[];
 }

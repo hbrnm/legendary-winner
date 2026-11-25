@@ -64,6 +64,7 @@ export interface AppState {
   familyBudgetEnabled: boolean;
   switchHousehold: (id: string) => Promise<void>;
   refreshHouseholds: () => Promise<void>;
+  setLocalDisplayName: (name: string) => Promise<void>;
   syncNow: () => Promise<void>;
   signOut: (options?: { force?: boolean }) => Promise<SignOutResult>;
   deleteAccount: () => Promise<void>;
@@ -155,9 +156,10 @@ export function AppProvider({ children }: { children: ReactNode }) {
       const d = openDatabase("camara-demo");
       await seedCatalog(d);
       await ensureDemoHousehold(d, { example: !demoStartsEmpty() });
+      const savedName = await getMeta<string>(d, "display_name");
       if (cancelled) return;
       setDb(d);
-      setUser({ id: DEMO_USER_ID, email: null, name: null });
+      setUser({ id: DEMO_USER_ID, email: null, name: savedName ?? (demoStartsEmpty() ? null : "Ana") });
       setHouseholds([{ id: DEMO_HOUSEHOLD_ID, name: "Gospodăria mea", role: "owner" }]);
       setActiveId(DEMO_HOUSEHOLD_ID);
       setIsAppAdmin(true);
@@ -366,6 +368,15 @@ export function AppProvider({ children }: { children: ReactNode }) {
     setStatus("signed_out");
   }, [mode, db]);
 
+  const setLocalDisplayName = useCallback(
+    async (name: string) => {
+      const trimmed = name.trim() || null;
+      setUser((prev) => (prev ? { ...prev, name: trimmed } : prev));
+      if (db) await setMeta(db, "display_name", trimmed);
+    },
+    [db],
+  );
+
   const value: AppState = {
     status,
     mode: mode ?? "cloud",
@@ -385,6 +396,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     familyBudgetEnabled,
     switchHousehold,
     refreshHouseholds,
+    setLocalDisplayName,
     syncNow: async () => {
       await engineRef.current?.syncNow();
     },

@@ -20,7 +20,7 @@ import { RECIPE_PHOTOS, recipePhotoUrl } from "./recipe-photos";
  * sincronizare, clientul cere de la server doar ce e mai nou de atât.
  * Se schimbă când se modifică datele din src/data.
  */
-export const CATALOG_VERSION = "2026-10-22T12:00:00.000Z";
+export const CATALOG_VERSION = "2026-11-24T00:00:00.000Z";
 
 const meta = { household_id: null, created_at: CATALOG_VERSION, updated_at: CATALOG_VERSION, deleted_at: null };
 
@@ -72,7 +72,7 @@ export function buildCatalog(): Catalog {
       cook_minutes: r.cook,
       difficulty: r.difficulty,
       image_url: photos.get(r.id) ?? null,
-      nutrition: null,
+      nutrition: r.nutrition ?? null,
     })),
     recipe_ingredients: RECIPE_SEEDS.flatMap((r) =>
       r.ingredients.map((ing, i) => ({

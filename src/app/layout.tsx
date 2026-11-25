@@ -7,6 +7,7 @@ import { AppProvider } from "@/components/app/app-provider";
 import { ToastProvider } from "@/components/ui/toast";
 import { InstallAppProvider } from "@/components/app/install-app";
 import { ServiceWorker } from "@/components/app/service-worker";
+import { THEME_BOOTSTRAP, THEME_COLORS } from "@/lib/theme";
 
 export const metadata: Metadata = {
   title: { default: "Cămara", template: "%s · Cămara" },
@@ -22,19 +23,16 @@ export const viewport: Viewport = {
   initialScale: 1,
   viewportFit: "cover",
   themeColor: [
-    { media: "(prefers-color-scheme: light)", color: "#F7F3EE" },
-    { media: "(prefers-color-scheme: dark)", color: "#191410" },
+    { media: "(prefers-color-scheme: light)", color: THEME_COLORS.luminos },
+    { media: "(prefers-color-scheme: dark)", color: THEME_COLORS.intunecat },
   ],
 };
-
-// Aplică tema aleasă înainte de afișare, ca să nu clipească ecranul.
-const THEME_SCRIPT = `try{var t=localStorage.getItem("camara-tema");if(t==="luminos"||t==="intunecat")document.documentElement.dataset.theme=t}catch(e){}`;
 
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html lang="ro" className={fontVariables} suppressHydrationWarning>
       <head>
-        <script dangerouslySetInnerHTML={{ __html: THEME_SCRIPT }} />
+        <script dangerouslySetInnerHTML={{ __html: THEME_BOOTSTRAP }} />
       </head>
       <body className="antialiased">
         <ToastProvider>

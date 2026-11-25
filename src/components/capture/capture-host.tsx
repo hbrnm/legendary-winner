@@ -3,11 +3,10 @@
 import { lazy, Suspense, useCallback, useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { usePathname, useRouter } from "next/navigation";
-import { Camera, Copy, Plus, Receipt, ShoppingBasket, Wallet } from "lucide-react";
+import { BasketIcon, Camera, Copy, PurseIcon, ReceiptIcon } from "@/components/ui/icons";
 import { useAction, useData } from "@/components/app/hooks";
 import { useApp } from "@/components/app/app-provider";
-import { useToast } from "@/components/ui/toast";
-import { Button } from "@/components/ui/button";
+import { AddButton, Button } from "@/components/ui/button";
 import { LabeledInput, LabeledSelect } from "@/components/ui/fields";
 import { Sheet } from "@/components/ui/sheet";
 import { Spinner } from "@/components/ui/misc";
@@ -23,6 +22,7 @@ import type { PurchaseSource, UnitCode } from "@/lib/domain/types";
 import { capturePlaces, shortcutCategory, type ExpenseShortcut, actionContext } from "./model";
 import { PantryItemSheet } from "@/components/pantry/pantry-item-sheet";
 import { ListActionsSheet } from "@/components/shopping/list-actions-sheet";
+import { ListImportSheet } from "@/components/shopping/list-import-sheet";
 import { useActiveShoppingList } from "@/components/shopping/active-list-provider";
 import { dispatchCapture, type CaptureRequest } from "./events";
 
@@ -37,13 +37,13 @@ const chip = "inline-flex min-h-12 shrink-0 items-center rounded-full px-4 text-
 export function CaptureHost({ inlineTarget }: { inlineTarget?: HTMLElement | null } = {}) {
   const { familyBudgetEnabled, ctx } = useApp();
   const { run, busy } = useAction();
-  const toast = useToast();
   const router = useRouter();
   const pathname = usePathname();
   const context = actionContext(pathname);
   const {activeListId,selectList,ready} = useActiveShoppingList();
   const [pantryOpen,setPantryOpen] = useState(false);
   const [copyOpen, setCopyOpen] = useState(false);
+  const [importOpen, setImportOpen] = useState(false);
   const creatingList = useRef(false);
   const [captureVersion,setCaptureVersion] = useState(0);
   const [cameraFile,setCameraFile] = useState<File|null>(null);
@@ -52,7 +52,6 @@ export function CaptureHost({ inlineTarget }: { inlineTarget?: HTMLElement | nul
   const wasOpen = useRef(false);
   const [request, setRequest] = useState<CaptureRequest | null>(null);
   const [menu, setMenu] = useState(false);
-  const [keyboard, setKeyboard] = useState(false);
   const [amount, setAmount] = useState("");
   const [place, setPlace] = useState("");
   const [retailerId, setRetailerId] = useState<string | null>(null);
@@ -89,23 +88,16 @@ export function CaptureHost({ inlineTarget }: { inlineTarget?: HTMLElement | nul
     window.addEventListener("camara:capture", open);
     return () => window.removeEventListener("camara:capture", open);
   }, [openCapture]);
-  useEffect(() => {
-    const update = () => setKeyboard(document.activeElement instanceof HTMLInputElement || document.activeElement instanceof HTMLTextAreaElement || Boolean(window.visualViewport && window.innerHeight - window.visualViewport.height > 140));
-    document.addEventListener("focusin", update); document.addEventListener("focusout", update);
-    window.visualViewport?.addEventListener("resize", update);
-    return () => { document.removeEventListener("focusin", update); document.removeEventListener("focusout", update); window.visualViewport?.removeEventListener("resize", update); };
-  }, []);
 
   useEffect(()=>{
-    const open=menu||request!==null||pantryOpen||copyOpen;
+    const open=menu||request!==null||pantryOpen||copyOpen||importOpen;
     if(wasOpen.current&&!open){
-      setKeyboard(false);
       const frame=requestAnimationFrame(()=>{if(!document.querySelector('dialog[open]'))fabRef.current?.focus();});
       wasOpen.current=open;
       return ()=>cancelAnimationFrame(frame);
     }
     wasOpen.current=open;
-  },[menu,request,pantryOpen,copyOpen]);
+  },[menu,request,pantryOpen,copyOpen,importOpen]);
 
   const createDatedList = useCallback(async () => {
     if (creatingList.current) return;
@@ -152,16 +144,12 @@ export function CaptureHost({ inlineTarget }: { inlineTarget?: HTMLElement | nul
   }
   const fabLabel = context === 'recipes' ? 'Acțiuni rețete' : context === 'pantry' ? 'Adaugă în cămară' : context === 'budget' ? 'Acțiuni buget' : context === 'shopping' ? 'Acțiuni cumpărături' : 'Adaugă rapid';
   const menuTitle = context === 'recipes' ? 'Rețete' : context === 'budget' ? 'Buget' : context === 'shopping' ? 'Cumpărături' : 'Adaugă rapid';
-  const trigger = context && !request && !menu && !pantryOpen && !copyOpen && (!keyboard || inlineTarget) && (
-    <button
-      type="button"
+  const trigger = context && !request && !menu && !pantryOpen && !copyOpen && !importOpen && (
+    <AddButton
       ref={fabRef}
-      className={inlineTarget ? "capture-inline-trigger" : "capture-fab focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-brand"}
       aria-label={fabLabel}
       onClick={() => context === "pantry" ? setPantryOpen(true) : setMenu(true)}
-    >
-      <Plus size={inlineTarget ? 22 : 28} />
-    </button>
+    />
   );
   return <>
     <input ref={cameraInput} type="file" accept="image/*" capture="environment" className="hidden" tabIndex={-1} aria-hidden="true" data-testid="camera-rapida" onChange={e=>{
@@ -172,6 +160,7 @@ export function CaptureHost({ inlineTarget }: { inlineTarget?: HTMLElement | nul
     {inlineTarget ? createPortal(trigger, inlineTarget) : inlineTarget === undefined && trigger}
     {pantryOpen&&<PantryItemSheet onClose={()=>setPantryOpen(false)}/>}
     {copyOpen&&<ListActionsSheet open={copyOpen} onClose={()=>setCopyOpen(false)}/>}
+    {importOpen&&<ListImportSheet open={importOpen} onClose={()=>setImportOpen(false)}/>}
     <Sheet open={menu} onClose={() => setMenu(false)} title={menuTitle}>
       <div className="flex flex-col gap-3">
         {context==='recipes'?<>
@@ -179,14 +168,14 @@ export function CaptureHost({ inlineTarget }: { inlineTarget?: HTMLElement | nul
           <Button block variant="secondary" onClick={()=>{setMenu(false);router.push('/retete/import/');}}>Importă rețetă</Button>
         </>:context==='shopping'?<>
           {pathname.startsWith("/cumparaturi/lista") && (
-            <Button block variant="secondary" icon={<ShoppingBasket size={20} />} onClick={() => dispatchCapture({mode:"shopping",listId:new URLSearchParams(window.location.search).get("id")??undefined})}>Adaugă pe listă</Button>
+            <Button block variant="secondary" icon={<BasketIcon size={20} />} onClick={() => dispatchCapture({mode:"shopping",listId:new URLSearchParams(window.location.search).get("id")??undefined})}>Adaugă pe listă</Button>
           )}
           <Button block onClick={createDatedList}>Listă nouă</Button>
           <Button block variant="secondary" icon={<Copy size={18} />} onClick={()=>{setMenu(false);setCopyOpen(true);}}>Copiază o listă mai veche</Button>
-          <Button block variant="secondary" onClick={()=>{setMenu(false);toast("Importul de liste va fi disponibil în curând.");}}>Importă listă</Button>
+          <Button block variant="secondary" onClick={()=>{setMenu(false);setImportOpen(true);}}>Importă listă</Button>
         </>:<>
-          {context!=='budget'&&<Button block variant="secondary" icon={<ShoppingBasket size={20} />} onClick={() => dispatchCapture({mode:"shopping",listId:pathname.startsWith("/cumparaturi/lista") ? new URLSearchParams(window.location.search).get("id")??undefined : undefined})}>Adaugă pe listă</Button>}
-          <Button block icon={<Wallet size={20} />} onClick={() => dispatchCapture({mode:"manual"})}>Adaugă cheltuială</Button>
+          {context!=='budget'&&<Button block variant="secondary" icon={<BasketIcon size={20} />} onClick={() => dispatchCapture({mode:"shopping",listId:pathname.startsWith("/cumparaturi/lista") ? new URLSearchParams(window.location.search).get("id")??undefined : undefined})}>Adaugă pe listă</Button>}
+          <Button block icon={<PurseIcon size={20} />} onClick={() => dispatchCapture({mode:"manual"})}>Adaugă cheltuială</Button>
           {context==='budget'?<Button block variant="secondary" onClick={()=>{setMenu(false);window.dispatchEvent(new Event('camara:income'));}}>Adaugă venit</Button>:context==='home'&&<Button block variant="secondary" icon={<Camera size={20} />} onClick={() => {cameraInput.current?.click();setMenu(false);}}>Scanează bon</Button>}
         </>}
       </div>
@@ -218,7 +207,7 @@ export function CaptureHost({ inlineTarget }: { inlineTarget?: HTMLElement | nul
     >
       {request?.mode !== "shopping" && <div className="mb-4 flex rounded-full bg-surface-2 p-1" role="group" aria-label="Metoda de înregistrare">
         <button type="button" aria-pressed={request?.mode === "manual"} className={`${chip} flex-1 justify-center ${request?.mode === "manual" ? "bg-brand text-brand-ink" : "text-ink-2"}`} disabled={busy} onClick={() => {setCameraFile(null);if(request?.listId) dispatchCapture({mode:"manual",listId:request.listId}); else setRequest(r => r && {...r,mode:"manual"});}}>Introducere manuală</button>
-        <button type="button" aria-pressed={request?.mode === "scan"} className={`${chip} flex-1 justify-center ${request?.mode === "scan" ? "bg-brand text-brand-ink" : "text-ink-2"}`} disabled={busy} onClick={() => setRequest(r => r && {...r,mode:"scan"})}><Receipt size={17} className="mr-1" /> Scanează bon</button>
+        <button type="button" aria-pressed={request?.mode === "scan"} className={`${chip} flex-1 justify-center ${request?.mode === "scan" ? "bg-brand text-brand-ink" : "text-ink-2"}`} disabled={busy} onClick={() => setRequest(r => r && {...r,mode:"scan"})}><ReceiptIcon size={17} className="mr-1" /> Scanează bon</button>
       </div>}
       {request?.mode === "manual" && <form onSubmit={e => {e.preventDefault(); void saveExpense();}} className="flex flex-col gap-3 sm:gap-4">
         {!familyBudgetEnabled && <p role="status" className="text-sm text-ink-2">Cheltuielile familiei vor fi disponibile după actualizarea și sincronizarea gospodăriei.</p>}

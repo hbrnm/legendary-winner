@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState, useSyncExternalStore } from "react";
-import { Camera, RefreshCw, Trash2 } from "lucide-react";
+import { Camera, RefreshCw, Trash2 } from "@/components/ui/icons";
 import type { Recipe, RecipePhoto } from "@/lib/domain/types";
 import { useApp } from "@/components/app/app-provider";
 import { useAction, useData } from "@/components/app/hooks";
@@ -10,7 +10,7 @@ import { ConfirmSheet } from "@/components/ui/sheet";
 import { useToast } from "@/components/ui/toast";
 import { activeRecipePhoto, addRecipePhoto, recipePhotoBlob, removeRecipePhoto } from "@/lib/services/recipe-photos";
 import { resizePhoto } from "@/lib/photo-resize";
-import { RecipePhotoCredit, RecipeVisual, visualDims, type RecipeVisualSize } from "./recipe-visual";
+import { RecipeMealBadge, RecipePhotoCredit, RecipeVisual, hasRecipeVisual, visualDims, type RecipeVisualSize } from "./recipe-visual";
 
 // Fotografia gospodăriei la o rețetă (.tasks/008, etapa 5): are întâietate
 // față de cea din catalog. Textele aprobate de proprietar, 15 oct. 2026.
@@ -50,14 +50,15 @@ export function useHouseholdPhoto(recipeId: string): { photo: RecipePhoto | null
 
 /**
  * Imaginea rețetei în liste și pe pagina ei: a gospodăriei, altfel cea din
- * catalog. Fără fotografie nu afișează un substitut.
+ * catalog. În liste (`avatar`), rețetele fără fotografie primesc o insignă colorată pe tip de masă.
  */
-export function RecipeImage({ recipe, size = "md", avatar = false, priority = false }: { recipe: Pick<Recipe, "id" | "image_url"> & Partial<Pick<Recipe, "name">>; size?: RecipeVisualSize; avatar?: boolean; priority?: boolean }) {
+export function RecipeImage({ recipe, size = "md", avatar = false, priority = false }: { recipe: Pick<Recipe, "id" | "image_url"> & Partial<Pick<Recipe, "name" | "categories">>; size?: RecipeVisualSize; avatar?: boolean; priority?: boolean }) {
   const { src } = useHouseholdPhoto(recipe.id);
   // eslint-disable-next-line @next/next/no-img-element
   if (src) return <img src={src} alt="" className={`${visualDims(size)} shrink-0 object-cover`} loading={priority ? "eager" : "lazy"} fetchPriority={priority ? "high" : undefined} />;
-  void avatar;
-  return <RecipeVisual recipe={recipe} size={size} priority={priority} />;
+  if (hasRecipeVisual(recipe)) return <RecipeVisual recipe={recipe} size={size} priority={priority} />;
+  if (avatar) return <RecipeMealBadge categories={recipe.categories} size={size === "lg" ? "md" : size} />;
+  return null;
 }
 
 function subscribeOnline(fn: () => void) {

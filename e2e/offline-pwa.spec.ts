@@ -37,15 +37,15 @@ test("lista funcționează fără internet, iar modificările rămân", async ({
   await context.setOffline(false);
 });
 
-test("fotografia din catalog are autorul și rămâne vizibilă fără internet", async ({ page, context }) => {
+test("fotografia gospodăriei rămâne vizibilă fără internet", async ({ page, context }) => {
   await start(page);
   await expect.poll(() => page.evaluate(async () => Boolean((await navigator.serviceWorker.ready).active))).toBe(true);
-  await page.goto("/retete/reteta/?id=ciorba-de-perisoare");
-  const photo = page.locator('img[src="/retete/ciorba-de-perisoare.webp"]');
+  await page.goto("/retete/reteta/?id=ciorba-perisoare-curcan-bors");
+  await page.getByTestId('fotografie-fisier').setInputFiles('e2e/fixtures/ciorba-1600x1200.jpg');
+  const photo = page.locator('main img[src^="blob:"]');
   await expect(photo).toBeVisible();
   await expect.poll(() => photo.evaluate((img: HTMLImageElement) => img.naturalWidth)).toBeGreaterThan(0);
-  await expect(page.getByText(/^Foto: .+ \/ Wikimedia Commons · CC BY-SA 4\.0$/)).toBeVisible();
-  // A doua încărcare trece prin service worker, care pune fotografia în cache.
+  // Confirmă că fotografia este disponibilă după reîncărcare și fără rețea.
   await page.reload();
   await expect.poll(() => photo.evaluate((img: HTMLImageElement) => img.naturalWidth)).toBeGreaterThan(0);
 

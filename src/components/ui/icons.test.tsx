@@ -11,8 +11,9 @@ describe("iconițele Cămarei", () => {
       expect(html).toContain('stroke="currentColor"');
       expect(html).toContain('stroke-width="2"');
       expect(html).toContain('aria-hidden="true"');
-      expect(html).toContain('class="text-brand"');
-      expect(html).toContain("<path");
+      expect(html.match(/class="([^"]*)"/)?.[1].split(" ")).toContain("text-brand");
+      expect(html).toMatch(/<(path|circle|ellipse|line|polyline|polygon|rect)\b/);
+      expect(renderToStaticMarkup(<Icon />)).toContain('stroke-width="1.75"');
     });
   }
 });

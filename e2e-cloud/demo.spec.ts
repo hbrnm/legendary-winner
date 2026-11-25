@@ -27,9 +27,11 @@ test("demo înainte de cont: explorare, salvare locală, reîncărcare și reven
   await expect(count).toContainText(/7\s*de luat/);
   await count.click();
   const search = page.getByRole("combobox", { name: "Caută sau adaugă un produs" });
-  await search.fill("Produs pentru explorarea demo");
-  await expect(page.getByRole("listbox")).toBeVisible();
-  await search.press("Enter");
+  await expect(page).toHaveURL(/\/cumparaturi\/lista\//);
+  await search.click();
+  await expect(search).toBeFocused();
+  await search.pressSequentially("Produs pentru explorarea demo");
+  await page.getByRole("option", { name: /Adaugă .*Produs pentru explorarea demo.* ca produs nou/ }).click();
   await expect(page.getByRole("checkbox", { name: "Bifează Produs pentru explorarea demo" })).toBeVisible();
   await page.goto("/");
   await expect(count).toContainText(/8\s*de luat/);

@@ -157,9 +157,9 @@ export async function seedDemoExample(db: CamaraDB, householdId: string, userId:
   // Planul meselor: 3 rețete în săptămâna curentă.
   const week = startOfWeek(today);
   const meals: [number, "pranz" | "cina", string][] = [
-    [2, "pranz", "ciorba-de-legume"],
-    [4, "cina", "mancare-de-mazare-cu-pui"],
-    [6, "pranz", "sarmale"],
+    [2, "pranz", "ciorba-perisoare-curcan-bors"],
+    [4, "cina", "supa-crema-dovleac-copt-seminte"],
+    [6, "pranz", "ardei-umpluti-orez-ciuperci-legume"],
   ];
   for (const [d, slot, recipe_id] of meals) {
     if (await db.recipes.get(recipe_id)) await addMeal(ctx, { date: addDays(week, d), slot, recipe_id, servings: 4 });

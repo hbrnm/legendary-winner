@@ -2,14 +2,13 @@
 
 import { Suspense, useEffect, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { ArrowLeft } from "lucide-react";
 import { AppShell } from "@/components/app/shell";
 import { useApp } from "@/components/app/app-provider";
 import { useAction } from "@/components/app/hooks";
 import { RecipeEditor } from "@/components/recipes/recipe-editor";
 import { Button } from "@/components/ui/button";
 import { Field, Input, Segmented, TextArea } from "@/components/ui/fields";
-import { Spinner } from "@/components/ui/misc";
+import { Spinner, PageHeader } from "@/components/ui/misc";
 import { callImportRecipe, callTranslateRecipe } from "@/lib/supabase/client";
 import { looksForeign } from "@/lib/domain/recipe-import";
 import { productMap } from "@/lib/services/queries";
@@ -42,13 +41,6 @@ function Importer() {
   useEffect(() => {
     if (shared) router.replace("/retete/import/");
   }, [shared, router]);
-  useEffect(() => {
-    if (!autoRead.current || !ctx || !linkWorks) return;
-    autoRead.current = false;
-    void read("link", link);
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- doar la pornire, cu linkul primit
-  }, [ctx, linkWorks]);
-
   async function read(how: Mode = mode, value: string = how === "link" ? link : text) {
     const result = await run(async (ctx) => {
       const original = how === "link" ? await draftFromLink(value, callImportRecipe) : draftFromPastedText(value);
@@ -63,6 +55,13 @@ function Importer() {
     if (result) setReady(result);
   }
 
+  useEffect(() => {
+    if (!autoRead.current || !ctx || !linkWorks) return;
+    autoRead.current = false;
+    void read("link", link);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- doar la pornire, cu linkul primit
+  }, [ctx, linkWorks]);
+
   if (ready) return <RecipeEditor id={null} isGlobal={false} source={ready.source} imported={ready.prepared} onBack={() => setReady(null)} />;
 
   return (
@@ -72,12 +71,7 @@ function Importer() {
         void read();
       }}
     >
-      <div className="mb-4 flex items-center gap-1">
-        <button type="button" onClick={() => router.back()} aria-label="Înapoi" className="-ml-2 inline-flex h-12 w-12 shrink-0 items-center justify-center rounded-full text-ink-2 hover:bg-surface-2">
-          <ArrowLeft size={20} />
-        </button>
-        <h1 className="min-w-0 break-words text-[32px] font-bold leading-tight tracking-tight">Importă rețetă</h1>
-      </div>
+      <PageHeader variant="compact" back={{ onClick: () => router.back(), label: "Înapoi" }} title="Importă rețetă" />
 
       <Segmented<Mode>
         label="De unde iei rețeta"

@@ -37,7 +37,7 @@ describe("potrivirea liniilor de pe bon", () => {
       "Inghetata vanilie": "inghetata",
       "Sacosa maiou": null,
       "Ecotaxa/Cost DEEE": null,
-      "Unt de arahide": null,
+      "Unt de arahide": "reteta-unt-de-arahide-100",
       "Seminte de dovleac natur": "seminte-dovleac",
       "Ciocolata neagra 85%": "ciocolata-neagra",
       "Cuvertura de cacao": null,

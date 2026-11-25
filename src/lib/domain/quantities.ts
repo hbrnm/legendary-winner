@@ -141,6 +141,7 @@ export interface ShoppingNeed extends Need {
  * smântână (vândută la bucată) → 1 buc, cu nota „pentru rețete: 3 linguri”.
  * Cu greutatea pe bucată, 10 cepe → 1,5 kg, cu nota „pentru rețete: 10 buc”
  * (greutatea e aproximativă, deci bucățile rămân scrise).
+ * Pentru produse la bucată fără greutate cunoscută, păstrează cantitatea în g sau kg.
  */
 export function toShoppingNeed(need: Need, defaultUnit: UnitCode, factors?: ProductUnits | null): ShoppingNeed {
   if (need.quantity == null || !need.unit) return { product_id: need.product_id, quantity: null, unit: null, note: null };
@@ -153,6 +154,9 @@ export function toShoppingNeed(need: Need, defaultUnit: UnitCode, factors?: Prod
   if (viaPiece != null) {
     const h = humanize(viaPiece, defaultUnit);
     return { product_id: need.product_id, quantity: roundForShopping(h.quantity, h.unit), unit: h.unit, note: `pentru rețete: ${formatQuantity(need.quantity, need.unit)}` };
+  }
+  if (defaultUnit === "buc" && (need.unit === "g" || need.unit === "kg")) {
+    return { product_id: need.product_id, quantity: need.quantity, unit: need.unit, note: null };
   }
   return { product_id: need.product_id, quantity: 1, unit: defaultUnit, note: `pentru rețete: ${formatQuantity(need.quantity, need.unit)}` };
 }

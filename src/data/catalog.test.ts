@@ -5,10 +5,6 @@ import { CATEGORY_SEEDS } from "./categories";
 import { PRODUCT_SEEDS } from "./products";
 import { RECIPE_SEEDS } from "./recipes";
 import { NUTRITION_SEEDS } from "./nutrition";
-import { USOARE_MIC_DEJUN_GUSTARI } from "./recipes/usoare-mic-dejun-gustari";
-import { USOARE_SUPE_LEGUME } from "./recipes/usoare-supe-legume";
-import { USOARE_CARNE_PESTE } from "./recipes/usoare-carne-peste";
-import { USOARE_PASTE_DESERTURI } from "./recipes/usoare-paste-deserturi";
 import { isUnitCode } from "@/lib/domain/units";
 import { normalize } from "@/lib/domain/search";
 import { seedSql } from "../../scripts/generate-seed-sql";
@@ -54,10 +50,10 @@ describe("catalogul de produse", () => {
 });
 
 describe("catalogul de rețete", () => {
-  const products = new Set(PRODUCT_SEEDS.map((p) => p.id));
+  const products = new Set(buildCatalog().products.map((p) => p.id));
 
-  it("are cel puțin 185 de rețete, cu id-uri și denumiri unice", () => {
-    expect(RECIPE_SEEDS.length).toBeGreaterThanOrEqual(185);
+  it("are exact 80 de rețete, cu id-uri și denumiri unice", () => {
+    expect(RECIPE_SEEDS).toHaveLength(80);
     const names = RECIPE_SEEDS.map((r) => normalize(r.name));
     expect(names.filter((n, i) => names.indexOf(n) !== i)).toEqual([]);
     const ids = RECIPE_SEEDS.map((r) => r.id);
@@ -75,7 +71,7 @@ describe("catalogul de rețete", () => {
       expect(r.servings, r.id).toBeGreaterThan(0);
       expect(r.prep + r.cook, r.id).toBeGreaterThan(0);
       expect(r.ingredients.length, r.id).toBeGreaterThanOrEqual(2);
-      expect(r.steps.length, r.id).toBeGreaterThanOrEqual(3);
+      expect(r.steps.length, r.id).toBeGreaterThan(0);
       expect(r.categories.length, r.id).toBeGreaterThan(0);
       expect(r.description.length, r.id).toBeGreaterThan(10);
       for (const i of r.ingredients) {
@@ -90,29 +86,14 @@ describe("catalogul de rețete", () => {
     }
   });
 
-  it("acoperă toate categoriile și rețetele românești cerute", () => {
-    for (const c of ["mic_dejun", "pranz", "cina", "gustari", "supe_ciorbe", "traditionale", "carne", "peste", "vegetariene", "salate", "deserturi", "rapide", "meal_prep"]) {
-      expect(RECIPE_SEEDS.some((r) => r.categories.includes(c as never)), c).toBe(true);
+  it("are câte 20 de rețete per masă și nutriție declarată", () => {
+    for (const meal of ["mic_dejun", "pranz", "cina", "gustari"]) {
+      expect(RECIPE_SEEDS.filter((recipe) => recipe.categories.length === 1 && recipe.categories[0] === meal)).toHaveLength(20);
     }
-    for (const id of [
-      "ciorba-de-perisoare", "ciorba-de-legume", "ciorba-de-pui", "supa-de-pui-cu-taitei", "sarmale", "ardei-umpluti", "tocanita-de-porc",
-      "ostropel-de-pui", "pilaf-de-pui", "mancare-de-fasole-cu-carnati", "ghiveci-de-legume", "salata-de-vinete", "salata-de-boeuf",
-      "chiftele-de-porc-vita", "peste-la-cuptor-cu-legume", "mamaliga-cu-branza-si-smantana",
-    ]) {
-      expect(RECIPE_SEEDS.some((r) => r.id === id), id).toBe(true);
+    for (const recipe of buildCatalog().recipes) {
+      expect(recipe.nutrition?.kcal, recipe.id).toBeGreaterThan(0);
+      expect(recipe.nutrition?.fiber_g, recipe.id).toBeGreaterThanOrEqual(0);
     }
-    expect(RECIPE_SEEDS.filter((r) => r.cuisine === "internationala").length).toBeGreaterThanOrEqual(10);
-  });
-
-  it("are 100 de rețete noi ușoare sau medii (al doilea set)", () => {
-    const set = [...USOARE_MIC_DEJUN_GUSTARI, ...USOARE_SUPE_LEGUME, ...USOARE_CARNE_PESTE, ...USOARE_PASTE_DESERTURI];
-    expect(set).toHaveLength(100);
-    expect(set.filter((r) => r.difficulty === "dificil").map((r) => r.id)).toEqual([]);
-  });
-
-  it("nu conține valori nutriționale sau prețuri inventate", () => {
-    const c = buildCatalog();
-    expect(c.recipes.every((r) => r.nutrition === null)).toBe(true);
   });
 });
 

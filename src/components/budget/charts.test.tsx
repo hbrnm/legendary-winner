@@ -23,12 +23,12 @@ describe("ColumnChart", () => {
 });
 
 describe("DualBudgetBar", () => {
-  it("verde pentru cheltuit, galben pentru coș, proporțional cu bugetul", () => {
+  it("verde pentru cheltuit, auriu pentru coș, proporțional cu bugetul", () => {
     const { container, getByRole } = render(<DualBudgetBar spent={1000} pending={250} total={2500} label="Buget" />);
     const spent = container.querySelector<HTMLElement>("[data-part=cheltuit]")!;
     const cart = container.querySelector<HTMLElement>("[data-part=cos]")!;
-    expect(spent.className).toContain("bg-brand");
-    expect(cart.className).toContain("bg-warn");
+    expect(spent.className).toContain("bg-secondary");
+    expect(cart.className).toContain("bg-tertiary");
     expect(spent.style.width).toBe("40%");
     expect(cart.style.width).toBe("10%");
     expect(getByRole("progressbar").getAttribute("aria-valuenow")).toBe("50");

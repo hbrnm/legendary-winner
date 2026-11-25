@@ -1,11 +1,12 @@
 import { describe, expect, it } from "vitest";
 import { existsSync, statSync } from "node:fs";
 import { RECIPE_SEEDS } from "./recipes";
+import retiredRecipeIds from "./recipes/retired-ids.json";
 import { buildCatalog } from "./catalog";
 import { RECIPE_PHOTOS, catalogPhotoByUrl, recipePhotoProblems, recipePhotoUrl, type RecipePhotoSeed } from "./recipe-photos";
 import { isRecipeImageUrl } from "@/lib/domain/recipe-photos";
 
-const recipeIds = new Set(RECIPE_SEEDS.map((r) => r.id));
+const recipeIds = new Set([...RECIPE_SEEDS.map((r) => r.id), ...retiredRecipeIds]);
 
 function publicFileBytes(file: string): number | null {
   const url = new URL(`../../public/retete/${file}`, import.meta.url);

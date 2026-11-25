@@ -1,14 +1,13 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { ArrowLeft, Camera, ImageIcon, Mic, Search } from "lucide-react";
+import { Camera, ImageIcon, Mic, Search } from "@/components/ui/icons";
 import { useApp } from "@/components/app/app-provider";
 import { useAction, useData } from "@/components/app/hooks";
 import { ProductSearch } from "@/components/shopping/product-search";
 import { Button } from "@/components/ui/button";
-import { Badge, Spinner } from "@/components/ui/misc";
+import { Badge, Spinner, PageHeader } from "@/components/ui/misc";
 import { Sheet } from "@/components/ui/sheet";
 import { Input, LabeledInput, LabeledSelect, TextArea, Toggle } from "@/components/ui/fields";
 import { owned, visible } from "@/lib/services/queries";
@@ -300,12 +299,7 @@ export function ReceiptCapture({ initialListId, onSaved, embedded = false, initi
   }
 
   const header = embedded ? null : (
-    <div className="mb-4 flex items-center gap-1">
-      <Link href="/cumparaturi/" aria-label="Înapoi la cumpărături" className="-ml-2 inline-flex h-12 w-12 shrink-0 items-center justify-center rounded-full text-ink-2 hover:bg-surface-2">
-        <ArrowLeft size={20} />
-      </Link>
-      <h1 className="min-w-0 break-words text-[32px] font-bold leading-tight tracking-tight">{step.kind === "verifica" ? (step.typed != null ? "Verifică produsele" : "Verifică bonul") : step.kind === "scrie" ? "Scrie cumpărăturile" : "Adaugă bon"}</h1>
-    </div>
+    <PageHeader variant="compact" back={{ href: "/cumparaturi/", label: "Înapoi la cumpărături" }} title={step.kind === "verifica" ? (step.typed != null ? "Verifică produsele" : "Verifică bonul") : step.kind === "scrie" ? "Scrie cumpărăturile" : "Adaugă bon"} />
   );
 
   if (step.kind === "alege") {
@@ -324,8 +318,8 @@ export function ReceiptCapture({ initialListId, onSaved, embedded = false, initi
             Scrie sau dictează
           </Button>
         </div>
-        <input ref={camera} type="file" accept="image/*" capture="environment" className="hidden" data-testid="bon-camera" onChange={(e) => void pick(e.target.files?.[0])} />
-        <input ref={gallery} type="file" accept="image/*" className="hidden" data-testid="bon-fisier" onChange={(e) => void pick(e.target.files?.[0])} />
+        <input ref={camera} type="file" accept="image/*" capture="environment" className="hidden" tabIndex={-1} aria-hidden="true" data-testid="bon-camera" onChange={(e) => void pick(e.target.files?.[0])} />
+        <input ref={gallery} type="file" accept="image/*" className="hidden" tabIndex={-1} aria-hidden="true" data-testid="bon-fisier" onChange={(e) => void pick(e.target.files?.[0])} />
         {error && (
           <p role="alert" className="mt-4 text-sm text-accent">
             {error}
@@ -445,7 +439,7 @@ export function ReceiptCapture({ initialListId, onSaved, embedded = false, initi
         </div>
       )}
 
-      <ul className="mt-4 divide-y divide-line overflow-hidden rounded-[28px] bg-surface">
+      <ul className="app-card mt-4 divide-y divide-line overflow-hidden">
         {lines.map((l) => (
           <li key={l.key} className={`flex flex-col gap-2 px-4 py-3 ${l.keep ? "" : "opacity-60"}`}>
             <div className="flex items-start gap-2">
@@ -487,7 +481,7 @@ export function ReceiptCapture({ initialListId, onSaved, embedded = false, initi
         ))}
       </ul>
 
-      <div className="mt-4 rounded-[28px] bg-surface px-5 py-4 text-[15px]">
+      <div className="app-card mt-4 px-5 py-4 text-[15px]">
         <p className="flex justify-between">
           <span>Suma produselor</span>
           <span className="font-medium tabular">{formatRon(sum)}</span>

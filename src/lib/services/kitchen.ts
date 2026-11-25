@@ -2,8 +2,8 @@ import { z } from "zod";
 import type { ISODate, MealSlot, PantryItem, Recipe, UnitCode } from "@/lib/domain/types";
 import { insertRow, softDelete, updateRow, upsertRow } from "@/lib/db/write";
 import { newId, stableId } from "@/lib/db/ids";
-import { aggregateNeeds, productUnitsOf, subtractStock, toShoppingNeed, type Need } from "@/lib/domain/quantities";
-import { activeIngredients, recipeNeeds } from "@/lib/domain/recipes";
+import { aggregateNeeds, productUnitsOf, subtractStock, toShoppingNeed, type Need, type ShoppingNeed } from "@/lib/domain/quantities";
+import { activeIngredients, recipeNeeds, STAPLE_PRODUCT_IDS } from "@/lib/domain/recipes";
 import { isRecipeImageUrl } from "@/lib/domain/recipe-photos";
 import { consumedBy, pantryStock, planConsumption } from "@/lib/domain/pantry";
 import { addDays } from "@/lib/domain/dates";
@@ -59,10 +59,18 @@ export interface AddToListResult {
 }
 
 /** „Adaugă ingredientele în listă” — toate sau doar ce lipsește din cămară. */
-export async function addRecipeToList(ctx: AppCtx, input: { recipeId: string; servings: number; listId: string; onlyMissing: boolean }): Promise<AddToListResult> {
+export async function addRecipeToList(ctx: AppCtx, input: { recipeId: string; servings: number; listId: string; onlyMissing: boolean; skipStaples?: boolean; expectedNeeds?: ShoppingNeed[] }): Promise<AddToListResult> {
   const servings = parse(z.number().int().min(1).max(50), input.servings);
   const { recipe, ingredients } = await recipeWithIngredients(ctx, input.recipeId);
-  const { shopping, covered } = await needsToShopping(ctx, recipeNeeds(recipe, ingredients, servings), input.onlyMissing);
+  if (recipe.household_id && recipe.household_id !== ctx.householdId) throw new UserError("Rețeta nu mai există.");
+  const needs = recipeNeeds(recipe, ingredients, servings).filter(need => !input.skipStaples || !STAPLE_PRODUCT_IDS.has(need.product_id));
+  const { shopping, covered } = await needsToShopping(ctx, needs, input.onlyMissing);
+  if (input.expectedNeeds) {
+    const signature = (lines: ShoppingNeed[]) => lines.map(line => JSON.stringify([line.product_id, line.quantity, line.unit, line.note])).sort().join("\n");
+    if (signature(shopping) !== signature(input.expectedNeeds)) {
+      throw new UserError("Stocul s-a schimbat. Verifică din nou cantitățile.");
+    }
+  }
   const r = await addNeeds(ctx, input.listId, shopping, "reteta");
   return { ...r, covered: covered.length };
 }
@@ -247,9 +255,25 @@ export async function removePantryItem(ctx: AppCtx, id: string) {
   await softDelete(ctx.db, "pantry_items", id, w(ctx));
 }
 
+/** Șterge logic mai multe produse din cămară dintr-o singură tranzacție outbox. */
+export async function removePantryItems(ctx: AppCtx, ids: string[]) {
+  if (ids.length === 0) return;
+  for (const id of ids) {
+    await softDelete(ctx.db, "pantry_items", id, w(ctx));
+  }
+}
+
 /** Anulează ștergerea unui produs din cămară (butonul „Anulează” de după ștergere). */
 export async function restorePantryItem(ctx: AppCtx, id: string) {
   await updateRow(ctx.db, "pantry_items", id, { deleted_at: null }, w(ctx));
+}
+
+/** Anulează ștergerea mai multor produse din cămară (butonul „Anulează”). */
+export async function restorePantryItems(ctx: AppCtx, ids: string[]) {
+  if (ids.length === 0) return;
+  for (const id of ids) {
+    await updateRow(ctx.db, "pantry_items", id, { deleted_at: null }, w(ctx));
+  }
 }
 
 // --- Setări ----------------------------------------------------------------------

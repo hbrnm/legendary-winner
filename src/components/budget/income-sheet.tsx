@@ -1,9 +1,9 @@
 "use client";
 
 import { useId, useRef, useState } from "react";
-import { Plus, Trash2 } from "lucide-react";
+import { Trash2 } from "@/components/ui/icons";
 import { useAction } from "@/components/app/hooks";
-import { Button, IconButton } from "@/components/ui/button";
+import { AddMark, Button, IconButton } from "@/components/ui/button";
 import { LabeledInput } from "@/components/ui/fields";
 import { Sheet } from "@/components/ui/sheet";
 import { createBudget, incomeSourcesSchema, updateBudget } from "@/lib/services/money";
@@ -108,7 +108,7 @@ function IncomeForm({
       >
         <p className="text-sm text-ink-2">Sume lunare recurente. Totalul veniturilor și plafonul de cheltuieli se aleg separat.</p>
         {sources.map((source, index) => (
-          <fieldset key={source.key} className="space-y-3 rounded-2xl border border-line p-3">
+          <fieldset key={source.key} className="space-y-3 rounded-2xl bg-surface-container p-3">
             <legend className="text-sm font-medium">Venit {index + 1}</legend>
             <div className="flex justify-end">
               <IconButton label={`Elimină venitul ${index + 1}`} onClick={() => setSources((previous) => previous.filter((item) => item.key !== source.key))}>
@@ -134,7 +134,7 @@ function IncomeForm({
         <Button
           block
           variant="secondary"
-          icon={<Plus size={17} />}
+          icon={<AddMark size={17} />}
           disabled={sources.length >= 30}
           onClick={() => setSources((previous) => [...previous, { key: serial.current++, name: "", amount: "" }])}
         >

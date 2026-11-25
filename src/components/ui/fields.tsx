@@ -4,7 +4,7 @@ import { forwardRef, useId, useRef, type InputHTMLAttributes, type KeyboardEvent
 import { ChevronDown } from "lucide-react";
 
 const FIELD =
-  "w-full min-w-0 rounded-2xl border border-outline bg-surface px-4 text-base text-ink placeholder:text-ink-3 transition-colors duration-150 ease-out focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/25 disabled:opacity-60";
+  "w-full min-w-0 rounded-2xl border-0 bg-surface-container-high px-4 text-base text-on-surface placeholder:text-on-surface-variant shadow-card transition-colors duration-150 ease-out focus:bg-surface focus:outline-none focus:ring-2 focus:ring-brand aria-invalid:ring-2 aria-invalid:ring-error disabled:opacity-60";
 
 export function Field({
   label,
@@ -56,10 +56,17 @@ export function TextArea({ className = "", ...rest }: TextareaHTMLAttributes<HTM
 export function Select({ className = "", children, ...rest }: SelectHTMLAttributes<HTMLSelectElement>) {
   return (
     <div className="relative w-full">
-      <select className={`${FIELD} h-14 appearance-none pr-9 ${className}`} {...rest}>
+      <select
+        className={`${FIELD} h-auto min-h-14 appearance-none py-4 pr-10 leading-normal ${className}`}
+        {...rest}
+      >
         {children}
       </select>
-      <ChevronDown size={18} strokeWidth={1.75} aria-hidden className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-ink-3" />
+      <ChevronDown
+        size={18}
+        className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-on-surface-variant"
+        aria-hidden
+      />
     </div>
   );
 }
@@ -163,7 +170,7 @@ export function Segmented<T extends string>({
             tabIndex={isSelected ? 0 : -1}
             onClick={() => onChange(o.value)}
             onKeyDown={(e) => handleKeyDown(e, idx)}
-            className={`min-h-12 min-w-0 flex-1 break-words rounded-3xl py-2 font-medium leading-tight transition-colors duration-150 ease-out focus-visible:outline-2 focus-visible:outline-brand focus-visible:-outline-offset-2 ${options.length > 4 ? "px-1 text-xs" : "px-1.5 text-sm"} ${isSelected ? "bg-surface text-secondary" : "text-ink-2 hover:text-ink"}`}
+            className={`min-h-12 min-w-0 flex-1 break-words rounded-3xl py-2 font-medium leading-tight transition-colors duration-150 ease-out focus-visible:outline-2 focus-visible:outline-brand focus-visible:-outline-offset-2 ${options.length > 4 ? "px-1 text-xs" : "px-1.5 text-sm"} ${isSelected ? "bg-pill-active text-pill-active-ink shadow-card" : "text-ink-2 hover:text-ink"}`}
           >
             {o.label}
           </button>

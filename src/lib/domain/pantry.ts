@@ -38,6 +38,32 @@ export function expiringSoon(items: PantryItem[], today: ISODate, soonDays = 3):
     .sort((a, b) => a.expires_on!.localeCompare(b.expires_on!));
 }
 
+// This threshold prioritizes recipes. It does not assign an expiry date.
+const LEAFY_GREENS_PRIORITY_AFTER_DAYS = 2;
+const LEAFY_GREENS = new Set(["spanac", "salata-verde", "rucola", "patrunjel-verde", "marar", "loboda", "leurda"]);
+
+export function isLeafyGreen(productId: string): boolean {
+  return LEAFY_GREENS.has(productId);
+}
+
+export function cookingPriorities(items: PantryItem[], today: ISODate): Map<string, { rank: number; label: string }> {
+  const live = livePantry(items);
+  const dated = expiringSoon(live, today).filter(item => expiryState(item, today) === "expira_curand");
+  const estimated = live.filter(item => !item.expires_on && item.location_id === "frigider" &&
+    item.product_id && isLeafyGreen(item.product_id) && item.purchased_on &&
+    daysBetween(item.purchased_on, today) >= LEAFY_GREENS_PRIORITY_AFTER_DAYS
+  ).sort((a, b) => a.purchased_on!.localeCompare(b.purchased_on!));
+  const priorities = new Map<string, { rank: number; label: string }>();
+  for (const item of [...dated, ...estimated]) {
+    if (!item.product_id || priorities.has(item.product_id)) continue;
+    const days = item.expires_on ? daysBetween(today, item.expires_on) : null;
+    const label = days === null ? `Folosește mai întâi: ${item.name}`
+      : `${item.name} expiră ${days === 0 ? "azi" : days === 1 ? "mâine" : `în ${days} zile`}`;
+    priorities.set(item.product_id, { rank: priorities.size, label });
+  }
+  return priorities;
+}
+
 export function pantryStock(items: PantryItem[]): Stock[] {
   return livePantry(items)
     .filter((i) => i.product_id)

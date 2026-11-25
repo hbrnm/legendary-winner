@@ -8,7 +8,7 @@ import { BrandMark } from "@/components/ui/brand-mark";
 import { useApp } from "@/components/app/app-provider";
 import { Button } from "@/components/ui/button";
 import { LabeledInput, Segmented } from "@/components/ui/fields";
-import { Card, Spinner } from "@/components/ui/misc";
+import { Card, Spinner, PageTitle } from "@/components/ui/misc";
 import { isCloudConfigured, supabase } from "@/lib/supabase/client";
 
 type Mode = "intrare" | "cont" | "resetare" | "parola-noua";
@@ -59,7 +59,7 @@ function AuthScreen() {
     return (
       <StandalonePage centered>
         <Card className="p-6 text-center">
-          <h1 className="text-[32px] font-bold leading-tight tracking-tight">Aplicația rulează în mod demonstrativ</h1>
+          <PageTitle>Aplicația rulează în mod demonstrativ</PageTitle>
           <p className="mt-2 text-ink-2">Conturile și sincronizarea cer configurarea Supabase (vezi ENVIRONMENT_VARIABLES.md). Până atunci, datele rămân pe acest dispozitiv.</p>
           <Link href="/" className="mt-6 inline-flex min-h-12 items-center justify-center rounded-full bg-brand px-6 font-medium text-brand-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand">
             Deschide aplicația
@@ -112,7 +112,7 @@ function AuthScreen() {
       <Card className="p-6">
         <div className="mb-8 flex flex-col items-center text-center">
           <BrandMark size={72} />
-          <h1 className="mt-3 min-w-0 break-words text-[32px] font-bold leading-tight tracking-tight">Cămara</h1>
+          <PageTitle className="mt-3">Cămara</PageTitle>
           <p className="mt-1 text-sm text-ink-2">Cumpărături, rețete și bugetul casei, împreună.</p>
         </div>
 
@@ -139,8 +139,8 @@ function AuthScreen() {
             ]}
           />
         )}
-        {mode === "resetare" && <h2 className="font-sans text-xl font-semibold text-ink">Ai uitat parola?</h2>}
-        {mode === "parola-noua" && <h2 className="font-sans text-xl font-semibold text-ink">Alege o parolă nouă</h2>}
+        {mode === "resetare" && <h2 className="text-section-title font-semibold tracking-tight text-on-surface">Ai uitat parola?</h2>}
+        {mode === "parola-noua" && <h2 className="text-section-title font-semibold tracking-tight text-on-surface">Alege o parolă nouă</h2>}
 
         <form
           className="mt-5 flex flex-col gap-4"

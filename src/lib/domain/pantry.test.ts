@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { expiringSoon, expiryState, frequentProducts, planConsumption } from "./pantry";
+import { cookingPriorities, expiringSoon, expiryState, frequentProducts, planConsumption } from "./pantry";
 import { pantryItem, txItem } from "@/test/factories";
 
 describe("expirare", () => {
@@ -23,6 +23,23 @@ describe("expirare", () => {
       today,
     );
     expect(list.map((i) => i.id)).toEqual(["b", "a"]);
+  });
+
+  it("pune datele explicite înaintea regulii pentru verdețuri și respectă locul de păstrare", () => {
+    const priorities = cookingPriorities([
+      pantryItem({ product_id: "spanac", name: "Spanac", location_id: "frigider", purchased_on: "2026-03-08" }),
+      pantryItem({ product_id: "rucola", location_id: "frigider", purchased_on: "2026-03-09" }),
+      pantryItem({ product_id: "loboda", location_id: "frigider", purchased_on: null }),
+      pantryItem({ product_id: "marar", location_id: "congelator", purchased_on: "2026-03-07" }),
+      pantryItem({ product_id: "morcovi", location_id: "frigider", purchased_on: "2026-03-07" }),
+      pantryItem({ product_id: "salata-verde", location_id: "frigider", purchased_on: "2026-03-07", expires_on: "2026-03-20" }),
+      pantryItem({ product_id: "leurda", location_id: "frigider", purchased_on: "2026-03-07", expires_on: "2026-03-09" }),
+      pantryItem({ product_id: "feta", name: "Brânză feta", expires_on: "2026-03-11" }),
+    ], today);
+    expect([...priorities]).toEqual([
+      ["feta", { rank: 0, label: "Brânză feta expiră mâine" }],
+      ["spanac", { rank: 1, label: "Folosește mai întâi: Spanac" }],
+    ]);
   });
 });
 

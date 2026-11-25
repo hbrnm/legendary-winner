@@ -95,7 +95,7 @@ test("câmpurile au litera de cel puțin 16px, ca iPhone să nu mărească pagin
     expect(await smallFields(page), path).toEqual([]);
   }
   await createList(page, "Test câmpuri");
-  await quickAdd(page, "roșii");
+  await quickAdd(page, "roșii", "Roșii");
   await page.getByRole("button", { name: /^Roșii/ }).click();
   await expect(page.getByLabel("Cantitate")).toBeVisible();
   expect(await smallFields(page), "fișa produsului").toEqual([]);
@@ -116,6 +116,7 @@ test("pagina nu se poate derula orizontal, nici când ceva iese din ecran", asyn
 // Tablet navigation keeps all destinations and settings reachable without a bottom bar.
 test("pe tabletă, navigația laterală permite deschiderea setărilor", async ({ page }) => {
   await page.setViewportSize({ width: 768, height: 900 });
+  await page.emulateMedia({ colorScheme: "light" });
   await start(page);
   const nav = page.locator('nav[aria-label="Navigare principală"]:visible');
   await expect(nav).toHaveCount(1);
@@ -123,9 +124,20 @@ test("pe tabletă, navigația laterală permite deschiderea setărilor", async (
   await nav.getByRole("link", { name: "Setări", exact: true }).click();
   await expect(page.getByRole("heading", { name: "Gospodărie și setări" })).toBeVisible();
   await page.getByRole("radio", { name: "Întunecat", exact: true }).click();
+  const colors = page.locator('meta[name="theme-color"]');
+  await expect(colors.first()).toHaveAttribute("content", "#191410");
+  await expect(colors.first()).toHaveAttribute("id", "camara-theme-override");
   await page.reload();
   await expect(page.locator("html")).toHaveAttribute("data-theme", "intunecat");
   await expect(page.getByRole("radio", { name: "Întunecat", exact: true })).toBeChecked();
+  await expect(colors.first()).toHaveAttribute("id", "camara-theme-override");
+  await expect(colors).toHaveCount(3);
+  await page.getByRole("radio", { name: "Automat", exact: true }).click();
+  await expect(colors).toHaveCount(2);
+  for (const scheme of ["dark", "light"] as const) {
+    await page.emulateMedia({ colorScheme: scheme });
+    await expect.poll(() => page.locator("html").evaluate(node => getComputedStyle(node).colorScheme)).toBe(scheme);
+  }
 });
 
 test("planul și catalogul păstrează aceeași destinație principală", async ({ page }) => {

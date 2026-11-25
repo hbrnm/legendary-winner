@@ -2,11 +2,11 @@
 
 import { useMemo, useState } from "react";
 import Link from "next/link";
-import { Plus, Search, Trash2, Upload } from "lucide-react";
+import { Search, Trash2, Upload } from "@/components/ui/icons";
 import { AppShell } from "@/components/app/shell";
 import { useApp } from "@/components/app/app-provider";
 import { useAction, useData } from "@/components/app/hooks";
-import { Button, IconButton } from "@/components/ui/button";
+import { AddMark, Button, IconButton } from "@/components/ui/button";
 import { VariantPicker } from "@/components/shopping/variant-picker";
 import { Badge, Card, EmptyState, PageHeader, Spinner } from "@/components/ui/misc";
 import { Sheet } from "@/components/ui/sheet";
@@ -167,20 +167,20 @@ function AdminScreen() {
       {tab === "produse" && (
         <div className="mt-4">
           <div className="flex gap-2">
-            <div className="flex min-w-0 flex-1 items-center gap-2 rounded-full bg-surface-2 px-4">
-              <Search size={16} className="shrink-0 text-ink-3" />
-              <input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Caută după nume sau sinonim" aria-label="Caută produse" className="h-12 min-w-0 flex-1 bg-transparent focus:outline-none" />
+            <div className="flex min-w-0 flex-1 items-center gap-2 rounded-full bg-surface-container-high px-4 transition-all duration-150 focus-within:bg-surface focus-within:ring-2 focus-within:ring-brand/25">
+              <Search size={18} className="shrink-0 text-ink-3" />
+              <input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Caută după nume sau sinonim" aria-label="Caută produse" className="h-12 min-w-0 flex-1 bg-transparent text-base text-ink placeholder:text-ink-3 focus:outline-none" />
             </div>
-            <Button icon={<Plus size={18} />} onClick={() => editProduct(null)}>
+            <Button icon={<AddMark size={18} />} onClick={() => editProduct(null)}>
               Produs
             </Button>
           </div>
-          <ul className="mt-3 divide-y divide-line overflow-hidden rounded-[28px] bg-surface">
+          <ul className="app-card mt-3 divide-y divide-line overflow-hidden">
             {products.map((p) => (
               <li key={p.id}>
-                <button type="button" onClick={() => editProduct(p)} className="flex w-full items-center gap-3 px-4 py-2.5 text-left hover:bg-surface-2">
+                <button type="button" onClick={() => editProduct(p)} className="flex w-full items-center gap-3 px-4 py-2.5 text-left transition-colors hover:bg-surface-2">
                   <span className="min-w-0 flex-1">
-                    <span className="block truncate">{p.name}</span>
+                    <span className="block truncate text-[15px] font-medium text-ink">{p.name}</span>
                     <span className="block truncate text-xs text-ink-2">
                       {catName.get(p.category_id)} · {unitLabel(p.default_unit, 1)}
                       {(data.aliasMap.get(p.id) ?? []).length > 0 && ` · ${(data.aliasMap.get(p.id) ?? []).join(", ")}`}
@@ -197,15 +197,15 @@ function AdminScreen() {
 
       {tab === "categorii" && (
         <div className="mt-4">
-          <Button icon={<Plus size={18} />} onClick={() => setCat({ name: "", icon: "tag", is_food: true, sort_order: (data.categories.length + 1) * 10 })}>
+          <Button icon={<AddMark size={18} />} onClick={() => setCat({ name: "", icon: "tag", is_food: true, sort_order: (data.categories.length + 1) * 10 })}>
             Categorie
           </Button>
-          <ul className="mt-3 divide-y divide-line overflow-hidden rounded-[28px] bg-surface">
+          <ul className="app-card mt-3 divide-y divide-line overflow-hidden">
             {data.categories.map((c) => (
               <li key={c.id}>
-                <button type="button" onClick={() => setCat(c)} className="flex w-full items-center gap-3 px-4 py-2.5 text-left hover:bg-surface-2">
+                <button type="button" onClick={() => setCat(c)} className="flex w-full items-center gap-3 px-4 py-2.5 text-left transition-colors hover:bg-surface-2">
                   <span className="w-8 text-xs text-ink-2 tabular">{c.sort_order}</span>
-                  <span className="flex-1">{c.name}</span>
+                  <span className="flex-1 text-[15px] font-medium text-ink">{c.name}</span>
                   {!c.is_food && <Badge>nealimentar</Badge>}
                 </button>
               </li>
@@ -216,13 +216,13 @@ function AdminScreen() {
 
       {tab === "retete" && (
         <div className="mt-4">
-          <Link href="/retete/editare/?global=1" className="inline-flex h-12 items-center gap-2 rounded-full bg-brand px-4 font-medium text-brand-ink">
-            <Plus size={18} /> Rețetă în catalogul comun
+          <Link href="/retete/editare/?global=1" className="inline-flex h-12 items-center gap-2 rounded-full bg-primary px-5 text-[15px] font-medium text-on-primary transition-colors hover:bg-brand-strong">
+            <AddMark size={18} /> Rețetă în catalogul comun
           </Link>
-          <ul className="mt-3 divide-y divide-line overflow-hidden rounded-[28px] bg-surface">
+          <ul className="app-card mt-3 divide-y divide-line overflow-hidden">
             {data.recipes.map((r) => (
               <li key={r.id}>
-                <Link href={`/retete/editare/?id=${r.id}`} className="block px-4 py-2.5 hover:bg-surface-2">
+                <Link href={`/retete/editare/?id=${r.id}`} className="block px-4 py-3 text-[15px] font-medium text-ink transition-colors hover:bg-surface-2">
                   {r.name}
                 </Link>
               </li>
@@ -233,14 +233,14 @@ function AdminScreen() {
 
       {tab === "magazine" && (
         <div className="mt-4">
-          <Button icon={<Plus size={18} />} onClick={() => setRet({ name: "", kind: "supermarket" })}>
+          <Button icon={<AddMark size={18} />} onClick={() => setRet({ name: "", kind: "supermarket" })}>
             Magazin
           </Button>
-          <ul className="mt-3 divide-y divide-line overflow-hidden rounded-[28px] bg-surface">
+          <ul className="app-card mt-3 divide-y divide-line overflow-hidden">
             {data.retailers.map((r) => (
               <li key={r.id}>
-                <button type="button" onClick={() => setRet(r)} className="flex w-full items-center gap-3 px-4 py-2.5 text-left hover:bg-surface-2">
-                  <span className="flex-1">{r.name}</span>
+                <button type="button" onClick={() => setRet(r)} className="flex w-full items-center gap-3 px-4 py-2.5 text-left transition-colors hover:bg-surface-2">
+                  <span className="flex-1 text-[15px] font-medium text-ink">{r.name}</span>
                   <Badge>{r.kind}</Badge>
                 </button>
               </li>
@@ -266,7 +266,7 @@ function AdminScreen() {
             className="text-sm"
           />
           <Field label="sau lipește conținutul">
-            <textarea value={importText} onChange={(e) => setImportText(e.target.value)} className="min-h-32 rounded-2xl border border-outline bg-surface p-4 text-xs" />
+            <textarea value={importText} onChange={(e) => setImportText(e.target.value)} className="min-h-32 rounded-2xl border-0 bg-surface-container-high p-4 text-xs shadow-card focus:bg-surface focus:outline-none focus:ring-2 focus:ring-brand" />
           </Field>
           <Button variant="secondary" icon={<Upload size={18} />} disabled={!importText.trim()} onClick={() => setPreview(parseProductImport(importText, data.categories, data.products.map((p) => p.name)))}>
             Previzualizează

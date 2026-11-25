@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Trash2 } from "lucide-react";
+import { Trash2 } from "@/components/ui/icons";
 import { useAction } from "@/components/app/hooks";
 import { Button } from "@/components/ui/button";
 import { LabeledInput, LabeledSelect, Segmented } from "@/components/ui/fields";
@@ -19,6 +19,8 @@ export interface BudgetEditorSheetProps {
   categories: ProductCategory[];
   retailers: Retailer[];
   isFirstBudget: boolean;
+  initialScope?: BudgetScope;
+  initialName?: string;
   onOpenIncome?: () => void;
 }
 
@@ -52,22 +54,25 @@ function BudgetEditorForm({
   categories,
   retailers,
   isFirstBudget,
+  initialScope,
+  initialName,
   onOpenIncome,
 }: BudgetEditorSheetProps & { editing: Budget | "nou" }) {
   const { run, busy } = useAction();
-  const [fName, setFName] = useState(() => (editing === "nou" ? (isFirstBudget ? "Bugetul lunii" : "") : editing.name));
+  const [fName, setFName] = useState(() => (editing === "nou" ? (initialName ?? (isFirstBudget ? "Bugetul lunii" : "")) : editing.name));
   const [fAmount, setFAmount] = useState(() => (editing === "nou" ? "" : editing.amount.toFixed(2).replace(".", ",")));
   const [fPeriod, setFPeriod] = useState<BudgetPeriod>(() => (editing === "nou" ? "lunar" : editing.period));
-  const [fKind, setFKind] = useState<ScopeKind>(() => (editing === "nou" ? "familie" : editing.scope.kind));
+  const seedScope = editing === "nou" ? initialScope : editing.scope;
+  const [fKind, setFKind] = useState<ScopeKind>(() => seedScope?.kind ?? "familie");
   const [fValue, setFValue] = useState(() =>
-    editing === "nou"
+    !seedScope
       ? ""
-      : editing.scope.kind === "sursa"
-        ? editing.scope.source
-        : editing.scope.kind === "categorie" || editing.scope.kind === "cheltuiala"
-          ? editing.scope.category_id
-          : editing.scope.kind === "magazin"
-            ? editing.scope.retailer_id
+      : seedScope.kind === "sursa"
+        ? seedScope.source
+        : seedScope.kind === "categorie" || seedScope.kind === "cheltuiala"
+          ? seedScope.category_id
+          : seedScope.kind === "magazin"
+            ? seedScope.retailer_id
             : "",
   );
   const [formError, setFormError] = useState<string | null>(null);

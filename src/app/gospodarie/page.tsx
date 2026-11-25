@@ -3,12 +3,12 @@
 import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Bell, Check, Copy, Crown, Download, LogOut, MapPin, Plus, Share2, Shield, Trash2, Upload, UserMinus, Users } from "lucide-react";
+import { Bell, Check, Copy, Crown, Download, LogOut, MapPin, Share2, Shield, Trash2, Upload, UserMinus, Users } from "@/components/ui/icons";
 import { InstallApp } from "@/components/app/install-app";
 import { AppShell } from "@/components/app/shell";
 import { useApp } from "@/components/app/app-provider";
 import { useAction, useData } from "@/components/app/hooks";
-import { Button, IconButton } from "@/components/ui/button";
+import { AddMark, Button, IconButton } from "@/components/ui/button";
 import { Badge, Card, PageHeader, SectionTitle } from "@/components/ui/misc";
 import { ConfirmSheet, Sheet } from "@/components/ui/sheet";
 import { LabeledInput, LabeledSelect, Segmented, Toggle } from "@/components/ui/fields";
@@ -105,14 +105,14 @@ function Members() {
 
   return (
     <>
-      <ul className="divide-y divide-line overflow-hidden rounded-[28px] bg-surface">
+      <ul className="app-card divide-y divide-line overflow-hidden">
         {members.map((m) => (
           <li key={m.user_id}>
-            <button type="button" disabled={!isAdmin && m.user_id !== app.userId} onClick={() => setSelected(m)} className="flex min-h-14 w-full items-center gap-3 px-4 text-left disabled:cursor-default">
+            <button type="button" disabled={!isAdmin && m.user_id !== app.userId} onClick={() => setSelected(m)} className="flex min-h-14 w-full items-center gap-3 px-4 text-left transition-colors hover:bg-surface-2/60 disabled:cursor-default disabled:hover:bg-transparent">
               <span className="inline-flex h-9 w-9 items-center justify-center rounded-full bg-brand-soft font-semibold text-brand">{m.display_name.slice(0, 1).toUpperCase()}</span>
-              <span className="flex-1">
+              <span className="flex-1 text-[15px] font-medium text-ink">
                 {m.display_name}
-                {m.user_id === app.userId && <span className="text-ink-2"> (tu)</span>}
+                {m.user_id === app.userId && <span className="font-normal text-ink-2"> (tu)</span>}
               </span>
               <Badge tone={m.role === "owner" ? "brand" : "neutral"}>
                 {m.role === "owner" ? <Crown size={12} /> : m.role === "admin" ? <Shield size={12} /> : null}
@@ -125,13 +125,13 @@ function Members() {
 
       {isAdmin && (
         <>
-          <Button className="mt-3" variant="secondary" icon={<Plus size={18} />} onClick={() => setInviting(true)}>
+          <Button className="mt-3" variant="secondary" icon={<AddMark size={18} />} onClick={() => setInviting(true)}>
             Invită pe cineva
           </Button>
           {invites.length > 0 && (
             <div className="mt-3">
               <p className="mb-1 text-sm text-ink-2">Invitații în așteptare</p>
-              <ul className="divide-y divide-line overflow-hidden rounded-[28px] bg-surface">
+              <ul className="app-card divide-y divide-line overflow-hidden">
                 {invites.map((i) => (
                   <li key={i.id} className="flex items-center gap-2 px-4 py-2 text-sm">
                     <span className="flex-1">
@@ -312,7 +312,7 @@ function Places() {
   return (
     <>
       {places.length > 0 && (
-        <ul className="mb-3 divide-y divide-line overflow-hidden rounded-[28px] bg-surface">
+        <ul className="app-card mb-3 divide-y divide-line overflow-hidden">
           {places.map((p) => (
             <li key={p.id}>
               <button
@@ -323,11 +323,11 @@ function Places() {
                   setKind(p.kind);
                   setDetails(p.details ?? "");
                 }}
-                className="flex min-h-12 w-full items-center gap-3 px-4 py-2 text-left"
+                className="flex min-h-12 w-full items-center gap-3 px-4 py-2 text-left transition-colors hover:bg-surface-2/60"
               >
                 <MapPin size={18} className="text-ink-2" />
                 <span className="flex-1">
-                  <span className="block">{p.name}</span>
+                  <span className="block text-[15px] font-medium text-ink">{p.name}</span>
                   {p.details && <span className="block text-xs text-ink-2">{p.details}</span>}
                 </span>
                 <Badge>{KIND[p.kind] ?? "Magazin"}</Badge>
@@ -338,7 +338,7 @@ function Places() {
       )}
       <Button
         variant="secondary"
-        icon={<Plus size={18} />}
+        icon={<AddMark size={18} />}
         onClick={() => {
           setEditing("nou");
           setName("");
@@ -642,7 +642,7 @@ function HouseholdScreen() {
           </div>
         )}
         {cloud && (
-          <Button variant="ghost" size="sm" className="mt-3" icon={<Plus size={16} />} onClick={() => setCreatingAnother(true)}>
+          <Button variant="ghost" size="sm" className="mt-3" icon={<AddMark size={16} />} onClick={() => setCreatingAnother(true)}>
             Altă gospodărie
           </Button>
         )}
@@ -672,7 +672,7 @@ function HouseholdScreen() {
         <Button variant="secondary" icon={<Download size={18} />} onClick={download}>
           Descarcă datele
         </Button>
-        <label className="inline-flex h-12 cursor-pointer items-center justify-center gap-2 rounded-full border border-line font-medium hover:bg-surface-2 has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-brand">
+        <label className="inline-flex h-12 cursor-pointer items-center justify-center gap-2 rounded-full bg-secondary-container text-[15px] font-medium text-on-secondary-container transition hover:brightness-95 has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-brand">
           <Upload size={18} /> Încarcă o copie
           <input
             type="file"
@@ -686,7 +686,7 @@ function HouseholdScreen() {
         </label>
         <p className="text-xs text-ink-2">Încărcarea nu șterge nimic: adaugă ce lipsește și păstrează modificările tale mai noi.</p>
         {app.isAppAdmin && (
-          <Link href="/admin/" className="inline-flex h-12 items-center justify-center gap-2 rounded-full border border-line font-medium hover:bg-surface-2">
+          <Link href="/admin/" className="inline-flex h-12 items-center justify-center gap-2 rounded-full bg-secondary-container text-[15px] font-medium text-on-secondary-container transition hover:brightness-95">
             <Shield size={18} /> Administrarea catalogului
           </Link>
         )}
@@ -703,6 +703,7 @@ function HouseholdScreen() {
               onClick={async () => {
                 try {
                   await hh.updateDisplayName(app.userId!, profileName);
+                  await app.setLocalDisplayName(profileName);
                   toast("Am salvat numele.");
                 } catch (e) {
                   toast(e instanceof UserError ? e.message : "Nu a mers.", { tone: "error" });

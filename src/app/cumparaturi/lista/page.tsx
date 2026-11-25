@@ -3,8 +3,7 @@
 import { Suspense, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { Archive, ArrowLeft, ChevronDown, Copy, MoreHorizontal, Pencil, Plus, Scale, SlidersHorizontal, Store, Trash2 } from "lucide-react";
-import { AgainIcon, NotebookIcon, ReceiptIcon } from "@/components/ui/icons";
+import { AgainIcon, Archive, ArrowLeft, ChevronDown, Copy, MoreHorizontal, NotebookIcon, Pencil, ReceiptIcon, Scale, SlidersHorizontal, Store, Trash2 } from "@/components/ui/icons";
 import { useActiveShoppingList } from "@/components/shopping/active-list-provider";
 import { ListSwitcher } from "@/components/shopping/list-switcher";
 import { AppShell } from "@/components/app/shell";
@@ -12,8 +11,8 @@ import { useAction, useData } from "@/components/app/hooks";
 import { useApp } from "@/components/app/app-provider";
 import { ProductSearch, type PickedProduct } from "@/components/shopping/product-search";
 import { ItemSheet } from "@/components/shopping/item-sheet";
-import { Button, IconButton } from "@/components/ui/button";
-import { Badge, Chip, EmptyState, Spinner } from "@/components/ui/misc";
+import { AddMark, Button, IconButton } from "@/components/ui/button";
+import { Badge, Chip, EmptyState, Spinner, PageTitle } from "@/components/ui/misc";
 import { ConfirmSheet, Sheet } from "@/components/ui/sheet";
 import { LabeledInput, LabeledSelect, Segmented } from "@/components/ui/fields";
 import { useToast } from "@/components/ui/toast";
@@ -230,7 +229,7 @@ function ListScreen() {
     const est = lineEstimate(item, data.prices, today);
     const flag = estimateFlag(est);
     return (
-      <li key={item.id} className="flex items-stretch border-b border-line last:border-b-0">
+      <li key={item.id} className={`flex items-stretch border-b border-line last:border-b-0 ${item.priority === "ridicata" && !item.checked ? "border-l-[3px] border-l-accent" : ""}`}>
         <button
           type="button"
           role="checkbox"
@@ -244,7 +243,7 @@ function ListScreen() {
         <button
           type="button"
           onClick={() => setEditing({ id: item.id, focusPrice: false })}
-          className="flex min-h-14 min-w-0 flex-1 flex-col justify-center py-2 pr-2 text-left transition-colors duration-150 ease-out hover:bg-surface-2/60 active:bg-surface-2 rounded-l-md focus-visible:outline-2 focus-visible:outline-brand focus-visible:outline-offset-2"
+          className="flex min-h-12 min-w-0 flex-1 flex-col justify-center py-2 pr-2 text-left transition-colors duration-150 ease-out hover:bg-surface-2/60 active:bg-surface-2 rounded-l-md focus-visible:outline-2 focus-visible:outline-brand focus-visible:outline-offset-2"
         >
           <span className={`text-[15px] leading-tight ${item.checked ? "text-ink-3 line-through" : "text-ink font-medium"}`}>
             {item.name}
@@ -268,8 +267,8 @@ function ListScreen() {
             <span className="text-sm font-medium tabular text-ink">{formatRon(item.actual_price)}</span>
           ) : est.amount != null ? (
             <>
-              <span className="text-[13px] tabular text-ink-2">~{formatRon(est.amount)}</span>
-              {flag && <span className="font-sans text-[11px] leading-tight text-ink-2">{flag}</span>}
+              <span className="text-sm tabular text-ink-2">~{formatRon(est.amount)}</span>
+              {flag && <span className="font-sans text-xs leading-tight text-ink-2">{flag}</span>}
             </>
           ) : (
             <span className="font-sans text-xs text-ink-2">{item.checked ? "cât a costat?" : "preț?"}</span>
@@ -295,13 +294,13 @@ function ListScreen() {
 
   return (
     <AppShell hideMobileNav={showCheckout} captureTarget={captureTarget} mainClassName={`shopping-list ${showCheckout ? "shopping-list-with-checkout" : ""}`}>
-      <div className="mb-3 flex items-start gap-1">
+      <div className="mb-3 flex items-center gap-1.5">
         <Link href="/cumparaturi/?toate=1" aria-label="Toate listele" className="-ml-2 inline-flex h-12 w-12 shrink-0 items-center justify-center rounded-full text-ink-2 hover:bg-surface-2">
           <ArrowLeft size={20} />
         </Link>
         <div className="min-w-0 flex-1">
           {editingTitle ? (
-            <form onSubmit={saveTitle} className="my-1">
+            <form onSubmit={saveTitle}>
               <input
                 type="text"
                 value={titleDraft}
@@ -315,55 +314,56 @@ function ListScreen() {
                 }}
                 maxLength={80}
                 autoFocus
-                className="w-full border-b border-brand bg-transparent text-2xl font-bold leading-tight tracking-tight text-ink outline-none"
+                className="w-full border-b border-brand bg-transparent text-[clamp(1.75rem,1.45rem+1.25vw,2.25rem)] font-bold leading-[1.15] tracking-[-0.025em] text-ink outline-none"
                 aria-label="Numele listei"
               />
             </form>
           ) : (
-            <div className="flex max-w-full items-center gap-2">
-              <h1 className="line-clamp-2 break-words text-2xl font-bold leading-tight tracking-tight">
+            <div className="flex items-center gap-1.5">
+              <PageTitle variant="editorial" className="line-clamp-2 min-w-0">
                 {list.name}
-              </h1>
-              <IconButton
-                label={`Redenumește ${list.name}`}
-                onClick={() => {
-                  setTitleDraft(list.name);
-                  setEditingTitle(true);
-                }}
-              >
-                <Pencil size={18} />
-              </IconButton>
-            </div>
-          )}
-          <div className="flex items-center gap-1">
-            <ListSwitcher currentListId={list.id} lists={[list, ...data.otherLists]} className="mr-auto" />
-            <div ref={setCaptureTarget} />
-            <IconButton label="Opțiunile listei" onClick={() => setMenu(true)}>
-              <MoreHorizontal size={20} />
-            </IconButton>
-          </div>
-          <p className="pt-1 text-xs text-ink-2 tabular">
-            {totals?.checked_count ?? 0} din {totals?.item_count ?? 0} în coș
-            {list.is_recurring && " · se reia"}
-            {list.archived_at && " · pusă deoparte"}
-          </p>
-          {!!totals?.item_count && (
-            <div className="mt-1.5 h-1.5 overflow-hidden rounded-full bg-surface-2" aria-hidden>
-              <div className="h-full rounded-full bg-sprout transition-[width]" style={{ width: `${(totals.checked_count / totals.item_count) * 100}%` }} />
+              </PageTitle>
+              <ListSwitcher currentListId={list.id} lists={[list, ...data.otherLists]} compact />
             </div>
           )}
         </div>
+        <IconButton label="Opțiunile listei" onClick={() => setMenu(true)}>
+          <MoreHorizontal size={20} />
+        </IconButton>
+        <div ref={setCaptureTarget} className="shrink-0" />
       </div>
 
+      {!!totals?.item_count && (
+        <section aria-label="Sumarul listei" className="mb-3 rounded-[20px] bg-meal-hero px-4 py-3 text-ink shadow-card">
+          <div className="flex items-baseline justify-between gap-3">
+            <p className="text-sm font-semibold tabular-nums">
+              {totals.checked_count} din {totals.item_count} în coș
+              {list.is_recurring && <span className="font-normal text-ink-2"> · se reia</span>}
+              {list.archived_at && <span className="font-normal text-ink-2"> · pusă deoparte</span>}
+            </p>
+            <p className="shrink-0 text-xs font-medium text-ink-2 tabular-nums">
+              {totals.projected_total > 0 ? (
+                <>Estimare <strong className="text-sm font-bold text-ink">~{formatRon(totals.projected_total)}</strong></>
+              ) : totals.unknown_price_count > 0 ? (
+                `${totals.unknown_price_count} fără preț`
+              ) : null}
+            </p>
+          </div>
+          <div className="mt-2 h-2 overflow-hidden rounded-full bg-surface" aria-hidden="true">
+            <div className="h-full rounded-full bg-sprout transition-[width]" style={{ width: `${(totals.checked_count / totals.item_count) * 100}%` }} />
+          </div>
+        </section>
+      )}
+
       {paymentConflict && (
-        <p role="status" className="mb-4 rounded-2xl border border-line bg-surface p-4 text-sm">
+        <p role="status" className="mb-4 app-card p-4 text-sm">
           Tura a fost deja confirmată pe alt dispozitiv. <Link href="/cumparaturi/istoric/" className="font-semibold text-brand underline">Vezi cumpărăturile confirmate</Link>.
         </p>
       )}
       {payment && !paymentConflict && (
-        <section ref={summaryRef} tabIndex={-1} aria-labelledby="shopping-payment-title" className="mb-4 rounded-2xl border border-line bg-surface p-4 focus-visible:outline-2 focus-visible:outline-brand">
+        <section ref={summaryRef} tabIndex={-1} aria-labelledby="shopping-payment-title" className="mb-4 app-card p-4 focus-visible:outline-2 focus-visible:outline-brand">
           <div role="status">
-            <h2 id="shopping-payment-title" className="text-lg font-semibold">{paymentPending ? "Cumpărături salvate pe dispozitiv" : "Cumpărături înregistrate"}</h2>
+            <h2 id="shopping-payment-title" className="text-section-title font-semibold text-on-surface">{paymentPending ? "Cumpărături salvate pe dispozitiv" : "Cumpărături înregistrate"}</h2>
             {paymentPending && <p className="mt-1 text-sm text-ink-2">Confirmarea în gospodărie așteaptă sincronizarea.</p>}
             <dl className="mt-3 grid gap-y-2 tabular">
               <div className="flex flex-wrap items-baseline justify-between gap-x-3">
@@ -393,21 +393,32 @@ function ListScreen() {
       )}
 
       {!list.archived_at && (
-        <div className="relative z-20 mb-1">
+        <div className="relative z-20 mb-2.5">
           <ProductSearch placeholder="Ce-ți trebuie? ex. 2 kg roșii" onPick={onPick} />
         </div>
       )}
 
       {data.items.length > 0 && (
-        <div className="mb-3 flex flex-wrap items-center justify-between gap-x-2 border-b border-line">
-          <div role="group" aria-label="Locul cumpărăturilor — filtre" className="flex flex-wrap items-center gap-1">
+        <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
+          <div role="group" aria-label="Locul cumpărăturilor — filtre" className="flex flex-wrap items-center gap-1.5">
             <Chip active={!placeFilter} onClick={() => setPlaceFilter(null)}>Toate</Chip>
             <Chip active={placeFilter === "source:supermarket"} onClick={() => setPlaceFilter(placeFilter === "source:supermarket" ? null : "source:supermarket")}>Supermarket</Chip>
             {selectedPlace && <Chip active onClick={() => setPlaceFilter(null)}>{selectedPlace.name}</Chip>}
           </div>
-          <Button variant="ghost" size="sm" icon={<SlidersHorizontal size={16} />} onClick={() => setDetails(true)}>
-            Filtre
-          </Button>
+          <div className="flex items-center gap-1.5">
+            <button
+              type="button"
+              onClick={() => setGroupBy(groupBy === "raioane" ? "magazine" : "raioane")}
+              aria-label={groupBy === "raioane" ? "Grupează pe magazine" : "Grupează pe raioane"}
+              className="inline-flex min-h-11 items-center gap-1.5 rounded-full bg-surface-2 px-3 text-xs font-semibold text-ink-2 transition-colors hover:bg-surface-container-high hover:text-ink focus-visible:outline-2 focus-visible:outline-brand"
+            >
+              <Store size={14} aria-hidden />
+              <span>{groupBy === "raioane" ? "Raioane" : "Magazine"}</span>
+            </button>
+            <Button variant="ghost" size="sm" icon={<SlidersHorizontal size={16} />} onClick={() => setDetails(true)}>
+              Filtre
+            </Button>
+          </div>
         </div>
       )}
 
@@ -416,22 +427,34 @@ function ListScreen() {
           Scrie sus ce-ți trebuie („2 kg cartofi”, „lapte”) sau ia direct dintr-o rețetă ori din planul meselor.
         </EmptyState>
       ) : (
-        <div className="flex flex-col gap-3">
-          {groups.map((g) => (
-            <section key={g.key} aria-label={g.title}>
-              <h2 className="mb-1.5 px-1 text-xs font-semibold uppercase tracking-wider text-wood">{g.title}</h2>
-              <ul className="border-t border-line">
-                {g.items.map(itemRow)}
-              </ul>
+        <div className="flex flex-col gap-3.5">
+          {groups.length > 0 && (
+            <section aria-labelledby="shopping-to-buy" className="space-y-3">
+              <h2 id="shopping-to-buy" className="flex items-baseline justify-between gap-2 px-1 text-sm font-semibold text-ink">
+                De luat <span className="text-xs font-medium tabular text-ink-2">{count(groups.reduce((sum, group) => sum + group.items.length, 0), "produs", "produse")}</span>
+              </h2>
+              {groups.map((group) => (
+                <details key={`${id}:${groupBy}:${group.key}`} open className="group/aisle">
+                  <summary className="flex min-h-10 cursor-pointer list-none items-center gap-2 px-1 py-1 text-xs font-semibold uppercase tracking-wider text-ink-2 focus-visible:outline-2 focus-visible:outline-brand [&::-webkit-details-marker]:hidden">
+                    <span className="min-w-0 flex-1 truncate">{group.title}</span>
+                    <span className="rounded-full bg-surface-2 px-2 py-0.5 text-xs font-medium tabular text-ink-2">{group.items.length}</span>
+                    <ChevronDown size={15} className="shrink-0 text-ink-3 transition-transform group-open/aisle:rotate-180" />
+                  </summary>
+                  <ul className="mt-1 app-card overflow-hidden">{group.items.map(itemRow)}</ul>
+                </details>
+              ))}
             </section>
-          ))}
+          )}
+          {groups.length === 0 && basket.length === 0 && placeFilter && (
+            <EmptyState title="Niciun produs pentru acest filtru" action={<Button variant="secondary" onClick={() => setPlaceFilter(null)}>Arată toate produsele</Button>} />
+          )}
           {basket.length > 0 && (
-            <section aria-label="În coș">
+            <section aria-label="În coș" className="app-card">
               <button
                 type="button"
                 aria-expanded={basketOpen}
                 onClick={() => setBasketOpen((v) => !v)}
-                className="flex min-h-12 w-full items-center gap-2 px-1 text-left text-sm font-semibold tracking-wide text-wood"
+                className="flex min-h-12 w-full items-center gap-2 rounded-[20px] px-3.5 text-left text-sm font-semibold text-info focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-brand"
               >
                 <span className="flex-1">În coș ({basket.length})</span>
                 <ChevronDown size={18} className={`transition-transform duration-200 ${basketOpen ? "rotate-180" : ""}`} />
@@ -443,57 +466,67 @@ function ListScreen() {
       )}
 
       {!list.archived_at && data.suggestions.length > 0 && (
-        <section aria-label="Poate-ți mai trebuie" className="mt-6">
-          <h2 className="px-1 text-xs font-semibold uppercase tracking-wider text-ink-2">Poate-ți mai trebuie</h2>
-          {/* Două grupuri cu titlu, în locul sufixului de pe fiecare buton (decizia proprietarului, 18 oct. 2026). */}
-          {QUICK_GROUPS.map(([reason, title]) => {
-            const items = data.suggestions.filter((s) => s.reason === reason);
-            if (items.length === 0) return null;
-            return (
-              <div key={reason} className="mt-3">
-                <h3 className={`mb-1.5 px-1 text-xs ${reason === "terminat" ? "text-warn" : "text-ink-2"}`}>{title}</h3>
-                <ul className="flex flex-wrap gap-2">
-                  {items.map((s) => (
-                    <li key={s.product_id}>
-                      <button
-                        type="button"
-                        onClick={() => run((ctx) => shop.addItem(ctx, id, { product_id: s.product_id }))}
-                        aria-label={`Adaugă ${s.name}`}
-                        className="inline-flex min-h-12 items-center gap-1.5 rounded-full border border-line bg-surface px-3.5 text-left text-sm text-ink transition duration-150 ease-out hover:bg-surface-2 active:scale-[0.98]"
-                      >
-                        <Plus size={16} className="shrink-0 text-brand" />
-                        <span>{s.name}</span>
-                      </button>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            );
-          })}
+        <section aria-label="Poate-ți mai trebuie" className="mt-3">
+          <details key={id} className="group/suggestions app-card">
+            <summary className="flex min-h-12 cursor-pointer list-none items-center gap-2 rounded-[20px] px-3 text-sm font-semibold text-ink focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-brand [&::-webkit-details-marker]:hidden">
+              <span className="flex-1">Poate-ți mai trebuie</span>
+              <span className="text-xs font-medium tabular text-ink-2">{data.suggestions.length}</span>
+              <ChevronDown size={16} className="shrink-0 text-ink-2 group-open/suggestions:rotate-180" />
+            </summary>
+            <div className="space-y-3 border-t border-line p-3">
+              {QUICK_GROUPS.map(([reason, title]) => {
+                const items = data.suggestions.filter((s) => s.reason === reason);
+                if (items.length === 0) return null;
+                return (
+                  <div key={reason}>
+                    <h3 className={`mb-1.5 px-1 text-xs ${reason === "terminat" ? "text-warn" : "text-ink-2"}`}>{title}</h3>
+                    <ul className="flex flex-wrap gap-2">
+                      {items.map((s) => (
+                        <li key={s.product_id}>
+                          <button
+                            type="button"
+                            onClick={() => run((ctx) => shop.addItem(ctx, id, { product_id: s.product_id }))}
+                            aria-label={`Adaugă ${s.name}`}
+                            className="inline-flex min-h-12 items-center gap-1.5 rounded-full bg-surface-container px-3.5 text-left text-sm text-ink transition duration-150 ease-out hover:bg-surface-container-high active:scale-[0.98]"
+                          >
+                            <AddMark size={16} />
+                            <span>{s.name}</span>
+                          </button>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                );
+              })}
+            </div>
+          </details>
         </section>
       )}
 
       {!!totals?.item_count && (
         <div className={showCheckout ? "shopping-list-checkout" : "mt-4 border-t border-line pt-3"}>
-          <div className="mx-auto flex max-w-3xl items-center gap-2 sm:gap-4">
+          <div className="mx-auto flex max-w-3xl items-center gap-3 sm:gap-4">
             <div className="min-w-0 flex-1 tabular">
               <div className="flex flex-wrap items-baseline gap-x-2">
-                <span className="text-lg font-bold tracking-tight text-ink">{formatRon(totals.spent)}</span>
+                <span className="text-xl font-bold tracking-tight text-ink">{formatRon(totals.spent)}</span>
                 <span className="text-xs text-ink-2">plătiți până acum</span>
               </div>
-              <div className="text-xs text-ink-2">
-                {totals.projected_total > totals.spent && <span className="block">Estimare totală {formatRon(totals.projected_total)}</span>}
-                {totals.unknown_price_count > 0 && <span className="block">{totals.unknown_price_count} încă fără preț</span>}
+              <div className="mt-1 flex flex-wrap items-center gap-1.5 text-xs text-ink-2">
+                {totals.unknown_price_count > 0 && (
+                  <span className="inline-flex items-center rounded-full bg-surface-container-high px-2 py-0.5 text-ink-2">
+                    {totals.unknown_price_count} fără preț
+                  </span>
+                )}
                 {remainingBudget != null ? (
-                  <span className={remainingBudget < 0 ? "font-semibold text-accent" : ""}>
+                  <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 font-medium ${remainingBudget < 0 ? "bg-accent-soft font-semibold text-accent" : "bg-info-soft text-info"}`}>
                     {remainingBudget < 0 ? `Ai trecut de buget cu ${formatRon(-remainingBudget)}` : `Mai ai ${formatRon(remainingBudget)} ${data.budget?.budget.period === "saptamanal" ? "săptămâna asta" : "luna asta"}`}
                   </span>
                 ) : null}
               </div>
-              {allIn && <p className="mt-0.5 font-sans text-sm font-semibold text-sprout">Ai tot! Poți înregistra plata.</p>}
+              {allIn && <p className="mt-1 font-sans text-sm font-semibold text-sprout">Ai tot! Poți înregistra plata.</p>}
             </div>
             {showCheckout && (
-              <Button size="sm" className="whitespace-nowrap" onClick={() => setFinishing(true)} disabled={totals.checked_count === 0}>
+              <Button variant={allIn ? "primary" : "secondary"} size="sm" className="whitespace-nowrap px-5 shadow-card" onClick={() => setFinishing(true)} disabled={totals.checked_count === 0}>
                 Am plătit
               </Button>
             )}
@@ -729,7 +762,7 @@ function CompareStores({ items, prices, retailers, today }: { items: ShoppingLis
   return (
     <div className="flex flex-col gap-3">
       <p className="text-sm text-ink-2">Doar prețurile văzute sau plătite la fiecare magazin. Produsele fără preț acolo nu intră în total.</p>
-      <ul className="overflow-hidden rounded-[28px] bg-surface">
+      <ul className="app-card divide-y divide-line overflow-hidden">
         {rows.map((r) => (
           <li key={r.retailer_id} className="flex min-h-14 flex-col justify-center border-b border-line px-4 py-2 last:border-b-0">
             <div className="flex items-baseline justify-between gap-3">
@@ -752,16 +785,20 @@ function CompareStores({ items, prices, retailers, today }: { items: ShoppingLis
   );
 }
 
-/** Bifa desenată: un cerc ca trasat de mână, care se umple, iar bifa se scrie dintr-o trăsătură. */
+/** Bifa desenată: pătrat cu colțuri rotunjite care se umple, iar bifa se scrie dintr-o trăsătură. */
 function CheckMark({ checked, animate }: { checked: boolean; animate: boolean }) {
   return (
     <svg viewBox="0 0 28 28" className="h-7 w-7" aria-hidden>
-      <path
-        d="M14.2 2.6c6.3-.1 11.3 5 11.2 11.5-.1 6.3-5.3 11.4-11.6 11.3C7.4 25.3 2.5 20.2 2.6 13.8 2.7 7.6 7.9 2.7 14.2 2.6z"
-        strokeWidth={2}
-        className={`transition-colors duration-200 ${checked ? "fill-sprout stroke-sprout" : "fill-none stroke-outline"}`}
+      <rect
+        x="2.5"
+        y="2.5"
+        width="23"
+        height="23"
+        rx="7.5"
+        strokeWidth={1.75}
+        className={`transition-colors duration-200 ${checked ? "fill-sprout stroke-sprout" : "fill-surface-2 stroke-outline-variant"}`}
       />
-      {checked && <path d="M8.6 14.6l3.7 3.5 7.4-8" fill="none" strokeWidth={2.6} strokeLinecap="round" strokeLinejoin="round" className={`stroke-sprout-ink ${animate ? "draw-check" : ""}`} />}
+      {checked && <path d="M8.6 14.6l3.7 3.5 7.4-8" fill="none" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round" className={`stroke-sprout-ink ${animate ? "draw-check" : ""}`} />}
     </svg>
   );
 }
