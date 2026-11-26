@@ -50,3 +50,13 @@ export async function callReadReceipt(body: { image: { mimeType: "image/jpeg"; d
     signal: AbortSignal.timeout(100_000),
   });
 }
+
+export async function callLookupNutrition(code: string): Promise<Response> {
+  const { data } = await supabase().auth.getSession();
+  return fetch(`${url}/functions/v1/lookup-nutrition`, {
+    method: "POST",
+    headers: { authorization: `Bearer ${data.session?.access_token ?? ""}`, apikey: anonKey!, "content-type": "application/json" },
+    body: JSON.stringify({ code }),
+    signal: AbortSignal.timeout(14_000),
+  });
+}

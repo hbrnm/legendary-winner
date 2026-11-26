@@ -12,6 +12,7 @@ import { SupabaseFiles, SupabaseRemote } from "@/lib/sync/supabase-remote";
 import { browserPhotoCache, clearPhotoCache, type PhotoCache, type RemoteFiles } from "@/lib/sync/files";
 import type { Role } from "@/lib/domain/types";
 import { deleteAccount as deleteAccountService } from "@/lib/services/household";
+import { clearCalorieData } from "@/lib/db/calorie-database";
 import { reconcileHouseholds } from "@/lib/sync/membership";
 import { resolveAppMode, type AppMode } from "@/lib/app-mode";
 
@@ -357,16 +358,20 @@ export function AppProvider({ children }: { children: ReactNode }) {
     if (mode !== "cloud") return;
     const current = db;
     await deleteAccountService();
-    await supabase().auth.signOut();
-    await clearPhotoCache();
-    if (current) {
-      current.close();
-      await current.delete();
+    try {
+      if (user) await clearCalorieData(user.id);
+    } finally {
+      await supabase().auth.signOut();
+      await clearPhotoCache();
+      if (current) {
+        current.close();
+        await current.delete();
+      }
+      setDb(null);
+      setUser(null);
+      setStatus("signed_out");
     }
-    setDb(null);
-    setUser(null);
-    setStatus("signed_out");
-  }, [mode, db]);
+  }, [mode, db, user]);
 
   const setLocalDisplayName = useCallback(
     async (name: string) => {

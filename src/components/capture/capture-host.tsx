@@ -1,13 +1,13 @@
 "use client";
 
-import { lazy, Suspense, useCallback, useEffect, useRef, useState } from "react";
+import { lazy, Suspense, useCallback, useEffect, useId, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { usePathname, useRouter } from "next/navigation";
-import { BasketIcon, Camera, Copy, PurseIcon, ReceiptIcon } from "@/components/ui/icons";
+import { BasketIcon, Camera, ChevronDown, Copy, PurseIcon, ReceiptIcon } from "@/components/ui/icons";
 import { useAction, useData } from "@/components/app/hooks";
 import { useApp } from "@/components/app/app-provider";
 import { AddButton, Button } from "@/components/ui/button";
-import { LabeledInput, LabeledSelect } from "@/components/ui/fields";
+import { Input, LabeledInput, LabeledSelect } from "@/components/ui/fields";
 import { Sheet } from "@/components/ui/sheet";
 import { Spinner } from "@/components/ui/misc";
 import { ProductSearch } from "@/components/shopping/product-search";
@@ -31,7 +31,8 @@ const SHORTCUTS: { id: ExpenseShortcut; name: string }[] = [
   { id: "supermarket", name: "Supermarket" }, { id: "piata", name: "Piață" },
   { id: "locuinta", name: "Casă & Utilități" }, { id: "altele", name: "Altele" },
 ];
-const chip = "inline-flex min-h-12 shrink-0 items-center rounded-full px-4 text-sm focus-visible:outline-2 focus-visible:outline-brand focus-visible:-outline-offset-2 transition-colors duration-150 ease-out";
+const chip = "inline-flex shrink-0 items-center rounded-full text-sm focus-visible:outline-2 focus-visible:outline-brand focus-visible:-outline-offset-2 transition-colors duration-150 ease-out";
+const compactChip = `${chip} min-h-11 px-3`;
 
 /** One capture host per visible application shell; every entry point uses it. */
 export function CaptureHost({ inlineTarget }: { inlineTarget?: HTMLElement | null } = {}) {
@@ -60,9 +61,14 @@ export function CaptureHost({ inlineTarget }: { inlineTarget?: HTMLElement | nul
   const [shortcut, setShortcut] = useState<ExpenseShortcut | null>(null);
   const [category, setCategory] = useState<ExpenseCategoryId>("altele");
   const [note, setNote] = useState("");
-  const [date, setDate] = useState(toISODate(now()));
+  const today = toISODate(now());
+  const [date, setDate] = useState(today);
+  const [showDate, setShowDate] = useState(false);
+  const [showDetails, setShowDetails] = useState(false);
   const [listId, setListId] = useState("");
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState<"amount" | "date" | null>(null);
+  const expenseFormId = useId();
+  const amountInput = useRef<HTMLInputElement>(null);
   const saving = useRef(false);
   const data = useData(async ctx => {
     const [retailers, expenses, lists] = await Promise.all([
@@ -82,6 +88,7 @@ export function CaptureHost({ inlineTarget }: { inlineTarget?: HTMLElement | nul
       }
       setMenu(false); setRequest(detail); setError(null); setAmount(""); setPlace(""); setRetailerId(null);
       setFreePlace(false); setSource(null); setCategory("altele"); setShortcut(null); setNote(""); setDate(toISODate(now())); setListId(detail.listId ?? "");
+      setShowDate(false); setShowDetails(false);
   },[]);
   useEffect(() => {
     const open=(event:Event)=>openCapture((event as CustomEvent<CaptureRequest>).detail);
@@ -128,10 +135,20 @@ export function CaptureHost({ inlineTarget }: { inlineTarget?: HTMLElement | nul
 
   function close() { if (!saving.current) { setRequest(null); setCameraFile(null); setError(null); } }
   async function saveExpense() {
-    if (saving.current) return;
+    if (saving.current || !familyBudgetEnabled) return;
     const value = parseMoney(amount);
-    if (value == null || value <= 0) return setError("Scrie o sumă mai mare decât zero, cu cel mult două zecimale.");
-    if (!date || date > toISODate(now())) return setError("Alege data plății, până astăzi.");
+    if (value == null || value <= 0) {
+      setError("amount");
+      amountInput.current?.focus();
+      return;
+    }
+    if (!date || date > today) {
+      setError("date");
+      setShowDate(true);
+      document.getElementById(`${expenseFormId}-date`)?.focus();
+      return;
+    }
+    setError(null);
     const description = note.trim() || place.trim() || EXPENSE_CATEGORIES.find(c => c.id === category)!.name;
     saving.current = true;
     try {
@@ -184,44 +201,56 @@ export function CaptureHost({ inlineTarget }: { inlineTarget?: HTMLElement | nul
       open={request !== null}
       onClose={close}
       title={request?.mode === "shopping" ? "Adaugă pe listă" : "Cheltuială"}
-      headerAction={
-        request?.mode === "manual" ? (
-          <Button
-            size="sm"
-            aria-label="Salvează cheltuiala"
-            disabled={busy || !familyBudgetEnabled}
-            onClick={saveExpense}
-            className="sm:hidden font-semibold"
-          >
-            Salvează
-          </Button>
-        ) : undefined
-      }
+      compact={request?.mode === "manual"}
       footer={
         request?.mode === "manual" ? (
-          <Button block disabled={busy || !familyBudgetEnabled} onClick={saveExpense} className="transition-transform active:scale-[0.98]">
+          <Button block type="submit" form={expenseFormId} disabled={busy || !familyBudgetEnabled}>
             Salvează
           </Button>
         ) : undefined
       }
     >
-      {request?.mode !== "shopping" && <div className="mb-4 flex rounded-full bg-surface-2 p-1" role="group" aria-label="Metoda de înregistrare">
-        <button type="button" aria-pressed={request?.mode === "manual"} className={`${chip} flex-1 justify-center ${request?.mode === "manual" ? "bg-brand text-brand-ink" : "text-ink-2"}`} disabled={busy} onClick={() => {setCameraFile(null);if(request?.listId) dispatchCapture({mode:"manual",listId:request.listId}); else setRequest(r => r && {...r,mode:"manual"});}}>Introducere manuală</button>
-        <button type="button" aria-pressed={request?.mode === "scan"} className={`${chip} flex-1 justify-center ${request?.mode === "scan" ? "bg-brand text-brand-ink" : "text-ink-2"}`} disabled={busy} onClick={() => setRequest(r => r && {...r,mode:"scan"})}><ReceiptIcon size={17} className="mr-1" /> Scanează bon</button>
+      {request?.mode === "scan" && <div className="mb-4 flex rounded-full bg-surface-2 p-1" role="group" aria-label="Metoda de înregistrare">
+        <button type="button" aria-pressed={false} className={`${chip} min-h-12 flex-1 justify-center px-4 text-ink-2`} disabled={busy} onClick={() => {setCameraFile(null);if(request.listId) dispatchCapture({mode:"manual",listId:request.listId}); else setRequest({...request,mode:"manual"});}}>Introducere manuală</button>
+        <button type="button" aria-pressed={true} className={`${chip} min-h-12 flex-1 justify-center bg-brand px-4 text-brand-ink`} disabled={busy}><ReceiptIcon size={17} className="mr-1" /> Scanează bon</button>
       </div>}
-      {request?.mode === "manual" && <form onSubmit={e => {e.preventDefault(); void saveExpense();}} className="flex flex-col gap-3 sm:gap-4">
+      {request?.mode === "manual" && <form id={expenseFormId} noValidate onSubmit={e => {e.preventDefault(); void saveExpense();}} className="flex flex-col gap-2.5 sm:gap-3">
         {!familyBudgetEnabled && <p role="status" className="text-sm text-ink-2">Cheltuielile familiei vor fi disponibile după actualizarea și sincronizarea gospodăriei.</p>}
-        <label className="block text-sm font-medium">Sumă (RON)<input data-autofocus inputMode="decimal" value={amount} onChange={e => setAmount(e.target.value)} placeholder="0,00" className="mt-1 block h-12 w-full border-b border-line bg-transparent text-4xl font-semibold tabular-nums outline-none focus:border-brand sm:h-16" /></label>
-        <div><p className="mb-2 text-sm font-medium">Magazin / Loc</p><div className="flex gap-2 overflow-x-auto pb-1">
-          {safeData?.places.map(p => <button type="button" key={p.key} aria-pressed={place === p.name} className={`${chip} ${place === p.name ? "bg-brand text-brand-ink" : "bg-surface-2 text-ink"}`} onClick={() => {setPlace(p.name);setRetailerId(p.retailerId);setSource(p.source);setFreePlace(false);}}>{p.name}</button>)}
-          <button type="button" className={`${chip} bg-surface-2 text-ink`} onClick={() => {setFreePlace(true);setRetailerId(null);setPlace("");}}>+ Alt loc</button>
-        </div>{freePlace && <LabeledInput label="Numele locului" value={place} onChange={e => setPlace(e.target.value)} maxLength={120} autoFocus />}</div>
-        <div><p className="mb-2 text-sm font-medium">Categorie</p><div className="flex gap-2 overflow-x-auto pb-1">{SHORTCUTS.map(s => <button type="button" key={s.id} aria-pressed={shortcut === s.id} className={`${chip} ${shortcut === s.id ? "bg-brand text-brand-ink" : "bg-surface-2 text-ink"}`} onClick={() => {setShortcut(s.id);setCategory(shortcutCategory(s.id));if(s.id === "supermarket" || s.id === "piata") setSource(s.id);}}>{s.name}</button>)}</div></div>
-        <LabeledSelect label="Toate categoriile" value={category} onChange={e => {setCategory(e.target.value as ExpenseCategoryId);setShortcut(null);}}>{EXPENSE_CATEGORIES.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}</LabeledSelect>
-        <LabeledInput label="Notă scurtă (opțional)" placeholder="legume și brânză" maxLength={120} value={note} onChange={e => setNote(e.target.value)} />
-        <LabeledInput label="Data plății" type="date" max={toISODate(now())} value={date} onChange={e => setDate(e.target.value)} />
-        {error && <p role="alert" className="text-sm text-accent">{error}</p>}
-        <button type="submit" className="sr-only" disabled={busy}>Salvează cheltuiala</button>
+        <div className="space-y-1">
+          <label htmlFor={`${expenseFormId}-amount`} className="text-sm font-medium text-ink-2">Sumă (RON)</label>
+          <Input ref={amountInput} id={`${expenseFormId}-amount`} autoFocus inputMode="decimal" enterKeyHint="next" value={amount}
+            onChange={e => { setAmount(e.target.value); if (error === "amount") setError(null); }}
+            onKeyDown={e => {
+              if (e.key !== "Enter" || e.nativeEvent.isComposing) return;
+              e.preventDefault();
+              document.getElementById(`${expenseFormId}-category`)?.focus();
+            }}
+            placeholder="0,00" className="h-12! text-[32px] font-semibold leading-tight tabular-nums sm:h-14!" aria-invalid={error === "amount" || undefined}
+            aria-describedby={error === "amount" ? `${expenseFormId}-amount-error` : undefined} />
+          {error === "amount" && <p id={`${expenseFormId}-amount-error`} role="alert" className="text-sm text-accent">Scrie o sumă mai mare decât zero, cu cel mult două zecimale.</p>}
+        </div>
+        <div className="space-y-1">
+          <p className="text-sm font-medium text-ink-2">Categorie</p>
+          <div className="flex gap-1.5 overflow-x-auto py-0.5" role="group" aria-label="Categorii rapide">
+            {SHORTCUTS.map(s => <button type="button" key={s.id} aria-pressed={shortcut === s.id} className={`${compactChip} ${shortcut === s.id ? "bg-brand text-brand-ink" : "bg-surface-2 text-ink"}`} onClick={() => {setShortcut(s.id);setCategory(shortcutCategory(s.id));if(s.id === "supermarket" || s.id === "piata") setSource(s.id);}}>{s.name}</button>)}
+          </div>
+          <LabeledSelect id={`${expenseFormId}-category`} label="Toate categoriile" className="min-h-11! py-2!" value={category} onChange={e => {setCategory(e.target.value as ExpenseCategoryId);setShortcut(null);}}>{EXPENSE_CATEGORIES.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}</LabeledSelect>
+        </div>
+        <div className="flex flex-wrap items-center gap-x-2">
+          <Button size="auto" variant="secondary" aria-label={`Schimbă data plății (${date === today ? "Azi" : date ? formatShortDate(date) : "fără dată"})`} aria-expanded={showDate} onClick={() => setShowDate(!showDate)}>
+            {date === today ? "Azi" : date ? formatShortDate(date) : "Alege data"}<ChevronDown size={16} aria-hidden />
+          </Button>
+          <Button size="auto" variant="ghost" aria-expanded={showDetails} onClick={() => setShowDetails(!showDetails)}>Mai multe detalii <ChevronDown size={16} className={showDetails ? "rotate-180" : undefined} aria-hidden /></Button>
+        </div>
+        {showDate && <LabeledInput id={`${expenseFormId}-date`} label="Data plății" type="date" autoFocus max={today} value={date} className="h-11! min-w-0" onChange={e => {setDate(e.target.value); if (error === "date") setError(null);}} error={error === "date" ? "Alege data plății, până astăzi." : undefined} />}
+        {showDetails && <div className="space-y-2">
+          <div><p className="text-sm font-medium text-ink-2">Magazin / Loc</p><div className="flex gap-1.5 overflow-x-auto py-1">
+            {safeData?.places.map(p => <button type="button" key={p.key} aria-pressed={place === p.name} className={`${compactChip} ${place === p.name ? "bg-brand text-brand-ink" : "bg-surface-2 text-ink"}`} onClick={() => {setPlace(p.name);setRetailerId(p.retailerId);setSource(p.source);setFreePlace(false);}}>{p.name}</button>)}
+            <button type="button" className={`${compactChip} bg-surface-2 text-ink`} onClick={() => {setFreePlace(true);setRetailerId(null);setPlace("");}}>+ Alt loc</button>
+          </div>{freePlace && <LabeledInput label="Numele locului" value={place} onChange={e => setPlace(e.target.value)} maxLength={120} className="h-11!" autoFocus />}</div>
+          <LabeledInput label="Notă scurtă (opțional)" placeholder="legume și brânză" maxLength={120} value={note} onChange={e => setNote(e.target.value)} className="h-11!" enterKeyHint="done" />
+        </div>}
+        <Button size="auto" variant="ghost" className="self-start" icon={<ReceiptIcon size={17} />} disabled={busy} onClick={() => setRequest({...request,mode:"scan"})}>Scanează bon</Button>
       </form>}
       {request?.mode === "scan" && <Suspense fallback={<Spinner />}><ReceiptCapture key={captureVersion} embedded initialFile={cameraFile??undefined} autoRead={!!cameraFile} initialListId={request.listId} onSaved={savedListId => {setRequest(null); setCameraFile(null); if(savedListId) router.push(`/cumparaturi/lista/?id=${savedListId}`);}} /></Suspense>}
       {request?.mode === "shopping" && <div className="space-y-4">

@@ -31,6 +31,7 @@ import { quickMealSuggestions, selectHomeMeal, SLOT_ORDER } from "./home-model";
 import { useMealTime } from "./use-meal-time";
 import { COOKING_STORAGE_PREFIX, cookingProgressKey, listCookingProgress, writeCookingProgress } from "@/lib/cooking-progress";
 import { isAvailableRecipe } from "@/data/recipes/visibility";
+import { HomeCalories } from "@/components/calories/journal";
 
 export function HomeScreen({ captureRef }: { captureRef?: Ref<HTMLDivElement> }) {
   const { run, busy } = useAction();
@@ -514,6 +515,8 @@ export function HomeScreen({ captureRef }: { captureRef?: Ref<HTMLDivElement> })
           </div>
         </section>
       </div>
+
+      <HomeCalories key={ctx?.userId} today={today} />
 
       {/* Sheet acțiune masă */}
       <Sheet

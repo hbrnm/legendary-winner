@@ -111,6 +111,20 @@ describe("valorile nutriționale ale rețetei (.tasks/016, etapa 4)", () => {
   };
   const of = (id: string) => values[id];
 
+  it("folosește 100 ml fără densitate și exclude ingredientul fiert evaluat cu valori crude", () => {
+    const n = recipeNutrition({ servings: 2 }, [
+      ingredient({ id: "i1", recipe_id: "r", product_id: "lapte", quantity: 1, unit: "lingura" }),
+      ingredient({ id: "i2", recipe_id: "r", product_id: "piept-pui", quantity: 100, unit: "g", note: "Piept de pui gătit" }),
+    ], (id) => id === "lapte"
+      ? { per_100g: null, per_100ml: { kcal: 47, protein_g: 3, carbs_g: 5, fat_g: 1 }, units: {}, source: "Etichetă" }
+      : { ...values[id], preparation: "raw" });
+    expect(n.total?.kcal).toBeCloseTo(7.05);
+    expect(n.exact_per_serving?.kcal).toBeCloseTo(3.525);
+    expect(n.contributions[0].source).toBe("Etichetă");
+    expect(n.contributions[1].values).toBeNull();
+    expect(n.missing).toEqual([{ product_id: "piept-pui", frying: false }]);
+  });
+
   it("adună gramele ingredientelor și împarte la porții; „după gust” și opționalele nu contează", () => {
     const n = recipeNutrition(r, ings, of);
     // 500 g pui = 550 kcal, 115 g proteine; 2 cepe = 300 g = 108 kcal, 3 g proteine, 21 g glucide; la 4 porții

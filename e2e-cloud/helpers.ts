@@ -26,8 +26,10 @@ export async function quickAdd(page: Page, text: string, product: string) {
 }
 
 export async function syncNow(page: Page) {
-  // „Sincronizat” poate fi încă eticheta de dinainte de clic; așteptăm o tragere reală de pe server.
-  const pulled = page.waitForResponse((r) => r.url().includes("/rest/v1/") && r.request().method() === "GET");
+  // „Sincronizat” apare și înainte de prima sincronizare; așteptăm până la ultimul tabel tras (manual_expenses).
+  const pulled = page.waitForResponse(
+    (r) => r.url().includes("/rest/v1/manual_expenses") && r.request().method() === "GET",
+  );
   await page.getByRole("button", { name: /Sincronizează acum/ }).click();
   await pulled;
   await expect(page.getByRole("button", { name: /^Sincronizat/ })).toBeVisible();

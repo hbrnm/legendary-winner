@@ -85,12 +85,24 @@ export interface NutritionValues {
 /** Ce știm despre un produs pentru calcul: valorile la 100 g și greutățile unităților (bucată, ml, cățel). */
 export interface ProductNutrition {
   per_100g: NutritionValues | null;
+  per_100ml?: NutritionValues;
+  source?: string;
+  preparation?: "raw" | "cooked" | "as_sold";
   units: ProductUnits & { catel_g?: number | null };
 }
 
 export interface RecipeNutrition {
   /** Din ingredientele care se pot calcula; null dacă niciunul nu se poate. */
   per_serving: NutritionValues | null;
+  exact_per_serving: NutritionValues | null;
+  total: NutritionValues | null;
+  contributions: {
+    ingredient_id: string;
+    product_id: string;
+    values: NutritionValues | null;
+    source?: string;
+    reason?: string;
+  }[];
   /** Ingredientele fără valori sau fără greutate și uleiul de prăjit („după gust” și opționalele nu contează). */
   missing: { product_id: string; frying: boolean }[];
 }
@@ -100,9 +112,16 @@ function isFrying(note: string | null | undefined): boolean {
   return !!note && normalize(note).includes("pentru prajit");
 }
 
-function gramsOf(quantity: number, unit: RecipeIngredient["unit"] & string, units: ProductNutrition["units"]): number | null {
-  if (unit === "catel") return units.catel_g && units.catel_g > 0 ? quantity * units.catel_g : null;
-  return convertForProduct(quantity, unit, "g", units);
+export function scaleNutrition(values: NutritionValues, factor: number): NutritionValues {
+  return { kcal: values.kcal * factor, protein_g: values.protein_g * factor, carbs_g: values.carbs_g * factor, fat_g: values.fat_g * factor };
+}
+
+export function ingredientPreparation(text: string): "raw" | "cooked" | undefined {
+  const name = normalize(text).replace(/\b(pentru|de) (fiert|copt|prajit)\b/g, "");
+  if (/\b(prefiert[aei]?|fiert[aei]?|gatit[aei]?|prajit[aei]?)\b/.test(name)) return "cooked";
+  if (/\b(crud[aei]?|cruzi|uscat[aei]?|uscati)\b/.test(name)) return "raw";
+  // „Copt” poate descrie maturitatea unui fruct, nu prepararea termică.
+  if (/\b(copt[aei]?|copti)\b/.test(name) && !/\b(avocado|banana|banane|mango|rosie|rosii)\b/.test(name)) return "cooked";
 }
 
 /**
@@ -114,21 +133,40 @@ function gramsOf(quantity: number, unit: RecipeIngredient["unit"] & string, unit
 export function recipeNutrition(recipe: Pick<Recipe, "servings">, ingredients: RecipeIngredient[], nutritionOf: (productId: string) => ProductNutrition | undefined): RecipeNutrition {
   const sum: NutritionValues = { kcal: 0, protein_g: 0, carbs_g: 0, fat_g: 0 };
   const missing: RecipeNutrition["missing"] = [];
+  const contributions: RecipeNutrition["contributions"] = [];
   let counted = 0;
   for (const i of ingredients) {
-    if (i.optional || i.quantity == null || !i.unit) continue;
+    if (i.deleted_at) continue;
+    const row: RecipeNutrition["contributions"][number] = { ingredient_id: i.id, product_id: i.product_id, values: null };
+    contributions.push(row);
+    if (i.optional || i.quantity == null || !i.unit) {
+      row.reason = i.optional ? "Opțional" : "După gust";
+      continue;
+    }
     const frying = isFrying(i.note);
     const n = frying ? undefined : nutritionOf(i.product_id);
-    const grams = n?.per_100g ? gramsOf(i.quantity, i.unit, n.units) : null;
-    if (!n?.per_100g || grams == null) {
+    const values = n?.per_100ml ?? n?.per_100g;
+    const basis = n?.per_100ml ? "ml" : "g";
+    const preparation = ingredientPreparation(i.note ?? "");
+    const mismatch = (preparation === "cooked" && n?.preparation !== "cooked") || (preparation === "raw" && n?.preparation === "cooked");
+    const amount = !n ? null : i.unit === "catel"
+      ? (n.units.catel_g ? convertForProduct(i.quantity * n.units.catel_g, "g", basis, n.units) : null)
+      : convertForProduct(i.quantity, i.unit, basis, n.units);
+    if (!values || amount == null || !Number.isFinite(amount) || mismatch) {
+      row.reason = frying ? "Absorbție necunoscută la prăjire" : mismatch ? "Lipsesc valori pentru starea indicată" : !values ? "Lipsesc valorile nutriționale" : "Lipsește conversia cantității";
       if (!missing.some((m) => m.product_id === i.product_id && m.frying === frying)) missing.push({ product_id: i.product_id, frying });
       continue;
     }
-    for (const k of Object.keys(sum) as (keyof NutritionValues)[]) sum[k] += (n.per_100g[k] * grams) / 100;
+    row.values = scaleNutrition(values, amount / 100);
+    row.source = n?.source;
+    for (const k of Object.keys(sum) as (keyof NutritionValues)[]) sum[k] += row.values[k];
     counted++;
   }
   const servings = recipe.servings > 0 ? recipe.servings : 1;
   return {
+    exact_per_serving: counted === 0 ? null : scaleNutrition(sum, 1 / servings),
+    total: counted === 0 ? null : sum,
+    contributions,
     per_serving: counted === 0 ? null : { kcal: Math.round(sum.kcal / servings), protein_g: Math.round(sum.protein_g / servings), carbs_g: Math.round(sum.carbs_g / servings), fat_g: Math.round(sum.fat_g / servings) },
     missing,
   };
