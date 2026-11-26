@@ -1,11 +1,31 @@
 import { describe, expect, it } from "vitest";
-import { energySummary, entryEnergy, entryIncomplete, type CalorieEntry } from "./calories";
+import {
+  energySummary,
+  entryEnergy,
+  entryIncomplete,
+  entryNutrition,
+  foodUnitsFor,
+  macrosSummary,
+  type CalorieEntry,
+  type FoodCalorieSnapshot,
+} from "./calories";
 
 const baseRecipe = {
   name: "Omletă cu spanac",
   per_serving: { kcal: 365, protein_g: 22, carbs_g: 4, fat_g: 28 },
   source: "declared" as const,
   incomplete: false,
+};
+
+const baseFood: FoodCalorieSnapshot = {
+  name: "Ouă",
+  per_100: { kcal: 143, protein_g: 12.6, carbs_g: 0.7, fat_g: 9.5 },
+  basis: "g",
+  piece_grams: 55,
+  grams_per_ml: null,
+  quantity: 2,
+  unit: "buc",
+  source: "CIQUAL",
 };
 
 function entry(patch: Partial<CalorieEntry> = {}): CalorieEntry {
@@ -42,5 +62,29 @@ describe("calorii și rezumatul zilnic", () => {
       entry({ servings: 0.5 }),
       entry({ id: "e2", recipe: { ...baseRecipe, per_serving: null, incomplete: true } }),
     ])).toBe("182,5 kcal · Total incomplet");
+  });
+
+  it("calculează energia și macronutrienții pentru alimente în g, ml și bucăți", () => {
+    expect(foodUnitsFor(baseFood)).toEqual(["g", "buc"]);
+    expect(foodUnitsFor({ basis: "ml", piece_grams: null, grams_per_ml: 1.03 })).toEqual(["ml", "g"]);
+
+    const eggEntry = entry({ recipe: null, food: baseFood });
+    expect(entryEnergy(eggEntry)).toBeCloseTo(157.3);
+    expect(entryNutrition(eggEntry)?.protein_g).toBeCloseTo(13.86);
+    expect(entryIncomplete(eggEntry)).toBe(false);
+
+    const unknownFood = entry({ recipe: null, food: { ...baseFood, per_100: null } });
+    expect(entryEnergy(unknownFood)).toBeNull();
+    expect(entryIncomplete(unknownFood)).toBe(true);
+  });
+
+  it("calculează rezumatul zilnic de macronutrienți fără a inventa valori pentru intrările manuale", () => {
+    expect(macrosSummary([])).toBeNull();
+    expect(macrosSummary([entry({ recipe: null, manual_kcal: 200 })])).toBeNull();
+    expect(macrosSummary([
+      entry({ servings: 0.5 }),
+      entry({ id: "e2", recipe: null, food: baseFood }),
+      entry({ id: "e3", recipe: null, manual_kcal: 100 }),
+    ])).toBe("P 24,9 g · G 2,8 g · L 24,5 g");
   });
 });

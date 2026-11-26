@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useState, type FormEvent } from "react";
+import { useState, type FormEvent } from "react";
 import { useApp } from "@/components/app/app-provider";
 import { Button } from "@/components/ui/button";
 import { LabeledInput, LabeledSelect } from "@/components/ui/fields";
@@ -9,88 +9,24 @@ import { Sheet } from "@/components/ui/sheet";
 import { useToast } from "@/components/ui/toast";
 import { calorieDatabase } from "@/lib/db/calorie-database";
 import { kcalFormat, type ProductNutritionLabel, type ProductNutritionSuggestion } from "@/lib/domain/calories";
-import { isGtin } from "@/lib/domain/barcode";
-import { callLookupNutrition } from "@/lib/supabase/client";
 import { scaleNutrition, type NutritionValues, type RecipeNutrition } from "@/lib/domain/recipes";
 import type { Product, Recipe } from "@/lib/domain/types";
 import { AddRecipeCalories } from "./journal";
-import { BarcodeCamera } from "./barcode-camera";
-
-const nutrients = [
-  ["kcal", "Energie"],
-  ["protein_g", "Proteine"],
-  ["carbs_g", "Glucide"],
-  ["fat_g", "Grăsimi"],
-] as const;
-
-function NutritionNumbers({ values, fiber }: { values: NutritionValues; fiber?: number }) {
-  return (
-    <dl className="space-y-1 text-sm">
-      {nutrients.map(([key, label]) => (
-        <div key={key} className="flex justify-between gap-1">
-          <dt>{label}</dt>
-          <dd className="font-semibold tabular">{kcalFormat.format(values[key])} {key === "kcal" ? "kcal" : "g"}</dd>
-        </div>
-      ))}
-      {fiber != null && <div className="flex justify-between gap-1"><dt>Fibre</dt><dd className="font-semibold tabular">{kcalFormat.format(fiber)} g</dd></div>}
-    </dl>
-  );
-}
+import { BarcodeLookup, NUTRIENT_FIELDS, NutritionNumbers } from "./barcode-lookup";
 
 function NutritionLabelForm({ product, label, onClose }: { product: Product; label?: ProductNutritionLabel; onClose: () => void }) {
   const { ctx, mode } = useApp();
   const toast = useToast();
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
-  const [code, setCode] = useState(label?.open_food_facts_code ?? product.ean ?? "");
-  const [suggestion, setSuggestion] = useState<ProductNutritionSuggestion | null>(null);
   const [applied, setApplied] = useState<ProductNutritionSuggestion | null>(null);
-  const [lookup, setLookup] = useState(false);
-  const [status, setStatus] = useState("");
-  const [cameraOpen, setCameraOpen] = useState(false);
-  const closeCamera = useCallback(() => setCameraOpen(false), []);
-  const setBarcode = useCallback((value: string) => {
-    setCode(value);
-    setSuggestion(null);
-    setStatus("");
-  }, []);
-  const acceptScan = useCallback((value: string) => {
-    setBarcode(value);
-    closeCamera();
-    setStatus("Cod citit. Apasă «Caută produsul» pentru a verifica rezultatul.");
-  }, [closeCamera, setBarcode]);
-
-  async function search() {
-    const gtin = code.trim();
-    setSuggestion(null);
-    if (!isGtin(gtin)) {
-      setStatus("Verifică cifrele codului de bare.");
-      return;
-    }
-    setLookup(true);
-    setStatus("Se caută produsul…");
-    try {
-      const response = await callLookupNutrition(gtin);
-      if (response.status === 429) {
-        setStatus("Încearcă din nou peste câteva secunde. Poți completa și manual.");
-        return;
-      }
-      if (!response.ok) throw new Error("lookup");
-      const { product: found } = await response.json() as { product: ProductNutritionSuggestion | null };
-      setSuggestion(found);
-      setStatus(found ? (found.nutrition ? "Compară produsul, gramajul și valorile cu ambalajul." : "Datele nutriționale sunt incomplete. Completează valorile de pe ambalaj.") : "Codul nu a fost găsit. Poți completa valorile de pe ambalaj.");
-    } catch {
-      setStatus("Căutarea nu este disponibilă acum. Poți completa valorile manual.");
-    } finally {
-      setLookup(false);
-    }
-  }
+  const [lookupStatus, setLookupStatus] = useState("");
 
   async function save(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (!ctx || busy) return;
     const form = new FormData(event.currentTarget);
-    const values = Object.fromEntries(nutrients.map(([key]) => {
+    const values = Object.fromEntries(NUTRIENT_FIELDS.map(([key]) => {
       const raw = String(form.get(key) ?? "").trim();
       return [key, raw ? Number(raw.replace(",", ".")) : Number.NaN];
     })) as unknown as NutritionValues;
@@ -107,7 +43,7 @@ function NutritionLabelForm({ product, label, onClose }: { product: Product; lab
         label
         && label.basis === basis
         && label.preparation === preparation
-        && nutrients.every(([key]) => label.values[key] === values[key]),
+        && NUTRIENT_FIELDS.every(([key]) => label.values[key] === values[key]),
       );
       const open_food_facts_code = applied?.code ?? (unchangedLabel ? label?.open_food_facts_code : undefined);
       await calorieDatabase().labels.put({ user_id: ctx.userId, product_id: product.id, basis, preparation, values, open_food_facts_code });
@@ -124,34 +60,18 @@ function NutritionLabelForm({ product, label, onClose }: { product: Product; lab
     <form onSubmit={save} className="space-y-3">
       <p className="font-semibold">{product.name}</p>
       {mode === "cloud" && (
-        <details className="space-y-3 rounded-xl border border-line p-3" onToggle={(event) => {
-          if (!event.currentTarget.open) closeCamera();
-        }}>
+        <details className="space-y-3 rounded-xl border border-line p-3">
           <summary className="cursor-pointer font-medium">Caută după codul de bare</summary>
-          <LabeledInput label="Cod de bare" inputMode="numeric" maxLength={14} value={code} disabled={lookup} onChange={(event) => setBarcode(event.target.value)} onKeyDown={(event) => {
-            if (event.key !== "Enter") return;
-            event.preventDefault();
-            if (!lookup && !cameraOpen) void search();
-          }} />
-          <div className="flex flex-wrap gap-2">
-            <Button size="auto" variant="outlined" disabled={lookup || cameraOpen} onClick={() => void search()}>Caută produsul</Button>
-            {!cameraOpen && <Button size="auto" variant="ghost" disabled={lookup} onClick={() => setCameraOpen(true)}>Scanează codul</Button>}
-          </div>
-          {cameraOpen && <BarcodeCamera onRead={acceptScan} onClose={closeCamera} />}
-          <p role="status" className="text-sm text-ink-2">{status}</p>
-          {suggestion && (
-            <div className="space-y-2">
-              <p className="font-semibold">{[suggestion.name, suggestion.brand, suggestion.quantity].filter(Boolean).join(" · ") || suggestion.code}</p>
-              <a className="text-sm text-brand underline" href={`https://world.openfoodfacts.org/product/${suggestion.code}`} target="_blank" rel="noreferrer">Sursă Open Food Facts · ODbL</a>
-              {suggestion.nutrition && (
-                <>
-                  <p className="text-sm">La 100 {suggestion.nutrition.basis}</p>
-                  <NutritionNumbers values={suggestion.nutrition.values} />
-                  <Button size="auto" variant="tonal" onClick={() => { setApplied(suggestion); setSuggestion(null); setStatus("Valorile sunt în formular. Le poți corecta înainte de salvare."); }}>Confirmă produsul și preia valorile</Button>
-                </>
-              )}
-            </div>
-          )}
+          <BarcodeLookup
+            initialCode={label?.open_food_facts_code ?? product.ean ?? ""}
+            cloudAvailable
+            acceptLabel="Confirmă produsul și preia valorile"
+            onAccept={(suggestion) => {
+              setApplied(suggestion);
+              setLookupStatus("Valorile sunt în formular. Le poți corecta înainte de salvare.");
+            }}
+          />
+          {lookupStatus && <p role="status" className="text-sm text-ink-2">{lookupStatus}</p>}
         </details>
       )}
       <div className="space-y-3" key={applied ? `off-${applied.code}` : "label"}>
@@ -164,7 +84,7 @@ function NutritionLabelForm({ product, label, onClose }: { product: Product; lab
           <option value="raw">Crud</option>
           <option value="cooked">Gătit</option>
         </LabeledSelect>
-        {nutrients.map(([key, title]) => (
+        {NUTRIENT_FIELDS.map(([key, title]) => (
           <LabeledInput key={key} name={key} label={`${title} (${key === "kcal" ? "kcal" : "g"})`} inputMode="decimal" required defaultValue={(applied?.nutrition?.values ?? label?.values)?.[key]} />
         ))}
       </div>
