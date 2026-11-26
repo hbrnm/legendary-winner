@@ -13,10 +13,11 @@ import { Input, LabeledInput, LabeledSelect, TextArea, Toggle } from "@/componen
 import { owned, visible } from "@/lib/services/queries";
 import { applyReceipt, proposeReceiptCategories, proposeReceiptMatches } from "@/lib/services/receipts";
 import { parseReceipt, type ParsedReceipt } from "@/lib/domain/receipt";
+import { receiptKey } from "@/lib/domain/receipt-match";
 import { parseTypedPurchases } from "@/lib/domain/typed-purchases";
 import { FULL_CROP, type Crop } from "@/lib/domain/receipt-crop";
 import { loadImage, proposeCrop, readReceipt, readWithFallback, receiptJpeg, serverReceiptReader, type ReadProgress } from "@/lib/ocr/read-receipt";
-import { parsePaddleReceipt, readPaddleReceipt } from "@/lib/ocr/paddle-receipt";
+import { readPaddleReceipt } from "@/lib/ocr/paddle-receipt";
 import { callReadReceipt } from "@/lib/supabase/client";
 import { formatRon, parseMoney, roundMoney, sumMoney } from "@/lib/domain/money";
 import { formatQuantity } from "@/lib/domain/units";
@@ -33,9 +34,9 @@ import type { Product, UnitCode } from "@/lib/domain/types";
 type Step =
   | { kind: "alege" }
   | { kind: "scrie"; text: string }
-  | { kind: "incadreaza"; image: ImageBitmap; url: string; crop: Crop }
+  | { kind: "incadreaza"; image: ImageBitmap; url: string; crop: Crop; automaticCrop: boolean }
   | { kind: "citeste"; progress: ReadProgress | null }
-  | { kind: "verifica"; receipt: ParsedReceipt; fallback: boolean; /** Textul scris, când produsele nu vin de pe un bon. */ typed: string | null };
+  | { kind: "verifica"; receipt: ParsedReceipt; fallback: boolean; paddle: boolean; /** Textul scris, când produsele nu vin de pe un bon. */ typed: string | null };
 
 interface Line {
   key: number;
@@ -171,7 +172,7 @@ export function ReceiptCapture({ initialListId, onSaved, embedded = false, initi
       consumedFile.current=initialFile;
       const crop=proposeCrop(bitmap);
       if(autoRead)void read(bitmap,crop);
-      else setStep({kind:'incadreaza',image:bitmap,url:URL.createObjectURL(initialFile),crop});
+      else setStep({kind:'incadreaza',image:bitmap,url:URL.createObjectURL(initialFile),crop,automaticCrop:true});
     }).catch(()=>{if(!cancelled){setStep({kind:'alege'});setError('Nu am putut deschide fotografia. Încearcă alta.');}});
     return ()=>{cancelled=true;};
     // Consume a file once when query data first becomes available; read uses that ready snapshot.
@@ -191,7 +192,7 @@ export function ReceiptCapture({ initialListId, onSaved, embedded = false, initi
     setError(null);
     try {
       const image = await loadImage(file);
-      setStep({ kind: "incadreaza", image, url: URL.createObjectURL(file), crop: proposeCrop(image) });
+      setStep({ kind: "incadreaza", image, url: URL.createObjectURL(file), crop: proposeCrop(image), automaticCrop: true });
     } catch {
       setError("Nu am putut deschide fotografia. Încearcă alta.");
     }
@@ -234,13 +235,13 @@ export function ReceiptCapture({ initialListId, onSaved, embedded = false, initi
     setReadingPaddle(true);
     setError(null);
     try {
-      const receipt = parsePaddleReceipt(await readPaddleReceipt(step.image, step.crop));
+      const receipt = await readPaddleReceipt(step.image, step.crop, step.automaticCrop);
       if (!mounted.current) return;
       if (!receipt.lines.length) {
         setError("PaddleOCR nu a găsit produse verificabile. Ajustează încadrarea sau încearcă citirea obișnuită.");
         return;
       }
-      await review(receipt, false, null);
+      await review(receipt, false, null, true);
     } catch {
       if (mounted.current) setError("Citirea beta nu a reușit. Poți reîncerca pe aceeași fotografie sau folosi citirea obișnuită.");
     } finally {
@@ -248,17 +249,22 @@ export function ReceiptCapture({ initialListId, onSaved, embedded = false, initi
     }
   }
 
-  async function review(receipt: ParsedReceipt, fallback: boolean, typed: string | null) {
+  async function review(receipt: ParsedReceipt, fallback: boolean, typed: string | null, paddle = false) {
     const ok = await run(async (ctx) => {
       const retailer = receipt.chain && data!.retailers.some((r) => r.id === receipt.chain) ? receipt.chain : null;
       const names = receipt.lines.map((l) => l.name);
-      const [proposals, guesses] = await Promise.all([proposeReceiptMatches(ctx, names, retailer), proposeReceiptCategories(ctx, names)]);
+      const [proposals, guesses] = await Promise.all([
+        proposeReceiptMatches(ctx, names, retailer),
+        paddle ? [] : proposeReceiptCategories(ctx, names),
+      ]);
       setRetailerId(retailer ?? "");
       // O dată din viitor e citită greșit: rămâne ziua de azi, de corectat dacă e nevoie.
       if (receipt.date && receipt.date <= toISODate(now())) setDate(receipt.date);
       setLines(
         receipt.lines.map((l, i) => {
           const p = proposals[i];
+          const candidate = p ? data!.products.get(p.product_id) : undefined;
+          const product = candidate && (!paddle || p?.source === "invatat" || receiptKey(candidate.name) === receiptKey(l.name)) ? candidate : null;
           const paid = l.amount == null ? null : roundMoney(l.amount - (l.discount ?? 0));
           return {
             key: i,
@@ -267,8 +273,8 @@ export function ReceiptCapture({ initialListId, onSaved, embedded = false, initi
             name: l.name,
             // Întâi categoria propusă la citirea pe server, apoi cea după catalog.
             category_id: [l.category, guesses[i]].find((c) => c && data!.categories.some((x) => x.id === c)) ?? "diverse",
-            product: p ? (data!.products.get(p.product_id) ?? null) : null,
-            learned: p?.source === "invatat",
+            product,
+            learned: Boolean(product && p?.source === "invatat"),
             quantity: l.quantity,
             unit: l.unit,
             amount: money(paid),
@@ -279,7 +285,7 @@ export function ReceiptCapture({ initialListId, onSaved, embedded = false, initi
       return true;
     });
     if(!mounted.current)return;
-    if (ok) setStep({ kind: "verifica", receipt, fallback, typed });
+    if (ok) setStep({ kind: "verifica", receipt, fallback, typed, paddle });
     else setStep(typed != null ? { kind: "scrie", text: typed } : { kind: "alege" });
   }
 
@@ -385,10 +391,10 @@ export function ReceiptCapture({ initialListId, onSaved, embedded = false, initi
       <>
         {header}
         <p className="mb-3 text-[15px] text-ink-2">Trage colțurile ca dreptunghiul să cuprindă doar bonul.</p>
-        <CropBox url={step.url} aspect={step.image.width / step.image.height} crop={step.crop} onChange={(crop) => { if (!readingPaddle) setStep({ ...step, crop }); }} />
+        <CropBox url={step.url} aspect={step.image.width / step.image.height} crop={step.crop} onChange={(crop) => { if (!readingPaddle) setStep({ ...step, crop, automaticCrop: false }); }} />
         {/* Lipite deasupra meniului de jos: pe telefoanele înalte, poza le-ar împinge sub el. */}
         <div className="sticky bottom-[var(--app-nav-bottom)] z-30 -mx-4 mt-4 flex flex-wrap gap-2 rounded-3xl bg-surface px-4 py-3 shadow-elevated">
-          <Button variant="ghost" disabled={readingPaddle} onClick={() => setStep({ ...step, crop: FULL_CROP })}>
+          <Button variant="ghost" disabled={readingPaddle} onClick={() => setStep({ ...step, crop: FULL_CROP, automaticCrop: false })}>
             Toată poza
           </Button>
           <Button className="flex-1" disabled={readingPaddle} onClick={() => void read(step.image, step.crop)}>
@@ -438,6 +444,11 @@ export function ReceiptCapture({ initialListId, onSaved, embedded = false, initi
     <>
       {header}
       {step.fallback && <p role="note" className="mb-3 rounded-md border border-dashed border-accent bg-surface px-3.5 py-2.5 text-sm text-ink">Nu am putut citi bonul pe server, așa că l-am citit pe telefon. Verifică liniile cu atenție.</p>}
+      {step.paddle && (total == null || Math.abs(total - sum) >= 0.005) && (
+        <p role="status" className="mb-3 rounded-md bg-surface px-3.5 py-2.5 text-sm text-warn">
+          {total == null ? "Totalul tipărit nu a putut fi citit. Compară suma produselor cu bonul înainte de salvare." : `Suma produselor este ${formatRon(sum)}, iar totalul tipărit este ${formatRon(total)}. Verifică sumele înainte de salvare.`}
+        </p>
+      )}
       <p className="mb-4 text-[15px] text-ink-2">
         {typed ? "Am găsit" : "Am citit"} {lines.length === 1 ? "un produs" : `${lines.length} produse`}. Verifică fiecare linie: produsul, suma.{typed ? "" : " Cele marcate „de verificat” pot fi citite greșit."}
       </p>

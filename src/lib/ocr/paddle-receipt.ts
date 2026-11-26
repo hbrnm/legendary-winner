@@ -1,4 +1,4 @@
-import type { Crop } from "@/lib/domain/receipt-crop";
+import { FULL_CROP, type Crop } from "@/lib/domain/receipt-crop";
 import { parseReceipt, type ParsedReceipt, type ReceiptLine } from "@/lib/domain/receipt";
 
 type PaddleReader = (canvas: HTMLCanvasElement) => Promise<string>;
@@ -34,7 +34,7 @@ function reader(): Promise<PaddleReader> {
   return loading;
 }
 
-export async function readPaddleReceipt(image: ImageBitmap, crop: Crop): Promise<string> {
+async function readCrop(image: ImageBitmap, crop: Crop): Promise<string> {
   const x = Math.round(crop.x * image.width);
   const y = Math.round(crop.y * image.height);
   const width = Math.max(1, Math.round(crop.width * image.width));
@@ -51,15 +51,68 @@ export async function readPaddleReceipt(image: ImageBitmap, crop: Crop): Promise
   return (await reader())(canvas);
 }
 
+export async function readPaddleReceipt(image: ImageBitmap, crop: Crop, automaticCrop: boolean): Promise<ParsedReceipt> {
+  // The brightness-based crop can cut through the text on a wrinkled receipt.
+  const first = parsePaddleReceipt(await readCrop(image, automaticCrop ? FULL_CROP : crop));
+  if (first.total_matches || (crop.width === 1 && crop.height === 1)) return first;
+  try {
+    const second = parsePaddleReceipt(await readCrop(image, automaticCrop ? crop : FULL_CROP));
+    if (second.total_matches || !first.lines.length) return second;
+  } catch (error) {
+    if (!first.lines.length) throw error;
+  }
+  return first;
+}
+
+const QUANTITY = /^(\d+(?:[.,:]\d{1,3})?)\s*[.~]?\s*(BUC|BUE|BIC|BC|KG|K6)\s*\.?\s*(?:[x×]\s*)?[.,]?(\d{1,5})[.,: ](\d{2})(?!\d)/i;
+const AMOUNT = /^(\d{1,5}[.,:]\d{2})(?:\s*(?:LEI|RON))?$/i;
+const SUMMARY = /^(TOTAL|OTAL|SUB\s*TOTAL|[JUI]B\s*TOTAL|UB\s*TOTAL)\b(.*)$/i;
+const SUBTOTAL = /^(?:SUB|[JUI]B|UB)\s*TOTAL\b/i;
+const DISCOUNT_LABEL = /^(?:D[I1]SCOUNT|[I1]SCOUNT|REDUCERE\s+\d+\s*%)\s*$/i;
+const DISCOUNT_AMOUNT = /^(?:D[I1]SCOUNT|[I1]SCOUNT|REDUCERE\s+\d+\s*%)\s+(-?\d{1,5}[.,:]\d{2})(?:\s*-?\s*[A-H])?\s*-?\s*$/i;
+
+function normalizeRows(text: string): string[] {
+  const rows = text.split(/\r?\n/).map(row => row.trim()).filter(Boolean);
+  let discountRead = false;
+  return rows.flatMap((row, i) => {
+    const qty = QUANTITY.exec(row);
+    if (qty) {
+      discountRead = false;
+      return `${qty[1]} ${qty[2].toUpperCase()} x ${qty[3]},${qty[4]}${row.slice(qty[0].length)}`;
+    }
+    const discount = DISCOUNT_AMOUNT.exec(row);
+    if (discount) {
+      discountRead = true;
+      return `DISCOUNT ${discount[1]}`;
+    }
+    if (discountRead && DISCOUNT_LABEL.test(row)) return [];
+    discountRead = false;
+    const summary = SUMMARY.exec(row);
+    if (summary) {
+      const [, label, rest] = summary;
+      if (/^\s*(?:TVA|TUR)\b/i.test(rest)) return row;
+      const total = /^T?OTAL$/i.test(label);
+      const afterSubtotal = SUBTOTAL.test(rows[i - 2] ?? "");
+      // On slanted photos the amount on the right can be read before its label.
+      const preceding = afterSubtotal ? AMOUNT.exec(rows[i - 1] ?? "")?.[1] : null;
+      return `${total ? "TOTAL" : "SUBTOTAL"}${rest || (total && preceding ? ` ${preceding}` : "")}`;
+    }
+    // Common letter confusion in the retailer's printed legal name.
+    if (i < 3) return row.replace(/^LI[O0]L(?=\s+DISCOUNT\b)/i, "LIDL");
+    return row;
+  });
+}
+
 /** Some receipts print only a name and a price. Offer those rows only when
  * every candidate together matches the printed total, and flag each for review. */
 export function parsePaddleReceipt(text: string): ParsedReceipt {
-  const receipt = parseReceipt(text);
+  const rows = normalizeRows(text);
+  const receipt = parseReceipt(rows.join("\n"));
   if (receipt.lines.length || receipt.total === null) return receipt;
 
   const lines: ReceiptLine[] = [];
   let cents = 0;
-  for (const row of text.split(/\r?\n/)) {
+  for (const row of rows) {
     if (/^\s*(?:sub\s*)?total\b/i.test(row)) break;
     const match = /^\s*(\p{L}[\p{L}\d .'-]*?)\s+(\d{1,5})[,.](\d{2})(?:\s+[A-H])?\s*$/iu.exec(row);
     if (!match) continue;
