@@ -21,7 +21,7 @@ test("copia de siguranță: descarci datele și le readuci pe un dispozitiv gol"
   await other.getByLabel("Încarcă o copie").setInputFiles(file);
   await expect(other.getByText("Copia nu are nimic nou. Datele tale erau deja la zi.")).toBeVisible();
 
-  await other.goto("/cumparaturi/");
+  await other.goto("/cumparaturi/?toate=1");
   await expect(other.getByText("Lista de păstrat")).toBeVisible();
   await context.close();
 });
