@@ -1,9 +1,9 @@
 import Dexie, { type Table } from "dexie";
-import type { CalorieEntry, ProductNutritionLabel } from "../domain/calories";
+import type { CalorieEntry, CaloriePreferences, ProductNutritionLabel } from "../domain/calories";
 
 class CalorieDatabase extends Dexie {
   entries!: Table<CalorieEntry, string>;
-  preferences!: Table<{ user_id: string }, string>;
+  preferences!: Table<CaloriePreferences, string>;
   labels!: Table<ProductNutritionLabel, [string, string]>;
 
   constructor() {

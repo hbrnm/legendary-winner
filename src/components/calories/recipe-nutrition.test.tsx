@@ -72,7 +72,7 @@ it("acceptă zecimale cu virgulă pentru produse din catalog și curăță sursa
   />);
   fireEvent.click(screen.getByText("Contribuția estimată pe ingredient"));
   fireEvent.click(screen.getByRole("button", { name: "Editează valorile" }));
-  fireEvent.change(screen.getByLabelText("Glucide (g)"), { target: { value: "66,5" } });
+  fireEvent.change(screen.getByLabelText("Carbohidrați (g)"), { target: { value: "66,5" } });
   fireEvent.click(screen.getByRole("button", { name: "Salvează valorile" }));
   await waitFor(() => expect(put).toHaveBeenCalledWith(expect.objectContaining({
     product_id: product.id,
