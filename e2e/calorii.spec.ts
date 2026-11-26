@@ -35,11 +35,12 @@ test("jurnalul păstrează jumătatea de porție și editarea offline după reî
   await page.reload();
   await expect(card).toContainText("547,5 kcal");
   await card.click();
-  await journal.getByRole("button", { name: "Adaugă calorii" }).click();
-  const manual = page.getByRole("dialog", { name: "Adaugă calorii" });
-  await manual.getByLabel("Data", { exact: true }).fill("2026-03-07");
-  await manual.getByLabel("Calorii (kcal)").fill("40");
-  await manual.getByRole("button", { name: "Salvează intrarea" }).click();
+  await journal.getByRole("button", { name: "Adaugă mâncare" }).click();
+  const addFood = page.getByRole("dialog", { name: "Adaugă mâncare" });
+  await addFood.getByRole("radio", { name: "Scrie manual" }).click();
+  await addFood.getByLabel("Data", { exact: true }).fill("2026-03-07");
+  await addFood.getByLabel("Calorii (kcal)").fill("40");
+  await addFood.getByRole("button", { name: "Salvează intrarea" }).click();
   await expect(journal.getByLabel("Ziua jurnalului")).toHaveValue("2026-03-07");
   await expect(journal.getByText("40 kcal", { exact: true }).first()).toBeVisible();
   await journal.getByRole("button", { name: "Șterge", exact: true }).click();
@@ -115,4 +116,36 @@ test("eticheta produsului propriu se aplică ingredientului exact, la 100 ml", a
   await expect(nutrition).toContainText("Eticheta produsului");
   await page.reload();
   await expect(nutrition).toContainText("101 kcal");
+});
+
+test("jurnalul permite căutarea alimentelor și rețetelor direct de pe Acasă, cu gramaj și macronutrienți", async ({ page }) => {
+  await start(page, "/");
+  await page.getByRole("button", { name: "Jurnal calorii" }).click();
+  await page.getByRole("dialog", { name: "Jurnal calorii" }).getByRole("button", { name: "Activează jurnalul" }).click();
+
+  const journal = page.getByRole("dialog", { name: "Jurnal calorii" });
+  await journal.getByRole("button", { name: "Adaugă mâncare" }).click();
+  const add = page.getByRole("dialog", { name: "Adaugă mâncare" });
+  await add.getByLabel("Caută un aliment sau o rețetă").fill("oua");
+  await add.getByRole("button", { name: /^Ouă de găină/ }).first().click();
+  await add.getByRole("button", { name: "2", exact: true }).click();
+  await expect(add.getByText(/kcal/)).toBeVisible();
+  await expect(add.getByText(/^P .* g · G .* g · L .* g$/)).toBeVisible();
+  await add.getByRole("button", { name: "Salvează intrarea" }).click();
+
+  await expect(journal.getByText(/^2 buc ·/)).toBeVisible();
+  await journal.getByRole("button", { name: "Editează" }).click();
+  const edit = page.getByRole("dialog", { name: "Editează intrarea" });
+  await edit.getByLabel("Unitate").selectOption("g");
+  await edit.getByLabel("Cantitate").fill("100");
+  await edit.getByRole("button", { name: "Salvează intrarea" }).click();
+  await expect(journal.getByText(/^100 g ·/)).toBeVisible();
+
+  await journal.getByRole("button", { name: "Adaugă mâncare" }).click();
+  await add.getByLabel("Caută un aliment sau o rețetă").fill("omleta");
+  await add.getByRole("button", { name: /Omletă cu spanac și brânză feta/ }).click();
+  await add.getByRole("button", { name: "½", exact: true }).click();
+  await add.getByRole("button", { name: "Salvează intrarea" }).click();
+  await expect(journal.getByText("Omletă cu spanac și brânză feta")).toBeVisible();
+  await expect(journal.getByText(/^P .* g · G .* g · L .* g$/).first()).toBeVisible();
 });
