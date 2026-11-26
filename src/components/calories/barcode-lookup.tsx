@@ -12,7 +12,7 @@ import { BarcodeCamera } from "./barcode-camera";
 export const NUTRIENT_FIELDS = [
   ["kcal", "Energie"],
   ["protein_g", "Proteine"],
-  ["carbs_g", "Glucide"],
+  ["carbs_g", "Carbohidrați"],
   ["fat_g", "Grăsimi"],
 ] as const;
 

@@ -1,11 +1,15 @@
 import { describe, expect, it } from "vitest";
 import {
+  defaultMealForDate,
   energySummary,
   entryEnergy,
   entryIncomplete,
   entryNutrition,
   foodUnitsFor,
+  formatMacros,
+  goalProgress,
   macrosSummary,
+  recentFoodChoices,
   type CalorieEntry,
   type FoodCalorieSnapshot,
 } from "./calories";
@@ -78,13 +82,32 @@ describe("calorii și rezumatul zilnic", () => {
     expect(entryIncomplete(unknownFood)).toBe(true);
   });
 
-  it("calculează rezumatul zilnic de macronutrienți fără a inventa valori pentru intrările manuale", () => {
+  it("formatează macronutrienții prescurtat pe intrări (P/C/G) și integral pe totalul zilei", () => {
+    expect(formatMacros({ protein_g: 20, carbs_g: 2, fat_g: 22 })).toBe("P 20 g · C 2 g · G 22 g");
     expect(macrosSummary([])).toBeNull();
     expect(macrosSummary([entry({ recipe: null, manual_kcal: 200 })])).toBeNull();
     expect(macrosSummary([
       entry({ servings: 0.5 }),
       entry({ id: "e2", recipe: null, food: baseFood }),
       entry({ id: "e3", recipe: null, manual_kcal: 100 }),
-    ])).toBe("P 24,9 g · G 2,8 g · L 24,5 g");
+    ])).toBe("Proteine 24,9 g · Carbohidrați 2,8 g · Grăsimi 24,5 g");
+  });
+
+  it("calculează progresul obiectivului, masa propusă și alimentele recente fără dubluri", () => {
+    expect(goalProgress(1500, 2000)).toEqual({ pct: 75, remaining: 500, over: false });
+    expect(goalProgress(2300, 2000)).toEqual({ pct: 100, remaining: -300, over: true });
+
+    expect(defaultMealForDate(new Date("2026-03-08T08:30:00"))).toBe("mic_dejun");
+    expect(defaultMealForDate(new Date("2026-03-08T13:00:00"))).toBe("pranz");
+    expect(defaultMealForDate(new Date("2026-03-08T16:30:00"))).toBe("gustare");
+    expect(defaultMealForDate(new Date("2026-03-08T20:00:00"))).toBe("cina");
+
+    const recents = recentFoodChoices([
+      entry({ id: "1", recipe: null, food: baseFood, date: "2026-03-06", logged_at: "2026-03-06T08:00:00Z" }),
+      entry({ id: "2", recipe: null, manual_kcal: 90, date: "2026-03-07", logged_at: "2026-03-07T09:00:00Z" }),
+      entry({ id: "3", recipe: null, food: { ...baseFood, quantity: 3 }, date: "2026-03-08", logged_at: "2026-03-08T08:00:00Z" }),
+      entry({ id: "4", recipe: null, manual_kcal: 45, label: "Cafea", date: "2026-03-07", logged_at: "2026-03-07T10:00:00Z" }),
+    ]);
+    expect(recents.map((item) => item.id)).toEqual(["3", "4"]);
   });
 });

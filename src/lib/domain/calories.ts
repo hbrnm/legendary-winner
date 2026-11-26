@@ -1,5 +1,30 @@
-import { scaleNutrition, type NutritionValues } from "./recipes";
+import { mealForHour, scaleNutrition, type NutritionValues } from "./recipes";
+import { normalize } from "./search";
+import type { MealSlot } from "./types";
 import { convertForProduct } from "./units";
+
+export interface CalorieGoal {
+  kcal: number | null;
+  protein_g?: number | null;
+  carbs_g?: number | null;
+  fat_g?: number | null;
+}
+
+export interface CaloriePreferences {
+  user_id: string;
+  goal?: CalorieGoal | null;
+}
+
+export const MEAL_SLOTS: readonly { slot: MealSlot; label: string }[] = [
+  { slot: "mic_dejun", label: "Mic dejun" },
+  { slot: "pranz", label: "Prânz" },
+  { slot: "cina", label: "Cină" },
+  { slot: "gustare", label: "Gustări" },
+];
+
+export function defaultMealForDate(date: Date): MealSlot {
+  return mealForHour(date.getHours());
+}
 
 export interface ProductNutritionLabel {
   user_id: string;
@@ -44,6 +69,8 @@ export interface CalorieEntry {
   id: string;
   user_id: string;
   date: string;
+  meal?: MealSlot | null;
+  logged_at?: string | null;
   recipe: CalorieSnapshot | null;
   food?: FoodCalorieSnapshot | null;
   label?: string | null;
@@ -91,24 +118,85 @@ export function entryIncomplete(entry: CalorieEntry): boolean {
   return entryEnergy(entry) == null || (entry.manual_kcal == null && entry.recipe?.incomplete === true);
 }
 
+/** Formatează macronutrienții prescurtat pentru intrări (P · C · G = Proteine · Carbohidrați · Grăsimi). */
 export function formatMacros(values: Pick<NutritionValues, "protein_g" | "carbs_g" | "fat_g">): string {
-  return `P ${macroFormat.format(values.protein_g)} g · G ${macroFormat.format(values.carbs_g)} g · L ${macroFormat.format(values.fat_g)} g`;
+  return `P ${macroFormat.format(values.protein_g)} g · C ${macroFormat.format(values.carbs_g)} g · G ${macroFormat.format(values.fat_g)} g`;
 }
 
-export function macrosSummary(entries: CalorieEntry[]): string | null {
-  let counted = 0;
+/** Formatează macronutrienții cu cuvinte întregi pentru totalul zilei. */
+export function formatDailyMacros(values: Pick<NutritionValues, "protein_g" | "carbs_g" | "fat_g">): string {
+  return `Proteine ${macroFormat.format(values.protein_g)} g · Carbohidrați ${macroFormat.format(values.carbs_g)} g · Grăsimi ${macroFormat.format(values.fat_g)} g`;
+}
+
+export function dailyTotals(entries: readonly CalorieEntry[]): {
+  kcal: number | null;
+  macros: Pick<NutritionValues, "protein_g" | "carbs_g" | "fat_g"> | null;
+  incomplete: boolean;
+} {
+  let kcalCount = 0;
+  let kcalSum = 0;
+  let macroCount = 0;
   let protein_g = 0;
   let carbs_g = 0;
   let fat_g = 0;
+  let incomplete = false;
+
   for (const entry of entries) {
+    const energy = entryEnergy(entry);
+    if (energy != null) {
+      kcalSum += energy;
+      kcalCount++;
+    }
+    if (entryIncomplete(entry)) incomplete = true;
     const n = entryNutrition(entry);
-    if (!n) continue;
-    protein_g += n.protein_g;
-    carbs_g += n.carbs_g;
-    fat_g += n.fat_g;
-    counted++;
+    if (n) {
+      protein_g += n.protein_g;
+      carbs_g += n.carbs_g;
+      fat_g += n.fat_g;
+      macroCount++;
+    }
   }
-  return counted === 0 ? null : formatMacros({ protein_g, carbs_g, fat_g });
+
+  return {
+    kcal: kcalCount === 0 ? null : kcalSum,
+    macros: macroCount === 0 ? null : { protein_g, carbs_g, fat_g },
+    incomplete,
+  };
+}
+
+export function macrosSummary(entries: CalorieEntry[]): string | null {
+  const { macros } = dailyTotals(entries);
+  return macros ? formatDailyMacros(macros) : null;
+}
+
+export function goalProgress(consumed: number, target: number): { pct: number; remaining: number; over: boolean } {
+  const remaining = target - consumed;
+  return {
+    pct: target > 0 ? Math.min(100, Math.round((consumed / target) * 100)) : 0,
+    remaining,
+    over: consumed > target,
+  };
+}
+
+export function recentFoodChoices(entries: readonly CalorieEntry[], limit = 8): CalorieEntry[] {
+  const sorted = [...entries].sort((a, b) => (b.logged_at ?? b.date).localeCompare(a.logged_at ?? a.date));
+  const seen = new Set<string>();
+  const picked: CalorieEntry[] = [];
+  for (const entry of sorted) {
+    let key: string | null = null;
+    if (entry.food) {
+      key = `food:${entry.food.product_id ?? entry.food.open_food_facts_code ?? normalize(entry.food.name)}`;
+    } else if (entry.recipe) {
+      key = `recipe:${normalize(entry.recipe.name)}`;
+    } else if (entry.label?.trim()) {
+      key = `manual:${normalize(entry.label)}`;
+    }
+    if (!key || seen.has(key)) continue;
+    seen.add(key);
+    picked.push(entry);
+    if (picked.length >= limit) break;
+  }
+  return picked;
 }
 
 export function formatFoodQuantity(food: Pick<FoodCalorieSnapshot, "quantity" | "unit">): string {
@@ -117,8 +205,7 @@ export function formatFoodQuantity(food: Pick<FoodCalorieSnapshot, "quantity" | 
 
 export function energySummary(entries: CalorieEntry[]): string {
   if (entries.length === 0) return "0 kcal";
-  const known = entries.map(entryEnergy).filter((energy) => energy != null);
-  if (known.length === 0) return "Calorii necunoscute";
-  const kcal = known.reduce((sum, value) => sum + value, 0);
-  return `${kcalFormat.format(kcal)} kcal${entries.some(entryIncomplete) ? " · Total incomplet" : ""}`;
+  const { kcal, incomplete } = dailyTotals(entries);
+  if (kcal == null) return "Calorii necunoscute";
+  return `${kcalFormat.format(kcal)} kcal${incomplete ? " · Total incomplet" : ""}`;
 }

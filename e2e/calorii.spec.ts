@@ -31,7 +31,7 @@ test("jurnalul păstrează jumătatea de porție și editarea offline după reî
   const edit = page.getByRole("dialog", { name: "Editează intrarea" });
   await edit.getByLabel("Număr de porții").fill("1,5");
   await edit.getByRole("button", { name: "Salvează intrarea" }).click();
-  await expect(journal.getByText("547,5 kcal", { exact: true })).toBeVisible();
+  await expect(journal.getByText("547,5 kcal", { exact: true }).first()).toBeVisible();
   await page.reload();
   await expect(card).toContainText("547,5 kcal");
   await card.click();
@@ -109,7 +109,7 @@ test("eticheta produsului propriu se aplică ingredientului exact, la 100 ml", a
   await label.getByLabel("Baza de calcul").selectOption("ml");
   await label.getByLabel("Energie (kcal)").fill("50,5");
   await label.getByLabel("Proteine (g)").fill("3");
-  await label.getByLabel("Glucide (g)").fill("5");
+  await label.getByLabel("Carbohidrați (g)").fill("5");
   await label.getByLabel("Grăsimi (g)").fill("2");
   await label.getByRole("button", { name: "Salvează valorile" }).click();
   await expect(nutrition).toContainText("101 kcal");
@@ -118,22 +118,29 @@ test("eticheta produsului propriu se aplică ingredientului exact, la 100 ml", a
   await expect(nutrition).toContainText("101 kcal");
 });
 
-test("jurnalul permite căutarea alimentelor și rețetelor direct de pe Acasă, cu gramaj și macronutrienți", async ({ page }) => {
+test("jurnalul permite căutarea alimentelor, mesele, alimentele recente și obiectivul zilnic", async ({ page }) => {
   await start(page, "/");
   await page.getByRole("button", { name: "Jurnal calorii" }).click();
   await page.getByRole("dialog", { name: "Jurnal calorii" }).getByRole("button", { name: "Activează jurnalul" }).click();
 
   const journal = page.getByRole("dialog", { name: "Jurnal calorii" });
+  await journal.getByRole("button", { name: "Setează obiectiv" }).click();
+  const goalDialog = page.getByRole("dialog", { name: "Obiectiv zilnic" });
+  await goalDialog.getByLabel("Calorii (kcal / zi)").fill("500");
+  await goalDialog.getByLabel("Proteine (g / zi, opțional)").fill("30");
+  await goalDialog.getByRole("button", { name: "Salvează obiectivul" }).click();
+
   await journal.getByRole("button", { name: "Adaugă mâncare" }).click();
   const add = page.getByRole("dialog", { name: "Adaugă mâncare" });
   await add.getByLabel("Caută un aliment sau o rețetă").fill("oua");
   await add.getByRole("button", { name: /^Ouă de găină/ }).first().click();
   await add.getByRole("button", { name: "2", exact: true }).click();
   await expect(add.getByText(/kcal/)).toBeVisible();
-  await expect(add.getByText(/^P .* g · G .* g · L .* g$/)).toBeVisible();
+  await expect(add.getByText(/^P .* g · C .* g · G .* g$/)).toBeVisible();
   await add.getByRole("button", { name: "Salvează intrarea" }).click();
 
   await expect(journal.getByText(/^2 buc ·/)).toBeVisible();
+  await expect(journal.getByText(/Rămase:/)).toBeVisible();
   await journal.getByRole("button", { name: "Editează" }).click();
   const edit = page.getByRole("dialog", { name: "Editează intrarea" });
   await edit.getByLabel("Unitate").selectOption("g");
@@ -142,10 +149,15 @@ test("jurnalul permite căutarea alimentelor și rețetelor direct de pe Acasă,
   await expect(journal.getByText(/^100 g ·/)).toBeVisible();
 
   await journal.getByRole("button", { name: "Adaugă mâncare" }).click();
+  await expect(add.getByText("Adăugate recent")).toBeVisible();
   await add.getByLabel("Caută un aliment sau o rețetă").fill("omleta");
   await add.getByRole("button", { name: /Omletă cu spanac și brânză feta/ }).click();
+  await add.getByLabel("Masă").selectOption("pranz");
   await add.getByRole("button", { name: "½", exact: true }).click();
   await add.getByRole("button", { name: "Salvează intrarea" }).click();
-  await expect(journal.getByText("Omletă cu spanac și brânză feta")).toBeVisible();
-  await expect(journal.getByText(/^P .* g · G .* g · L .* g$/).first()).toBeVisible();
+  await expect(journal.getByRole("region", { name: "Prânz" })).toContainText("Omletă cu spanac și brânză feta");
+  await expect(journal.getByText(/^Proteine .* g · Carbohidrați .* g · Grăsimi .* g$/)).toBeVisible();
+
+  await journal.getByRole("button", { name: "Închide" }).click();
+  await expect(page.getByRole("button", { name: /Calorii azi/ })).toContainText("/ 500 kcal");
 });
