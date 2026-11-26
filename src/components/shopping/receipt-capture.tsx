@@ -16,6 +16,7 @@ import { parseReceipt, type ParsedReceipt } from "@/lib/domain/receipt";
 import { parseTypedPurchases } from "@/lib/domain/typed-purchases";
 import { FULL_CROP, type Crop } from "@/lib/domain/receipt-crop";
 import { loadImage, proposeCrop, readReceipt, readWithFallback, receiptJpeg, serverReceiptReader, type ReadProgress } from "@/lib/ocr/read-receipt";
+import { parsePaddleReceipt, readPaddleReceipt } from "@/lib/ocr/paddle-receipt";
 import { callReadReceipt } from "@/lib/supabase/client";
 import { formatRon, parseMoney, roundMoney, sumMoney } from "@/lib/domain/money";
 import { formatQuantity } from "@/lib/domain/units";
@@ -130,6 +131,7 @@ export function ReceiptCapture({ initialListId, onSaved, embedded = false, initi
   const [addToPantry, setAddToPantry] = useState(false);
   const [picking, setPicking] = useState<number | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [readingPaddle, setReadingPaddle] = useState(false);
   const [submissionId] = useState(newId);
   const saving = useRef(false);
   const camera = useRef<HTMLInputElement>(null);
@@ -196,6 +198,7 @@ export function ReceiptCapture({ initialListId, onSaved, embedded = false, initi
   }
 
   async function read(image: ImageBitmap, crop: Crop) {
+    setError(null);
     reading.current = image;
     setStep({ kind: "citeste", progress: null });
     let receipt: ParsedReceipt;
@@ -224,6 +227,25 @@ export function ReceiptCapture({ initialListId, onSaved, embedded = false, initi
     image.close();
     reading.current = null;
     if(mounted.current)await review(receipt, fallback, null);
+  }
+
+  async function readOnPhone() {
+    if (step.kind !== "incadreaza" || readingPaddle) return;
+    setReadingPaddle(true);
+    setError(null);
+    try {
+      const receipt = parsePaddleReceipt(await readPaddleReceipt(step.image, step.crop));
+      if (!mounted.current) return;
+      if (!receipt.lines.length) {
+        setError("PaddleOCR nu a găsit produse verificabile. Ajustează încadrarea sau încearcă citirea obișnuită.");
+        return;
+      }
+      await review(receipt, false, null);
+    } catch {
+      if (mounted.current) setError("Citirea beta nu a reușit. Poți reîncerca pe aceeași fotografie sau folosi citirea obișnuită.");
+    } finally {
+      if (mounted.current) setReadingPaddle(false);
+    }
   }
 
   async function review(receipt: ParsedReceipt, fallback: boolean, typed: string | null) {
@@ -363,15 +385,22 @@ export function ReceiptCapture({ initialListId, onSaved, embedded = false, initi
       <>
         {header}
         <p className="mb-3 text-[15px] text-ink-2">Trage colțurile ca dreptunghiul să cuprindă doar bonul.</p>
-        <CropBox url={step.url} aspect={step.image.width / step.image.height} crop={step.crop} onChange={(crop) => setStep({ ...step, crop })} />
+        <CropBox url={step.url} aspect={step.image.width / step.image.height} crop={step.crop} onChange={(crop) => { if (!readingPaddle) setStep({ ...step, crop }); }} />
         {/* Lipite deasupra meniului de jos: pe telefoanele înalte, poza le-ar împinge sub el. */}
-        <div className="sticky bottom-[var(--app-nav-bottom)] z-30 -mx-4 mt-4 flex gap-2 rounded-3xl bg-surface px-4 py-3 shadow-elevated">
-          <Button variant="ghost" onClick={() => setStep({ ...step, crop: FULL_CROP })}>
+        <div className="sticky bottom-[var(--app-nav-bottom)] z-30 -mx-4 mt-4 flex flex-wrap gap-2 rounded-3xl bg-surface px-4 py-3 shadow-elevated">
+          <Button variant="ghost" disabled={readingPaddle} onClick={() => setStep({ ...step, crop: FULL_CROP })}>
             Toată poza
           </Button>
-          <Button className="flex-1" onClick={() => void read(step.image, step.crop)}>
+          <Button className="flex-1" disabled={readingPaddle} onClick={() => void read(step.image, step.crop)}>
             Citește bonul
           </Button>
+          {process.env.NEXT_PUBLIC_PADDLE_OCR_BETA === "1" && (
+            <Button variant="secondary" className="w-full" disabled={readingPaddle} onClick={() => void readOnPhone()}>
+              Citește pe telefon (beta)
+            </Button>
+          )}
+          {readingPaddle && <p role="status" className="w-full text-sm text-ink-2">Citesc pe telefon… Prima citire poate dura mai mult.</p>}
+          {error && <p role="alert" className="w-full text-sm text-accent">{error}</p>}
         </div>
         {serverWorks && <p className="mt-3 text-sm text-ink-2">Cu internet, bonul decupat se citește pe server și nu se păstrează. Fără internet, îl citesc pe telefon.</p>}
       </>

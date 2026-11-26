@@ -25,7 +25,8 @@ createServer(async (req, res) => {
   }
   try {
     let body = await readFile(file);
-    res.setHeader("Content-Type", TYPES[extname(file)] ?? "application/octet-stream");
+    const extension = extname(file);
+    res.setHeader("Content-Type", extension === ".mjs" ? TYPES[".js"] : extension === ".wasm" ? "application/wasm" : TYPES[extension] ?? "application/octet-stream");
     if (file.endsWith("sw.js")) {
       res.setHeader("Cache-Control", "no-cache");
       // Doar pentru teste: cookie-ul `sw-versiune` simulează publicarea unei versiuni noi (e2e/offline-pwa.spec.ts).

@@ -16,6 +16,7 @@
     "build:functions": "node scripts/build-functions.mjs"
   },
   "dependencies": {
+    "@paddleocr/paddleocr-js": "0.4.2",
     "@supabase/supabase-js": "^2.117.3",
     "@tesseract.js-data/ron": "1.0.0",
     "dexie": "^4.4.6",

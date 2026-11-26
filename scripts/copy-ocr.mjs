@@ -22,3 +22,4 @@ const files = [
 ];
 for (const [from, to] of files) copyFileSync(from, join(OUT, to));
 console.log(`ocr: ${files.length} fișiere în public/ocr/${version}/`);
+if (process.env.NEXT_PUBLIC_PADDLE_OCR_BETA === "1") await import("./copy-paddle.mjs");
