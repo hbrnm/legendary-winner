@@ -14,10 +14,10 @@ test("rețetă: porții, cost incomplet, alergeni, favorite, ingrediente în lis
   await expect(page.getByText("600 g", { exact: true })).toBeVisible(); // 1 → 4 porții
   await expect(page.getByText(/Costul apare după ce introduci prețuri/)).toBeVisible();
 
-  // Valorile declarate pe porție rămân aceleași când se schimbă numărul de porții.
+  // Valorile declarate de sursă rămân afișate ca reper și când se schimbă numărul de porții.
   const nutrition = page.getByRole("region", { name: "Valori nutriționale" });
   await expect(nutrition.getByText("365 kcal")).toBeVisible();
-  await expect(nutrition.getByText("Valori declarate în colecția sursă.")).toBeVisible();
+  await expect(nutrition.getByText("Sursa declară 365 kcal pentru o porție din rețeta originală.")).toBeVisible();
 
   await page.getByRole("button", { name: "Adaugă la favorite" }).click();
   await expect(page.getByRole("button", { name: "Scoate de la favorite" })).toBeVisible();

@@ -13,6 +13,7 @@ export const FUNCTIONS = [
   { entry: "src/lib/server/import-recipe.ts", out: "supabase/functions/import-recipe/core.js" },
   { entry: "src/lib/server/translate-recipe.ts", out: "supabase/functions/translate-recipe/core.js" },
   { entry: "src/lib/server/read-receipt.ts", out: "supabase/functions/read-receipt/core.js" },
+  { entry: "src/lib/server/lookup-nutrition.ts", out: "supabase/functions/lookup-nutrition/core.js" },
 ];
 
 const BANNER = "// Generat de scripts/build-functions.mjs din src/lib/server/. Nu edita de mână: npm run build:functions.";

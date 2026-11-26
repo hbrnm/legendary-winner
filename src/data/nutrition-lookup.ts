@@ -1,5 +1,7 @@
 import type { Product } from "@/lib/domain/types";
 import type { ProductNutrition } from "@/lib/domain/recipes";
+import { ingredientPreparation } from "@/lib/domain/recipes";
+import type { ProductNutritionLabel } from "@/lib/domain/calories";
 import { NUTRITION_SEEDS } from "./nutrition";
 import { NUTRITION_UNITS } from "./nutrition-units";
 
@@ -8,14 +10,29 @@ import { NUTRITION_UNITS } from "./nutrition-units";
  * produsului (piece_grams, grams_per_ml) au întâietate; produsele gospodăriei
  * nu au valori (DE COMPLETAT).
  */
-export function catalogNutrition(products: ReadonlyMap<string, Pick<Product, "piece_grams" | "grams_per_ml">>): (productId: string) => ProductNutrition {
+export function catalogNutrition(
+  products: ReadonlyMap<string, Pick<Product, "piece_grams" | "grams_per_ml"> & Partial<Pick<Product, "name">>>,
+  labels: readonly ProductNutritionLabel[] = [],
+): (productId: string) => ProductNutrition {
+  const byProduct = new Map(labels.map((label) => [label.product_id, label]));
   return (id) => {
-    const n = NUTRITION_SEEDS[id];
     const p = products.get(id);
+    const label = byProduct.get(id);
+    const n = NUTRITION_SEEDS[id];
     const u = NUTRITION_UNITS[id];
+    const units = { piece_grams: p?.piece_grams ?? u?.piece_g ?? null, grams_per_ml: p?.grams_per_ml ?? u?.g_per_ml ?? null, catel_g: u?.catel_g ?? null };
+    if (label) return {
+      per_100g: label.basis === "g" ? label.values : null,
+      per_100ml: label.basis === "ml" ? label.values : undefined,
+      source: label.open_food_facts_code ? "Open Food Facts · valori confirmate" : "Eticheta produsului",
+      preparation: label.preparation,
+      units,
+    };
     return {
       per_100g: n ? { kcal: n.kcal, protein_g: n.protein_g, carbs_g: n.carbs_g, fat_g: n.fat_g } : null,
-      units: { piece_grams: p?.piece_grams ?? u?.piece_g ?? null, grams_per_ml: p?.grams_per_ml ?? u?.g_per_ml ?? null, catel_g: u?.catel_g ?? null },
+      source: n?.src === "ciqual" ? "CIQUAL" : n?.src === "usda" ? "USDA" : n ? "Medie din catalog" : undefined,
+      preparation: ingredientPreparation(p?.name ?? "") ?? (n ? "as_sold" : undefined),
+      units,
     };
   };
 }

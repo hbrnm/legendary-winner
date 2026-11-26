@@ -14,6 +14,7 @@ test("IA: captură universală, categorie școală, sold și disponibil zilnic",
   await expect(sheet.getByLabel("Sumă (RON)")).toBeFocused();
   expect(await sheet.getByLabel("Sumă (RON)").evaluate(el => parseFloat(getComputedStyle(el).fontSize))).toBeGreaterThanOrEqual(32);
   await sheet.getByLabel("Sumă (RON)").fill("100");
+  await sheet.getByRole("button",{name:"Mai multe detalii",exact:true}).click();
   await sheet.getByRole("button",{name:"+ Alt loc",exact:true}).click();
   await sheet.getByLabel("Numele locului").fill("Școala copiilor");
   await sheet.getByLabel("Toate categoriile").selectOption("educatie");

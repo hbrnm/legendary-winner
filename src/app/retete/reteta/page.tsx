@@ -16,6 +16,8 @@ import { ALLERGEN_LABELS, DIFFICULTY_LABELS, RECIPE_CATEGORY_LABELS, SLOT_LABELS
 import { CookingMode } from "@/components/recipes/cooking-mode";
 import { cookingProgressKey, readCookingProgress, writeCookingProgress, type CookingProgress } from "@/lib/cooking-progress";
 import { RecipePhotoPanel } from "@/components/recipes/recipe-photo";
+import { RecipeNutritionCard } from "@/components/calories/recipe-nutrition";
+import { calorieDatabase } from "@/lib/db/calorie-database";
 import { owned, priceIndex, productMap } from "@/lib/services/queries";
 import { addMeal, addRecipeToList, cookRecipe, deleteRecipe, toggleFavorite } from "@/lib/services/kitchen";
 import { createList } from "@/lib/services/shopping";
@@ -70,7 +72,7 @@ function RecipeDetails({ id, cookingKey, resume, startCooking }: { id: string; c
     async (ctx) => {
       const recipe = await ctx.db.recipes.get(id);
       if (!recipe || recipe.deleted_at || (recipe.household_id && recipe.household_id !== ctx.householdId)) return { recipe: null } as const;
-      const [ingredients, steps, products, prices, pantry, lists, fav] = await Promise.all([
+      const [ingredients, steps, products, prices, pantry, lists, fav, nutritionLabels] = await Promise.all([
         ctx.db.recipe_ingredients.where("recipe_id").equals(id).toArray(),
         ctx.db.recipe_steps.where("recipe_id").equals(id).toArray(),
         productMap(ctx.db, ctx.householdId),
@@ -78,12 +80,14 @@ function RecipeDetails({ id, cookingKey, resume, startCooking }: { id: string; c
         owned(ctx.db, "pantry_items", ctx.householdId),
         owned(ctx.db, "shopping_lists", ctx.householdId),
         ctx.db.favorite_recipes.where("recipe_id").equals(id).toArray(),
+        calorieDatabase().labels.where("user_id").equals(ctx.userId).toArray(),
       ]);
       return {
         recipe,
         ingredients: activeIngredients(ingredients, id),
         steps: steps.filter((s) => !s.deleted_at).sort((a, b) => a.position - b.position),
         products,
+        nutritionLabels,
         prices,
         stock: pantryStock(pantry),
         lists: lists.filter((l) => !l.archived_at).sort((a, b) => a.sort_order - b.sort_order),
@@ -111,7 +115,7 @@ function RecipeDetails({ id, cookingKey, resume, startCooking }: { id: string; c
       available,
       cost: recipeCost(data.recipe, data.ingredients, servings, data.prices, toISODate(now())),
       allergens: recipeAllergens(data.ingredients, data.products),
-      nutrition: recipeNutrition(data.recipe, data.ingredients, catalogNutrition(data.products)),
+      nutrition: recipeNutrition(data.recipe, data.ingredients, catalogNutrition(data.products, data.nutritionLabels)),
     };
   }, [data, servings]);
 
@@ -126,7 +130,6 @@ function RecipeDetails({ id, cookingKey, resume, startCooking }: { id: string; c
   if (!view || servings == null) return <Spinner />;
   const r = data.recipe;
   const guidedProgress = cookingProgress ?? (cookingOpen ? { servings, stepId: null } : null);
-  const nutrition = r.nutrition ?? view.nutrition.per_serving;
   const lists = data.lists;
   const canEdit = r.household_id !== null || isAppAdmin;
   const missingNames = view.cost.missing_product_ids.map((p) => data.products.get(p)?.name ?? p);
@@ -296,36 +299,7 @@ function RecipeDetails({ id, cookingKey, resume, startCooking }: { id: string; c
       <p className="mt-1.5 px-1 text-xs text-ink-2">Bifa verde: ai ingredientul în cămară, în cantitatea necesară.</p>
 
       <SectionTitle>Valori nutriționale</SectionTitle>
-      {/* Parțial, cu ce lipsește (decizia proprietarului, 22 oct. 2026). */}
-      {nutrition ? (
-        <Card as="section" className="overflow-hidden p-4 sm:p-5" aria-label="Valori nutriționale">
-          <p className="text-sm text-ink-2">Pe porție, aproximativ</p>
-          <p className="mt-1 text-2xl font-bold tracking-tight tabular text-ink">{nutrition.kcal} kcal</p>
-          <dl className="mt-3 flex flex-col gap-1.5 text-sm">
-            {(
-              [
-                ["Proteine", nutrition.protein_g],
-                ["Glucide", nutrition.carbs_g],
-                ["Grăsimi", nutrition.fat_g],
-                ["Fibre", r.nutrition?.fiber_g],
-              ] as const
-            ).filter(([, g]) => g != null).map(([label, g]) => (
-              <div key={label} className="flex items-baseline justify-between border-b border-line/40 pb-1 last:border-b-0 last:pb-0">
-                <dt className="text-ink-2">{label}</dt>
-                <dd className="font-medium tabular text-ink">{g} g</dd>
-              </div>
-            ))}
-          </dl>
-          {!r.nutrition && view.nutrition.missing.length > 0 && (
-            <p className="mt-2 text-xs text-ink-2">
-              Fără: {view.nutrition.missing.map((m) => `${data.products.get(m.product_id)?.name ?? m.product_id}${m.frying ? " (pentru prăjit)" : ""}`).join(", ")}.
-            </p>
-          )}
-          <p className="mt-2 text-xs text-ink-2">{r.nutrition ? "Valori declarate în colecția sursă." : "Din CIQUAL (Franța) și USDA (SUA), pentru ingredientele crude."}</p>
-        </Card>
-      ) : (
-        <p className="text-xs text-ink-2">Valorile nutriționale nu sunt disponibile pentru această rețetă.</p>
-      )}
+      <RecipeNutritionCard recipe={r} calculation={view.nutrition} products={data.products} labels={data.nutritionLabels} servings={servings} />
 
       <SectionTitle><span id="preparare" className="scroll-mt-4">Mod de preparare</span></SectionTitle>
       <ol className="mt-2 flex flex-col gap-3">

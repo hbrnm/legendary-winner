@@ -1,12 +1,68 @@
 import { expect, test, type Page } from "@playwright/test";
 import { start } from "./helpers";
 
+test("salvează rapid o cheltuială și păstrează câmpul activ deasupra tastaturii", async ({ page }) => {
+  await page.setViewportSize({ width: 360, height: 780 });
+  await start(page, "/buget/");
+  await page.getByRole("button", { name: "Acțiuni buget", exact: true }).click();
+  await page.getByRole("dialog", { name: "Buget", exact: true }).getByRole("button", { name: "Adaugă cheltuială", exact: true }).click();
+  const dialog = page.getByRole("dialog", { name: "Cheltuială", exact: true });
+  const amount = dialog.getByLabel("Sumă (RON)");
+  const save = dialog.getByRole("button", { name: "Salvează", exact: true });
+  await expect(amount).toBeFocused();
+  await expect(dialog.getByRole("button", { name: "Schimbă data plății (Azi)" })).toBeVisible();
+  await expect(dialog.getByLabel("Notă scurtă (opțional)")).toHaveCount(0);
+  await page.evaluate(() => {
+    const viewport = window.visualViewport!;
+    Object.defineProperty(viewport, "height", { value: 320, configurable: true });
+    viewport.dispatchEvent(new Event("resize"));
+  });
+  await expect.poll(async () => (await save.boundingBox())!.y + (await save.boundingBox())!.height).toBeLessThanOrEqual(320);
+  await amount.fill("25,50");
+  await amount.press("Enter");
+  await expect(dialog.getByLabel("Toate categoriile")).toBeFocused();
+  await dialog.getByRole("button", { name: "Piață", exact: true }).click();
+  await expect(dialog.getByLabel("Toate categoriile")).toHaveValue("alimentatie");
+  const details = dialog.getByRole("button", { name: "Mai multe detalii" });
+  await details.click();
+  const note = dialog.getByLabel("Notă scurtă (opțional)");
+  await note.focus();
+  await expect.poll(async () => (await note.boundingBox())!.y + (await note.boundingBox())!.height).toBeLessThan((await save.boundingBox())!.y);
+  await save.click();
+  await expect(dialog).not.toBeVisible();
+  const monthlySpend = page.getByText("Cheltuit în lună", { exact: true }).filter({ visible: true }).first().locator("..");
+  await expect(monthlySpend).toContainText("25,50");
+
+  await page.evaluate(() => {
+    const viewport = window.visualViewport!;
+    Reflect.deleteProperty(viewport, "height");
+    viewport.dispatchEvent(new Event("resize"));
+  });
+  await page.getByRole("button", { name: "Cheltuială", exact: true }).click();
+  await expect(amount).toHaveValue("");
+  await amount.fill("12,75");
+  await dialog.getByRole("button", { name: "Schimbă data plății (Azi)" }).click();
+  await dialog.getByLabel("Data plății", { exact: true }).fill("2026-03-07");
+  await details.click();
+  await dialog.getByRole("button", { name: "+ Alt loc", exact: true }).click();
+  await dialog.getByLabel("Numele locului").fill("Papetărie");
+  await note.fill("Caiete de test");
+  await save.click();
+  await expect(dialog).not.toBeVisible();
+  await page.reload();
+  await expect(monthlySpend).toContainText("38,25");
+  await page.getByRole("link", { name: /^Tranzacții/ }).last().click();
+  await expect(page.getByText("Caiete de test", { exact: true })).toBeVisible();
+});
+
 async function addExpense(page: Page, description: string, amount: string, category: string, date = "2026-03-08") {
   await page.getByRole("button", { name: "Acțiuni buget", exact: true }).click();
   await page.getByRole("dialog", { name: "Buget", exact: true }).getByRole("button", { name: "Adaugă cheltuială", exact: true }).click();
   const form = page.getByRole("dialog", { name: "Cheltuială", exact: true });
+  await form.getByRole("button", { name: "Mai multe detalii", exact: true }).click();
   await form.getByLabel("Notă scurtă (opțional)", { exact: true }).fill(description);
   await form.getByLabel("Sumă (RON)", { exact: true }).fill(amount);
+  await form.getByRole("button", { name: "Schimbă data plății (Azi)", exact: true }).click();
   await form.getByLabel("Data plății", { exact: true }).fill(date);
   await expect(form.getByLabel("Data plății", { exact: true })).toHaveAttribute("max", "2026-03-08");
   await form.getByLabel("Toate categoriile", { exact: true }).selectOption(category);
