@@ -1,0 +1,4 @@
+project_id = "wvgmwpvivospyetpznzv"
+
+[functions.csp-report]
+verify_jwt = false
