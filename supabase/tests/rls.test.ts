@@ -328,6 +328,24 @@ describe("funcțiile din baza de date", () => {
     expect(await callable("anon")).toEqual([]);
   });
 
+  it("clientul poate actualiza doar rolul membrului", async () => {
+    const result = await db().query(`
+      select attname from pg_attribute
+      where attrelid = 'public.household_members'::regclass and attnum > 0
+        and not attisdropped
+        and has_column_privilege('authenticated', attrelid, attnum, 'update')
+    `);
+    expect(result.rows).toEqual([{ attname: "role" }]);
+  });
+
+  it("cota nutrițională este comună între cereri", async () => {
+    const person = await createUser("Nutriție");
+    const first = await asUser(person, (q) => q("select take_nutrition_lookup_quota() as allowed"));
+    const second = await asUser(person, (q) => q("select take_nutrition_lookup_quota() as allowed"));
+    expect(first.rows).toEqual([{ allowed: true }]);
+    expect(second.rows).toEqual([{ allowed: false }]);
+  });
+
   it("utilizatorul autentificat cheamă funcțiile aplicației, dar nu și pe cele de trigger", async () => {
     const fns = await callable("authenticated");
     expect(fns.filter((f) => f.is_trigger)).toEqual([]);
@@ -348,6 +366,19 @@ describe("funcțiile din baza de date", () => {
     expect(h.rows.length).toBe(0);
     const p = await db().query("select 1 from profiles where id = $1", [dan.id]);
     expect(p.rows.length).toBe(0);
+  });
+
+  it("păstrează contul și metadatele până la curățarea fotografiilor prin Storage", async () => {
+    const owner = await createUser("Proprietar");
+    const household = await createHousehold(owner);
+    const photo = `${household}/reteta/foto.webp`;
+    await db().query("insert into storage.objects (bucket_id, name) values ('recipe-photos', $1)", [photo]);
+
+    const pending = await asUser(owner, (q) => q("select account_deletion_photo_paths() as paths"));
+    expect(pending.rows).toEqual([{ paths: [photo] }]);
+    await expect(asUser(owner, (q) => q("select delete_my_account()"))).rejects.toThrow(/prin Storage/);
+    expect((await db().query("select name from storage.objects where name = $1", [photo])).rows).toEqual([{ name: photo }]);
+    expect((await db().query("select id from auth.users where id = $1", [owner.id])).rowCount).toBe(1);
   });
 
   it("toate funcțiile au search_path fix", async () => {

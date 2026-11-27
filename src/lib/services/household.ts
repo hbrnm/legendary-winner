@@ -123,6 +123,16 @@ export async function updateDisplayName(userId: string, name: string) {
 }
 
 export async function deleteAccount(): Promise<void> {
-  const { error } = await supabase().rpc("delete_my_account");
+  const client = supabase();
+  for (;;) {
+    const { data: paths, error: prepareError } = await client.rpc("account_deletion_photo_paths");
+    if (prepareError) fail(prepareError, "Nu am putut verifica fotografiile contului.");
+    if (!paths?.length) break;
+
+    const { data: removed, error: storageError } = await client.storage.from("recipe-photos").remove(paths);
+    if (storageError) fail(storageError, "Nu am putut șterge fotografiile contului. Încearcă din nou.");
+    if (!removed?.length) throw new UserError("Nu am putut confirma ștergerea fotografiilor. Încearcă din nou.");
+  }
+  const { error } = await client.rpc("delete_my_account");
   if (error) fail(error, "Nu am putut șterge contul.");
 }

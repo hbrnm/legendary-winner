@@ -1,0 +1,106 @@
+{
+  "commit": "41cb95a659c0cdcfaff70476a0a1a500446ff902",
+  "date": "2026-11-27",
+  "findings": [
+    {
+      "id": "SEC-001",
+      "title": "Restrânge modificarea membrilor la coloana role",
+      "severity": "High",
+      "cwe": "CWE-863",
+      "verdict": "confirmed",
+      "source_sink_trace": "supabase/migrations/20261011000001_schema.sql:111, 549–564, 708–712, 774–777",
+      "evidence": "Rolul authenticated primește UPDATE pe tabel. RLS verifică dreptul asupra rândului existent și valoarea nouă a rolului. Cheile de identitate ale rândului rămân editabile; household_members are trigger de timestamp, fără trigger de imutabilitate.",
+      "remediation": "Revocă UPDATE la nivel de tabel pentru rolurile client și acordă UPDATE exclusiv pe role. Păstrează RLS și fluxul privilegiat separat pentru transferul proprietății."
+    },
+    {
+      "id": "SEC-002",
+      "title": "Leagă validarea destinației importului de conexiunea efectivă",
+      "severity": "High",
+      "cwe": "CWE-918",
+      "verdict": "needs_validation",
+      "source_sink_trace": "src/lib/server/import-recipe.ts:146–174, 231–268, 320–338; supabase/functions/import-recipe/index.ts:15–22",
+      "evidence": "URL-ul primit ajunge la un fetch HTTP după verificarea DNS separată. Codul nu garantează că adresa folosită de conexiune este cea validată. Impactul depinde de runtime și de restricțiile de rețea din mediul găzduit.",
+      "remediation": "Folosește un proxy de ieșire care validează destinația la conectare și blochează intervalele private și speciale. Păstrează validarea fiecărui redirect și limitele de răspuns."
+    },
+    {
+      "id": "SEC-003",
+      "title": "Actualizează lanțul de dependențe de test și lint",
+      "severity": "Medium",
+      "cwe": "CWE-1395",
+      "verdict": "confirmed",
+      "source_sink_trace": "package-lock.json:8644, 8969, 9209; .github/workflows/ci.yml:29–40",
+      "evidence": "npm audit a găsit 11 intrări afectate în arborele complet, inclusiv tinypool prin Vitest și undici prin jsdom. Scanarea cu omiterea dependențelor de dezvoltare a raportat zero intrări. Expunerea specifică a CI la avize rămâne de validat.",
+      "remediation": "Actualizează Vitest, jsdom și lanțul typescript-eslint la versiuni compatibile fără avize relevante, regenerează lockfile-ul și repetă auditul și CI."
+    },
+    {
+      "id": "SEC-004",
+      "title": "Tratează erorile de parsare ale serverului static local",
+      "severity": "Low",
+      "cwe": "CWE-248",
+      "verdict": "confirmed",
+      "source_sink_trace": "scripts/serve-static.mjs:11–15, 27–40; vercel.json:3–6",
+      "evidence": "Parsarea URL și decodarea au loc înaintea blocului try. O eroare respinge handlerul asincron al serverului HTTP. Serverul ascultă fără host explicit și face parte din fluxul local de test.",
+      "remediation": "Prinde erorile de intrare și răspunde 400, verifică încadrarea căii în directorul de export și folosește loopback implicit."
+    },
+    {
+      "id": "SEC-005",
+      "title": "Verifică integritatea binarelor descărcate pentru testele cloud",
+      "severity": "Medium",
+      "cwe": "CWE-494",
+      "verdict": "confirmed",
+      "source_sink_trace": "scripts/local-supabase.mjs:23–30, 128; playwright.cloud.config.ts:15; .github/workflows/ci.yml:38–40",
+      "evidence": "Harness-ul descarcă arhive binare cu versiune fixă, le extrage și rulează executabilele fără verificarea unui hash sau a unei semnături din repo.",
+      "remediation": "Descarcă arhivele în fișier temporar, verifică un SHA-256 fixat înainte de extracție și oprește scriptul la orice nepotrivire."
+    },
+    {
+      "id": "SEC-006",
+      "title": "Verifică anteturile de protecție ale aplicației publicate",
+      "severity": "Low",
+      "cwe": "CWE-693",
+      "verdict": "needs_validation",
+      "source_sink_trace": "vercel.json:7–13; src/app/layout.tsx:35",
+      "evidence": "Configurația din repo definește doar antetul de cache pentru service worker. Setările efective de hosting sau de proxy ar putea adăuga protecții.",
+      "remediation": "Verifică anteturile efective. Adaugă Content-Security-Policy în mod report-only, frame-ancestors, X-Content-Type-Options și Referrer-Policy potrivite aplicației offline."
+    },
+    {
+      "id": "SEC-007",
+      "title": "Aplică o limită comună pentru căutarea nutrițională",
+      "severity": "Low",
+      "cwe": "CWE-770",
+      "verdict": "confirmed",
+      "source_sink_trace": "supabase/functions/lookup-nutrition/index.ts:9–22; src/lib/server/lookup-nutrition.ts:55–94",
+      "evidence": "Identitatea e verificată prin serviciul Auth. Limita este memorată într-un Map local instanței, deci nu există o cotă comună garantată pentru toate instanțele. Volumul real depinde și de gateway.",
+      "remediation": "Folosește limitare distribuită per utilizator, cu expirare și plafon global, înaintea interogării furnizorului extern."
+    },
+    {
+      "id": "SEC-008",
+      "title": "Execuție SQL arbitrară în RPC-ul de finalizare",
+      "severity": "Informational",
+      "cwe": "CWE-89",
+      "verdict": "rejected",
+      "source_sink_trace": "supabase/migrations/20261124081428_atomic_shopping_checkout.sql:8, 31–44, 57–78, 111–131",
+      "evidence": "RPC-ul folosește drepturile apelantului, tabele admise explicit, citarea identificatorilor și legarea valorilor ca parametri. Migrarea păstrează RLS.",
+      "remediation": "Menține lista de permisiuni și parametrii legați."
+    },
+    {
+      "id": "SEC-009",
+      "title": "Citire publică a bucketului de fotografii",
+      "severity": "Informational",
+      "cwe": "CWE-862",
+      "verdict": "rejected",
+      "source_sink_trace": "supabase/migrations/20261015000001_recipe_photos.sql:50–76",
+      "evidence": "Migrarea setează bucketul privat și limitează citirea la membrii gospodăriei din cale. Starea efectivă a bucketului găzduit nu a fost inspectată.",
+      "remediation": "Păstrează setarea privată și testele RLS pentru Storage."
+    },
+    {
+      "id": "SEC-010",
+      "title": "Șterge fișierele prin API-ul Storage la închiderea contului",
+      "severity": "Medium",
+      "cwe": "CWE-459",
+      "verdict": "confirmed",
+      "source_sink_trace": "supabase/migrations/20261116000003_delete_account_alias.sql:14–28",
+      "evidence": "RPC-ul șterge rândurile storage.objects direct prin SQL. Supabase documentează că această operație lasă obiectele binare în stocare, cu risc de retenție după ștergerea contului.",
+      "remediation": "Autorizează operația server-side și elimină fișierele prin API-ul Storage într-un flux reluabil. Marchează ștergerea completă după confirmarea operațiilor Storage și DB."
+    }
+  ]
+}

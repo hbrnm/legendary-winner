@@ -24,3 +24,9 @@ Local: copiază `.env.example` în `.env.local` și completează. `.env*` e igno
 | `SITE_URL`, `DEBUG` | `scripts/local-supabase.mjs` | adresa aplicației pentru Auth (implicit `http://localhost:3200`); `DEBUG=1` arată logurile serviciilor |
 
 Cheile din `scripts/local-supabase-keys.mjs` sunt doar pentru Supabase-ul local de test și nu deschid nimic real.
+
+## Importul de rețete în Supabase
+
+`RECIPE_IMPORT_EGRESS_PROXY` este URL-ul proxy-ului HTTP de ieșire, configurat opțional ca secret pentru funcția Edge `import-recipe`. Cu el setat, descărcarea paginilor și a imaginilor trece prin proxy (care trebuie să blocheze destinațiile locale, private și rezervate prin politica de rețea); fără proxy configurat, funcția folosește `fetch` direct cu validările de gazdă, IP și redirecționare din `core.js`.
+
+Aplică migrarea de securitate înainte de a activa noua versiune a funcției `lookup-nutrition`. Coordonează migrarea cu lansarea clientului care curăță fotografiile prin API-ul Storage înainte de ștergerea contului. Verifică separat retenția obiectelor orfane lăsate de versiunile anterioare.

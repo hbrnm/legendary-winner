@@ -84,9 +84,7 @@ var cors = {
   "Access-Control-Allow-Headers": "authorization, apikey, content-type, x-client-info",
   "Access-Control-Allow-Methods": "POST, OPTIONS"
 };
-var USER_COOLDOWN_MS = 4100;
-function createNutritionLookup(fetchProduct, contact, authorize) {
-  const nextRequestByUser = /* @__PURE__ */ new Map();
+function createNutritionLookup(fetchProduct, contact, takeQuota) {
   const reply = (body, status = 200) => Response.json(body, { status, headers: cors });
   return async (request) => {
     if (request.method === "OPTIONS") return new Response(null, { status: 204, headers: cors });
@@ -98,17 +96,10 @@ function createNutritionLookup(fetchProduct, contact, authorize) {
     const code = body.data?.code;
     if (typeof code !== "string" || !isGtin(code)) return reply({ error: "invalid_code" }, 400);
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(contact)) return reply({ error: "unavailable" }, 503);
-    const auth = await authorize(token).catch(() => false);
-    if (!auth) return reply({ error: "unauthorized" }, 401);
-    const userKey = typeof auth === "string" && auth ? auth : token;
-    const now = Date.now();
-    if (now < (nextRequestByUser.get(userKey) ?? 0)) return reply({ error: "rate_limit" }, 429);
-    if (nextRequestByUser.size > 500) {
-      for (const [key, until] of nextRequestByUser) {
-        if (until <= now) nextRequestByUser.delete(key);
-      }
-    }
-    nextRequestByUser.set(userKey, now + USER_COOLDOWN_MS);
+    const quota = await takeQuota(token).catch(() => void 0);
+    if (quota === void 0) return reply({ error: "unavailable" }, 503);
+    if (quota === null) return reply({ error: "unauthorized" }, 401);
+    if (!quota) return reply({ error: "rate_limit" }, 429);
     const significantDigits = code.replace(/^0+/, "");
     const normalizedCode = significantDigits.padStart(significantDigits.length <= 8 ? 8 : 13, "0");
     const endpoint = new URL(`https://world.openfoodfacts.org/api/v3.6/product/${normalizedCode}.json`);
