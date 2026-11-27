@@ -3,7 +3,7 @@
 import { Suspense, useEffect, useMemo, useRef, useState, type Ref } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { Camera, ChevronRight, Copy, Download, Pencil, Plus, PurseIcon, ReceiptIcon, Shapes, Tags } from "@/components/ui/icons";
+import { Camera, ChevronRight, Copy, Download, Pencil, Plus, PurseIcon, ReceiptIcon, Tags } from "@/components/ui/icons";
 import { IncomeSheet } from "@/components/budget/income-sheet";
 import { BudgetEditorSheet, scopeLabel } from "@/components/budget/budget-editor-sheet";
 import { ALL_SPEND, BudgetMonthPicker, budgetSplit, budgetViewHref, selectedBudgetMonth, selectMonthlyBudget } from "@/components/budget/budget-view";
@@ -19,7 +19,6 @@ import { BudgetBar, Card, DualBudgetBar, EmptyState, PageHeader, SectionTitle, S
 import { LabeledSelect, Segmented } from "@/components/ui/fields";
 import { BarList, ColumnChart } from "@/components/budget/charts";
 import { listItems, owned, priceIndex, householdSpendRecords, visible } from "@/lib/services/queries";
-import { diverseToSort } from "@/lib/services/receipts";
 import { budgetStatus, dailyBudgetAvailable, byCategory, byExpenseCategory, byRetailer, monthlyTotals, matchesScope, spendInPeriod, spendToCsv, sumAmounts, weeklyTotals, type BudgetStatus } from "@/lib/domain/budget";
 import { incomeSummary } from "@/lib/domain/income";
 import { listTotals } from "@/lib/domain/shopping";
@@ -93,7 +92,6 @@ function BudgetScreen({ captureTarget, captureRef }: { captureTarget: HTMLDivEle
       openEstimate: sumMoney(open.map((t) => t.remaining_estimate)),
       openUnknown: open.reduce((n, t) => n + t.unknown_price_count, 0),
       // Produsele din „Diverse” ale cumpărăturilor încheiate, de mutat (.tasks/016).
-      diverse: (await diverseToSort(ctx, spend.filter((item) => !item.manual_expense_id))).length,
     };
   }, [today]);
 
@@ -351,19 +349,6 @@ function BudgetScreen({ captureTarget, captureRef }: { captureTarget: HTMLDivEle
           )}
         </div>
       </div>}
-
-      {data.diverse > 0 && (
-        <Link href="/buget/diverse/" className="mt-3 flex items-center gap-3 rounded-[20px] bg-brand-soft px-4 py-3 text-sm shadow-card transition-colors hover:brightness-95 focus-visible:outline-2 focus-visible:outline-brand">
-          <span className="flex size-10 shrink-0 items-center justify-center rounded-full bg-surface text-brand" aria-hidden>
-            <Shapes size={18} />
-          </span>
-          <span className="min-w-0 flex-1">
-            <span className="block font-semibold text-ink">Mută din Diverse ({data.diverse})</span>
-            <span className="block text-xs text-ink-2">Produse de pe bonuri fără categorie clară</span>
-          </span>
-          <ChevronRight size={18} className="shrink-0 text-brand" aria-hidden />
-        </Link>
-      )}
 
       {isCurrentMonth && (
         <div className="mt-3 flex flex-wrap gap-2">
