@@ -27,6 +27,6 @@ Cheile din `scripts/local-supabase-keys.mjs` sunt doar pentru Supabase-ul local 
 
 ## Importul de rețete în Supabase
 
-`RECIPE_IMPORT_EGRESS_PROXY` este URL-ul proxy-ului HTTP de ieșire, configurat opțional ca secret pentru funcția Edge `import-recipe`. Cu el setat, descărcarea paginilor și a imaginilor trece prin proxy (care trebuie să blocheze destinațiile locale, private și rezervate prin politica de rețea); fără proxy configurat, funcția folosește `fetch` direct cu validările de gazdă, IP și redirecționare din `core.js`.
+`RECIPE_IMPORT_EGRESS_PROXY` este obligatoriu ca secret pentru funcția Edge `import-recipe`. Fără un client proxy inițializat, funcția răspunde `503 unavailable` înainte de rezolvarea DNS, verificarea cotei sau orice cerere către site-ul țintă; nu există fallback la `fetch` direct. Proxy-ul configurat trebuie să blocheze destinațiile locale, private și rezervate chiar la conectare și să aplice aceeași regulă destinațiilor redirectate. Validarea DNS din funcție rămâne o apărare suplimentară, nu înlocuiește politica proxy-ului.
 
 Aplică migrarea de securitate înainte de a activa noua versiune a funcției `lookup-nutrition`. Coordonează migrarea cu lansarea clientului care curăță fotografiile prin API-ul Storage înainte de ștergerea contului. Verifică separat retenția obiectelor orfane lăsate de versiunile anterioare.

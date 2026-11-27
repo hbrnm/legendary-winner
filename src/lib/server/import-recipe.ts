@@ -12,6 +12,7 @@ export type ImportErrorCode =
   | "bad_request"
   | "unauthorized"
   | "rate_limited"
+  | "unavailable"
   | "invalid_url"
   | "blocked_address"
   | "fetch_failed"
@@ -29,6 +30,14 @@ export interface ImportDeps {
   resolveHost: (host: string) => Promise<string[]>;
   /** Limita de cereri a omului cu acest token: true = mai are voie, false = a depășit, null = token nevalid. */
   takeQuota: (authorization: string) => Promise<boolean | null>;
+}
+
+/** Nu există cale de ieșire directă: fără clientul proxy, fetch-ul refuză cererea. */
+export function createProxiedFetch(fetchFn: typeof fetch, client: object | null | undefined): typeof fetch {
+  return async (input, init) => {
+    if (!client) throw new Error("Import egress proxy is not configured");
+    return fetchFn(input, { ...init, client } as RequestInit);
+  };
 }
 
 export const IMPORT_LIMITS = {
@@ -56,6 +65,7 @@ const STATUS: Record<ImportErrorCode, number> = {
   bad_request: 400,
   unauthorized: 401,
   rate_limited: 429,
+  unavailable: 503,
   invalid_url: 400,
   blocked_address: 400,
   fetch_failed: 502,
@@ -302,6 +312,13 @@ function reply(body: ImportResponse | null, status: number): Response {
 }
 
 const fail = (code: ImportErrorCode) => reply({ error: code }, STATUS[code]);
+
+/** Oprește cererile înainte de DNS, cotă sau acces extern dacă proxy-ul lipsește. */
+export function egressProxyUnavailableResponse(req: Request, configured: boolean): Response | null {
+  if (configured) return null;
+  if (req.method === "OPTIONS") return reply(null, 204);
+  return fail("unavailable");
+}
 
 /** Cererea aplicației: POST cu `{ "url": "https://…" }` (sau `{ "image": … }`) și tokenul omului în `Authorization`. */
 export async function handleImportRequest(req: Request, deps: ImportDeps, limits: ImportLimits = IMPORT_LIMITS): Promise<Response> {

@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 import { readFileSync } from "node:fs";
-import { handleImportRequest, isPublicAddress, parseImportUrl, quotaViaRest, IMPORT_LIMITS, type ImportDeps } from "./import-recipe";
+import { createProxiedFetch, egressProxyUnavailableResponse, handleImportRequest, isPublicAddress, parseImportUrl, quotaViaRest, IMPORT_LIMITS, type ImportDeps } from "./import-recipe";
 
 // Funcția Edge import-recipe, fără rețea: paginile vin din fixturile etapei 1,
 // DNS-ul și limita de cereri sunt simulate.
@@ -212,6 +212,33 @@ describe("handleImportRequest", () => {
     const pre = await handleImportRequest(new Request("https://f.ro/x", { method: "OPTIONS" }), d);
     expect(pre.status).toBe(204);
     expect(pre.headers.get("access-control-allow-headers")).toContain("authorization");
+  });
+});
+
+describe("proxy de ieșire obligatoriu", () => {
+  it("răspunde 503 înainte de orice fetch dacă proxy-ul lipsește", async () => {
+    const response = egressProxyUnavailableResponse(post({ url: "https://exemplu.ro/reteta" }), false);
+    expect(response?.status).toBe(503);
+    expect(response?.headers.get("access-control-allow-origin")).toBe("*");
+    await expect(response?.json()).resolves.toEqual({ error: "unavailable" });
+  });
+
+  it("păstrează preflight-ul CORS când proxy-ul lipsește", () => {
+    const response = egressProxyUnavailableResponse(new Request("https://proiect.supabase.co/functions/v1/import-recipe", { method: "OPTIONS" }), false);
+    expect(response?.status).toBe(204);
+    expect(response?.headers.get("access-control-allow-origin")).toBe("*");
+  });
+
+  it("nu introduce o cale directă și atașează clientul proxy la fetch", async () => {
+    const fetchFn = vi.fn(async () => new Response("ok"));
+    const noProxyFetch = createProxiedFetch(fetchFn as typeof fetch, undefined);
+    await expect(noProxyFetch("https://exemplu.ro/", {})).rejects.toThrow("proxy is not configured");
+    expect(fetchFn).not.toHaveBeenCalled();
+
+    const client = { marker: "proxy" };
+    const proxiedFetch = createProxiedFetch(fetchFn as typeof fetch, client);
+    await proxiedFetch("https://exemplu.ro/", { redirect: "manual" });
+    expect(fetchFn).toHaveBeenCalledWith("https://exemplu.ro/", { redirect: "manual", client });
   });
 });
 

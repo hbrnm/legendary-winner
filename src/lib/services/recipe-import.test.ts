@@ -109,6 +109,7 @@ describe("draftFromLink", () => {
   it("erorile serverului devin mesaje pentru om; fără internet sau cu link greșit, nici nu întreabă serverul", async () => {
     await expect(draftFromLink("https://x.ro/r", async () => json({ error: "no_recipe" }, 422))).rejects.toThrow(IMPORT_ERROR_MESSAGES.no_recipe);
     await expect(draftFromLink("https://x.ro/r", async () => json({ error: "rate_limited" }, 429))).rejects.toThrow(IMPORT_ERROR_MESSAGES.rate_limited);
+    await expect(draftFromLink("https://x.ro/r", async () => json({ error: "unavailable" }, 503))).rejects.toThrow(IMPORT_ERROR_MESSAGES.unavailable);
     await expect(draftFromLink("https://x.ro/r", async () => new Response("<html>eroare</html>", { status: 500 }))).rejects.toThrow(IMPORT_ERROR_MESSAGES.fetch_failed);
     await expect(draftFromLink("https://x.ro/r", async () => Promise.reject(new TypeError("Failed to fetch")))).rejects.toThrow(/Verifică internetul/);
     const call = vi.fn();

@@ -18,9 +18,9 @@ Revocă UPDATE la nivel de tabel pentru rolurile client și acordă UPDATE exclu
 
 **Cod** · `src/lib/server/import-recipe.ts:146–174, 231–268, 320–338; supabase/functions/import-recipe/index.ts:15–22`
 
-URL-ul primit ajunge la un fetch HTTP după verificarea DNS separată. Codul nu garantează că adresa folosită de conexiune este cea validată. Impactul depinde de runtime și de restricțiile de rețea din mediul găzduit.
+Înaintea remedierii, URL-ul primit ajungea la un fetch HTTP după verificarea DNS separată, fără garanția că adresa folosită de conexiune era cea validată. Patch-ul face proxy-ul obligatoriu și refuză cererile înainte de DNS sau fetch dacă nu poate inițializa clientul proxy. Rămâne de confirmat secretul din mediul găzduit și că proxy-ul aplică filtrarea destinațiilor la conectare.
 
-Folosește un proxy de ieșire care validează destinația la conectare și blochează intervalele private și speciale. Păstrează validarea fiecărui redirect și limitele de răspuns.
+Fă proxy-ul de ieșire obligatoriu și elimină fallback-ul la conexiuni directe. Proxy-ul trebuie să blocheze destinațiile locale, private și speciale chiar la conectare, inclusiv după redirect; păstrează validarea redirecturilor și limitele de răspuns. Constatarea rămâne `needs_validation` până când secretul găzduit și politica proxy-ului sunt confirmate.
 
 ## SEC-003 · Actualizează lanțul de dependențe de test și lint
 
