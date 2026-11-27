@@ -113,6 +113,7 @@ export const CARNE_LACTATE: ProductSeed[] = [
 
   // Ouă
   { id: "oua", name: "Ouă de găină", category: "oua", sub: "Ouă", unit: "buc", aliases: ["ouă", "ou", "ouă de consum", "ouă de crescătorie"], allergens: ["oua"] },
+  { id: "albus-de-ou", name: "Albuș de ou", category: "oua", sub: "Ouă", unit: "g", aliases: ["albuș", "albușuri", "albuș de ou crud"], allergens: ["oua"] },
   { id: "oua-tara", name: "Ouă de țară", category: "oua", sub: "Ouă", unit: "buc", aliases: ["ouă de casă", "ouă de curte", "ouă de la țară"], traditional: true, market: true, allergens: ["oua"] },
   { id: "oua-prepelita", name: "Ouă de prepeliță", category: "oua", sub: "Ouă", unit: "buc", aliases: ["ouă prepeliță", "ou de prepeliță"], market: true, allergens: ["oua"] },
   { id: "oua-rata", name: "Ouă de rață", category: "oua", sub: "Ouă", unit: "buc", aliases: ["ou de rață", "ouă rață"], market: true, allergens: ["oua"] },

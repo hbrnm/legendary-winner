@@ -125,6 +125,10 @@ export function BarcodeLookup({
   const title = suggestion ? [suggestion.name, suggestion.brand, suggestion.quantity].filter(Boolean).join(" · ") || suggestion.code : "";
   const isLocalFallback = suggestion ? !suggestion.nutrition && Boolean(findLocal?.(suggestion.code)) : false;
 
+  if (startWithCamera && cameraOpen) {
+    return <BarcodeCamera onRead={acceptScan} onClose={closeCamera} closeLabel="Introdu codul manual" />;
+  }
+
   return (
     <div className="space-y-3">
       <LabeledInput

@@ -13,7 +13,7 @@ test("sugestiile urmează ora locală și alegerea mesei, chiar dacă altă mas�
     await page.clock.setFixedTime(new Date(`2026-03-08T${String(hour).padStart(2,"0")}:00:00+02:00`));
     await page.evaluate(() => window.dispatchEvent(new Event("focus")));
     await expect(page.getByTestId("home-meal").getByText(new RegExp(label))).toBeVisible();
-    const choices = page.getByRole("button", {name:"Alege",exact:true});
+    const choices = page.getByRole("button", {name:"Adaugă în plan",exact:true});
     await expect(choices).toHaveCount(1);
     // Verificăm categoria reală, nu doar eticheta afișată în interfață.
     for (const choice of await choices.all()) {

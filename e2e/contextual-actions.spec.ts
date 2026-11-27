@@ -53,10 +53,15 @@ for(const theme of ['luminos','intunecat'])test(`home prioritizes the meal card 
  // Seeded demo exercises the budget and recent transaction states as well.
  await page.clock.setFixedTime(new Date('2026-03-08T09:00:00+02:00'));await page.goto('/');
  const safeBottom=await page.locator('.app-mobile-nav').evaluate(el=>el.getBoundingClientRect().top);
+ const fab=page.getByRole('button',{name:'Adaugă rapid',exact:true});
+ await expect(fab).toHaveCSS('position','fixed');
+ const before=await fab.boundingBox();
+ expect(before!.y+before!.height).toBeLessThanOrEqual(safeBottom);
  for(const id of ['home-meal','home-shopping-pantry','home-budget']){
   const card=page.getByTestId(id);await expect(card).toBeVisible();const box=(await card.boundingBox())!;if(id==='home-meal') expect(box.y+box.height).toBeLessThanOrEqual(safeBottom);
   else { await card.scrollIntoViewIfNeeded(); await expect(card).toBeInViewport(); }
  }
+ expect(await fab.boundingBox()).toEqual(before);
  await expect(page.locator('main').getByRole('button',{name:'Scanează bon',exact:true})).toHaveCount(0);
  await page.screenshot({path:`test-results/lot1-home-${theme}.png`,fullPage:true});
 });

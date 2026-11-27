@@ -4,7 +4,7 @@ import { useMemo, useRef, useState, type Ref } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { RecipeNavigation } from "@/components/recipes/navigation";
-import { ArrowRight, ChevronDown, Clock, Heart, Search, SlidersHorizontal, Users, WarmBowlIcon } from "@/components/ui/icons";
+import { ArrowRight, ChevronDown, Clock, Heart, Search, SlidersHorizontal, Users } from "@/components/ui/icons";
 import { AppShell } from "@/components/app/shell";
 import { useAction, useData } from "@/components/app/hooks";
 import { Button } from "@/components/ui/button";
@@ -148,6 +148,7 @@ function RecipesScreen({ captureRef }: { captureRef: Ref<HTMLDivElement> }) {
   const groups = grouped ? COLLECTION_CATEGORIES.map(({ id, label }) => ({
     id, label, recipes: filtered.filter((recipe) => matchesCollectionMeal(recipe, id)),
   })).filter(({ id, recipes }) => id !== "alte" || recipes.length > 0) : [];
+  const hasOverlappingCategories = groups.reduce((total, group) => total + group.recipes.length, 0) > filtered.length;
 
   function clearFilters() {
     setQuery("");
@@ -236,7 +237,7 @@ function RecipesScreen({ captureRef }: { captureRef: Ref<HTMLDivElement> }) {
         <Chip active={showAll && !hasFilters} onClick={() => {
           clearFilters();
           setShowAll(!showAll || hasFilters);
-        }}>{showAll && !hasFilters ? "Pe categorii" : "Toate rețetele"}</Chip>
+        }}>{showAll && !hasFilters ? "Pe categorii" : "Vezi toate rețetele"}</Chip>
         <Chip active={favoritesOnly} onClick={() => setFavoritesOnly(!favoritesOnly)}><Heart size={14} /> Favorite</Chip>
         <Chip active={readyOnly} onClick={() => setReadyOnly(!readyOnly)}>Gata de gătit</Chip>
       </div>
@@ -270,32 +271,25 @@ function RecipesScreen({ captureRef }: { captureRef: Ref<HTMLDivElement> }) {
             const featured = data.recipes.find((r) => data.ready.has(r.id)) ?? data.recipes.find((r) => data.favorites.has(r.id)) ?? data.recipes[0];
             if (!featured) return null;
             return (
-              <section aria-label="Rețetă recomandată" className="mt-4 rounded-[24px] bg-meal-hero p-5 text-ink shadow-card">
-                <div className="flex items-center justify-between gap-4">
-                  <div className="min-w-0 flex-1">
+              <section aria-label="Rețetă recomandată" className="mt-4 rounded-[24px] bg-meal-hero text-ink shadow-card">
+                <Link href={`/retete/reteta/?id=${featured.id}`} className="block rounded-[24px] p-4 hover:bg-meal-hero-border/20 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand">
                     <span className="inline-flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-ink-2">
                       <span className="size-1.5 rounded-full bg-brand" aria-hidden />
                       {data.ready.has(featured.id) ? "Gata de gătit din cămară" : "Rețetă recomandată"}
                     </span>
-                    <h2 className="kitchen-meal-title mt-1.5 break-words">{featured.name}</h2>
-                    <div className="mt-2.5 flex flex-wrap items-center gap-3 text-sm text-ink-2">
+                    <h2 className="mt-1 break-words text-lg font-bold leading-snug">{featured.name}</h2>
+                    <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-ink-2">
                       <span className="inline-flex items-center gap-1.5 tabular">
                         <Clock size={15} aria-hidden /> {totalMinutes(featured)} min
                       </span>
                       <span className="inline-flex items-center gap-1.5 tabular">
-                        <Users size={15} aria-hidden /> {featured.servings} porții
+                        <Users size={15} aria-hidden /> {featured.servings} {featured.servings === 1 ? "porție" : "porții"}
+                      </span>
+                      <span className="ml-auto inline-flex items-center gap-1 font-semibold text-brand">
+                        Vezi rețeta <ArrowRight size={16} aria-hidden />
                       </span>
                     </div>
-                    <div className="mt-4">
-                      <Link href={`/retete/reteta/?id=${featured.id}`} className="inline-flex min-h-12 items-center gap-2 rounded-full bg-secondary px-5 text-sm font-semibold text-on-secondary transition-colors hover:brightness-95 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand">
-                        Vezi rețeta <ArrowRight size={16} aria-hidden />
-                      </Link>
-                    </div>
-                  </div>
-                  <span aria-hidden="true" className="hidden size-20 shrink-0 items-center justify-center rounded-full bg-surface text-brand shadow-card min-[400px]:flex">
-                    <WarmBowlIcon size={34} />
-                  </span>
-                </div>
+                </Link>
               </section>
             );
           })()}
@@ -318,6 +312,7 @@ function RecipesScreen({ captureRef }: { captureRef: Ref<HTMLDivElement> }) {
               </details>
             ))}
           </div>
+          {hasOverlappingCategories && <p className="mt-2 text-sm text-ink-2">Unele rețete apar la mai multe mese. Totalul numără fiecare rețetă o singură dată.</p>}
         </>
       ) : (
         <div className="mt-3">{renderRecipes(readyOnly ? [...filtered].sort((a, b) => totalMinutes(a) - totalMinutes(b)) : filtered)}</div>

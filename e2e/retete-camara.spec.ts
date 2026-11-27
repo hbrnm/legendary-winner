@@ -138,7 +138,7 @@ test("prima pagină: o sugestie de cel mult 30 minute, cu alegerea mesei", async
     expect(Number(minutes![1])).toBeGreaterThan(0);
     expect(Number(minutes![1])).toBeLessThanOrEqual(30);
   }
-  await expect(page.getByRole("button", { name: "Alege", exact: true })).toHaveCount(1);
+  await expect(page.getByRole("button", { name: "Adaugă în plan", exact: true })).toHaveCount(1);
 });
 
 test("Prețuri: un produs care nu e în catalog primește un mesaj, nu „ca produs nou”", async ({ page }) => {

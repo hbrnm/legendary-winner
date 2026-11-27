@@ -53,9 +53,9 @@ export function TransactionFeed({ records, transactions, expenses, retailers, mo
       { value: "unknown", label: "Fără sumă" },
     ]} />
     {rows.length > 0 && (
-      <p className="mt-2.5 flex items-center justify-between px-1 text-xs text-ink-2 tabular-nums">
+      <p className="mt-2.5 flex flex-wrap items-center justify-between gap-x-3 gap-y-1 px-1 text-xs text-ink-2 tabular-nums">
         <span>{rows.length} {rows.length === 1 ? "tranzacție" : "tranzacții"}</span>
-        <span className="font-semibold text-ink">{formatRon(filteredTotal)}</span>
+        <span>{(scoped || filter !== "all" || query.trim()) && "Total filtrat · "}<strong className="font-semibold text-ink">{formatRon(filteredTotal)}</strong></span>
       </p>
     )}
     <Card className="mt-2 overflow-hidden">

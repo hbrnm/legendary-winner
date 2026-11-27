@@ -12,6 +12,24 @@ export interface NutritionUnitsSeed {
 }
 
 export const NUTRITION_UNITS: Record<string, NutritionUnitsSeed> = {
+  "esenta-vanilie": { g_per_ml: 0.88, portions: [92605] }, // USDA vanilla extract, 1 US cup = 208 g
+  "lapte-semidegresat": { g_per_ml: 1.03, portions: [88320] }, // USDA reduced-fat milk, 1 US cup = 244 g
+  "reteta-bautura-de-migdale-neindulcita": { g_per_ml: 1.11, portions: [94967] }, // USDA unsweetened almond milk, 1 US cup = 262 g
+  "reteta-bors-de-tarate": { g_per_ml: 1, portions: [] }, // Aproximare pentru borșul lichid pe bază de apă
+  "reteta-chefir-2-5-grasime": { g_per_ml: 1.03, portions: [87527] }, // USDA plain kefir, 1 US cup = 243 g
+  "reteta-lapte-de-cocos-la-conserva": { g_per_ml: 1.014, portions: [86172] }, // USDA canned coconut milk, 1 US tbsp = 15 g
+  "reteta-otet-balsamic": { g_per_ml: 1.08, portions: [90146] }, // USDA balsamic vinegar, 1 US cup = 255 g
+  "reteta-passata-de-rosii": { g_per_ml: 1.057, portions: [86700] }, // USDA tomato puree, 1 US cup = 250 g
+  "reteta-passata-suc-de-rosii": { g_per_ml: 1.057, portions: [86700] }, // Ipoteza folosită pentru această rețetă: passata
+  "reteta-sos-de-soia-redus-in-sare": { g_per_ml: 1.08, portions: [90679] }, // USDA low-sodium soy sauce, 1 US cup = 255 g
+  "reteta-sos-marinara-de-rosii-cu-busuioc": { g_per_ml: 1.035, portions: [85971] }, // Aproximare USDA tomato sauce, 1 US cup = 245 g
+  "reteta-supa-clara-de-legume": { g_per_ml: 1, portions: [] }, // Aproximare pentru supă clară pe bază de apă
+  "reteta-supa-clara-de-legume-fierbinte": { g_per_ml: 1, portions: [] },
+  "reteta-zeama-de-lamaie": { g_per_ml: 1.03, portions: [81887] }, // USDA raw lemon juice, 1 US cup = 244 g
+  "reteta-zeama-de-lime": { g_per_ml: 1.02, portions: [82572] }, // USDA raw lime juice, 1 US cup = 242 g
+  "albus-de-ou": { piece_g: 33, portions: [] }, // USDA SR28, 01124: white of 1 large egg
+  "apa-plata": { g_per_ml: 1, portions: [] }, // Kitchen approximation for still water
+  "piper-negru-macinat": { g_per_ml: 0.46, portions: [87560] }, // USDA: 1 ground tsp (5 ml) = 2.3 g
   "amidon": { g_per_ml: 0.541, portions: [85370] }, // Cornstarch, 1 cup = 128 g
   "ardei-iute-uscat": { g_per_ml: 0.358, portions: [87565] }, // Spices, pepper, red or cayenne, 1 tbsp = 5.3 g (aproape)
   "avocado": { piece_g: 136, portions: [89229] }, // Avocados, raw, California, 1 fruit, without skin and seed = 136 g

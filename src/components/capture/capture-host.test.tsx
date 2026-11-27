@@ -91,6 +91,10 @@ it('closes a successfully saved manual expense while the submit guard is still a
  state.run.mockResolvedValue(true);render(<CaptureHost/>);
  await act(async()=>{window.dispatchEvent(new CustomEvent('camara:capture',{detail:{mode:'manual'}}));});
  fireEvent.change(screen.getByLabelText('Sumă (RON)'),{target:{value:'10'}});
+ const description=screen.getByLabelText('Pe ce ai cheltuit?');
+ fireEvent.keyDown(screen.getByLabelText('Sumă (RON)'),{key:'Enter'});
+ expect(document.activeElement).toBe(description);
+ fireEvent.change(description,{target:{value:'Pâine și lapte'}});
  await act(async()=>{fireEvent.click(screen.getByRole('button',{name:'Salvează',hidden:true}));});
  expect(screen.queryByRole('dialog',{name:'Cheltuială'})).toBeNull();
 });

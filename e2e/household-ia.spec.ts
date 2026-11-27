@@ -18,7 +18,7 @@ test("IA: captură universală, categorie școală, sold și disponibil zilnic",
   await sheet.getByRole("button",{name:"+ Alt loc",exact:true}).click();
   await sheet.getByLabel("Numele locului").fill("Școala copiilor");
   await sheet.getByLabel("Toate categoriile").selectOption("educatie");
-  await sheet.getByLabel("Notă scurtă (opțional)").fill("Caiete și rechizite");
+  await sheet.getByLabel("Pe ce ai cheltuit?").fill("Caiete și rechizite");
   await sheet.getByRole("button",{name:"Salvează",exact:true}).click();
   await expect(sheet).not.toBeVisible();
   await expect(page.getByText("Cheltuit în lună",{exact:true}).locator("..")).toContainText("100,00");

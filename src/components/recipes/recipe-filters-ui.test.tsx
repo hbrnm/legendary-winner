@@ -29,7 +29,8 @@ describe("recipe collection controls", () => {
     expect(mainCategory?.hasAttribute("open")).toBe(false);
     expect(mainCategory?.querySelectorAll("li")).toHaveLength(3);
     expect(screen.getByText("Cină").closest("details")?.querySelectorAll("li")).toHaveLength(1);
-    fireEvent.click(screen.getByRole("button", { name: "Toate rețetele" }));
+    expect(screen.getByText(/Unele rețete apar la mai multe mese/)).toBeTruthy();
+    fireEvent.click(screen.getByRole("button", { name: "Vezi toate rețetele" }));
     expect(screen.queryByText("Prânz")).toBeNull();
     expect(screen.getAllByRole("listitem")).toHaveLength(3);
     fireEvent.click(screen.getByRole("button", { name: "Pe categorii" }));

@@ -11,7 +11,8 @@ test("salvează rapid o cheltuială și păstrează câmpul activ deasupra tasta
   const save = dialog.getByRole("button", { name: "Salvează", exact: true });
   await expect(amount).toBeFocused();
   await expect(dialog.getByRole("button", { name: "Schimbă data plății (Azi)" })).toBeVisible();
-  await expect(dialog.getByLabel("Notă scurtă (opțional)")).toHaveCount(0);
+  const note = dialog.getByLabel("Pe ce ai cheltuit?");
+  await expect(note).toBeVisible();
   await page.evaluate(() => {
     const viewport = window.visualViewport!;
     Object.defineProperty(viewport, "height", { value: 320, configurable: true });
@@ -20,14 +21,14 @@ test("salvează rapid o cheltuială și păstrează câmpul activ deasupra tasta
   await expect.poll(async () => (await save.boundingBox())!.y + (await save.boundingBox())!.height).toBeLessThanOrEqual(320);
   await amount.fill("25,50");
   await amount.press("Enter");
+  await expect(note).toBeFocused();
+  await expect.poll(async () => (await note.boundingBox())!.y + (await note.boundingBox())!.height).toBeLessThan((await save.boundingBox())!.y);
+  await note.fill("Pâine și lapte");
+  await note.press("Enter");
   await expect(dialog.getByLabel("Toate categoriile")).toBeFocused();
   await dialog.getByRole("button", { name: "Piață", exact: true }).click();
   await expect(dialog.getByLabel("Toate categoriile")).toHaveValue("alimentatie");
   const details = dialog.getByRole("button", { name: "Mai multe detalii" });
-  await details.click();
-  const note = dialog.getByLabel("Notă scurtă (opțional)");
-  await note.focus();
-  await expect.poll(async () => (await note.boundingBox())!.y + (await note.boundingBox())!.height).toBeLessThan((await save.boundingBox())!.y);
   await save.click();
   await expect(dialog).not.toBeVisible();
   const monthlySpend = page.getByText("Cheltuit în lună", { exact: true }).filter({ visible: true }).first().locator("..");
@@ -59,8 +60,7 @@ async function addExpense(page: Page, description: string, amount: string, categ
   await page.getByRole("button", { name: "Acțiuni buget", exact: true }).click();
   await page.getByRole("dialog", { name: "Buget", exact: true }).getByRole("button", { name: "Adaugă cheltuială", exact: true }).click();
   const form = page.getByRole("dialog", { name: "Cheltuială", exact: true });
-  await form.getByRole("button", { name: "Mai multe detalii", exact: true }).click();
-  await form.getByLabel("Notă scurtă (opțional)", { exact: true }).fill(description);
+  await form.getByLabel("Pe ce ai cheltuit?", { exact: true }).fill(description);
   await form.getByLabel("Sumă (RON)", { exact: true }).fill(amount);
   await form.getByRole("button", { name: "Schimbă data plății (Azi)", exact: true }).click();
   await form.getByLabel("Data plății", { exact: true }).fill(date);

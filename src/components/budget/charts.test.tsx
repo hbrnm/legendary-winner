@@ -44,6 +44,13 @@ describe("DualBudgetBar", () => {
 
 
 describe("BarList", () => {
+  it("folosește totalul pentru lățimea barei și afișează ponderile pozitive sub 1%", () => {
+    const { container, getByText } = render(<BarList bars={bars([37, 0.5])} total={100} />);
+    const fills = container.querySelectorAll<HTMLElement>("li > div:last-child > div");
+    expect(fills[0].style.width).toBe("37%");
+    expect(fills[1].style.width).toBe("0.5%");
+    expect(getByText("· <1%")).toBeTruthy();
+  });
   it("cu onSelect, fiecare bară e un buton care deschide detaliile categoriei", () => {
     const onSelect = vi.fn();
     const { getByRole, getAllByRole } = render(<BarList bars={bars([20, 30])} total={50} onSelect={onSelect} />);

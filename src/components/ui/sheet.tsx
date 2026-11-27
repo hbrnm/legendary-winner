@@ -19,14 +19,14 @@ function revealFocusedField(scroller: HTMLDivElement | null) {
 }
 
 /** Ridică fereastra deasupra tastaturii și o încape în spațiul rămas vizibil. */
-function useKeyboardStyle(active: boolean): CSSProperties | undefined {
+function useKeyboardStyle(active: boolean, compact: boolean): CSSProperties | undefined {
   const [style, setStyle] = useState<CSSProperties>();
   useEffect(() => {
     const vv = typeof window === "undefined" ? undefined : window.visualViewport;
     if (!active || !vv) return;
     const update = () => {
       const inset = keyboardInset(window.innerHeight, vv);
-      setStyle(inset > 0 ? { marginBottom: inset, maxHeight: Math.round(vv.height * 0.92) } : undefined);
+      setStyle(inset > 0 ? { marginBottom: inset, maxHeight: Math.floor(vv.height * (compact ? 0.96 : 0.92)) } : undefined);
     };
     update();
     vv.addEventListener("resize", update);
@@ -36,7 +36,7 @@ function useKeyboardStyle(active: boolean): CSSProperties | undefined {
       vv.removeEventListener("scroll", update);
       setStyle(undefined);
     };
-  }, [active]);
+  }, [active, compact]);
   return style;
 }
 
@@ -65,7 +65,7 @@ export function Sheet({
 }) {
   const ref = useRef<HTMLDialogElement>(null);
   const contentRef = useRef<HTMLDivElement>(null);
-  const keyboardStyle = useKeyboardStyle(open);
+  const keyboardStyle = useKeyboardStyle(open, compact);
   useEffect(() => {
     const d = ref.current;
     if (!d) return;
