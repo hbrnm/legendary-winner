@@ -98,7 +98,7 @@ test("bugetul familiei: cheltuieli, categorii, luni, persistență și export pe
   await expect(budget).not.toBeVisible();
   await expect(page.getByRole("button", {name:"Modifică bugetul Bugetul familiei",exact:true})).toBeVisible();
   await page.goto("/");
-  await expect(page.getByRole("link", { name: /2[.]?000,00\s+RON.*1[.]?030,00\s+RON\s+îți mai rămân/ })).toBeVisible();
+  await expect(page.getByRole("link", { name: /Buget lunar\s+2[.]?000,00\s+RON.*Îți mai rămân\s+1[.]?030,00\s+RON/ })).toBeVisible();
   await expect(page.getByRole("progressbar", { name: "Bugetul lunii folosit" })).toHaveAttribute("aria-valuenow", "49");
   await page.goto("/buget/");
   await page.getByRole("link", { name: "Tranzacții", exact: true }).click();

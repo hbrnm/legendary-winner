@@ -13,8 +13,7 @@ import { scopeLabel } from "@/components/budget/budget-editor-sheet";
 import { householdSpendRecords, owned, visible } from "@/lib/services/queries";
 import { startOfMonth, toISODate } from "@/lib/domain/dates";
 import { now } from "@/lib/clock";
-import { matchesScope, SOURCE_LABELS, spendForCategoryKey } from "@/lib/domain/budget";
-import { EXPENSE_CATEGORIES } from "@/lib/domain/expense-categories";
+import { familyBreakdownLabel, matchesScope, SOURCE_LABELS, spendForCategoryKey } from "@/lib/domain/budget";
 import type { PurchaseSource } from "@/lib/domain/types";
 
 // Lista completă de tranzacții ale lunii, separată de pagina de buget ca
@@ -52,7 +51,7 @@ function TransactionsScreen() {
   const scoped = budget ? data.spend.filter(item => matchesScope(item, budget, categories)) : data.spend;
   const records = category ? spendForCategoryKey(scoped, category.key, category.split, categories) : scoped;
   const categoryLabel = category && (
-    category.split === "familie" ? EXPENSE_CATEGORIES.find(item => item.id === category.key)?.name ?? "Nealocat"
+    category.split === "familie" ? familyBreakdownLabel(category.key)
       : category.split === "categorii" ? names.categories.get(category.key) ?? "Altele"
       : names.retailers.get(category.key) ?? SOURCE_LABELS[category.key.replace("sursa:", "") as PurchaseSource] ?? "Nespecificat"
   );

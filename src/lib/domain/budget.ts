@@ -62,8 +62,19 @@ export function manualExpenseRecord(expense: ManualExpense): SpendRecord {
   };
 }
 
+function familyBreakdownKey(item: SpendRecord, categories: Map<string, ProductCategory>): string {
+  const expenseCategory = expenseCategoryOf(item, categories);
+  if (expenseCategory === "altele" && !item.expense_category_id && item.category_id === "diverse") return "diverse";
+  return expenseCategory ?? "nealocat";
+}
+
+export function familyBreakdownLabel(key: string): string {
+  if (key === "diverse") return "Diverse";
+  return key === "nealocat" ? "Nealocat" : expenseCategoryName(key);
+}
+
 export function byExpenseCategory(items: SpendRecord[], categories: Map<string, ProductCategory>): Breakdown[] {
-  return breakdownBy(items, (i) => expenseCategoryOf(i, categories) ?? "nealocat", key => key === "nealocat" ? "Nealocat" : expenseCategoryName(key));
+  return breakdownBy(items, (item) => familyBreakdownKey(item, categories), familyBreakdownLabel);
 }
 
 /** Piața și producătorul local se tratează împreună la buget („piață”). */
@@ -169,7 +180,7 @@ export function spendForCategoryKey(
   categories: Map<string, ProductCategory>,
 ): SpendRecord[] {
   return liveSpend(items).filter((i) => {
-    if (split === "familie") return (expenseCategoryOf(i, categories) ?? "nealocat") === key;
+    if (split === "familie") return familyBreakdownKey(i, categories) === key;
     if (i.manual_expense_id) return false;
     if (split === "categorii") return i.category_id === key;
     return (i.retailer_id ?? `sursa:${sourceGroup(i.source)}`) === key;

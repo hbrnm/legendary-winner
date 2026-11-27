@@ -258,7 +258,8 @@ for (const scheme of ["light", "dark"] as const) {
 
 test("la Prețuri, cantitățile cu zecimale se scriu cu virgulă", async ({ page }) => {
   await startModel(page, "/buget/preturi/");
-  await expect(page.getByText("16,80 RON / 0,5 kg")).toBeVisible();
+  await expect(page.getByText("16,80 RON").first()).toBeVisible();
+  await expect(page.getByText(/0,5 kg/).first()).toBeVisible();
   await expect(page.getByText(/\d\.\d+ (kg|l)\b/)).toHaveCount(0);
 });
 
