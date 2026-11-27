@@ -30,7 +30,7 @@ test("IA: captură universală, categorie școală, sold și disponibil zilnic",
   await page.getByRole("radio",{name:"Bonuri",exact:true}).click();
   await expect(page.getByText("Caiete și rechizite",{exact:true})).toHaveCount(0);
   await page.goto("/buget/");
-  await expect(page.getByText(/37,50\s+RON pe zi/)).toBeVisible();
+  await expect(page.getByText(/Disponibil pe zi până la finalul lunii · ≈\s+37,50\s+RON/)).toBeVisible();
   await page.goto("/");
   await expect(page.getByText(/900,00\s+RON/).first()).toBeVisible();
   await expect(page.getByRole("heading",{name:"Azi la masă",exact:true})).toBeVisible();

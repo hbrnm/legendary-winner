@@ -48,20 +48,49 @@ test("jurnalul păstrează jumătatea de porție și editarea offline după reî
   await expect(journal.getByText("Nu ai intrări pentru ziua aleasă.")).toBeVisible();
 });
 
+async function importRecipeWithCustomProduct(page: import("@playwright/test").Page, lines: string[], productName: string) {
+  await page.getByRole("radio", { name: "Text" }).click();
+  await page.getByLabel("Textul rețetei").fill(lines.join("\n"));
+  await page.getByRole("button", { name: "Citește rețeta" }).click();
+  await page.getByLabel("Porții", { exact: true }).fill("1");
+  await page.getByRole("button", { name: "Cină", exact: true }).click();
+  await page.getByRole("button", { name: "Nu e în catalog? Creează produsul" }).click();
+  await page.getByLabel("Numele produsului nou").fill(productName);
+  await page.getByLabel("Categoria produsului nou").selectOption({ index: 1 });
+  await page.getByRole("button", { name: "Adaugă produsul" }).click();
+  await expect(page.getByRole("status")).toHaveCount(0);
+  await page.getByRole("button", { name: "Salvează rețeta" }).click();
+}
+
 test("jurnalul semnalează caloriile parțiale și necunoscute", async ({ page }) => {
-  await start(page, "/retete/reteta/?id=toast-avocado-ou-posat");
+  await start(page, "/retete/import/");
+  await importRecipeWithCustomProduct(page, [
+    "Gustare parțială",
+    "Ingrediente",
+    "100 g ouă de găină",
+    "100 g cremă de yuzu",
+    "Mod de preparare",
+    "1. Amestecă.",
+  ], "Cremă de yuzu");
+
   const nutrition = page.getByRole("region", { name: "Valori nutriționale" });
-  await page.getByRole("button", { name: "Mai multe porții" }).click();
-  await expect(nutrition).toContainText("Estimare parțială");
+  await expect(nutrition).toContainText("Calcul parțial · 1 ingredient necalculat");
   await nutrition.getByRole("button", { name: "Adaugă în jurnal" }).click();
   const add = page.getByRole("dialog", { name: "Adaugă în jurnal" });
   await add.getByRole("button", { name: "Activează jurnalul" }).click();
-  await expect(add).toContainText("212,93 kcal · Total incomplet");
+  await expect(add).toContainText("140 kcal · Total incomplet");
   await add.getByRole("button", { name: "Salvează intrarea" }).click();
   await expect(add).toHaveCount(0);
 
-  await page.goto("/retete/reteta/?id=croissant-umplut-sunca-branza-brie");
-  await page.getByRole("button", { name: "Mai multe porții" }).click();
+  await page.goto("/retete/import/");
+  await importRecipeWithCustomProduct(page, [
+    "Gustare fără valori",
+    "Ingrediente",
+    "100 g pudră de guarana",
+    "Mod de preparare",
+    "1. Servește.",
+  ], "Pudră de guarana");
+
   await expect(nutrition).toContainText("Calorii necunoscute");
   await nutrition.getByRole("button", { name: "Adaugă în jurnal" }).click();
   await expect(add).toContainText("Calorii necunoscute");
@@ -70,37 +99,27 @@ test("jurnalul semnalează caloriile parțiale și necunoscute", async ({ page }
 
   await page.goto("/");
   const card = page.getByRole("button", { name: /Calorii azi/ });
-  await expect(card).toContainText("212,93 kcal · Total incomplet");
+  await expect(card).toContainText("140 kcal · Total incomplet");
   await card.click();
   const journal = page.getByRole("dialog", { name: "Jurnal calorii" });
-  const unknown = journal.getByRole("listitem").filter({ hasText: "Croissant" });
+  const unknown = journal.getByRole("listitem").filter({ hasText: "Gustare fără valori" });
   await expect(unknown).toContainText("Calorii necunoscute");
   await unknown.getByRole("button", { name: "Editează" }).click();
   const edit = page.getByRole("dialog", { name: "Editează intrarea" });
   await edit.getByLabel("Calorii pentru intrare (opțional)").fill("100");
   await edit.getByRole("button", { name: "Salvează intrarea" }).click();
-  await expect(journal).toContainText("312,93 kcal · Total incomplet");
+  await expect(journal).toContainText("240 kcal · Total incomplet");
 });
 
 test("eticheta produsului propriu se aplică ingredientului exact, la 100 ml", async ({ page }) => {
   await start(page, "/retete/import/");
-  await page.getByRole("radio", { name: "Text" }).click();
-  await page.getByLabel("Textul rețetei").fill([
+  await importRecipeWithCustomProduct(page, [
     "Băutură pentru test",
     "Ingrediente",
     "200 ml pastă de chipotle",
     "Mod de preparare",
     "1. Amestecă bine.",
-  ].join("\n"));
-  await page.getByRole("button", { name: "Citește rețeta" }).click();
-  await page.getByLabel("Porții", { exact: true }).fill("1");
-  await page.getByRole("button", { name: "Cină", exact: true }).click();
-  await page.getByRole("button", { name: "Nu e în catalog? Creează produsul" }).click();
-  await page.getByLabel("Numele produsului nou").fill("Pastă de chipotle");
-  await page.getByLabel("Categoria produsului nou").selectOption({ index: 1 });
-  await page.getByRole("button", { name: "Adaugă produsul" }).click();
-  await expect(page.getByRole("status")).toHaveCount(0);
-  await page.getByRole("button", { name: "Salvează rețeta" }).click();
+  ], "Pastă de chipotle");
   const nutrition = page.getByRole("region", { name: "Valori nutriționale" });
   await expect(nutrition).toContainText("Calorii necunoscute");
   await nutrition.getByText("Contribuția estimată pe ingredient").click();
