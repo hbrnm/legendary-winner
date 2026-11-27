@@ -254,17 +254,23 @@ function PricesScreen() {
             <ul className="app-card divide-y divide-line overflow-hidden">
               {view.recent.map((p) => {
                 const prod = data.products.get(p.product_id);
+                const unit = canConvert(p.unit, "kg") ? "kg" : canConvert(p.unit, "l") ? "l" : p.unit;
+                const unitPrice = perUnit(p, unit);
                 return (
                   <li key={p.id}>
-                    <button type="button" onClick={() => prod && setProduct(prod)} className="flex w-full items-center gap-3 px-4 py-2.5 text-left transition-colors duration-150 ease-out hover:bg-surface-2 active:bg-surface-2">
+                    <button type="button" onClick={() => prod && setProduct(prod)} disabled={!prod} className="flex w-full flex-wrap items-center gap-x-3 gap-y-1 px-4 py-2.5 text-left transition-colors duration-150 ease-out hover:bg-surface-2 active:bg-surface-2 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-brand">
                       <div className="min-w-0 flex-1 text-sm">
                         <p className="text-[15px]">{prod?.name ?? "Produs șters"}</p>
                         <p className="text-xs text-ink-2">
                           <span>{formatShortDate(p.observed_on)}</span> · {view.place(p)}
                         </p>
                       </div>
-                      <span className="shrink-0 text-sm">
-                        {formatRon(p.amount)} / {p.quantity.toLocaleString("ro-RO")} {unitLabel(p.unit, p.quantity)}
+                      <span className="min-w-0 text-sm tabular">
+                        <span className="block font-medium">{formatRon(p.amount)} <span className="text-xs font-normal text-ink-2">{p.transaction_item_id ? "plătit" : "înregistrat"}</span></span>
+                        <span className="block text-xs text-ink-2">
+                          {p.quantity.toLocaleString("ro-RO")} {unitLabel(p.unit, p.quantity)}
+                          {unitPrice != null && ` · ${formatRon(unitPrice)}/${unitLabel(unit, 1)}`}
+                        </span>
                       </span>
                     </button>
                   </li>

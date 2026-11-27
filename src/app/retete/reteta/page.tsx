@@ -21,8 +21,7 @@ import { calorieDatabase } from "@/lib/db/calorie-database";
 import { owned, priceIndex, productMap } from "@/lib/services/queries";
 import { addMeal, addRecipeToList, cookRecipe, deleteRecipe, toggleFavorite } from "@/lib/services/kitchen";
 import { createList } from "@/lib/services/shopping";
-import { activeIngredients, recipeAllergens, recipeCost, recipeNutrition, scaleIngredients, totalMinutes } from "@/lib/domain/recipes";
-import { catalogNutrition } from "@/data/nutrition-lookup";
+import { activeIngredients, recipeAllergens, recipeCost, scaleIngredients, totalMinutes } from "@/lib/domain/recipes";
 import { productUnitsOf, subtractStock } from "@/lib/domain/quantities";
 import { pantryStock } from "@/lib/domain/pantry";
 import { formatQuantity } from "@/lib/domain/units";
@@ -115,7 +114,6 @@ function RecipeDetails({ id, cookingKey, resume, startCooking }: { id: string; c
       available,
       cost: recipeCost(data.recipe, data.ingredients, servings, data.prices, toISODate(now())),
       allergens: recipeAllergens(data.ingredients, data.products),
-      nutrition: recipeNutrition(data.recipe, data.ingredients, catalogNutrition(data.products, data.nutritionLabels)),
     };
   }, [data, servings]);
 
@@ -299,7 +297,7 @@ function RecipeDetails({ id, cookingKey, resume, startCooking }: { id: string; c
       <p className="mt-1.5 px-1 text-xs text-ink-2">Bifa verde: ai ingredientul în cămară, în cantitatea necesară.</p>
 
       <SectionTitle>Valori nutriționale</SectionTitle>
-      <RecipeNutritionCard recipe={r} calculation={view.nutrition} products={data.products} labels={data.nutritionLabels} servings={servings} />
+      <RecipeNutritionCard recipe={r} ingredients={data.ingredients} products={data.products} labels={data.nutritionLabels} servings={servings} />
 
       <SectionTitle><span id="preparare" className="scroll-mt-4">Mod de preparare</span></SectionTitle>
       <ol className="mt-2 flex flex-col gap-3">

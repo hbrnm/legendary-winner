@@ -113,9 +113,11 @@ describe("valorile nutriționale (.tasks/016, etapa 4)", () => {
       return (
         cat === undefined ||
         !food.has(cat) ||
-        (n.src === "medie" ? n.code !== undefined : !Number.isInteger(n.code)) ||
+        (n.src === "referinta" ? !n.source || !n.url?.startsWith("https://")
+          : n.src === "medie" ? n.code !== undefined : !Number.isInteger(n.code)) ||
         n.kcal < 0 ||
         n.kcal > 900 ||
+        (n.edibleFraction !== undefined && (n.edibleFraction <= 0 || n.edibleFraction > 1)) ||
         values.some((v) => v < 0) ||
         n.protein_g + n.carbs_g + n.fat_g > 101 // rotunjirile sursei (uleiul: 100 + 0,25)
       );

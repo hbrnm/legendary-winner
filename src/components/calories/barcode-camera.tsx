@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { isGtin } from "@/lib/domain/barcode";
 
-export function BarcodeCamera({ onRead, onClose }: { onRead: (code: string) => void; onClose: () => void }) {
+export function BarcodeCamera({ onRead, onClose, closeLabel = "Închide camera" }: { onRead: (code: string) => void; onClose: () => void; closeLabel?: string }) {
   const video = useRef<HTMLVideoElement>(null);
   const [error, setError] = useState("");
 
@@ -61,7 +61,7 @@ export function BarcodeCamera({ onRead, onClose }: { onRead: (code: string) => v
     <div className="space-y-2">
       {!error && <video ref={video} muted playsInline className="aspect-video w-full rounded-xl bg-ink object-contain" aria-label="Imaginea camerei pentru codul de bare" />}
       {error ? <p role="alert" className="text-sm">{error}</p> : <p className="text-sm text-ink-2">Ține codul orizontal în imagine.</p>}
-      <Button variant="ghost" onClick={onClose}>Închide camera</Button>
+      <Button variant="ghost" onClick={onClose}>{closeLabel}</Button>
     </div>
   );
 }

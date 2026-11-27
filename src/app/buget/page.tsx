@@ -170,10 +170,12 @@ function BudgetScreen({ captureTarget, captureRef }: { captureTarget: HTMLDivEle
       months: monthlyTotals(chartSpend, anchor, 6).map(m => ({
         key: m.period.from, label: MONTHS_SHORT[Number(m.period.from.slice(5, 7)) - 1],
         value: m.amount, current: m.period.from === month,
+        noData: !spendInPeriod(chartSpend, m.period).some((item) => item.amount != null),
       })),
       weeks: weeklyTotals(chartSpend, anchor, 8).map(w => ({
         key: w.period.from, label: formatShortDate(w.period.from).replace(/\.$/, ""),
         value: w.amount, current: w.period.to >= anchor,
+        noData: !spendInPeriod(chartSpend, w.period).some((item) => item.amount != null),
       })),
       noAmount: monthSpend.filter(item => item.amount == null).length,
       txCount: transactionRows.length,
@@ -290,7 +292,7 @@ function BudgetScreen({ captureTarget, captureRef }: { captureTarget: HTMLDivEle
         </p>}
         <div className="mt-2.5 flex flex-wrap gap-2">
           {primary && isCurrentMonth && balance >= 0 && !(s === basketStatus && openUnknown > 0) && (
-            <p className="inline-flex items-center rounded-full bg-surface px-3 py-1 text-xs font-medium text-ink-2 tabular">≈ {formatRon(dailyBudgetAvailable(balance, today))} pe zi până la finalul lunii</p>
+            <p className="inline-flex items-center rounded-full bg-surface px-3 py-1 text-xs font-medium text-ink-2 tabular">Disponibil pe zi până la finalul lunii · ≈ {formatRon(dailyBudgetAvailable(balance, today))}</p>
           )}
           {primary && isCurrentMonth && s.projected != null && (
             <p className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold tabular ${s.projected > s.budget.amount ? "bg-accent-soft text-accent" : "bg-surface text-info"}`}>
@@ -310,19 +312,6 @@ function BudgetScreen({ captureTarget, captureRef }: { captureTarget: HTMLDivEle
         captureRef={captureRef}
       />
       <BudgetNavigation active="rezumat" transactionsHref={budgetViewHref("/buget/tranzactii/", month, scope, { split })} />
-
-      {data.diverse > 0 && (
-        <Link href="/buget/diverse/" className="mb-4 flex items-center gap-3 rounded-[20px] bg-brand-soft px-4 py-3 text-sm shadow-card transition-colors hover:brightness-95 focus-visible:outline-2 focus-visible:outline-brand">
-          <span className="flex size-10 shrink-0 items-center justify-center rounded-full bg-surface text-brand" aria-hidden>
-            <Shapes size={18} />
-          </span>
-          <span className="min-w-0 flex-1">
-            <span className="block font-semibold text-ink">Mută din Diverse ({data.diverse})</span>
-            <span className="block text-xs text-ink-2">Produse de pe bonuri fără categorie clară</span>
-          </span>
-          <ChevronRight size={18} className="shrink-0 text-brand" aria-hidden />
-        </Link>
-      )}
 
       <BudgetMonthPicker month={month} currentMonth={startOfMonth(today)} onChange={next => router.replace(budgetViewHref("/buget/", next, requestedBudget ?? undefined, { split }), { scroll: false })} />
       {data.budgets.some(budget => budget.active && budget.period === "lunar") && <div className="mb-4">
@@ -362,6 +351,19 @@ function BudgetScreen({ captureTarget, captureRef }: { captureTarget: HTMLDivEle
           )}
         </div>
       </div>}
+
+      {data.diverse > 0 && (
+        <Link href="/buget/diverse/" className="mt-3 flex items-center gap-3 rounded-[20px] bg-brand-soft px-4 py-3 text-sm shadow-card transition-colors hover:brightness-95 focus-visible:outline-2 focus-visible:outline-brand">
+          <span className="flex size-10 shrink-0 items-center justify-center rounded-full bg-surface text-brand" aria-hidden>
+            <Shapes size={18} />
+          </span>
+          <span className="min-w-0 flex-1">
+            <span className="block font-semibold text-ink">Mută din Diverse ({data.diverse})</span>
+            <span className="block text-xs text-ink-2">Produse de pe bonuri fără categorie clară</span>
+          </span>
+          <ChevronRight size={18} className="shrink-0 text-brand" aria-hidden />
+        </Link>
+      )}
 
       {isCurrentMonth && (
         <div className="mt-3 flex flex-wrap gap-2">

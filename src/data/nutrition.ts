@@ -10,6 +10,114 @@ import type { NutritionSeed } from "./seed-types";
 // `medie` = media altor rânduri din tabel, fără cod propriu.
 // Produsele fără rând nu au corespondent: DE COMPLETAT (rămân null).
 export const NUTRITION_SEEDS: Record<string, NutritionSeed> = {
+  "albus-de-ou": { src: "ciqual", code: 22001, kcal: 48.1, protein_g: 10.9, carbs_g: 0.73, fat_g: 0.17 }, // Egg white, raw
+  "reteta-ciocolata-neagra-85-cacao": { src: "usda", code: 170273, kcal: 598, protein_g: 7.79, carbs_g: 35, fat_g: 42.63, estimate: "ciocolată cu 70–85% cacao" },
+  "reteta-fulgi-de-cocos-uscati": { src: "usda", code: 170170, kcal: 660, protein_g: 6.88, carbs_g: 7.35, fat_g: 64.53 }, // Coconut, desiccated, unsweetened
+
+  // Ingrediente ale rețetelor, legate de fișele lor de referință la 100 g.
+  "leustean": { src: "referinta", source: "Nutridatabaze.cz", url: "https://www.nutridatabaze.cz/en/food/?id=1032", kcal: 25, protein_g: 2.8, carbs_g: 0.25, fat_g: 0.5 },
+  "reteta-antricot-de-vita-maturat-crud": { src: "ciqual", code: 6103, kcal: 231, protein_g: 19.4, carbs_g: 0, fat_g: 17.1, estimate: true }, // Boeuf, entrecôte crue
+  "reteta-bautura-de-migdale-neindulcita": { src: "ciqual", code: 18107, kcal: 35.8, protein_g: 1.06, carbs_g: 0.68, fat_g: 3.2 }, // Boisson à l'amande, nature, sans sucres ajoutés, non enrichie, préemballée
+  "reteta-boabe-de-porumb-pentru-floricele-uscate": { src: "usda", code: 170288, kcal: 365, protein_g: 9.42, carbs_g: 66.96, fat_g: 4.74, estimate: "boabe de porumb uscate" }, // Corn grain, yellow
+  "reteta-bors-de-tarate": { src: "referinta", source: "Etichetă Olympia", url: "https://cdn.metro-group.com/ro/ro_fir_669101003003_ro.pdf", kcal: 3, protein_g: 0, carbs_g: 0.8, fat_g: 0, estimate: true },
+  "reteta-branza-brie": { src: "ciqual", code: 12020, kcal: 345, protein_g: 17.3, carbs_g: 0.68, fat_g: 30.4 }, // Brie, sans précision
+  "reteta-branza-cheddar-feliata": { src: "ciqual", code: 12726, kcal: 399, protein_g: 24.2, carbs_g: 1.2, fat_g: 32.6 }, // Cheddar
+  "reteta-branza-cheddar-rasa": { src: "ciqual", code: 12726, kcal: 399, protein_g: 24.2, carbs_g: 1.2, fat_g: 32.6 }, // Cheddar
+  "reteta-branza-cottage-perle-de-branza-2": { src: "usda", code: 172182, kcal: 81, protein_g: 10.45, carbs_g: 4.76, fat_g: 2.27 }, // Cheese, cottage, lowfat, 2% milkfat
+  "reteta-branza-de-vaci-semidegresata": { src: "ciqual", code: 19641, kcal: 83.6, protein_g: 4.38, carbs_g: 3.36, fat_g: 5.5, estimate: true }, // Faisselle, 6% MG environ
+  "reteta-branza-halloumi": { src: "referinta", source: "Matvaretabellen", url: "https://matvaretabellen.mattilsynet.io/en/cheese-halloumi/", kcal: 290, protein_g: 22.3, carbs_g: 0.9, fat_g: 21.9 },
+  "reteta-branza-perle-de-branza-cottage-cheese-2": { src: "usda", code: 172182, kcal: 81, protein_g: 10.45, carbs_g: 4.76, fat_g: 2.27 }, // Cheese, cottage, lowfat, 2% milkfat
+  "reteta-caju-crud": { src: "usda", code: 170162, kcal: 553, protein_g: 18.22, carbs_g: 26.89, fat_g: 43.85 }, // Nuts, cashew nuts, raw
+  "reteta-carne-tocata-slaba-de-curcan-cruda": { src: "usda", code: 172850, kcal: 150, protein_g: 18.73, carbs_g: 0, fat_g: 8.34, estimate: "curcan cu 7% grăsime" }, // Turkey, ground, 93% lean, 7% fat, raw
+  "reteta-carne-tocata-slaba-de-pui-cruda": { src: "usda", code: 171116, kcal: 143, protein_g: 17.44, carbs_g: 0.04, fat_g: 8.1, estimate: true }, // Chicken, ground, raw
+  "reteta-carne-tocata-slaba-de-vita-cruda": { src: "ciqual", code: 6250, kcal: 130, protein_g: 21.9, carbs_g: 0.3, fat_g: 4.59, estimate: "vită cu 5% grăsime" }, // Boeuf, steak haché 5% MG cru
+  "reteta-chefir-2-5-grasime": { src: "ciqual", code: 19865, kcal: 61.1, protein_g: 3.13, carbs_g: 4.5, fat_g: 3.4, estimate: true }, // Kéfir de lait
+  "reteta-chifle-integrale-de-burger": { src: "ciqual", code: 7262, kcal: 296, protein_g: 9.38, carbs_g: 48.2, fat_g: 6.16 }, // Pain pour burger ou hot dog (bun) complet, préemballé
+  "reteta-chiftelute-falafel-preparate-coapte": { src: "ciqual", code: 25590, kcal: 211, protein_g: 7.38, carbs_g: 17.7, fat_g: 10.8, estimate: true }, // Falafel ou boulette de pois-chiche et/ou fève, préemballé
+  "reteta-chimion-macinat": { src: "ciqual", code: 11042, kcal: 427, protein_g: 17.8, carbs_g: 33.7, fat_g: 22.3 }, // Cumin, graine
+  "reteta-chipsuri-de-tortilla-din-porumb-coapte-la-cuptor": { src: "usda", code: 168137, kcal: 465, protein_g: 8.7, carbs_g: 67.7, fat_g: 15.2 }, // Snacks, tortilla chips, light (baked with less oil)
+  "reteta-ciuperci-portobello-mari": { src: "usda", code: 169255, kcal: 22, protein_g: 2.11, carbs_g: 2.57, fat_g: 0.35 }, // Mushrooms, portabella, raw
+  "reteta-coaja-rasa-de-portocala-bio": { src: "usda", code: 169103, kcal: 97, protein_g: 1.5, carbs_g: 14.4, fat_g: 0.2 }, // Orange peel, raw
+  "reteta-crema-de-branza-light": { src: "ciqual", code: 12069, kcal: 133, protein_g: 10.6, carbs_g: 5.12, fat_g: 7.48 }, // Fromage frais ou spécialité fromagère non affinée, nature, à tartiner, en barquette, allégée en matière grasse
+  "reteta-croissant-cu-unt": { src: "ciqual", code: 7619, kcal: 420, protein_g: 7.25, carbs_g: 45.7, fat_g: 22.6 }, // Croissant pur beurre, sans précision (aliment moyen)
+  "reteta-crutoane-din-paine-integrala": { src: "usda", code: 172751, kcal: 407, protein_g: 11.9, carbs_g: 68.4, fat_g: 6.6, estimate: true }, // Croutons, plain
+  "reteta-crutoane-integrale": { src: "usda", code: 172751, kcal: 407, protein_g: 11.9, carbs_g: 68.4, fat_g: 6.6, estimate: true }, // Croutons, plain
+  "reteta-dovleac-placintar-curatat-crud": { src: "ciqual", code: 20138, kcal: 30.5, protein_g: 1, carbs_g: 5.4, fat_g: 0.1, estimate: true }, // Courge butternut (doubeurre), chair sans peau, crue
+  "reteta-drojdie-inactiva-fulgi": { src: "ciqual", code: 11009, kcal: 334, protein_g: 40.4, carbs_g: 21.8, fat_g: 4.5, estimate: true }, // Levure de bière en paillettes
+  "reteta-drojdie-inactiva": { src: "ciqual", code: 11009, kcal: 334, protein_g: 40.4, carbs_g: 21.8, fat_g: 4.5, estimate: true }, // Levure de bière en paillettes
+  "reteta-dulceata-de-visine-fara-zahar-sau-clasica": { src: "ciqual", code: 31038, kcal: 238, protein_g: 0.48, carbs_g: 58.1, fat_g: 0.19, estimate: "dulceață clasică" }, // Confiture de cerise (extra ou classique)
+  "reteta-faina-de-ovaz": { src: "usda", code: 169741, kcal: 404, protein_g: 14.66, carbs_g: 59.2, fat_g: 9.12 }, // Oat flour, partially debranned
+  "reteta-fasole-neagra-fiarta-scursa": { src: "usda", code: 173735, kcal: 132, protein_g: 8.86, carbs_g: 15.01, fat_g: 0.54 }, // Beans, black, mature seeds, cooked, boiled, without salt
+  "reteta-fasole-rosie-scursa": { src: "usda", code: 174285, kcal: 124, protein_g: 7.98, carbs_g: 15.99, fat_g: 1.05 }, // Beans, kidney, red, mature seeds, canned, drained solids
+  "reteta-file-de-biban-de-mare-cu-piele-crud": { src: "ciqual", code: 26072, kcal: 86.1, protein_g: 19.1, carbs_g: 0.9, fat_g: 0.7 }, // Bar commun ou loup, cru
+  "reteta-granola-crocanta-fara-zahar-adaugat": { src: "referinta", source: "Etichetă Quaker Oat Crunch", url: "https://www.waitrose.com/ecom/products/quaker-no-added-sugar-granola/958006-1-2", kcal: 408, protein_g: 7.3, carbs_g: 44, fat_g: 17, estimate: true },
+  "reteta-humus-clasic": { src: "ciqual", code: 25621, kcal: 258, protein_g: 8.06, carbs_g: 9, fat_g: 19.9 }, // Houmous, préemballé
+  "reteta-iaurt-grecesc-2-grasime": { src: "usda", code: 170903, kcal: 73, protein_g: 9.95, carbs_g: 3.94, fat_g: 1.92 }, // Yogurt, Greek, plain, lowfat
+  "reteta-iaurt-grecesc-2-pentru-servit": { src: "usda", code: 170903, kcal: 73, protein_g: 9.95, carbs_g: 3.94, fat_g: 1.92 }, // Yogurt, Greek, plain, lowfat
+  "reteta-iaurt-grecesc-2": { src: "usda", code: 170903, kcal: 73, protein_g: 9.95, carbs_g: 3.94, fat_g: 1.92 }, // Yogurt, Greek, plain, lowfat
+  "reteta-iaurt-natural-3-5-grasime": { src: "usda", code: 171284, kcal: 61, protein_g: 3.47, carbs_g: 4.66, fat_g: 3.25 }, // Yogurt, plain, whole milk
+  "reteta-lapte-de-cocos-la-conserva": { src: "ciqual", code: 18041, kcal: 199, protein_g: 1.94, carbs_g: 4.29, fat_g: 19.2 }, // Lait de coco
+  "reteta-linte-rosie-decorticata-uscata": { src: "ciqual", code: 20535, kcal: 328, protein_g: 27.7, carbs_g: 44.9, fat_g: 0.8 }, // Lentille corail, sèche
+  "reteta-linte-rosie-uscata": { src: "ciqual", code: 20535, kcal: 328, protein_g: 27.7, carbs_g: 44.9, fat_g: 0.8 }, // Lentille corail, sèche
+  "reteta-lipie-tortilla-integrala-mare": { src: "usda", code: 174081, kcal: 310, protein_g: 9.76, carbs_g: 36.09, fat_g: 9.76 }, // Tortillas, ready-to-bake or -fry, whole wheat
+  "reteta-lipii-libaneze-integrale": { src: "usda", code: 174916, kcal: 262, protein_g: 9.8, carbs_g: 49.79, fat_g: 1.71 }, // Bread, pita, whole-wheat
+  "reteta-lipii-tortilla-integrale": { src: "usda", code: 174081, kcal: 310, protein_g: 9.76, carbs_g: 36.09, fat_g: 9.76 }, // Tortillas, ready-to-bake or -fry, whole wheat
+  "reteta-masline-kalamata-fara-samburi": { src: "ciqual", code: 13032, kcal: 173, protein_g: 1.38, carbs_g: 0, fat_g: 17.2, estimate: "măsline negre în saramură" }, // Olive noire, en saumure, égouttée
+  "reteta-masline-verzi-si-negre-fara-samburi": { src: "ciqual", code: 13184, kcal: 165, protein_g: 1.29, carbs_g: 0.65, fat_g: 16.6, estimate: "amestec generic de măsline" }, // Olive (aliment moyen)
+  "reteta-mei-decorticat-uscat": { src: "usda", code: 169702, kcal: 378, protein_g: 11.02, carbs_g: 64.35, fat_g: 4.22 }, // Millet, raw
+  "reteta-merisoare-uscate": { src: "ciqual", code: 13178, kcal: 332, protein_g: 0.25, carbs_g: 76.4, fat_g: 1, estimate: "merișoare îndulcite" }, // Canneberge ou cranberry, séchée, sucrée
+  "reteta-mini-tortilla-de-porumb": { src: "ciqual", code: 7813, kcal: 316, protein_g: 6.67, carbs_g: 58, fat_g: 5.57 }, // Tortilla souple (à garnir), à base de maïs
+  "reteta-mix-de-salata-verde-rucola": { src: "ciqual", code: 20272, kcal: 22, protein_g: 2, carbs_g: 2.5, fat_g: 0, estimate: true }, // Mesclun ou salade, mélange de jeunes pousses
+  "reteta-mix-de-salata-verde": { src: "ciqual", code: 20272, kcal: 22, protein_g: 2, carbs_g: 2.5, fat_g: 0 }, // Mesclun ou salade, mélange de jeunes pousses
+  "reteta-muguri-de-pin": { src: "ciqual", code: 15025, kcal: 712, protein_g: 16.2, carbs_g: 2.93, fat_g: 68.4 }, // Pignon de pin
+  "reteta-naut-fiert-din-conserva-scurs": { src: "ciqual", code: 20532, kcal: 122, protein_g: 6.74, carbs_g: 15, fat_g: 2.68 }, // Pois chiche, appertisé, égoutté
+  "reteta-orez-basmati-uscat": { src: "ciqual", code: 9119, kcal: 351, protein_g: 7.44, carbs_g: 78.4, fat_g: 0.63 }, // Riz thaï ou basmati, cru
+  "reteta-orez-jasmin-uscat": { src: "ciqual", code: 9119, kcal: 351, protein_g: 7.44, carbs_g: 78.4, fat_g: 0.63, estimate: true }, // Riz thaï ou basmati, cru
+  "reteta-otet-balsamic": { src: "ciqual", code: 11091, kcal: 91.7, protein_g: 0.69, carbs_g: 18, fat_g: 0 }, // Vinaigre balsamique
+  "reteta-paine-brioche-sau-toast-gros": { src: "ciqual", code: 7225, kcal: 338, protein_g: 9.75, carbs_g: 48.6, fat_g: 11.2, estimate: "brioche" }, // Pain brioché ou viennois, artisanal
+  "reteta-paine-ciabatta": { src: "referinta", source: "Hendrickx de Bakker", url: "https://hendrickxdebakker.com/en/products/ciabatta/", kcal: 258, protein_g: 8.2, carbs_g: 47.7, fat_g: 3.4, estimate: true },
+  "reteta-paine-integrala-prajita": { src: "ciqual", code: 7402, kcal: 390, protein_g: 11.3, carbs_g: 69.4, fat_g: 5.6, estimate: true }, // Pain grillé au blé complet, tranches, préemballé
+  "reteta-passata-de-rosii": { src: "ciqual", code: 20260, kcal: 45.5, protein_g: 2.05, carbs_g: 7.57, fat_g: 0.2 }, // Tomate, coulis, appertisé (purée de tomates mi-réduite à 11%)
+  "reteta-passata-suc-de-rosii": { src: "ciqual", code: 20260, kcal: 45.5, protein_g: 2.05, carbs_g: 7.57, fat_g: 0.2, estimate: "passata" }, // Tomate, coulis, appertisé (purée de tomates mi-réduite à 11%)
+  "reteta-pasta-curry-verde": { src: "referinta", source: "Etichetă Blue Dragon", url: "https://www.bluedragon.co.uk/products/blue-dragon-thai-green-curry-paste-pot", kcal: 373, protein_g: 5.5, carbs_g: 26, fat_g: 27, estimate: true },
+  "reteta-pasta-tahini": { src: "ciqual", code: 15203, kcal: 631, protein_g: 20.3, carbs_g: 13.8, fat_g: 53.4 }, // Tahin ou purée de sésame
+  // USDA Food Buying Guide, Beans, Soy, fresh: 65% boabe opărite și decojite din greutatea în păstaie.
+  "reteta-pastai-de-edamame-congelate": { src: "usda", code: 168411, kcal: 121, protein_g: 11.91, carbs_g: 3.71, fat_g: 5.2, edibleFraction: 0.65, estimate: "65% boabe comestibile" },
+  // USDA Agriculture Handbook 102, rândul 2563: 59% file crud fără piele din păstrăv eviscerat.
+  "reteta-pastrav-eviscerat-crud": { src: "ciqual", code: 27008, kcal: 133, protein_g: 19.3, carbs_g: 0, fat_g: 6.22, edibleFraction: 0.59, estimate: "59% carne comestibilă" },
+  "reteta-paste-integrale-uscate-penne-sau-fusilli": { src: "ciqual", code: 9870, kcal: 353, protein_g: 12.6, carbs_g: 67.6, fat_g: 2.2 }, // Pâtes sèches, au blé complet, crues
+  "reteta-picaturi-de-ciocolata-neagra": { src: "ciqual", code: 31085, kcal: 546, protein_g: 6.39, carbs_g: 51.4, fat_g: 33.1, estimate: "ciocolată neagră de gătit" }, // Chocolat noir 40% de cacao et plus, à pâtisser, tablette
+  "reteta-piept-de-curcan-afumat-feliat": { src: "ciqual", code: 28964, kcal: 99.3, protein_g: 20.9, carbs_g: 0.023, fat_g: 1.67, estimate: true }, // Jambon de dinde ou blanc de dinde en tranche
+  "reteta-radacina-patrunjel": { src: "referinta", source: "Matvaretabellen", url: "https://www.matvaretabellen.no/en/parsley-root-norwegian-raw/", kcal: 46, protein_g: 1.7, carbs_g: 7.3, fat_g: 0.3 },
+  "reteta-rondele-de-orez-brun-expandat": { src: "ciqual", code: 7352, kcal: 381, protein_g: 8.81, carbs_g: 77.9, fat_g: 3 }, // Galette de riz complet soufflé
+  "reteta-salata-romana-proaspata": { src: "ciqual", code: 20171, kcal: 17.2, protein_g: 1.23, carbs_g: 1.35, fat_g: 0.3 }, // Laitue romaine, crue
+  "reteta-seminte-de-chia-uscate": { src: "ciqual", code: 15047, kcal: 454, protein_g: 19.5, carbs_g: 7.72, fat_g: 30.7 }, // Chia, graine, séchée
+  "reteta-seminte-de-in-aurii-proaspat-macinate": { src: "ciqual", code: 15034, kcal: 528, protein_g: 22.4, carbs_g: 6.49, fat_g: 40.3 }, // Lin, graine
+  "reteta-seminte-de-rodie-proaspete": { src: "ciqual", code: 13018, kcal: 81, protein_g: 1.44, carbs_g: 14.3, fat_g: 1.2 }, // Grenade, chair sans peau, avec pépins, crue
+  "reteta-sfecla-rosie-fiarta-curatata": { src: "ciqual", code: 20003, kcal: 41.5, protein_g: 1.44, carbs_g: 7.13, fat_g: 0.4 }, // Betterave rouge, cuite
+  "reteta-sirop-de-artar": { src: "ciqual", code: 31034, kcal: 269, protein_g: 0.04, carbs_g: 67.2, fat_g: 0.06 }, // Sirop d'érable
+  "reteta-somon-afumat-feliat": { src: "ciqual", code: 26037, kcal: 184, protein_g: 22.2, carbs_g: 0.13, fat_g: 10.5 }, // Saumon fumé
+  "reteta-sos-de-soia-redus-in-sare": { src: "usda", code: 172473, kcal: 57, protein_g: 9.05, carbs_g: 4.89, fat_g: 0.3 }, // Soy sauce made from soy and wheat (shoyu), low sodium
+  "reteta-sos-iaurt-grecesc-2": { src: "usda", code: 170903, kcal: 73, protein_g: 9.95, carbs_g: 3.94, fat_g: 1.92 }, // Yogurt, Greek, plain, lowfat
+  "reteta-sos-marinara-de-rosii-cu-busuioc": { src: "usda", code: 171192, kcal: 50, protein_g: 1.39, carbs_g: 5.63, fat_g: 1.61, estimate: true }, // Sauce, pasta, spaghetti/marinara, ready-to-serve
+  "reteta-sos-pesto-verde-genovese": { src: "ciqual", code: 11179, kcal: 370, protein_g: 3.94, carbs_g: 6.6, fat_g: 35.4, estimate: true }, // Sauce pesto, préemballée
+  "reteta-sos-salsa-de-rosii": { src: "usda", code: 174524, kcal: 29, protein_g: 1.52, carbs_g: 4.74, fat_g: 0.17 }, // Sauce, salsa, ready-to-serve
+  "reteta-sos-tzatziki-din-iaurt-grecesc": { src: "ciqual", code: 19863, kcal: 138, protein_g: 6.06, carbs_g: 3.8, fat_g: 10.9 }, // Tzatziki à base de yaourt, préemballé
+  "reteta-sunca-presata-de-curcan-sau-praga": { src: "ciqual", code: 28964, kcal: 99.3, protein_g: 20.9, carbs_g: 0.023, fat_g: 1.67, estimate: "șuncă de curcan" }, // Jambon de dinde ou blanc de dinde en tranche
+  "reteta-sunca-slaba-din-piept-de-curcan": { src: "ciqual", code: 28964, kcal: 99.3, protein_g: 20.9, carbs_g: 0.023, fat_g: 1.67 }, // Jambon de dinde ou blanc de dinde en tranche
+  "reteta-supa-clara-de-legume-fierbinte": { src: "ciqual", code: 25948, kcal: 4.78, protein_g: 0.34, carbs_g: 0.51, fat_g: 0.16, estimate: true }, // Bouillon de légumes, déshydraté reconstitué
+  "reteta-supa-clara-de-legume": { src: "ciqual", code: 25948, kcal: 4.78, protein_g: 0.34, carbs_g: 0.51, fat_g: 0.16, estimate: true }, // Bouillon de légumes, déshydraté reconstitué
+  "reteta-taitei-subtiri-cu-ou-uscati": { src: "ciqual", code: 9821, kcal: 381, protein_g: 15.2, carbs_g: 68, fat_g: 4.72 }, // Pâtes sèches, aux oeufs, crues
+  "reteta-tofu-natur-ferm": { src: "ciqual", code: 20904, kcal: 147, protein_g: 14.7, carbs_g: 2.87, fat_g: 8.5 }, // Tofu nature, préemballé
+  "reteta-ton-bucati-in-suc-propriu-scurs": { src: "ciqual", code: 26039, kcal: 143, protein_g: 26.8, carbs_g: 0, fat_g: 3.94 }, // Thon, au naturel, appertisé, égoutté
+  "reteta-turmeric-pudra": { src: "ciqual", code: 11089, kcal: 291, protein_g: 9.68, carbs_g: 44.4, fat_g: 3.25 }, // Curcuma, poudre
+  "reteta-ulei-de-susan": { src: "ciqual", code: 17400, kcal: 900, protein_g: 0, carbs_g: 0, fat_g: 100 }, // Huile de sésame
+  "reteta-unt-82-grasime": { src: "ciqual", code: 16400, kcal: 753, protein_g: 0.63, carbs_g: 0.71, fat_g: 83, estimate: true }, // Beurre à 80% MG minimum, doux
+  "reteta-unt-de-arahide-100": { src: "ciqual", code: 15202, kcal: 643, protein_g: 25.4, carbs_g: 17.3, fat_g: 51.4, estimate: true }, // Beurre de cacahuète ou pâte d'arachide
+  "reteta-unt-de-migdale-100": { src: "usda", code: 168588, kcal: 614, protein_g: 20.96, carbs_g: 8.52, fat_g: 55.5 }, // Nuts, almond butter, plain, without salt added
+  "reteta-zeama-de-lamaie": { src: "ciqual", code: 2007, kcal: 28.6, protein_g: 0.35, carbs_g: 2.52, fat_g: 0.24 }, // Jus de citron, fait maison
+  "reteta-zeama-de-lime": { src: "ciqual", code: 2030, kcal: 9.87, protein_g: 0.42, carbs_g: 1.69, fat_g: 0.07 }, // Jus de citron vert, frais
+
   "rosii": { src: "ciqual", code: 20385, kcal: 19.2, protein_g: 0.6, carbs_g: 3.69, fat_g: 0 }, // Tomato, raw (average)
   "rosii-cherry": { src: "ciqual", code: 20172, kcal: 31.8, protein_g: 1.31, carbs_g: 5.62, fat_g: 0 }, // Tomato, cherry, raw
   "castraveti": { src: "ciqual", code: 20019, kcal: 16.8, protein_g: 0.65, carbs_g: 2.87, fat_g: 0.11 }, // Cucumber, flesh and skin, raw

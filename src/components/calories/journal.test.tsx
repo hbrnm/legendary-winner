@@ -139,6 +139,8 @@ describe("jurnalul de calorii de pe Acasă", () => {
     }));
 
     const { rerender } = render(<HomeCalories today="2026-03-08" />);
+    expect(screen.getByText("Nicio intrare azi")).toBeTruthy();
+    expect(screen.getByText(/Deschide jurnalul/)).toBeTruthy();
     fireEvent.click(screen.getByRole("button", { name: /Calorii azi/ }));
 
     fireEvent.click(screen.getByRole("button", { name: "Setează obiectiv" }));
@@ -167,7 +169,14 @@ describe("jurnalul de calorii de pe Acasă", () => {
 
     fireEvent.click(screen.getByRole("button", { name: "Adaugă mâncare" }));
     expect(screen.getByText("Adăugate recent")).toBeTruthy();
+    fireEvent.change(screen.getByLabelText("Caută un aliment sau o rețetă"), { target: { value: "Ouă" } });
     fireEvent.click(screen.getByRole("button", { name: "Scanează codul de bare" }));
+    expect(screen.queryByLabelText("Caută un aliment sau o rețetă")).toBeNull();
+    fireEvent.click(screen.getByRole("button", { name: "Înapoi la căutare" }));
+    expect((screen.getByLabelText("Caută un aliment sau o rețetă") as HTMLInputElement).value).toBe("Ouă");
+    fireEvent.click(screen.getByRole("button", { name: "Scanează codul de bare" }));
+    expect(screen.queryByLabelText("Cod de bare")).toBeNull();
+    fireEvent.click(screen.getByRole("button", { name: "Introdu codul manual" }));
     fireEvent.change(screen.getByLabelText("Cod de bare"), { target: { value: "5949084024838" } });
     fireEvent.click(screen.getByRole("button", { name: "Caută produsul" }));
     const pick = await screen.findByRole("button", { name: "Alege produsul" });

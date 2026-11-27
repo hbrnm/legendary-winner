@@ -282,7 +282,7 @@ export function HomeScreen({ captureRef }: { captureRef?: Ref<HTMLDivElement> })
                       <h2 id="today-meal-title" className="text-section-title font-bold text-ink">Azi la masă</h2>
                       <Link href={"/retete/reteta/?id=" + selectedMeal.recipe.id} className="w-full rounded-md focus-visible:outline-2 focus-visible:outline-brand hover:text-brand">
                         <span className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-semibold ${mealBadgeClasses(selectedMeal.slot)}`}>
-                          {SLOT_LABELS[selectedMeal.slot]} · {selectedMeal.servings} porții
+                          {SLOT_LABELS[selectedMeal.slot]} · {selectedMeal.servings} {selectedMeal.servings === 1 ? "porție" : "porții"}
                         </span>
                         <span className="kitchen-meal-title mt-2 block break-words">{selectedMeal.recipe.name}</span>
                         <span className="mt-2 flex items-center gap-1.5 text-sm text-ink-2">
@@ -294,7 +294,7 @@ export function HomeScreen({ captureRef }: { captureRef?: Ref<HTMLDivElement> })
                         variant={data.cooking ? "secondary" : "primary"}
                         onClick={() => openMeal(selectedMeal.planned ? "cook" : "plan", selectedMeal.recipe, selectedMeal.servings)}
                       >
-                        {selectedMeal.planned ? "Am gătit" : "Alege"}
+                        {selectedMeal.planned ? "Am gătit" : "Adaugă în plan"}
                       </Button>
                     </div>
                     <span aria-hidden="true" className="hidden size-20 shrink-0 items-center justify-center rounded-full bg-surface text-brand shadow-card min-[400px]:flex group-has-[.kitchen-meal-photo_img]/meal:hidden">
@@ -453,7 +453,7 @@ export function HomeScreen({ captureRef }: { captureRef?: Ref<HTMLDivElement> })
               <span className="min-w-0 flex-1">
                 <span className="block font-semibold">Cămară</span>
                 <span className="text-ink-2">
-                  {data.stockCount} în stoc
+                  {data.stockCount === 0 ? "Cămara este goală" : `${data.stockCount} în stoc`}
                   {data.expiringCount > 0 && <span className="ml-2 font-medium text-accent"> {data.expiringCount} expiră curând</span>}
                 </span>
               </span>
@@ -473,22 +473,22 @@ export function HomeScreen({ captureRef }: { captureRef?: Ref<HTMLDivElement> })
                 <PurseIcon size={19} />
               </span>
               {data.budget ? (
-                <div className="flex min-w-0 flex-1 items-center justify-between gap-3">
-                  <div className="min-w-0">
-                    <span className="block text-xs font-medium text-ink-2">Cheltuit luna asta</span>
-                    <span className="block truncate text-xs text-ink-2 tabular-nums">
-                      <strong className="text-sm font-bold text-ink">{formatRon(data.budget.spent)}</strong> din {formatRon(data.budget.budget.amount)}
-                    </span>
+                <dl className="min-w-0 flex-1 space-y-2">
+                  <div className="flex flex-wrap items-baseline justify-between gap-x-3">
+                    <dt className="text-xs font-medium text-ink-2">Cheltuit luna asta</dt>
+                    <dd className="min-w-0 break-words font-semibold text-ink tabular-nums">{formatRon(data.budget.spent)}</dd>
                   </div>
-                  <div className="shrink-0 text-right">
-                    <span className={`block text-base font-bold leading-tight tabular-nums ${data.budget.over ? "text-accent" : "text-ink"}`}>
+                  <div className="flex flex-wrap items-baseline justify-between gap-x-3">
+                    <dt className="text-xs font-medium text-ink-2">Buget lunar</dt>
+                    <dd className="min-w-0 break-words font-semibold text-ink tabular-nums">{formatRon(data.budget.budget.amount)}</dd>
+                  </div>
+                  <div className="flex flex-wrap items-baseline justify-between gap-x-3">
+                    <dt className="text-xs font-medium text-ink-2">{data.budget.over ? "Peste buget" : "Îți mai rămân"}</dt>
+                    <dd className={`min-w-0 break-words text-base font-bold leading-tight tabular-nums ${data.budget.over ? "text-accent" : "text-ink"}`}>
                       {formatRon(Math.abs(data.budget.remaining))}
-                    </span>
-                    <span className={`block text-xs ${data.budget.over ? "font-medium text-accent" : "text-ink-2"}`}>
-                      {data.budget.over ? "peste buget" : "îți mai rămân"}
-                    </span>
+                    </dd>
                   </div>
-                </div>
+                </dl>
               ) : (
                 <span className="min-w-0 flex-1">
                   <span className="block font-semibold">Bugetul lunii</span>

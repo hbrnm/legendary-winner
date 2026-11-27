@@ -460,6 +460,22 @@ input[type="checkbox"], input[type="radio"] { accent-color: var(--brand); }
 .add-button:active:not(:disabled) { transform: scale(0.97); }
 .add-button:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; }
 .add-button:disabled { opacity: 0.5; }
+.app-capture-fab {
+  position: fixed;
+  z-index: 41;
+  right: max(20px, env(safe-area-inset-right, 0px));
+  bottom: var(--app-nav-bottom);
+  box-shadow: var(--shadow-panel);
+}
+body:has(dialog[open]) .app-capture-fab { visibility: hidden; }
+@media (pointer: coarse) {
+  body:has(:is(textarea, [contenteditable="true"], input:not([type]):not([inputmode="none"]), input:is([type="text"], [type="search"], [type="email"], [type="tel"], [type="url"], [type="password"], [type="number"]):not([inputmode="none"])):focus) .app-capture-fab {
+    visibility: hidden;
+  }
+}
+@media (min-width: 600px) {
+  .app-capture-fab { right: 24px; bottom: max(24px, env(safe-area-inset-bottom, 0px)); }
+}
 .app-main.shopping-list-with-checkout { padding-bottom: calc(10rem + env(safe-area-inset-bottom, 0px)); }
 .shopping-list-with-checkout :is(button, input, a) { scroll-margin-bottom: calc(10rem + env(safe-area-inset-bottom, 0px)); }
 .shopping-list-checkout {

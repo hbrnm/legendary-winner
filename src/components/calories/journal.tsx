@@ -353,15 +353,15 @@ function AddFoodPicker({ userId, date, recentEntries, onSave }: {
 
   return (
     <div className="space-y-4">
-      <Segmented
+      {!scanOpen && <Segmented
         label="Mod de adăugare"
         value={addMode}
         onChange={(nextMode) => setAddMode(nextMode)}
         options={[
-          { value: "search", label: "Caută sau scanează" },
+          { value: "search", label: "Caută" },
           { value: "manual", label: "Scrie manual" },
         ]}
-      />
+      />}
       {addMode === "manual" ? (
         <EntryForm
           key={`manual-${date}`}
@@ -370,18 +370,11 @@ function AddFoodPicker({ userId, date, recentEntries, onSave }: {
         />
       ) : (
         <div className="space-y-3">
-          <LabeledInput
-            label="Caută un aliment sau o rețetă"
-            placeholder="ex. lapte, ouă, omletă"
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-          />
-          <Button type="button" variant="outlined" onClick={() => setScanOpen((open) => !open)}>
-            {scanOpen ? "Închide codul de bare" : "Scanează codul de bare"}
-          </Button>
-          {scanOpen && (
+          {scanOpen ? (
             <div className="rounded-xl border border-line p-3">
+              <Button type="button" size="auto" variant="ghost" onClick={() => setScanOpen(false)}>Înapoi la căutare</Button>
               <BarcodeLookup
+                startWithCamera
                 initialCode={isGtin(query.trim()) ? query.trim() : ""}
                 cloudAvailable={mode === "cloud"}
                 findLocal={(gtin) => catalog?.findByGtin(gtin)?.suggestion ?? null}
@@ -402,12 +395,24 @@ function AddFoodPicker({ userId, date, recentEntries, onSave }: {
                     open_food_facts_code: suggestion.code,
                     product_id: local?.food.product_id,
                   };
+                  setScanOpen(false);
                   setPicked({ id: crypto.randomUUID(), user_id: userId, date, meal: suggestedMeal, recipe: null, food, servings: 1, manual_kcal: null });
                 }}
               />
             </div>
-          )}
-          {query.trim() === "" ? (
+          ) : <>
+            <div className="sticky top-0 z-10 bg-surface-container-low pb-2 pt-1">
+              <LabeledInput
+                label="Caută un aliment sau o rețetă"
+                type="search"
+                placeholder="ex. lapte, ouă, omletă"
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                className="h-11!"
+              />
+            </div>
+            <Button type="button" size="auto" variant="outlined" onClick={() => setScanOpen(true)}>Scanează codul de bare</Button>
+            {query.trim() === "" ? (
             recents.length > 0 ? (
               <div className="space-y-1.5">
                 <p className="text-sm font-medium text-ink-2">Adăugate recent</p>
@@ -463,7 +468,7 @@ function AddFoodPicker({ userId, date, recentEntries, onSave }: {
                   <li key={item.id}>
                     <button
                       type="button"
-                      className="flex min-h-12 w-full items-center justify-between gap-3 py-2.5 text-left hover:text-brand focus-visible:outline-2 focus-visible:outline-brand"
+                      className="flex min-h-12 w-full flex-wrap items-center justify-between gap-x-3 gap-y-1 py-2.5 text-left hover:text-brand focus-visible:outline-2 focus-visible:outline-brand"
                       onClick={() => {
                         if (item.kind === "recipe") {
                           setPicked({ id: crypto.randomUUID(), user_id: userId, date, meal: suggestedMeal, recipe: item.snapshot, servings: 1, manual_kcal: null });
@@ -476,13 +481,14 @@ function AddFoodPicker({ userId, date, recentEntries, onSave }: {
                         <span className="block break-words font-medium">{item.name}</span>
                         <span className="block text-xs text-ink-2">{subtitle}</span>
                       </span>
-                      <span className="shrink-0 text-sm text-ink-2 tabular">{badge}</span>
+                      <span className="min-w-0 text-sm text-ink-2 tabular">{badge}</span>
                     </button>
                   </li>
                 );
               })}
             </ul>
-          )}
+            )}
+          </>}
         </div>
       )}
     </div>
@@ -616,22 +622,27 @@ export function HomeCalories({ today }: { today: string }) {
       <Button variant={active ? "tonal" : "ghost"} size="auto" block={Boolean(active)} onClick={() => { setSelectedDate(null); setOpen(true); }}>
         {active ? (
           <span className="w-full space-y-1.5 py-0.5 text-left">
-            <span className="flex w-full items-center justify-between gap-3">
-              <span className="shrink-0">Calorii azi</span>
+            <span className="flex w-full flex-wrap items-center justify-between gap-x-3 gap-y-1">
+              <span>Calorii azi</span>
               <span className="text-right tabular">
                 {todayRows && (goal?.kcal ? `${energySummary(todayRows)} / ${kcalFormat.format(goal.kcal)} kcal` : energySummary(todayRows))}
               </span>
             </span>
             {homeGoalProgress && goal?.kcal && (
-              <span className="block h-1.5 w-full overflow-hidden rounded-full bg-surface-2" aria-hidden>
+              <span className="block h-1.5 w-full overflow-hidden rounded-full bg-surface" aria-hidden>
                 <span className={`block h-full rounded-full ${homeGoalProgress.over ? "bg-accent" : "bg-brand"}`} style={{ width: `${homeGoalProgress.pct}%` }} />
               </span>
             )}
+            <span className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1">
+              {todayRows?.length === 0 && <span>Nicio intrare azi</span>}
+              <span className="ml-auto">Deschide jurnalul <span aria-hidden>→</span></span>
+            </span>
           </span>
         ) : "Jurnal calorii"}
       </Button>
       <Sheet
         open={open}
+        compact={editing != null && !editing.existing}
         title={deleting ? "Ștergi intrarea?" : goalOpen ? "Obiectiv zilnic" : editing ? (editing.existing ? "Editează intrarea" : "Adaugă mâncare") : "Jurnal calorii"}
         onClose={() => { setOpen(false); setEditing(null); setDeleting(null); setGoalOpen(false); }}
       >

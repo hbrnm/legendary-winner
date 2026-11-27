@@ -92,10 +92,17 @@ export interface RetailerSeed {
 }
 
 export interface NutritionSeed {
-  /** Sursa: CIQUAL (ANSES), USDA FoodData Central SR Legacy sau media altor rânduri. */
-  src: "ciqual" | "usda" | "medie";
-  /** alim_code (CIQUAL) sau fdc_id (USDA); lipsește la medie. */
+  /** Sursa din tabel, dintr-o fișă de referință sau din media altor rânduri. */
+  src: "ciqual" | "usda" | "medie" | "referinta";
+  /** alim_code (CIQUAL) sau fdc_id (USDA). */
   code?: number;
+  /** Numele și fișa verificabilă pentru o sursă din afara tabelelor principale. */
+  source?: string;
+  url?: string;
+  /** Marchează o potrivire aproximativă și, când contează, ipoteza folosită. */
+  estimate?: true | string;
+  /** Fracția comestibilă estimată, când rețeta cântărește și părțile necomestibile. */
+  edibleFraction?: number;
   /** La 100 g. */
   kcal: number;
   protein_g: number;
