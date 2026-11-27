@@ -6,6 +6,7 @@
 //
 // Rulare: node scripts/local-supabase.mjs   (Ctrl+C oprește tot)
 import { execFileSync, spawn } from "node:child_process";
+import { createHash } from "node:crypto";
 import { existsSync, mkdirSync, readdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { createServer, request } from "node:http";
 import { join } from "node:path";
@@ -24,10 +25,27 @@ const PASSWORD = "local";
 const SITE = process.env.SITE_URL ?? "http://localhost:3200";
 
 function ensureBinaries() {
-  if (existsSync(join(BIN, "postgrest")) && existsSync(join(BIN, "auth"))) return;
   mkdirSync(BIN, { recursive: true });
-  execFileSync("sh", ["-c", `curl -sSL https://github.com/PostgREST/postgrest/releases/download/v12.2.3/postgrest-v12.2.3-linux-static-x64.tar.xz | tar -xJ -C '${BIN}'`], { stdio: "inherit" });
-  execFileSync("sh", ["-c", `curl -sSL https://github.com/supabase/auth/releases/download/v2.169.0/auth-v2.169.0-x86.tar.gz | tar -xz -C '${BIN}'`], { stdio: "inherit" });
+  const releases = [
+    {
+      url: "https://github.com/PostgREST/postgrest/releases/download/v12.2.3/postgrest-v12.2.3-linux-static-x64.tar.xz",
+      sha256: "9f71269e61ac3a940281e93ff415760f5957e430e475ba4c3889f3ede7d5527c",
+    },
+    {
+      url: "https://github.com/supabase/auth/releases/download/v2.169.0/auth-v2.169.0-x86.tar.gz",
+      sha256: "399d1b7db1ba3ed3899ce5610f99cf61340c2b0bf1fd2c2aebf6c3f97cb1daf8",
+    },
+  ];
+  for (const { url, sha256 } of releases) {
+    const archive = join(BIN, new URL(url).pathname.split("/").at(-1));
+    if (!existsSync(archive)) {
+      execFileSync("curl", ["--fail", "--silent", "--show-error", "--location", "--remove-on-error", "--output", archive, url], { stdio: "inherit" });
+    }
+    if (createHash("sha256").update(readFileSync(archive)).digest("hex") !== sha256) {
+      throw new Error(`SHA-256 incorect pentru arhiva ${archive}`);
+    }
+    execFileSync("tar", ["-xf", archive, "-C", BIN], { stdio: "inherit" });
+  }
 }
 
 function pgBin(name) {

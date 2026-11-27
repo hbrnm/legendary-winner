@@ -1,7 +1,7 @@
 // Server static minimal pentru out/ (testele E2E și verificarea locală a build-ului).
 import { createServer } from "node:http";
 import { readFile, stat } from "node:fs/promises";
-import { extname, join, normalize } from "node:path";
+import { extname, isAbsolute, join, relative, resolve, sep } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const ROOT = fileURLToPath(new URL(`../${process.env.OUT_DIR ?? "out"}/`, import.meta.url));
@@ -9,9 +9,19 @@ const PORT = Number(process.env.PORT ?? 3100);
 const TYPES = { ".html": "text/html; charset=utf-8", ".js": "text/javascript", ".css": "text/css", ".json": "application/json", ".webmanifest": "application/manifest+json", ".png": "image/png", ".svg": "image/svg+xml", ".ico": "image/x-icon", ".txt": "text/plain; charset=utf-8", ".woff2": "font/woff2" };
 
 createServer(async (req, res) => {
-  const url = new URL(req.url ?? "/", "http://x");
-  let path = normalize(decodeURIComponent(url.pathname)).replace(/^(\.\.[/\\])+/, "");
-  let file = join(ROOT, path);
+  let file;
+  try {
+    const url = new URL(req.url ?? "/", "http://x");
+    const path = decodeURIComponent(url.pathname);
+    if (path.includes("\0")) throw new Error("Invalid path");
+    file = resolve(ROOT, "." + path);
+    const fromRoot = relative(ROOT, file);
+    if (fromRoot === ".." || fromRoot.startsWith(".." + sep) || isAbsolute(fromRoot)) throw new Error("Invalid path");
+  } catch {
+    res.statusCode = 400;
+    res.end("Cerere nevalidă");
+    return;
+  }
   try {
     if ((await stat(file)).isDirectory()) file = join(file, "index.html");
   } catch {
@@ -37,4 +47,4 @@ createServer(async (req, res) => {
     res.statusCode = 404;
     res.end("Nu există");
   }
-}).listen(PORT, () => console.log(`Cămara: http://localhost:${PORT}`));
+}).listen(PORT, "localhost", () => console.log(`Cămara: http://localhost:${PORT}`));

@@ -6,9 +6,12 @@
 
 import { handleImportRequest, quotaViaRest } from "./core.js";
 
+type HttpClient = { close(): void };
+
 declare const Deno: {
   serve(handler: (req: Request) => Response | Promise<Response>): unknown;
   resolveDns(host: string, type: "A" | "AAAA"): Promise<string[]>;
+  createHttpClient(options: { proxy: { url: string } }): HttpClient;
   env: { get(name: string): string | undefined };
 };
 
@@ -19,4 +22,13 @@ async function resolveHost(host: string): Promise<string[]> {
 
 const takeQuota = quotaViaRest(fetch, Deno.env.get("SUPABASE_URL") ?? "", Deno.env.get("SUPABASE_ANON_KEY") ?? "");
 
-Deno.serve((req) => handleImportRequest(req, { fetch, resolveHost, takeQuota }));
+const proxyUrl = Deno.env.get("RECIPE_IMPORT_EGRESS_PROXY");
+const proxyClient = proxyUrl ? Deno.createHttpClient({ proxy: { url: proxyUrl } }) : undefined;
+
+const fetchThroughProxy: typeof fetch = (input, init) => {
+  if (!proxyClient) return fetch(input, init);
+  const options: RequestInit & { client: HttpClient } = { ...init, client: proxyClient };
+  return fetch(input, options);
+};
+
+Deno.serve((req) => handleImportRequest(req, { fetch: fetchThroughProxy, resolveHost, takeQuota }));
