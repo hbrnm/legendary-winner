@@ -329,6 +329,12 @@ async function readJsonBody(req, maxBytes) {
 }
 
 // src/lib/server/import-recipe.ts
+function createProxiedFetch(fetchFn, client) {
+  return async (input, init) => {
+    if (!client) throw new Error("Import egress proxy is not configured");
+    return fetchFn(input, { ...init, client });
+  };
+}
 var IMPORT_LIMITS = {
   /** Limita corpului cererii JSON (F11). */
   maxBody: 1e5,
@@ -344,6 +350,7 @@ var STATUS = {
   bad_request: 400,
   unauthorized: 401,
   rate_limited: 429,
+  unavailable: 503,
   invalid_url: 400,
   blocked_address: 400,
   fetch_failed: 502,
@@ -537,6 +544,11 @@ function reply(body, status) {
   });
 }
 var fail = (code) => reply({ error: code }, STATUS[code]);
+function egressProxyUnavailableResponse(req, configured) {
+  if (configured) return null;
+  if (req.method === "OPTIONS") return reply(null, 204);
+  return fail("unavailable");
+}
 async function handleImportRequest(req, deps, limits = IMPORT_LIMITS) {
   if (req.method === "OPTIONS") return reply(null, 204);
   if (req.method !== "POST") return fail("bad_request");
@@ -582,6 +594,8 @@ function quotaViaRest(fetchFn, supabaseUrl, anonKey, rpc = "take_recipe_import_q
 }
 export {
   IMPORT_LIMITS,
+  createProxiedFetch,
+  egressProxyUnavailableResponse,
   fetchRecipeImage,
   fetchRecipePage,
   handleImportRequest,

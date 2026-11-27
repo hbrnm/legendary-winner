@@ -164,7 +164,7 @@ export function draftFromPastedText(text: string): RecipeDraft {
   return draft;
 }
 
-export type ImportErrorCode = "bad_request" | "unauthorized" | "rate_limited" | "invalid_url" | "blocked_address" | "fetch_failed" | "timeout" | "too_large" | "not_html" | "not_image" | "no_recipe";
+export type ImportErrorCode = "bad_request" | "unauthorized" | "rate_limited" | "unavailable" | "invalid_url" | "blocked_address" | "fetch_failed" | "timeout" | "too_large" | "not_html" | "not_image" | "no_recipe";
 
 const PASTE_TEXT = "Copiază textul rețetei de pe pagină și lipește-l la „Text”.";
 
@@ -172,6 +172,7 @@ export const IMPORT_ERROR_MESSAGES: Record<ImportErrorCode, string> = {
   bad_request: "Nu am putut citi linkul. Încearcă din nou.",
   unauthorized: "Conectează-te din nou, apoi încearcă iar.",
   rate_limited: "Ai importat multe rețete în ultima oră. Încearcă din nou mai târziu.",
+  unavailable: "Importul rețetelor este temporar indisponibil. Încearcă din nou mai târziu.",
   invalid_url: "Linkul nu e bun. Copiază adresa întreagă a rețetei, care începe cu https://.",
   blocked_address: "Nu pot deschide acest link. Încearcă linkul altei rețete.",
   fetch_failed: "Nu am putut deschide pagina. Verifică linkul și încearcă din nou.",

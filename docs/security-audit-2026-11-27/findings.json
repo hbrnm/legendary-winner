@@ -19,8 +19,8 @@
       "cwe": "CWE-918",
       "verdict": "needs_validation",
       "source_sink_trace": "src/lib/server/import-recipe.ts:146–174, 231–268, 320–338; supabase/functions/import-recipe/index.ts:15–22",
-      "evidence": "URL-ul primit ajunge la un fetch HTTP după verificarea DNS separată. Codul nu garantează că adresa folosită de conexiune este cea validată. Impactul depinde de runtime și de restricțiile de rețea din mediul găzduit.",
-      "remediation": "Folosește un proxy de ieșire care validează destinația la conectare și blochează intervalele private și speciale. Păstrează validarea fiecărui redirect și limitele de răspuns."
+      "evidence": "Înaintea remedierii, URL-ul ajungea la fetch după o verificare DNS separată. Patch-ul face proxy-ul obligatoriu și refuză cererile înainte de DNS sau fetch când clientul proxy lipsește; politica efectivă a proxy-ului și secretul din mediul găzduit încă trebuie confirmate.",
+      "remediation": "Păstrează proxy-ul obligatoriu, fără fallback direct. Confirmă că proxy-ul blochează destinațiile locale, private și speciale la conectare, inclusiv după redirect; păstrează validarea redirecturilor și limitele de răspuns."
     },
     {
       "id": "SEC-003",
