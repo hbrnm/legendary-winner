@@ -5,8 +5,9 @@ import Dexie from "dexie";
 import { useLiveQuery } from "dexie-react-hooks";
 import { useApp } from "@/components/app/app-provider";
 import { useData } from "@/components/app/hooks";
-import { Button } from "@/components/ui/button";
+import { Button, IconButton } from "@/components/ui/button";
 import { LabeledInput, LabeledSelect, Segmented } from "@/components/ui/fields";
+import { ChevronLeft, ChevronRight } from "@/components/ui/icons";
 import { Sheet } from "@/components/ui/sheet";
 import { useToast } from "@/components/ui/toast";
 import { defaultFoodFromItem, loadCalorieSearchCatalog, searchCalorieCatalog } from "@/data/calorie-search";
@@ -34,7 +35,7 @@ import {
   type FoodCalorieSnapshot,
   type FoodUnit,
 } from "@/lib/domain/calories";
-import { toISODate } from "@/lib/domain/dates";
+import { addDays, toISODate } from "@/lib/domain/dates";
 import type { MealSlot } from "@/lib/domain/types";
 import { now } from "@/lib/clock";
 import { BarcodeLookup } from "./barcode-lookup";
@@ -684,12 +685,25 @@ export function HomeCalories({ today }: { today: string }) {
         ) : active ? (
           <div className="space-y-4">
             <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
-              <div className="w-full min-w-0 flex-1">
-                <LabeledInput label="Ziua jurnalului" type="date" max={today} value={date} onChange={(e) => { if (e.target.value) setSelectedDate(e.target.value); }} className="w-full min-w-0" />
+              <div className="flex w-full min-w-0 flex-1 items-end gap-1">
+                <IconButton label="Ziua anterioară" onClick={() => setSelectedDate(addDays(date, -1))}>
+                  <ChevronLeft size={20} aria-hidden />
+                </IconButton>
+                <div className="min-w-0 flex-1">
+                  <LabeledInput label="Ziua jurnalului" type="date" max={today} value={date} onChange={(e) => { if (e.target.value) setSelectedDate(e.target.value); }} className="w-full min-w-0" />
+                </div>
+                <IconButton label="Ziua următoare" disabled={date >= today} onClick={() => setSelectedDate(addDays(date, 1))}>
+                  <ChevronRight size={20} aria-hidden />
+                </IconButton>
               </div>
-              <Button type="button" variant="secondary" size="auto" className="shrink-0 self-start sm:self-auto" onClick={() => setGoalOpen(true)}>
-                {goal?.kcal ? "Obiectiv zilnic" : "Setează obiectiv"}
-              </Button>
+              <div className="flex shrink-0 items-center gap-2 self-start sm:self-auto">
+                {date !== today && (
+                  <Button type="button" variant="ghost" size="auto" onClick={() => setSelectedDate(null)}>Azi</Button>
+                )}
+                <Button type="button" variant="secondary" size="auto" onClick={() => setGoalOpen(true)}>
+                  {goal?.kcal ? "Obiectiv zilnic" : "Setează obiectiv"}
+                </Button>
+              </div>
             </div>
             {rows && dayTotals && (
               <div className="space-y-2 rounded-2xl bg-surface-container-low p-3">

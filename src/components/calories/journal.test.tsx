@@ -125,6 +125,44 @@ describe("jurnalul de calorii de pe Acasă", () => {
     })));
   });
 
+  it("navighează rapid între zile cu săgeți și revine la azi", () => {
+    state.active = { user_id: "u1" };
+    state.entries = [
+      {
+        id: "r1",
+        user_id: "u1",
+        date: "2026-03-07",
+        meal: "cina",
+        recipe: null,
+        food: null,
+        label: "Cină de ieri",
+        servings: 1,
+        manual_kcal: 200,
+      },
+    ];
+    render(<HomeCalories today="2026-03-08" />);
+    fireEvent.click(screen.getByRole("button", { name: /Calorii azi/ }));
+
+    expect((screen.getByLabelText("Ziua jurnalului") as HTMLInputElement).value).toBe("2026-03-08");
+    expect(screen.getByText("Nu ai intrări pentru ziua aleasă.")).toBeTruthy();
+    expect((screen.getByRole("button", { name: "Ziua următoare" }) as HTMLButtonElement).disabled).toBe(true);
+    expect(screen.queryByRole("button", { name: "Azi" })).toBeNull();
+
+    fireEvent.click(screen.getByRole("button", { name: "Ziua anterioară" }));
+    expect((screen.getByLabelText("Ziua jurnalului") as HTMLInputElement).value).toBe("2026-03-07");
+    expect(screen.getByText("Cină de ieri")).toBeTruthy();
+    expect((screen.getByRole("button", { name: "Ziua următoare" }) as HTMLButtonElement).disabled).toBe(false);
+
+    fireEvent.click(screen.getByRole("button", { name: "Ziua anterioară" }));
+    expect((screen.getByLabelText("Ziua jurnalului") as HTMLInputElement).value).toBe("2026-03-06");
+    expect(screen.getByText("Nu ai intrări pentru ziua aleasă.")).toBeTruthy();
+
+    fireEvent.click(screen.getByRole("button", { name: "Azi" }));
+    expect((screen.getByLabelText("Ziua jurnalului") as HTMLInputElement).value).toBe("2026-03-08");
+    expect(screen.queryByRole("button", { name: "Azi" })).toBeNull();
+    expect((screen.getByRole("button", { name: "Ziua următoare" }) as HTMLButtonElement).disabled).toBe(true);
+  });
+
   it("caută un produs din catalog după nume, un produs Open Food Facts după cod de bare și salvează obiectivul zilnic", async () => {
     state.active = { user_id: "u1" };
     state.hasDb = true;
