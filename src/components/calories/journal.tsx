@@ -15,6 +15,7 @@ import { calorieDatabase } from "@/lib/db/calorie-database";
 import { isGtin } from "@/lib/domain/barcode";
 import {
   MEAL_SLOTS,
+  copyEntriesToDate,
   dailyTotals,
   defaultMealForDate,
   energySummary,
@@ -35,7 +36,7 @@ import {
   type FoodCalorieSnapshot,
   type FoodUnit,
 } from "@/lib/domain/calories";
-import { addDays, toISODate } from "@/lib/domain/dates";
+import { addDays, formatLongDate, toISODate } from "@/lib/domain/dates";
 import type { MealSlot } from "@/lib/domain/types";
 import { now } from "@/lib/clock";
 import { BarcodeLookup } from "./barcode-lookup";
@@ -496,6 +497,63 @@ function AddFoodPicker({ userId, date, recentEntries, onSave }: {
   );
 }
 
+function CopyMealsForm({ allEntries, date, onSave, onCancel }: {
+  allEntries: readonly CalorieEntry[];
+  date: string;
+  onSave: (entries: CalorieEntry[]) => Promise<void>;
+  onCancel: () => void;
+}) {
+  const days = [...new Set(allEntries.filter((e) => e.date !== date).map((e) => e.date))]
+    .sort((a, b) => b.localeCompare(a))
+    .slice(0, 14);
+  const [source, setSource] = useState(days.find((d) => d < date) ?? days[0] ?? "");
+  const [meal, setMeal] = useState<"all" | MealSlot>("all");
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState("");
+  const rows = allEntries.filter((e) => e.date === source && (meal === "all" || e.meal === meal));
+
+  async function save(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (busy || rows.length === 0) return;
+    setError("");
+    setBusy(true);
+    try {
+      await onSave(copyEntriesToDate(rows, date, () => crypto.randomUUID(), now().toISOString()));
+    } catch {
+      setError("Intrările nu au putut fi copiate pe dispozitiv.");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  return (
+    <form onSubmit={save} className="space-y-4">
+      <p className="text-sm text-ink-2">Copiază mesele dintr-o altă zi în {formatLongDate(date)}. Intrările copiate pot fi editate sau șterse individual.</p>
+      <LabeledSelect label="Ziua sursă" value={source} onChange={(e) => setSource(e.target.value)}>
+        {days.map((d) => (
+          <option key={d} value={d}>{formatLongDate(d)}</option>
+        ))}
+      </LabeledSelect>
+      <LabeledSelect label="Mese" value={meal} onChange={(e) => setMeal(e.target.value as "all" | MealSlot)}>
+        <option value="all">Toate mesele</option>
+        {MEAL_SLOTS.map((m) => (
+          <option key={m.slot} value={m.slot}>{m.label}</option>
+        ))}
+      </LabeledSelect>
+      <p aria-live="polite" className="text-sm text-ink-2">
+        {rows.length === 0
+          ? "Nicio intrare pentru filtrele alese."
+          : `${rows.length} ${rows.length === 1 ? "intrare" : "intrări"} · ${energySummary(rows)}`}
+      </p>
+      {error && <p role="alert" className="text-sm text-accent">{error}</p>}
+      <Button block type="submit" disabled={busy || rows.length === 0}>
+        {rows.length === 1 ? "Copiază 1 intrare" : `Copiază ${rows.length} intrări`}
+      </Button>
+      <Button type="button" variant="secondary" onClick={onCancel}>Renunță</Button>
+    </form>
+  );
+}
+
 function EntryRow({ entry, onEdit, onDelete }: { entry: CalorieEntry; onEdit: () => void; onDelete: () => void }) {
   const itemMacros = entryNutrition(entry);
   const offCode = entry.food?.open_food_facts_code;
@@ -558,6 +616,7 @@ export function HomeCalories({ today }: { today: string }) {
   const [editing, setEditing] = useState<{ entry: CalorieEntry; existing: boolean } | null>(null);
   const [deleting, setDeleting] = useState<CalorieEntry | null>(null);
   const [goalOpen, setGoalOpen] = useState(false);
+  const [copyOpen, setCopyOpen] = useState(false);
   const date = selectedDate ?? today;
 
   const active = useLiveQuery(() => ctx ? calorieDatabase().preferences.get(ctx.userId) : undefined, [ctx?.userId], null);
@@ -644,8 +703,8 @@ export function HomeCalories({ today }: { today: string }) {
       <Sheet
         open={open}
         compact={editing != null && !editing.existing}
-        title={deleting ? "Ștergi intrarea?" : goalOpen ? "Obiectiv zilnic" : editing ? (editing.existing ? "Editează intrarea" : "Adaugă mâncare") : "Jurnal calorii"}
-        onClose={() => { setOpen(false); setEditing(null); setDeleting(null); setGoalOpen(false); }}
+        title={deleting ? "Ștergi intrarea?" : goalOpen ? "Obiectiv zilnic" : copyOpen ? "Copiază mese" : editing ? (editing.existing ? "Editează intrarea" : "Adaugă mâncare") : "Jurnal calorii"}
+        onClose={() => { setOpen(false); setEditing(null); setDeleting(null); setGoalOpen(false); setCopyOpen(false); }}
       >
         {open && (deleting ? (
           <div className="space-y-4">
@@ -670,6 +729,17 @@ export function HomeCalories({ today }: { today: string }) {
               await db.preferences.put({ user_id: userId, goal: nextGoal });
               setGoalOpen(false);
               toast(nextGoal ? "Obiectivul zilnic a fost salvat." : "Obiectivul zilnic a fost șters.");
+            }}
+          />
+        ) : copyOpen ? (
+          <CopyMealsForm
+            allEntries={allEntries ?? []}
+            date={date}
+            onCancel={() => setCopyOpen(false)}
+            onSave={async (entries) => {
+              await db.entries.bulkAdd(entries);
+              setCopyOpen(false);
+              toast(entries.length === 1 ? "1 intrare copiată în ziua selectată." : `${entries.length} intrări copiate în ziua selectată.`);
             }}
           />
         ) : editing ? (
@@ -738,7 +808,12 @@ export function HomeCalories({ today }: { today: string }) {
                 )}
               </div>
             )}
-            <Button variant="outlined" onClick={() => setEditing({ entry: { id: crypto.randomUUID(), user_id: userId, date, meal: defaultMealForDate(now()), recipe: null, food: null, label: null, servings: 1, manual_kcal: null }, existing: false })}>Adaugă mâncare</Button>
+            <div className="flex flex-wrap gap-2">
+              <Button variant="outlined" onClick={() => setEditing({ entry: { id: crypto.randomUUID(), user_id: userId, date, meal: defaultMealForDate(now()), recipe: null, food: null, label: null, servings: 1, manual_kcal: null }, existing: false })}>Adaugă mâncare</Button>
+              {(allEntries ?? []).some((e) => e.date !== date) && (
+                <Button variant="ghost" onClick={() => setCopyOpen(true)}>Copiază din altă zi</Button>
+              )}
+            </div>
             {rows?.length === 0 && <p className="text-sm text-ink-2">Nu ai intrări pentru ziua aleasă.</p>}
             {mealGroups.map((group) => (
               <section key={group.slot} aria-label={group.label} className="space-y-1">

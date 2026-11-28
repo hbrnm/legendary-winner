@@ -14,6 +14,7 @@ const state = vi.hoisted(() => ({
   lookup: vi.fn(),
   putPref: vi.fn(async (pref: CaloriePreferences) => { state.active = pref; }),
   addEntry: vi.fn(async (entry: CalorieEntry) => { state.entries.push(entry); }),
+  bulkAddEntries: vi.fn(async (rows: CalorieEntry[]) => { state.entries.push(...rows); }),
   updateEntry: vi.fn(async (id: string, patch: Partial<CalorieEntry>) => {
     state.entries = state.entries.map((e) => (e.id === id ? { ...e, ...patch } : e));
     return 1;
@@ -62,6 +63,7 @@ vi.mock("@/lib/db/calorie-database", () => ({
         }),
       }),
       add: state.addEntry,
+      bulkAdd: state.bulkAddEntries,
       update: state.updateEntry,
       delete: state.deleteEntry,
     },
@@ -161,6 +163,31 @@ describe("jurnalul de calorii de pe Acasă", () => {
     expect((screen.getByLabelText("Ziua jurnalului") as HTMLInputElement).value).toBe("2026-03-08");
     expect(screen.queryByRole("button", { name: "Azi" })).toBeNull();
     expect((screen.getByRole("button", { name: "Ziua următoare" }) as HTMLButtonElement).disabled).toBe(true);
+  });
+
+  it("copiază mesele din ziua precedentă în ziua selectată", async () => {
+    state.active = { user_id: "u1" };
+    state.entries = [
+      { id: "r1", user_id: "u1", date: "2026-03-07", meal: "mic_dejun", recipe: null, food: null, label: "Iaurt", servings: 1, manual_kcal: 100 },
+      { id: "r2", user_id: "u1", date: "2026-03-07", meal: "cina", recipe: null, food: null, label: "Salată", servings: 1, manual_kcal: 200 },
+    ];
+    render(<HomeCalories today="2026-03-08" />);
+    fireEvent.click(screen.getByRole("button", { name: /Calorii azi/ }));
+    fireEvent.click(screen.getByRole("button", { name: "Copiază din altă zi" }));
+
+    expect((screen.getByLabelText("Ziua sursă") as HTMLSelectElement).value).toBe("2026-03-07");
+    expect(screen.getByText(/2 intrări · 300 kcal/)).toBeTruthy();
+
+    fireEvent.change(screen.getByLabelText("Mese"), { target: { value: "mic_dejun" } });
+    expect(screen.getByText(/1 intrare · 100 kcal/)).toBeTruthy();
+    fireEvent.submit(screen.getByRole("button", { name: "Copiază 1 intrare" }).closest("form")!);
+    await waitFor(() => expect(state.bulkAddEntries).toHaveBeenCalledTimes(1));
+
+    const copied = state.bulkAddEntries.mock.calls[0][0];
+    expect(copied).toHaveLength(1);
+    expect(copied[0]).toEqual(expect.objectContaining({ date: "2026-03-08", meal: "mic_dejun", label: "Iaurt", manual_kcal: 100 }));
+    expect(copied[0].id).not.toBe("r1");
+    expect(screen.queryByLabelText("Ziua sursă")).toBeNull();
   });
 
   it("caută un produs din catalog după nume, un produs Open Food Facts după cod de bare și salvează obiectivul zilnic", async () => {

@@ -203,6 +203,11 @@ export function formatFoodQuantity(food: Pick<FoodCalorieSnapshot, "quantity" | 
   return `${kcalFormat.format(food.quantity)} ${food.unit}`;
 }
 
+/** Duplică intrări în altă zi, cu id-uri noi și moment de înregistrare nou; nu modifică intrările originale. */
+export function copyEntriesToDate(entries: readonly CalorieEntry[], date: string, makeId: () => string, loggedAt: string): CalorieEntry[] {
+  return entries.map((e) => ({ ...e, id: makeId(), date, logged_at: loggedAt }));
+}
+
 export function energySummary(entries: CalorieEntry[]): string {
   if (entries.length === 0) return "0 kcal";
   const { kcal, incomplete } = dailyTotals(entries);

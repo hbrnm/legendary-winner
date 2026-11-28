@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
+  copyEntriesToDate,
   defaultMealForDate,
   energySummary,
   entryEnergy,
@@ -109,5 +110,16 @@ describe("calorii și rezumatul zilnic", () => {
       entry({ id: "4", recipe: null, manual_kcal: 45, label: "Cafea", date: "2026-03-07", logged_at: "2026-03-07T10:00:00Z" }),
     ]);
     expect(recents.map((item) => item.id)).toEqual(["3", "4"]);
+  });
+
+  it("copiază intrările în altă zi cu id-uri noi, păstrând valorile și originalele", () => {
+    const original = entry({ date: "2026-03-07", meal: "mic_dejun", logged_at: "2026-03-07T08:00:00Z" });
+    let n = 0;
+    const copies = copyEntriesToDate([original], "2026-03-08", () => `new-${++n}`, "2026-03-08T09:00:00Z");
+    expect(copies).toEqual([{ ...original, id: "new-1", date: "2026-03-08", logged_at: "2026-03-08T09:00:00Z" }]);
+    expect(original.id).toBe("e1");
+    expect(original.date).toBe("2026-03-07");
+    expect(original.logged_at).toBe("2026-03-07T08:00:00Z");
+    expect(copyEntriesToDate([], "2026-03-08", () => "x", "2026-03-08T09:00:00Z")).toEqual([]);
   });
 });
