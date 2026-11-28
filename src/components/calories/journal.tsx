@@ -683,11 +683,11 @@ export function HomeCalories({ today }: { today: string }) {
           )
         ) : active ? (
           <div className="space-y-4">
-            <div className="flex flex-wrap items-end justify-between gap-3">
-              <div className="min-w-0 flex-1">
-                <LabeledInput label="Ziua jurnalului" type="date" max={today} value={date} onChange={(e) => { if (e.target.value) setSelectedDate(e.target.value); }} />
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+              <div className="w-full min-w-0 flex-1">
+                <LabeledInput label="Ziua jurnalului" type="date" max={today} value={date} onChange={(e) => { if (e.target.value) setSelectedDate(e.target.value); }} className="w-full min-w-0" />
               </div>
-              <Button type="button" variant="secondary" size="auto" onClick={() => setGoalOpen(true)}>
+              <Button type="button" variant="secondary" size="auto" className="shrink-0 self-start sm:self-auto" onClick={() => setGoalOpen(true)}>
                 {goal?.kcal ? "Obiectiv zilnic" : "Setează obiectiv"}
               </Button>
             </div>

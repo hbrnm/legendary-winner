@@ -165,7 +165,7 @@ describe("jurnalul de calorii de pe Acasă", () => {
     })));
 
     rerender(<HomeCalories today="2026-03-08" />);
-    expect(screen.getByText(/Rămase: 1\.860 kcal/)).toBeTruthy();
+    expect(screen.getByText(/Rămase: 1[.,]860 kcal/)).toBeTruthy();
 
     fireEvent.click(screen.getByRole("button", { name: "Adaugă mâncare" }));
     expect(screen.getByText("Adăugate recent")).toBeTruthy();
